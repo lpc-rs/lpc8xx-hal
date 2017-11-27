@@ -52,69 +52,6 @@ The authoritative source on LPC82x is the **[LPC82x User Manual]**.
 [LPC82x User Manual]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
 
 
-## Example
-
-This is a very basic example of an application that blinks an LED.
-
-``` rust
-use lpc82x_hal::{
-    PIO0_3,
-    System,
-};
-use lpc82x_hal::clock::Ticks;
-use lpc82x_hal::sleep::{
-    self,
-    Sleep,
-};
-
-#[no_mangle]
-pub fn main() {
-    // Initialize the system. This is unsafe, because we're only allowed to
-    // create one instance on `System`.
-    let system = unsafe { System::new() };
-
-    // Let's save some peripherals in local variables for convenience. This one
-    // here doesn't require initialization.
-    let mut syscon = system.peripherals.syscon;
-
-    // Other peripherals need to be initialized. Trying to use the API before
-    // initializing it will actually lead to compile-time errors.
-    let mut gpio = system.peripherals.gpio.init(&mut syscon);
-    let mut swm  = system.peripherals.swm.init(&mut syscon);
-    let mut wkt  = system.peripherals.wkt.init(&mut syscon);
-
-    // We're going to need a clock below for sleeping. Let's use the IRC-derived
-    // clock that runs at 750 kHz.
-    let clock = system.clocks.irc_derived_clock.enable(&mut syscon);
-
-    // Set pin direction to output, so we can use it to blink an LED.
-    gpio.set_pin_to_output::<PIO0_3>(&mut swm);
-
-    // Let's already initialize the durations that we're going to sleep for
-    // between changing the LED state. We do this by specifying the number of
-    // clock ticks directly, but a real program could use a library that allows
-    // us to specify the time in milliseconds.
-    // Each duration also keeps a reference to the clock, as to prevent other
-    // parts of the program from accidentally disabling the clock, or changing
-    // its settings.
-    let on_time  = Ticks { value:  37_500, clock: &clock }; //  50 ms
-    let off_time = Ticks { value: 712_500, clock: &clock }; // 950 ms
-
-    // Since this is a simple example, we don't want to deal with interrupts.
-    // Let's just use busy waiting as a sleeping strategy, so we don't have to.
-    let mut sleep = sleep::Busy::prepare(&mut wkt);
-
-    // Continuously blink the LED
-    loop {
-        gpio.set_high::<PIO0_3>();
-        sleep.sleep(on_time);
-        gpio.set_low::<PIO0_3>();
-        sleep.sleep(off_time);
-    }
-}
-```
-
-
 ## License
 
 This project is open source software, licensed under the terms of the [Zero Clause BSD License][] (0BSD, for short). This basically means you can do anything with the software, without any restrictions, but you can't hold the authors liable for problems.
