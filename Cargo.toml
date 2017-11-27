@@ -1,0 +1,41 @@
+[package]
+name    = "lpc82x-hal"
+version = "0.1.0"
+authors = ["Hanno Braun <hanno@braun-robotics.com>"]
+
+description   = "Hardware Abstraction Layer (HAL) for the NXP LPC82x series of ARM Cortex-M0+ microcontroller"
+documentation = "https://braun-robotics.github.io/rust-lpc82x-hal"
+repository    = "https://github.com/braun-robotics/rust-lpc82x-hal"
+license       = "0BSD"
+readme        = "README.md"
+categories    = ["embedded", "hardware-support", "no-std"]
+keywords      = ["arm", "cortex-m", "nxp", "lpc", "embedded-hal"]
+
+
+[badges]
+maintenance = { status = "actively-developed" }
+travis-ci   = { repository = "braun-robotics/rust-lpc82x-hal" }
+
+
+[dependencies]
+cortex-m     = "0.3.1"
+embedded-hal = { git = "https://github.com/japaric/embedded-hal.git" }
+lpc82x       = "0.1"
+nb           = { git = "https://github.com/japaric/nb.git" }
+
+
+[patch.crates-io]
+# https://github.com/japaric/cortex-m/pull/63
+cortex-m = { git = "https://github.com/hannobraun/cortex-m.git", branch = "inline-asm" }
+
+
+[features]
+rt = ["lpc82x/rt"]
+
+
+[package.metadata.release]
+pre-release-commit-message = "chore: Release version {{version}}"
+pro-release-commit-message = "chore: Bump version to {{version}}"
+tag-prefix                 = "v"
+tag-message                = "Version {{version}}"
+dev-version-ext            = "dev"
