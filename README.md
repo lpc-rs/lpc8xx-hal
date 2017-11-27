@@ -128,4 +128,4 @@ See [LICENSE] for full details.
 **Supported by [Braun Robotics](https://braun-robotics.com/)**
 
 
-[API Reference]: https://braun-robotics.github.io/rust-lpc82x-hal
+[API Reference]: https://braun-robotics.github.io/rust-lpc82x-hal/lpc82x_hal/index.html
