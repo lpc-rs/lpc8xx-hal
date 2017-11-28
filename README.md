@@ -1,4 +1,4 @@
-# LPC82x HAL
+# LPC82x HAL [![Build Status](https://travis-ci.org/braun-robotics/rust-lpc82x-hal.svg?branch=master)](https://travis-ci.org/braun-robotics/rust-lpc82x-hal)
 
 ## Introduction
 
