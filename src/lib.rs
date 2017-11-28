@@ -53,7 +53,7 @@
 //! HAL, create a file called `memory.x` in your project root (the directory
 //! where `Cargo.toml` is located). `memory.x` should look something like this:
 //!
-//! ```
+//! ``` ignore
 //! MEMORY
 //! {
 //!     FLASH : ORIGIN = 0x00000000, LENGTH = 32K
@@ -71,7 +71,7 @@
 //! is currently limited. [Xargo] exists to fill the gap in the meantime. You
 //! can install it via `cargo install`:
 //!
-//! ```
+//! ``` ignore
 //! $ cargo install xargo
 //! ```
 //!
@@ -110,7 +110,7 @@
 //! If everything is set up correctly, you can build your project with the
 //! following command:
 //!
-//! ```
+//! ``` ignore
 //! $ xargo build --release --target=thumbv6m-none-eabi
 //! ```
 //!
