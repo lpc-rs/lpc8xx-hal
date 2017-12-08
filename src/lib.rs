@@ -339,12 +339,12 @@ pub struct Clocks {
     /// The 750 kHz IRC-derived clock
     ///
     /// Can be used to run the self-wake-up timer (WKT).
-    pub irc_derived_clock: syscon::IrcDerivedClock,
+    pub irc_derived_clock: syscon::IrcDerivedClock<clock::state::Disabled>,
 
     /// The 10 kHz low-power clock
     ///
     /// Can be used to run the self-wake-up timer (WKT).
-    pub low_power_clock: pmu::LowPowerClock,
+    pub low_power_clock: pmu::LowPowerClock<clock::state::Disabled>,
 }
 
 

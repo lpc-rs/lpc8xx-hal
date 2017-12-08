@@ -55,11 +55,11 @@ impl<'pmu> Pmu<'pmu> {
 /// The 10 kHz low-power clock
 ///
 /// See user manual, section 18.5.1.
-pub struct LowPowerClock<State: ClockState = clock::state::Disabled> {
+pub struct LowPowerClock<State: ClockState = clock::state::Enabled> {
     _state: State,
 }
 
-impl LowPowerClock {
+impl LowPowerClock<clock::state::Disabled> {
     /// Create a new instance of the low-power clock
     ///
     /// This method is only intended for use within [`System`].

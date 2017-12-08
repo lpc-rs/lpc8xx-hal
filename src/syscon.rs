@@ -347,11 +347,11 @@ pub struct UartFrgDiv(pub u8);
 /// The 750 kHz IRC-derived clock that can run the WKT
 ///
 /// See user manual, section 18.5.1.
-pub struct IrcDerivedClock<State: ClockState = clock::state::Disabled> {
+pub struct IrcDerivedClock<State: ClockState = clock::state::Enabled> {
     _state: State,
 }
 
-impl IrcDerivedClock {
+impl IrcDerivedClock<clock::state::Disabled> {
     pub(crate) fn new() -> Self {
         IrcDerivedClock {
             _state: clock::state::Disabled,
