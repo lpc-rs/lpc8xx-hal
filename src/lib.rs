@@ -344,7 +344,7 @@ pub struct Clocks {
     /// The 10 kHz low-power clock
     ///
     /// Can be used to run the self-wake-up timer (WKT).
-    pub low_power_clock: pmu::LowPowerClock,
+    pub low_power_clock: pmu::LowPowerClock<clock::state::Disabled>,
 }
 
 
