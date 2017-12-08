@@ -20,7 +20,7 @@ travis-ci   = { repository = "braun-robotics/rust-lpc82x-hal" }
 [dependencies]
 cortex-m     = "0.3.1"
 embedded-hal = { git = "https://github.com/japaric/embedded-hal.git" }
-lpc82x       = "0.1"
+lpc82x       = "0.2"
 nb           = { git = "https://github.com/japaric/nb.git" }
 
 
