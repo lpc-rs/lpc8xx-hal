@@ -266,6 +266,9 @@ pub struct System<'system> {
 
     /// System peripherals
     pub peripherals: Peripherals<'system>,
+
+    /// Other system resources
+    pub resources: Resources,
 }
 
 impl<'system> System<'system> {
@@ -324,7 +327,19 @@ impl<'system> System<'system> {
                 usart1: Usart::new(peripherals.USART1),
                 usart2: Usart::new(peripherals.USART2),
                 wkt   : Wkt::new(peripherals.WKT),
-            }
+            },
+            resources: Resources {
+                bod    : syscon::BOD,
+                flash  : syscon::FLASH,
+                irc    : syscon::IRC,
+                ircout : syscon::IRCOUT,
+                mtb    : syscon::MTB,
+                ram0_1 : syscon::RAM0_1,
+                rom    : syscon::ROM,
+                sysosc : syscon::SYSOSC,
+                syspll : syscon::SYSPLL,
+                uartfrg: syscon::UARTFRG,
+            },
         }
     }
 }
@@ -587,6 +602,44 @@ pub struct Peripherals<'system> {
 
     /// Self-wake-up timer (WKT)
     pub wkt: Wkt<'system, init_state::Unknown>,
+}
+
+
+/// Provides access to other system resources
+///
+/// This struct is part of [`System`].
+///
+/// [`System`]: struct.System.html
+pub struct Resources {
+    /// Brown-out detection
+    pub bod: syscon::BOD,
+
+    /// Flash memory
+    pub flash: syscon::FLASH,
+
+    /// IRC
+    pub irc: syscon::IRC,
+
+    /// IRC output
+    pub ircout: syscon::IRCOUT,
+
+    /// Micro Trace Buffer
+    pub mtb: syscon::MTB,
+
+    /// Random access memory
+    pub ram0_1: syscon::RAM0_1,
+
+    /// Read-only memory
+    pub rom: syscon::ROM,
+
+    /// System oscillator
+    pub sysosc: syscon::SYSOSC,
+
+    /// PLL
+    pub syspll: syscon::SYSPLL,
+
+    /// UART Fractional Baud Rate Generator
+    pub uartfrg: syscon::UARTFRG,
 }
 
 
