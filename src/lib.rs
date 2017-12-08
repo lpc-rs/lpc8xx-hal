@@ -224,6 +224,21 @@ pub mod usart;
 pub mod wkt;
 
 
+pub use lpc82x::{
+    CPUID,
+    DCB,
+    DWT,
+    FPB,
+    FPU,
+    ITM,
+    MPU,
+    NVIC,
+    SCB,
+    SYST,
+    TPIU,
+    Interrupt,
+};
+
 pub use self::gpio::Gpio;
 pub use self::pmu::Pmu;
 pub use self::swm::Swm;
