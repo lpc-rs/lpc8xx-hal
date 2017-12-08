@@ -1,14 +1,14 @@
 # Contributing to LPC82x HAL
 
-Thank you for considering to work on LPC82x HAL. This document will give you some pointers and explain the guidelines that you need to be follow.
+Thank you for considering to work on LPC82x HAL. This document will give you some pointers and explain the guidelines that you need to follow.
 
 ## Opening issues
 
-If you found a problem, please open an issue on the [GitHub repository]. If you're not sure whether you found a problem or not, just open an issue anyway. We'd rather close a few invalid issues than miss any real problems.
+If you found a problem, please open an issue on the [GitHub repository]. If you're not sure whether you found a real problem or not, just open an issue anyway. We'd rather close a few invalid issues than miss anything relevant.
 
 ## Contributing changes
 
-If you want to contribute an change to LPC82x HAL, please open a pull request on the [GitHub repository]. The best way to open a pull request is usually to just push a branch to your fork, and click the button that should appear near the top of your fork's GitHub page.
+If you want to contribute a change to LPC82x HAL, please open a pull request on the [GitHub repository]. The best way to open a pull request is usually to just push a branch to your fork, then click the button that appears near the top of your fork's GitHub page.
 
 If you're having any problems with completing your change, feel free to open a pull request anyway and ask any questions there. We're happy to help you get your changes across the finish line.
 
@@ -26,10 +26,10 @@ This is the commit message body. It is optional and might consist of
 multiple paragraphs.
 
 Here's the message body's second paragraph. The next paragraph is going
-to automatically close an issue, once the commit is merged into the
+to automatically close issue #123456, once the commit is merged into the
 repository.
 
-Closes #123456.
+Close #123456
 ```
 
 First, let's start with the first line, the header. It's the most important part of the commit, as it's used by [clog] to generate the changelog. For that reason, it's the most heavily regulated part:
@@ -41,7 +41,7 @@ First, let's start with the first line, the header. It's the most important part
   - **fix**: Bug fixes
   - **docs**: Improvements to documentation
   - **style**: Code formatting, indentation, etc.
-  - **refactor**: Changes to code that don't change what it does. Cleaning up, moving stuff around, etc.
+  - **refactor**: Cleaning up, moving stuff around, etc., without changing functionality.
   - **perf**: Performance improvements
   - **test**: Changes to test code
   - **chore**: Custodial work that isn't directly related to the code. Changes to the build system, etc.
@@ -51,7 +51,7 @@ The following rules apply to the message body:
 - It should **provide context** for the commit and **explain its reasoning**. It doesn't need to restate things that are already obvious from the commit diff.
 - Please be mindful of explanations on how the code works. Often, it makes more sense to add such explanations to the code itself, in the form of comments.
 - The length limit for lines in the commit body is **72 characters**.
-- If any issues should be closed once the commit is merged, this can be done automatically by adding something like "Closes #123456" to the commit. Be careful about not doing this accidentally.
+- If any issues should be closed once the commit is merged, this can be done automatically by adding something like "Close #123456" to the commit. Be careful about doing this accidentally.
 
 That's it! If anything about this document is unclear, feel free to open an issue. If you have questions regarding a pull request that you're working on, just open the pull request and ask your questions there.
 
