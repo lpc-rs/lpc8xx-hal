@@ -61,13 +61,13 @@ impl<'syscon> Syscon<'syscon> {
     ///
     /// HAL users usually won't have to call this method themselves, as other
     /// peripheral APIs will do this for them.
-    pub fn power_up<A: AnalogBlock>(&mut self) {
-        self.0.pdruncfg.modify(|_, w| A::power_up(w));
+    pub fn power_up<A: AnalogBlock>(&mut self, peripheral: &mut A) {
+        self.0.pdruncfg.modify(|_, w| peripheral.power_up(w));
     }
 
     /// Remove power from an analog block
-    pub fn power_down<A: AnalogBlock>(&mut self) {
-        self.0.pdruncfg.modify(|_, w| A::power_down(w));
+    pub fn power_down<A: AnalogBlock>(&mut self, peripheral: &mut A) {
+        self.0.pdruncfg.modify(|_, w| peripheral.power_down(w));
     }
 
     /// Sets the clock for all USART peripherals (U_PCLK)
@@ -373,20 +373,24 @@ impl_clear_reset!(&'a lpc82x::CMP      , acmp_rst_n   );
 /// [`Syscon::power_down`]: struct.Syscon.html#method.power_down
 pub trait AnalogBlock {
     /// Internal method to power up an analog block
-    fn power_up(w: &mut pdruncfg::W) -> &mut pdruncfg::W;
+    fn power_up<'w>(&mut self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W;
 
     /// Internal method to power down an analog block
-    fn power_down(w: &mut pdruncfg::W) -> &mut pdruncfg::W;
+    fn power_down<'w>(&mut self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W;
 }
 
 macro_rules! impl_analog_block {
     ($analog_block:ty, $field:ident) => {
         impl<'a> AnalogBlock for $analog_block {
-            fn power_up(w: &mut pdruncfg::W) -> &mut pdruncfg::W {
+            fn power_up<'w>(&mut self, w: &'w mut pdruncfg::W)
+                -> &'w mut pdruncfg::W
+            {
                 w.$field().powered()
             }
 
-            fn power_down(w: &mut pdruncfg::W) -> &mut pdruncfg::W {
+            fn power_down<'w>(&mut self, w: &'w mut pdruncfg::W)
+                -> &'w mut pdruncfg::W
+            {
                 w.$field().powered_down()
             }
         }
@@ -450,11 +454,11 @@ impl IrcDerivedClock<clock::state::Disabled> {
     /// the IRC-derived clock again.
     ///
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
-    pub fn enable(self, syscon: &mut Syscon, _irc: IRC, _ircout: IRCOUT)
+    pub fn enable(self, syscon: &mut Syscon, mut irc: IRC, mut ircout: IRCOUT)
         -> IrcDerivedClock<clock::state::Enabled>
     {
-        syscon.power_up::<IRC>();
-        syscon.power_up::<IRCOUT>();
+        syscon.power_up(&mut irc);
+        syscon.power_up(&mut ircout);
 
         IrcDerivedClock {
             _state: clock::state::Enabled,
