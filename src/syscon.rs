@@ -101,12 +101,26 @@ impl<'syscon> Syscon<'syscon> {
 /// [`Syscon`]: struct.Syscon.html
 pub struct BOD;
 
+impl BOD {
+    pub(crate) fn new() -> Self {
+        BOD
+    }
+}
+
+
 /// Flash memory
 ///
 /// Can be used to control the flash memory using various [`Syscon`] methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
 pub struct FLASH;
+
+impl FLASH {
+    pub(crate) fn new() -> Self {
+        FLASH
+    }
+}
+
 
 /// IRC
 ///
@@ -115,12 +129,26 @@ pub struct FLASH;
 /// [`Syscon`]: struct.Syscon.html
 pub struct IRC;
 
+impl IRC {
+    pub(crate) fn new() -> Self {
+        IRC
+    }
+}
+
+
 /// IRC output
 ///
 /// Can be used to control IRC output using various [`Syscon`] methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
 pub struct IRCOUT;
+
+impl IRCOUT {
+    pub(crate) fn new() -> Self {
+        IRCOUT
+    }
+}
+
 
 /// Micro Trace Buffer
 ///
@@ -130,6 +158,13 @@ pub struct IRCOUT;
 /// [`Syscon`]: struct.Syscon.html
 pub struct MTB;
 
+impl MTB {
+    pub(crate) fn new() -> Self {
+        MTB
+    }
+}
+
+
 /// Random access memory
 ///
 /// Can be used to control the RAM using various [`Syscon`] methods.
@@ -138,12 +173,26 @@ pub struct MTB;
 #[allow(non_camel_case_types)]
 pub struct RAM0_1;
 
+impl RAM0_1 {
+    pub(crate) fn new() -> Self {
+        RAM0_1
+    }
+}
+
+
 /// Read-only memory
 ///
 /// Can be used to control the ROM using various [`Syscon`] methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
 pub struct ROM;
+
+impl ROM {
+    pub(crate) fn new() -> Self {
+        ROM
+    }
+}
+
 
 /// System oscillator
 ///
@@ -153,6 +202,13 @@ pub struct ROM;
 /// [`Syscon`]: struct.Syscon.html
 pub struct SYSOSC;
 
+impl SYSOSC {
+    pub(crate) fn new() -> Self {
+        SYSOSC
+    }
+}
+
+
 /// PLL
 ///
 /// Can be used to control the PLL using various [`Syscon`] methods.
@@ -160,12 +216,26 @@ pub struct SYSOSC;
 /// [`Syscon`]: struct.Syscon.html
 pub struct SYSPLL;
 
+impl SYSPLL {
+    pub(crate) fn new() -> Self {
+        SYSPLL
+    }
+}
+
+
 /// UART Fractional Baud Rate Generator
 ///
 /// Can be used to control the UART FRG using various [`Syscon`] methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
 pub struct UARTFRG;
+
+impl UARTFRG {
+    pub(crate) fn new() -> Self {
+        UARTFRG
+    }
+}
+
 
 
 /// Implemented for peripherals that have a clock that can be enabled
