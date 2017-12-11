@@ -36,10 +36,10 @@ impl<'swm> Swm<'swm, init_state::Unknown> {
     }
 
     /// Initialize the switch matrix
-    pub fn init(self, syscon: &mut Syscon)
+    pub fn init(mut self, syscon: &mut Syscon)
         -> Swm<'swm, init_state::Initialized>
     {
-        syscon.enable_clock::<&lpc82x::SWM>();
+        syscon.enable_clock(&mut self.swm);
 
         Swm {
             swm   : self.swm,

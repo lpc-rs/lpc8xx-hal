@@ -34,13 +34,13 @@ impl<'syscon> Syscon<'syscon> {
     /// Enables the clock for a peripheral or other hardware component. HAL
     /// users usually won't have to call this method directly, as other
     /// peripheral APIs will do this for them.
-    pub fn enable_clock<C: ClockControl>(&mut self) {
-        self.0.sysahbclkctrl.modify(|_, w| C::enable_clock(w));
+    pub fn enable_clock<C: ClockControl>(&mut self, peripheral: &mut C) {
+        self.0.sysahbclkctrl.modify(|_, w| peripheral.enable_clock(w));
     }
 
     /// Disable peripheral clock
-    pub fn disable_clock<C: ClockControl>(&mut self) {
-        self.0.sysahbclkctrl.modify(|_, w| C::disable_clock(w));
+    pub fn disable_clock<C: ClockControl>(&mut self, peripheral: &mut C) {
+        self.0.sysahbclkctrl.modify(|_, w| peripheral.disable_clock(w));
     }
 
     /// Assert peripheral reset
@@ -253,21 +253,25 @@ impl UARTFRG {
 /// [`Syscon::disable_clock`]: struct.Syscon.html#method.disable_clock
 pub trait ClockControl {
     /// Internal method to enable a peripheral clock
-    fn enable_clock(w: &mut sysahbclkctrl::W) -> &mut sysahbclkctrl::W;
+    fn enable_clock<'w>(&mut self, w: &'w mut sysahbclkctrl::W)
+        -> &'w mut sysahbclkctrl::W;
 
     /// Internal method to disable a peripheral clock
-    fn disable_clock(w: &mut sysahbclkctrl::W) -> &mut sysahbclkctrl::W;
+    fn disable_clock<'w>(&mut self, w: &'w mut sysahbclkctrl::W)
+        -> &'w mut sysahbclkctrl::W;
 }
 
 macro_rules! impl_enable_clock {
     ($clock_control:ty, $clock:ident) => {
         impl<'a> ClockControl for $clock_control {
-            fn enable_clock(w: &mut sysahbclkctrl::W) -> &mut sysahbclkctrl::W {
+            fn enable_clock<'w>(&mut self, w: &'w mut sysahbclkctrl::W)
+                -> &'w mut sysahbclkctrl::W
+            {
                 w.$clock().enable()
             }
 
-            fn disable_clock(w: &mut sysahbclkctrl::W)
-                -> &mut sysahbclkctrl::W
+            fn disable_clock<'w>(&mut self, w: &'w mut sysahbclkctrl::W)
+                -> &'w mut sysahbclkctrl::W
             {
                 w.$clock().disable()
             }

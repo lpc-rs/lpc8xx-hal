@@ -91,12 +91,12 @@ impl<'usart, UsartX> Usart<'usart, UsartX, init_state::Unknown>
     /// to the documentation of [`BaudRate`] for full details.
     ///
     /// [`BaudRate`]: struct.BaudRate.html
-    pub fn init<Rx: Pin, Tx: Pin>(self,
+    pub fn init<Rx: Pin, Tx: Pin>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut Syscon,
         swm      : &mut Swm,
     ) -> nb::Result<Usart<'usart, UsartX, init_state::Initialized>, !> {
-        syscon.enable_clock::<&UsartX>();
+        syscon.enable_clock(&mut self.usart);
         syscon.clear_reset::<&UsartX>();
 
         swm.assign_pin::<UsartX::Rx, Rx>();
