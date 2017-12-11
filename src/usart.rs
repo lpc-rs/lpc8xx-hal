@@ -369,25 +369,40 @@ pub struct BaudRate {
     /// USART clock divider value
     ///
     /// See user manual, section 5.6.15.
-    pub clk_div: UartClkDiv,
+    clk_div: UartClkDiv,
 
     /// USART fractional generator multiplier value
     ///
     /// See user manual, section 5.6.20.
-    pub frg_mult: UartFrgMult,
+    frg_mult: UartFrgMult,
 
     /// USART fractional generator divider value
     ///
     /// See user manual, section 5.6.19.
-    pub frg_div: UartFrgDiv,
+    frg_div: UartFrgDiv,
 
     /// USART Baud Rate Generator divider value
     ///
     /// See user manual, section 13.6.9.
-    pub brg_val: u16,
+    brg_val: u16,
 }
 
 impl BaudRate {
+    /// Create a `BaudRate` instance by providing the register values
+    pub fn new(
+        clk_div : UartClkDiv,
+        frg_mult: UartFrgMult,
+        frg_div : UartFrgDiv,
+        brg_val : u16,
+    ) -> Self {
+        Self {
+            clk_div : clk_div,
+            frg_mult: frg_mult,
+            frg_div : frg_div,
+            brg_val : brg_val,
+        }
+    }
+
     /// Returns a `BaudRate` instance for 115200 baud
     ///
     /// # Limitations
@@ -419,12 +434,12 @@ impl BaudRate {
         // desired value, we write 0, resulting in no further division.
         //
         // All of this is somewhat explained in the user manual, section 13.3.1.
-        BaudRate {
-            clk_div : UartClkDiv(6),
-            frg_mult: UartFrgMult(22),
-            frg_div : UartFrgDiv(0xff),
-            brg_val : 0,
-        }
+        BaudRate::new(
+            UartClkDiv(6),
+            UartFrgMult(22),
+            UartFrgDiv(0xff),
+            0,
+        )
     }
 }
 
