@@ -211,10 +211,10 @@ impl<'usart, UsartX> Usart<'usart, UsartX>
     }
 }
 
-impl<'usart, U> Read<u8> for Usart<'usart, U>
+impl<'usart, UsartX> Read<u8> for Usart<'usart, UsartX>
     where
-        U            : Peripheral,
-        for<'a> &'a U: syscon::ClockControl + syscon::ResetControl,
+        UsartX            : Peripheral,
+        for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     type Error = Error;
 
@@ -256,10 +256,10 @@ impl<'usart, U> Read<u8> for Usart<'usart, U>
     }
 }
 
-impl<'usart, U> Write<u8> for Usart<'usart, U>
+impl<'usart, UsartX> Write<u8> for Usart<'usart, UsartX>
     where
-        U            : Peripheral,
-        for<'a> &'a U: syscon::ClockControl + syscon::ResetControl,
+        UsartX            : Peripheral,
+        for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     type Error = !;
 
@@ -284,10 +284,10 @@ impl<'usart, U> Write<u8> for Usart<'usart, U>
     }
 }
 
-impl<'usart, U> blocking::Write<u8> for Usart<'usart, U>
+impl<'usart, UsartX> blocking::Write<u8> for Usart<'usart, UsartX>
     where
-        U            : Peripheral,
-        for<'a> &'a U: syscon::ClockControl + syscon::ResetControl,
+        UsartX            : Peripheral,
+        for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     type Error = !;
 
