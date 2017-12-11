@@ -3,6 +3,8 @@
 //! See user manual, chapter 5.
 
 
+use core::marker::PhantomData;
+
 use lpc82x;
 use lpc82x::syscon::{
     pdruncfg,
@@ -99,11 +101,11 @@ impl<'syscon> Syscon<'syscon> {
 /// Can be used to control brown-out detection using various [`Syscon`] methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
-pub struct BOD;
+pub struct BOD(PhantomData<*const ()>);
 
 impl BOD {
     pub(crate) fn new() -> Self {
-        BOD
+        BOD(PhantomData)
     }
 }
 
@@ -113,11 +115,11 @@ impl BOD {
 /// Can be used to control the flash memory using various [`Syscon`] methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
-pub struct FLASH;
+pub struct FLASH(PhantomData<*const ()>);
 
 impl FLASH {
     pub(crate) fn new() -> Self {
-        FLASH
+        FLASH(PhantomData)
     }
 }
 
@@ -127,11 +129,11 @@ impl FLASH {
 /// Can be used to control the IRC using various [`Syscon`] methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
-pub struct IRC;
+pub struct IRC(PhantomData<*const ()>);
 
 impl IRC {
     pub(crate) fn new() -> Self {
-        IRC
+        IRC(PhantomData)
     }
 }
 
@@ -141,11 +143,11 @@ impl IRC {
 /// Can be used to control IRC output using various [`Syscon`] methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
-pub struct IRCOUT;
+pub struct IRCOUT(PhantomData<*const ()>);
 
 impl IRCOUT {
     pub(crate) fn new() -> Self {
-        IRCOUT
+        IRCOUT(PhantomData)
     }
 }
 
@@ -156,11 +158,11 @@ impl IRCOUT {
 /// methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
-pub struct MTB;
+pub struct MTB(PhantomData<*const ()>);
 
 impl MTB {
     pub(crate) fn new() -> Self {
-        MTB
+        MTB(PhantomData)
     }
 }
 
@@ -171,11 +173,11 @@ impl MTB {
 ///
 /// [`Syscon`]: struct.Syscon.html
 #[allow(non_camel_case_types)]
-pub struct RAM0_1;
+pub struct RAM0_1(PhantomData<*const ()>);
 
 impl RAM0_1 {
     pub(crate) fn new() -> Self {
-        RAM0_1
+        RAM0_1(PhantomData)
     }
 }
 
@@ -185,11 +187,11 @@ impl RAM0_1 {
 /// Can be used to control the ROM using various [`Syscon`] methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
-pub struct ROM;
+pub struct ROM(PhantomData<*const ()>);
 
 impl ROM {
     pub(crate) fn new() -> Self {
-        ROM
+        ROM(PhantomData)
     }
 }
 
@@ -200,11 +202,11 @@ impl ROM {
 /// methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
-pub struct SYSOSC;
+pub struct SYSOSC(PhantomData<*const ()>);
 
 impl SYSOSC {
     pub(crate) fn new() -> Self {
-        SYSOSC
+        SYSOSC(PhantomData)
     }
 }
 
@@ -214,11 +216,11 @@ impl SYSOSC {
 /// Can be used to control the PLL using various [`Syscon`] methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
-pub struct SYSPLL;
+pub struct SYSPLL(PhantomData<*const ()>);
 
 impl SYSPLL {
     pub(crate) fn new() -> Self {
-        SYSPLL
+        SYSPLL(PhantomData)
     }
 }
 
@@ -228,11 +230,11 @@ impl SYSPLL {
 /// Can be used to control the UART FRG using various [`Syscon`] methods.
 ///
 /// [`Syscon`]: struct.Syscon.html
-pub struct UARTFRG;
+pub struct UARTFRG(PhantomData<*const ()>);
 
 impl UARTFRG {
     pub(crate) fn new() -> Self {
-        UARTFRG
+        UARTFRG(PhantomData)
     }
 }
 
