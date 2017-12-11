@@ -65,11 +65,11 @@ impl<'wkt> Wkt<'wkt, init_state::Unknown> {
     }
 
     /// Initialize the self-wake-up timer
-    pub fn init(self, syscon: &mut Syscon)
+    pub fn init(mut self, syscon: &mut Syscon)
         -> Wkt<'wkt, init_state::Initialized>
     {
-        syscon.enable_clock::<lpc82x::WKT>();
-        syscon.clear_reset::<lpc82x::WKT>();
+        syscon.enable_clock(&mut self.wkt);
+        syscon.clear_reset(&mut self.wkt);
 
         Wkt {
             wkt   : self.wkt,
