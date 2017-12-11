@@ -445,15 +445,12 @@ impl IrcDerivedClock<clock::state::Disabled> {
     /// This method consumes this instance of `IrcDerivedClock` and returns an
     /// instance that implements [`clock::Enabled`].
     ///
-    /// # Limitations
-    ///
-    /// Currently, nothing prevents the user from powering down the clock again,
-    /// using the [`Syscon`] API directly. This will break the static guarantees
-    /// of this API and lead to undefined behavior.
+    /// This function consumes the handles to IRC and IRCOUT, to make it
+    /// impossible (outside of unsafe code) to break API guarantees by disabling
+    /// the IRC-derived clock again.
     ///
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
-    /// [`Syscon`]: ../syscon/struct.Syscon.html
-    pub fn enable(self, syscon: &mut Syscon)
+    pub fn enable(self, syscon: &mut Syscon, _irc: IRC, _ircout: IRCOUT)
         -> IrcDerivedClock<clock::state::Enabled>
     {
         syscon.power_up::<IRC>();

@@ -151,7 +151,11 @@
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
 //! // that runs at 750 kHz.
-//! let clock = system.clocks.irc_derived_clock.enable(&mut syscon);
+//! let clock = system.clocks.irc_derived_clock.enable(
+//!     &mut syscon,
+//!     system.resources.irc,
+//!     system.resources.ircout,
+//! );
 //!
 //! // Set pin direction to output, so we can use it to blink an LED.
 //! gpio.set_pin_to_output::<PIO0_3>(&mut swm);
