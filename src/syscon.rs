@@ -34,17 +34,17 @@ impl<'syscon> Syscon<'syscon> {
     /// Enables the clock for a peripheral or other hardware component. HAL
     /// users usually won't have to call this method directly, as other
     /// peripheral APIs will do this for them.
-    pub fn enable_clock<C: ClockControl>(&mut self, peripheral: &mut C) {
+    pub fn enable_clock<P: ClockControl>(&mut self, peripheral: &mut P) {
         self.0.sysahbclkctrl.modify(|_, w| peripheral.enable_clock(w));
     }
 
     /// Disable peripheral clock
-    pub fn disable_clock<C: ClockControl>(&mut self, peripheral: &mut C) {
+    pub fn disable_clock<P: ClockControl>(&mut self, peripheral: &mut P) {
         self.0.sysahbclkctrl.modify(|_, w| peripheral.disable_clock(w));
     }
 
     /// Assert peripheral reset
-    pub fn assert_reset<R: ResetControl>(&mut self, peripheral: &mut R) {
+    pub fn assert_reset<P: ResetControl>(&mut self, peripheral: &mut P) {
         self.0.presetctrl.modify(|_, w| peripheral.assert_reset(w));
     }
 
@@ -53,7 +53,7 @@ impl<'syscon> Syscon<'syscon> {
     /// Clears the reset for a peripheral or other hardware component. HAL users
     /// usually won't have to call this method directly, as other peripheral
     /// APIs will do this for them.
-    pub fn clear_reset<R: ResetControl>(&mut self, peripheral: &mut R) {
+    pub fn clear_reset<P: ResetControl>(&mut self, peripheral: &mut P) {
         self.0.presetctrl.modify(|_, w| peripheral.clear_reset(w));
     }
 
@@ -61,12 +61,12 @@ impl<'syscon> Syscon<'syscon> {
     ///
     /// HAL users usually won't have to call this method themselves, as other
     /// peripheral APIs will do this for them.
-    pub fn power_up<A: AnalogBlock>(&mut self, peripheral: &mut A) {
+    pub fn power_up<P: AnalogBlock>(&mut self, peripheral: &mut P) {
         self.0.pdruncfg.modify(|_, w| peripheral.power_up(w));
     }
 
     /// Remove power from an analog block
-    pub fn power_down<A: AnalogBlock>(&mut self, peripheral: &mut A) {
+    pub fn power_down<P: AnalogBlock>(&mut self, peripheral: &mut P) {
         self.0.pdruncfg.modify(|_, w| peripheral.power_down(w));
     }
 
