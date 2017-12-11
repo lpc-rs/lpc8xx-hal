@@ -261,7 +261,7 @@ pub trait ClockControl {
 
 macro_rules! impl_enable_clock {
     ($clock_control:ty, $clock:ident) => {
-        impl ClockControl for $clock_control {
+        impl<'a> ClockControl for $clock_control {
             fn enable_clock(w: &mut sysahbclkctrl::W) -> &mut sysahbclkctrl::W {
                 w.$clock().enable()
             }
@@ -275,31 +275,31 @@ macro_rules! impl_enable_clock {
     }
 }
 
-impl_enable_clock!(ROM              , rom     );
-impl_enable_clock!(RAM0_1           , ram0_1  );
-impl_enable_clock!(lpc82x::FLASHCTRL, flashreg);
-impl_enable_clock!(FLASH            , flash   );
-impl_enable_clock!(lpc82x::I2C0     , i2c0    );
-impl_enable_clock!(lpc82x::GPIO_PORT, gpio    );
-impl_enable_clock!(lpc82x::SWM      , swm     );
-impl_enable_clock!(lpc82x::SCT      , sct     );
-impl_enable_clock!(lpc82x::WKT      , wkt     );
-impl_enable_clock!(lpc82x::MRT      , mrt     );
-impl_enable_clock!(lpc82x::SPI0     , spi0    );
-impl_enable_clock!(lpc82x::SPI1     , spi1    );
-impl_enable_clock!(lpc82x::CRC      , crc     );
-impl_enable_clock!(lpc82x::USART0   , uart0   );
-impl_enable_clock!(lpc82x::USART1   , uart1   );
-impl_enable_clock!(lpc82x::USART2   , uart2   );
-impl_enable_clock!(lpc82x::WWDT     , wwdt    );
-impl_enable_clock!(lpc82x::IOCON    , iocon   );
-impl_enable_clock!(lpc82x::CMP      , acmp    );
-impl_enable_clock!(lpc82x::I2C1     , i2c1    );
-impl_enable_clock!(lpc82x::I2C2     , i2c2    );
-impl_enable_clock!(lpc82x::I2C3     , i2c3    );
-impl_enable_clock!(lpc82x::ADC      , adc     );
-impl_enable_clock!(MTB              , mtb     );
-impl_enable_clock!(lpc82x::DMA      , dma     );
+impl_enable_clock!(ROM                  , rom     );
+impl_enable_clock!(RAM0_1               , ram0_1  );
+impl_enable_clock!(&'a lpc82x::FLASHCTRL, flashreg);
+impl_enable_clock!(FLASH                , flash   );
+impl_enable_clock!(&'a lpc82x::I2C0     , i2c0    );
+impl_enable_clock!(&'a lpc82x::GPIO_PORT, gpio    );
+impl_enable_clock!(&'a lpc82x::SWM      , swm     );
+impl_enable_clock!(&'a lpc82x::SCT      , sct     );
+impl_enable_clock!(&'a lpc82x::WKT      , wkt     );
+impl_enable_clock!(&'a lpc82x::MRT      , mrt     );
+impl_enable_clock!(&'a lpc82x::SPI0     , spi0    );
+impl_enable_clock!(&'a lpc82x::SPI1     , spi1    );
+impl_enable_clock!(&'a lpc82x::CRC      , crc     );
+impl_enable_clock!(&'a lpc82x::USART0   , uart0   );
+impl_enable_clock!(&'a lpc82x::USART1   , uart1   );
+impl_enable_clock!(&'a lpc82x::USART2   , uart2   );
+impl_enable_clock!(&'a lpc82x::WWDT     , wwdt    );
+impl_enable_clock!(&'a lpc82x::IOCON    , iocon   );
+impl_enable_clock!(&'a lpc82x::CMP      , acmp    );
+impl_enable_clock!(&'a lpc82x::I2C1     , i2c1    );
+impl_enable_clock!(&'a lpc82x::I2C2     , i2c2    );
+impl_enable_clock!(&'a lpc82x::I2C3     , i2c3    );
+impl_enable_clock!(&'a lpc82x::ADC      , adc     );
+impl_enable_clock!(MTB                  , mtb     );
+impl_enable_clock!(&'a lpc82x::DMA      , dma     );
 
 
 /// Implemented for peripherals that can be reset
@@ -323,7 +323,7 @@ pub trait ResetControl {
 
 macro_rules! impl_clear_reset {
     ($reset_control:ty, $field:ident) => {
-        impl ResetControl for $reset_control {
+        impl<'a> ResetControl for $reset_control {
             fn assert_reset(w: &mut presetctrl::W) -> &mut presetctrl::W {
                 w.$field().clear_bit()
             }
@@ -335,19 +335,19 @@ macro_rules! impl_clear_reset {
     }
 }
 
-impl_clear_reset!(lpc82x::SPI0     , spi0_rst_n   );
-impl_clear_reset!(lpc82x::SPI1     , spi1_rst_n   );
-impl_clear_reset!(UARTFRG          , uartfrg_rst_n);
-impl_clear_reset!(lpc82x::USART0   , uart0_rst_n  );
-impl_clear_reset!(lpc82x::USART1   , uart1_rst_n  );
-impl_clear_reset!(lpc82x::USART2   , uart2_rst_n  );
-impl_clear_reset!(lpc82x::I2C0     , i2c0_rst_n   );
-impl_clear_reset!(lpc82x::MRT      , mrt_rst_n    );
-impl_clear_reset!(lpc82x::SCT      , sct_rst_n    );
-impl_clear_reset!(lpc82x::WKT      , wkt_rst_n    );
-impl_clear_reset!(lpc82x::GPIO_PORT, gpio_rst_n   );
-impl_clear_reset!(lpc82x::FLASHCTRL, flash_rst_n  );
-impl_clear_reset!(lpc82x::CMP      , acmp_rst_n   );
+impl_clear_reset!(&'a lpc82x::SPI0     , spi0_rst_n   );
+impl_clear_reset!(&'a lpc82x::SPI1     , spi1_rst_n   );
+impl_clear_reset!(UARTFRG              , uartfrg_rst_n);
+impl_clear_reset!(&'a lpc82x::USART0   , uart0_rst_n  );
+impl_clear_reset!(&'a lpc82x::USART1   , uart1_rst_n  );
+impl_clear_reset!(&'a lpc82x::USART2   , uart2_rst_n  );
+impl_clear_reset!(&'a lpc82x::I2C0     , i2c0_rst_n   );
+impl_clear_reset!(&'a lpc82x::MRT      , mrt_rst_n    );
+impl_clear_reset!(&'a lpc82x::SCT      , sct_rst_n    );
+impl_clear_reset!(&'a lpc82x::WKT      , wkt_rst_n    );
+impl_clear_reset!(&'a lpc82x::GPIO_PORT, gpio_rst_n   );
+impl_clear_reset!(&'a lpc82x::FLASHCTRL, flash_rst_n  );
+impl_clear_reset!(&'a lpc82x::CMP      , acmp_rst_n   );
 
 
 /// Implemented for analog blocks whose power can be controlled
@@ -371,7 +371,7 @@ pub trait AnalogBlock {
 
 macro_rules! impl_analog_block {
     ($analog_block:ty, $field:ident) => {
-        impl AnalogBlock for $analog_block {
+        impl<'a> AnalogBlock for $analog_block {
             fn power_up(w: &mut pdruncfg::W) -> &mut pdruncfg::W {
                 w.$field().powered()
             }
@@ -383,15 +383,15 @@ macro_rules! impl_analog_block {
     }
 }
 
-impl_analog_block!(IRCOUT      , ircout_pd );
-impl_analog_block!(IRC         , irc_pd    );
-impl_analog_block!(FLASH       , flash_pd  );
-impl_analog_block!(BOD         , bod_pd    );
-impl_analog_block!(lpc82x::ADC , adc_pd    );
-impl_analog_block!(SYSOSC      , sysosc_pd );
-impl_analog_block!(lpc82x::WWDT, wdtosc_pd );
-impl_analog_block!(SYSPLL      , syspll_pd );
-impl_analog_block!(lpc82x::CMP , acmp      );
+impl_analog_block!(IRCOUT          , ircout_pd );
+impl_analog_block!(IRC             , irc_pd    );
+impl_analog_block!(FLASH           , flash_pd  );
+impl_analog_block!(BOD             , bod_pd    );
+impl_analog_block!(&'a lpc82x::ADC , adc_pd    );
+impl_analog_block!(SYSOSC          , sysosc_pd );
+impl_analog_block!(&'a lpc82x::WWDT, wdtosc_pd );
+impl_analog_block!(SYSPLL          , syspll_pd );
+impl_analog_block!(&'a lpc82x::CMP , acmp      );
 
 
 /// UART clock divider value

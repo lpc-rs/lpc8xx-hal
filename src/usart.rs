@@ -71,7 +71,9 @@ pub struct Usart<
 }
 
 impl<'usart, UsartX> Usart<'usart, UsartX, init_state::Unknown>
-    where UsartX: Peripheral
+    where
+        UsartX            : Peripheral,
+        for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     pub(crate) fn new(usart: &'usart UsartX) -> Self {
         Usart {
@@ -94,8 +96,8 @@ impl<'usart, UsartX> Usart<'usart, UsartX, init_state::Unknown>
         syscon   : &mut Syscon,
         swm      : &mut Swm,
     ) -> nb::Result<Usart<'usart, UsartX, init_state::Initialized>, !> {
-        syscon.enable_clock::<UsartX>();
-        syscon.clear_reset::<UsartX>();
+        syscon.enable_clock::<&UsartX>();
+        syscon.clear_reset::<&UsartX>();
 
         swm.assign_pin::<UsartX::Rx, Rx>();
         swm.assign_pin::<UsartX::Tx, Tx>();
@@ -166,7 +168,11 @@ impl<'usart, UsartX> Usart<'usart, UsartX, init_state::Unknown>
     }
 }
 
-impl<'usart, UsartX> Usart<'usart, UsartX> where UsartX: Peripheral {
+impl<'usart, UsartX> Usart<'usart, UsartX>
+    where
+        UsartX            : Peripheral,
+        for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
+{
     /// Enables the USART interrupts
     ///
     /// Enables the interrupts for this USART peripheral. This only enables
@@ -205,7 +211,11 @@ impl<'usart, UsartX> Usart<'usart, UsartX> where UsartX: Peripheral {
     }
 }
 
-impl<'usart, U> Read<u8> for Usart<'usart, U> where U: Peripheral {
+impl<'usart, U> Read<u8> for Usart<'usart, U>
+    where
+        U            : Peripheral,
+        for<'a> &'a U: syscon::ClockControl + syscon::ResetControl,
+{
     type Error = Error;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
@@ -246,7 +256,11 @@ impl<'usart, U> Read<u8> for Usart<'usart, U> where U: Peripheral {
     }
 }
 
-impl<'usart, U> Write<u8> for Usart<'usart, U> where U: Peripheral {
+impl<'usart, U> Write<u8> for Usart<'usart, U>
+    where
+        U            : Peripheral,
+        for<'a> &'a U: syscon::ClockControl + syscon::ResetControl,
+{
     type Error = !;
 
     fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
@@ -270,7 +284,11 @@ impl<'usart, U> Write<u8> for Usart<'usart, U> where U: Peripheral {
     }
 }
 
-impl<'usart, U> blocking::Write<u8> for Usart<'usart, U> where U: Peripheral {
+impl<'usart, U> blocking::Write<u8> for Usart<'usart, U>
+    where
+        U            : Peripheral,
+        for<'a> &'a U: syscon::ClockControl + syscon::ResetControl,
+{
     type Error = !;
 
     fn write_all(&mut self, buffer: &[u8]) -> Result<(), Self::Error> {
@@ -284,10 +302,17 @@ impl<'usart, U> blocking::Write<u8> for Usart<'usart, U> where U: Peripheral {
 /// This trait is an internal implementation detail and should neither be
 /// implemented nor used outside of LPC82x HAL. Any incompatible changes to this
 /// trait won't be considered breaking changes.
+///
+/// The trait definition comes with some complexity that is caused by the fact
+/// that the required `Deref` implementation is implemented for `Self`, while
+/// the other traits required are implemented for `&Self`. This should be
+/// resolved once we pick up some changes to upstream dependencies that are
+/// currently coming down the pipe.
 pub trait Peripheral:
     Deref<Target = lpc82x::usart0::RegisterBlock>
-    + syscon::ClockControl
-    + syscon::ResetControl
+    where
+        for<'a> &'a Self: syscon::ClockControl,
+        for<'a> &'a Self: syscon::ResetControl,
 {
     /// The interrupt that is triggered for this USART peripheral
     const INTERRUPT: Interrupt;

@@ -40,8 +40,8 @@ impl<'gpio> Gpio<'gpio, init_state::Unknown> {
     pub fn init(self, syscon: &mut Syscon)
         -> Gpio<'gpio, init_state::Initialized>
     {
-        syscon.enable_clock::<lpc82x::GPIO_PORT>();
-        syscon.clear_reset::<lpc82x::GPIO_PORT>();
+        syscon.enable_clock::<&lpc82x::GPIO_PORT>();
+        syscon.clear_reset::<&lpc82x::GPIO_PORT>();
 
         Gpio {
             gpio  : self.gpio,

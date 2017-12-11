@@ -39,7 +39,7 @@ impl<'swm> Swm<'swm, init_state::Unknown> {
     pub fn init(self, syscon: &mut Syscon)
         -> Swm<'swm, init_state::Initialized>
     {
-        syscon.enable_clock::<lpc82x::SWM>();
+        syscon.enable_clock::<&lpc82x::SWM>();
 
         Swm {
             swm   : self.swm,

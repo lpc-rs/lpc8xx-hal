@@ -68,8 +68,8 @@ impl<'wkt> Wkt<'wkt, init_state::Unknown> {
     pub fn init(self, syscon: &mut Syscon)
         -> Wkt<'wkt, init_state::Initialized>
     {
-        syscon.enable_clock::<lpc82x::WKT>();
-        syscon.clear_reset::<lpc82x::WKT>();
+        syscon.enable_clock::<&lpc82x::WKT>();
+        syscon.clear_reset::<&lpc82x::WKT>();
 
         Wkt {
             wkt   : self.wkt,
