@@ -44,8 +44,8 @@ impl<'syscon> Syscon<'syscon> {
     }
 
     /// Assert peripheral reset
-    pub fn assert_reset<R: ResetControl>(&mut self) {
-        self.0.presetctrl.modify(|_, w| R::assert_reset(w));
+    pub fn assert_reset<R: ResetControl>(&mut self, peripheral: &mut R) {
+        self.0.presetctrl.modify(|_, w| peripheral.assert_reset(w));
     }
 
     /// Clear peripheral reset
@@ -53,8 +53,8 @@ impl<'syscon> Syscon<'syscon> {
     /// Clears the reset for a peripheral or other hardware component. HAL users
     /// usually won't have to call this method directly, as other peripheral
     /// APIs will do this for them.
-    pub fn clear_reset<R: ResetControl>(&mut self) {
-        self.0.presetctrl.modify(|_, w| R::clear_reset(w));
+    pub fn clear_reset<R: ResetControl>(&mut self, peripheral: &mut R) {
+        self.0.presetctrl.modify(|_, w| peripheral.clear_reset(w));
     }
 
     /// Provide power to an analog block
@@ -319,20 +319,26 @@ impl_enable_clock!(&'a lpc82x::DMA      , dma     );
 /// [`Syscon::clear_reset`]: struct.Syscon.html#method.clear_reset
 pub trait ResetControl {
     /// Internal method to assert peripheral reset
-    fn assert_reset(w: &mut presetctrl::W) -> &mut presetctrl::W;
+    fn assert_reset<'w>(&mut self, w: &'w mut presetctrl::W)
+        -> &'w mut presetctrl::W;
 
     /// Internal method to clear peripheral reset
-    fn clear_reset(w: &mut presetctrl::W) -> &mut presetctrl::W;
+    fn clear_reset<'w>(&mut self, w: &'w mut presetctrl::W)
+        -> &'w mut presetctrl::W;
 }
 
 macro_rules! impl_clear_reset {
     ($reset_control:ty, $field:ident) => {
         impl<'a> ResetControl for $reset_control {
-            fn assert_reset(w: &mut presetctrl::W) -> &mut presetctrl::W {
+            fn assert_reset<'w>(&mut self, w: &'w mut presetctrl::W)
+                -> &'w mut presetctrl::W
+            {
                 w.$field().clear_bit()
             }
 
-            fn clear_reset(w: &mut presetctrl::W) -> &mut presetctrl::W {
+            fn clear_reset<'w>(&mut self, w: &'w mut presetctrl::W)
+                -> &'w mut presetctrl::W
+            {
                 w.$field().set_bit()
             }
         }

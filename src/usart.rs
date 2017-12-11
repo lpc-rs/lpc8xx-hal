@@ -97,7 +97,7 @@ impl<'usart, UsartX> Usart<'usart, UsartX, init_state::Unknown>
         swm      : &mut Swm,
     ) -> nb::Result<Usart<'usart, UsartX, init_state::Initialized>, !> {
         syscon.enable_clock(&mut self.usart);
-        syscon.clear_reset::<&UsartX>();
+        syscon.clear_reset(&mut self.usart);
 
         swm.assign_pin::<UsartX::Rx, Rx>();
         swm.assign_pin::<UsartX::Tx, Tx>();
