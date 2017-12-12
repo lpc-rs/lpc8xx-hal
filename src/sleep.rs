@@ -6,10 +6,7 @@
 
 use cortex_m::asm;
 use embedded_hal::prelude::*;
-use lpc82x::{
-    NVIC,
-    SCB,
-};
+use lpc82x;
 use nb;
 
 use Pmu;
@@ -102,18 +99,18 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// [handle the WKT interrupt]: ../wkt/struct.WKT.html#method.handle_interrupt
 /// [`wkt::Clock`]: ../wkt/trait.Clock.html
 pub struct Regular<'r, 'pmu, 'wkt> {
-    nvic: &'r NVIC,
+    nvic: &'r lpc82x::NVIC,
     pmu : &'pmu mut Pmu<'pmu>,
-    scb : &'r SCB,
+    scb : &'r lpc82x::SCB,
     wkt : &'wkt mut WKT<'wkt>,
 }
 
 impl<'r, 'pmu, 'wkt> Regular<'r, 'pmu, 'wkt> {
     /// Prepare regular sleep mode
     pub fn prepare(
-        nvic: &'r NVIC,
+        nvic: &'r lpc82x::NVIC,
         pmu : &'pmu mut Pmu<'pmu>,
-        scb : &'r SCB,
+        scb : &'r lpc82x::SCB,
         wkt : &'wkt mut WKT<'wkt>,
     )
         -> Self
