@@ -243,7 +243,7 @@ pub use lpc82x::{
     Interrupt,
 };
 
-pub use self::gpio::Gpio;
+pub use self::gpio::GPIO;
 pub use self::pmu::Pmu;
 pub use self::swm::Swm;
 pub use self::syscon::Syscon;
@@ -323,7 +323,7 @@ impl<'system> System<'system> {
                 spi1      : peripherals.SPI1,
                 wwdt      : peripherals.WWDT,
 
-                gpio  : Gpio::new(peripherals.GPIO_PORT),
+                gpio  : GPIO::new(peripherals.GPIO_PORT),
                 pmu   : Pmu::new(peripherals.PMU),
                 swm   : Swm::new(peripherals.SWM),
                 syscon: Syscon::new(peripherals.SYSCON),
@@ -584,7 +584,7 @@ pub struct Peripherals<'system> {
     pub wwdt: &'system lpc82x::WWDT,
 
     /// General Purpose I/O (GPIO)
-    pub gpio: Gpio<'system, init_state::Unknown>,
+    pub gpio: GPIO<'system, init_state::Unknown>,
 
     /// Power Management Unit (PMU)
     pub pmu: Pmu<'system>,
