@@ -247,7 +247,7 @@ pub use self::gpio::GPIO;
 pub use self::pmu::Pmu;
 pub use self::swm::Swm;
 pub use self::syscon::Syscon;
-pub use self::usart::Usart;
+pub use self::usart::USART;
 pub use self::wkt::WKT;
 
 
@@ -327,9 +327,9 @@ impl<'system> System<'system> {
                 pmu   : Pmu::new(peripherals.PMU),
                 swm   : Swm::new(peripherals.SWM),
                 syscon: Syscon::new(peripherals.SYSCON),
-                usart0: Usart::new(peripherals.USART0),
-                usart1: Usart::new(peripherals.USART1),
-                usart2: Usart::new(peripherals.USART2),
+                usart0: USART::new(peripherals.USART0),
+                usart1: USART::new(peripherals.USART1),
+                usart2: USART::new(peripherals.USART2),
                 wkt   : WKT::new(peripherals.WKT),
             },
             resources: Resources {
@@ -596,13 +596,13 @@ pub struct Peripherals<'system> {
     pub syscon: Syscon<'system>,
 
     /// USART0
-    pub usart0: Usart<'system, lpc82x::USART0, init_state::Unknown>,
+    pub usart0: USART<'system, lpc82x::USART0, init_state::Unknown>,
 
     /// USART1
-    pub usart1: Usart<'system, lpc82x::USART1, init_state::Unknown>,
+    pub usart1: USART<'system, lpc82x::USART1, init_state::Unknown>,
 
     /// USART2
-    pub usart2: Usart<'system, lpc82x::USART2, init_state::Unknown>,
+    pub usart2: USART<'system, lpc82x::USART2, init_state::Unknown>,
 
     /// Self-wake-up timer (WKT)
     pub wkt: WKT<'system, init_state::Unknown>,
