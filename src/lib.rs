@@ -257,13 +257,6 @@ pub use self::wkt::WKT;
 /// It consists of multiple sub-structs for each category of system resource.
 ///
 /// Only one instance of this struct must exist in your program.
-///
-/// # Limitations
-///
-/// Currently not all system resources are actually available from this struct
-/// and its sub-structs. Many of them are modelled as unit-like structs that can
-/// be used and instantiated freely. This is a temporary state of affairs, and
-/// work to integrate those types into this struct is impending.
 pub struct System<'system> {
     /// System peripherals
     pub peripherals: Peripherals<'system>,
