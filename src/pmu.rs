@@ -20,11 +20,11 @@ use clock::state::ClockState;
 /// [`lpc82x::PMU`] directly, unless you know what you're doing.
 ///
 /// [`lpc82x::PMU`]: ../../lpc82x/struct.PMU.html
-pub struct Pmu<'pmu>(&'pmu lpc82x::PMU);
+pub struct PMU<'pmu>(&'pmu lpc82x::PMU);
 
-impl<'pmu> Pmu<'pmu> {
+impl<'pmu> PMU<'pmu> {
     pub(crate) fn new(pmu: &'pmu lpc82x::PMU) -> Self {
-        Pmu(pmu)
+        PMU(pmu)
     }
 
     /// Enter sleep mode
@@ -77,7 +77,7 @@ impl LowPowerClock<clock::state::Disabled> {
     /// instance that implements [`clock::Enabled`].
     ///
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
-    pub fn enable(self, pmu: &mut Pmu) -> LowPowerClock<clock::state::Enabled> {
+    pub fn enable(self, pmu: &mut PMU) -> LowPowerClock<clock::state::Enabled> {
         pmu.0.dpdctrl.modify(|_, w|
             w.lposcen().enabled()
         );
@@ -93,7 +93,7 @@ impl LowPowerClock<clock::state::Enabled> {
     ///
     /// This method consumes an enabled instance of `LowPowerClock` and returns
     /// an instance that is disabled.
-    pub fn disable(self, pmu: &mut Pmu)
+    pub fn disable(self, pmu: &mut PMU)
         -> LowPowerClock<clock::state::Disabled>
     {
         pmu.0.dpdctrl.modify(|_, w|

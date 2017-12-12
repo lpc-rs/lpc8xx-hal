@@ -244,7 +244,7 @@ pub use lpc82x::{
 };
 
 pub use self::gpio::GPIO;
-pub use self::pmu::Pmu;
+pub use self::pmu::PMU;
 pub use self::swm::SWM;
 pub use self::syscon::SYSCON;
 pub use self::usart::USART;
@@ -324,7 +324,7 @@ impl<'system> System<'system> {
                 wwdt      : peripherals.WWDT,
 
                 gpio  : GPIO::new(peripherals.GPIO_PORT),
-                pmu   : Pmu::new(peripherals.PMU),
+                pmu   : PMU::new(peripherals.PMU),
                 swm   : SWM::new(peripherals.SWM),
                 syscon: SYSCON::new(peripherals.SYSCON),
                 usart0: USART::new(peripherals.USART0),
@@ -587,7 +587,7 @@ pub struct Peripherals<'system> {
     pub gpio: GPIO<'system, init_state::Unknown>,
 
     /// Power Management Unit (PMU)
-    pub pmu: Pmu<'system>,
+    pub pmu: PMU<'system>,
 
     /// Switch matrix (SWM)
     pub swm: SWM<'system, init_state::Unknown>,
