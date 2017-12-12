@@ -592,7 +592,7 @@ pub struct Peripherals<'system> {
     /// Switch matrix (SWM)
     pub swm: Swm<'system, init_state::Unknown>,
 
-    /// Systeom configuration (SYSCON)
+    /// System configuration (SYSCON)
     pub syscon: SYSCON<'system>,
 
     /// USART0
