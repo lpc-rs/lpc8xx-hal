@@ -151,7 +151,7 @@
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
 //! // that runs at 750 kHz.
-//! let clock = system.clocks.irc_derived_clock.enable(
+//! let clock = system.peripherals.syscon.irc_derived_clock.enable(
 //!     &mut syscon,
 //!     system.peripherals.syscon.irc,
 //!     system.peripherals.syscon.ircout,
@@ -290,8 +290,7 @@ impl<'system> System<'system> {
 
         System {
             clocks: Clocks {
-                irc_derived_clock: syscon::IrcDerivedClock::new(),
-                low_power_clock  : pmu::LowPowerClock::new(),
+                low_power_clock: pmu::LowPowerClock::new(),
             },
             peripherals: Peripherals {
                 cpuid: peripherals.CPUID,
@@ -340,11 +339,6 @@ impl<'system> System<'system> {
 ///
 /// [`System`]: struct.System.html
 pub struct Clocks {
-    /// The 750 kHz IRC-derived clock
-    ///
-    /// Can be used to run the self-wake-up timer (WKT).
-    pub irc_derived_clock: syscon::IrcDerivedClock<clock::state::Disabled>,
-
     /// The 10 kHz low-power clock
     ///
     /// Can be used to run the self-wake-up timer (WKT).

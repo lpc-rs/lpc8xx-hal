@@ -61,6 +61,11 @@ pub struct SYSCON<'syscon> {
 
     /// UART Fractional Baud Rate Generator
     pub uartfrg: UARTFRG,
+
+    /// The 750 kHz IRC-derived clock
+    ///
+    /// Can be used to run the self-wake-up timer (WKT).
+    pub irc_derived_clock: IrcDerivedClock<clock::state::Disabled>,
 }
 
 impl<'syscon> SYSCON<'syscon> {
@@ -85,6 +90,8 @@ impl<'syscon> SYSCON<'syscon> {
             sysosc : SYSOSC::new(),
             syspll : SYSPLL::new(),
             uartfrg: UARTFRG::new(),
+
+            irc_derived_clock: IrcDerivedClock::new(),
         }
     }
 }
