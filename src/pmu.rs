@@ -26,6 +26,11 @@ use clock::state::ClockState;
 pub struct PMU<'pmu> {
     /// Main PMU API
     pub api: Api<'pmu>,
+
+    /// The 10 kHz low-power clock
+    ///
+    /// Can be used to run the self-wake-up timer (WKT).
+    pub low_power_clock: LowPowerClock<clock::state::Disabled>,
 }
 
 impl<'pmu> PMU<'pmu> {
@@ -35,6 +40,7 @@ impl<'pmu> PMU<'pmu> {
                 dpdctrl: &pmu.dpdctrl,
                 pcon   : &pmu.pcon,
             },
+            low_power_clock: LowPowerClock::new(),
         }
     }
 }

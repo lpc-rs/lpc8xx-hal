@@ -265,9 +265,6 @@ pub use self::wkt::WKT;
 /// be used and instantiated freely. This is a temporary state of affairs, and
 /// work to integrate those types into this struct is impending.
 pub struct System<'system> {
-    /// System clocks
-    pub clocks: Clocks,
-
     /// System peripherals
     pub peripherals: Peripherals<'system>,
 }
@@ -289,9 +286,6 @@ impl<'system> System<'system> {
         let peripherals = lpc82x::Peripherals::all();
 
         System {
-            clocks: Clocks {
-                low_power_clock: pmu::LowPowerClock::new(),
-            },
             peripherals: Peripherals {
                 cpuid: peripherals.CPUID,
                 dcb  : peripherals.DCB,
@@ -330,19 +324,6 @@ impl<'system> System<'system> {
             },
         }
     }
-}
-
-
-/// Provides access to clocks in the system
-///
-/// This struct is part of [`System`].
-///
-/// [`System`]: struct.System.html
-pub struct Clocks {
-    /// The 10 kHz low-power clock
-    ///
-    /// Can be used to run the self-wake-up timer (WKT).
-    pub low_power_clock: pmu::LowPowerClock<clock::state::Disabled>,
 }
 
 
