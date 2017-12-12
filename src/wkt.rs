@@ -13,8 +13,6 @@ use embedded_hal;
 use lpc82x::{
     self,
     Interrupt,
-    NVIC,
-    WKT,
 };
 use lpc82x::wkt::ctrl;
 use nb;
@@ -103,7 +101,7 @@ impl<'wkt> Wkt<'wkt> {
     /// See [`handle_interrupt`] for details.
     ///
     /// [`handle_interrupt`]: #method.handle_interrupt
-    pub fn enable_interrupt(&mut self, nvic: &NVIC) {
+    pub fn enable_interrupt(&mut self, nvic: &lpc82x::NVIC) {
         nvic.enable(Interrupt::WKT);
     }
 
@@ -150,7 +148,7 @@ impl<'wkt> Wkt<'wkt> {
 
             // Reset the alarm flag. Otherwise the interrupt will be triggered
             // over and over.
-            WKT.borrow(cs).ctrl.modify(|_, w| w.alarmflag().set_bit());
+            lpc82x::WKT.borrow(cs).ctrl.modify(|_, w| w.alarmflag().set_bit());
         });
     }
 }
