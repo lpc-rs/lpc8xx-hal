@@ -49,14 +49,14 @@ static HAS_WOKEN: Mutex<RefCell<bool>> = Mutex::new(RefCell::new(false));
 /// [`Timer`]: ../../embedded_hal/trait.Timer.html
 /// [`Timer::set_timeout`]: ../../embedded_hal/trait.Timer.html#tymethod.set_timeout
 /// [`Timer::wait`]: ../../embedded_hal/trait.Timer.html#tymethod.wait
-pub struct Wkt<'wkt, State: InitState = init_state::Initialized> {
+pub struct WKT<'wkt, State: InitState = init_state::Initialized> {
     wkt   : &'wkt lpc82x::WKT,
     _state: State,
 }
 
-impl<'wkt> Wkt<'wkt, init_state::Unknown> {
+impl<'wkt> WKT<'wkt, init_state::Unknown> {
     pub(crate) fn new(wkt: &'wkt lpc82x::WKT) -> Self {
-        Wkt {
+        WKT {
             wkt   : wkt,
             _state: init_state::Unknown,
         }
@@ -64,19 +64,19 @@ impl<'wkt> Wkt<'wkt, init_state::Unknown> {
 
     /// Initialize the self-wake-up timer
     pub fn init(mut self, syscon: &mut Syscon)
-        -> Wkt<'wkt, init_state::Initialized>
+        -> WKT<'wkt, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.wkt);
         syscon.clear_reset(&mut self.wkt);
 
-        Wkt {
+        WKT {
             wkt   : self.wkt,
             _state: init_state::Initialized,
         }
     }
 }
 
-impl<'wkt> Wkt<'wkt> {
+impl<'wkt> WKT<'wkt> {
     /// Select the clock that runs the self-wake-up timer
     ///
     /// Clocks that can run the self-wake-up timer implement [`wkt::Clock`].
@@ -127,12 +127,12 @@ impl<'wkt> Wkt<'wkt> {
     /// extern crate lpc82x;
     /// extern crate lpc82x_hal;
     ///
-    /// use lpc82x_hal::Wkt;
+    /// use lpc82x_hal::WKT;
     ///
     /// interrupt!(WKT, handle_wkt);
     ///
     /// fn handle_wkt() {
-    ///     Wkt::handle_interrupt();
+    ///     WKT::handle_interrupt();
     /// }
     /// #
     /// # fn main() {}
@@ -153,7 +153,7 @@ impl<'wkt> Wkt<'wkt> {
     }
 }
 
-impl<'wkt> embedded_hal::Timer for Wkt<'wkt> {
+impl<'wkt> embedded_hal::Timer for WKT<'wkt> {
     type Time = u32;
 
     fn get_timeout(&self) -> Self::Time {

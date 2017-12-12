@@ -248,7 +248,7 @@ pub use self::pmu::Pmu;
 pub use self::swm::Swm;
 pub use self::syscon::Syscon;
 pub use self::usart::Usart;
-pub use self::wkt::Wkt;
+pub use self::wkt::WKT;
 
 
 /// Entry point to the HAL API
@@ -330,7 +330,7 @@ impl<'system> System<'system> {
                 usart0: Usart::new(peripherals.USART0),
                 usart1: Usart::new(peripherals.USART1),
                 usart2: Usart::new(peripherals.USART2),
-                wkt   : Wkt::new(peripherals.WKT),
+                wkt   : WKT::new(peripherals.WKT),
             },
             resources: Resources {
                 bod    : syscon::BOD::new(),
@@ -605,7 +605,7 @@ pub struct Peripherals<'system> {
     pub usart2: Usart<'system, lpc82x::USART2, init_state::Unknown>,
 
     /// Self-wake-up timer (WKT)
-    pub wkt: Wkt<'system, init_state::Unknown>,
+    pub wkt: WKT<'system, init_state::Unknown>,
 }
 
 
