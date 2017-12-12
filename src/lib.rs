@@ -127,7 +127,7 @@
 //! ``` no_run
 //! use lpc82x_hal::{
 //!     PIO0_3,
-//!     System,
+//!     Peripherals,
 //! };
 //! use lpc82x_hal::clock::Ticks;
 //! use lpc82x_hal::sleep::{
@@ -135,26 +135,26 @@
 //!     Sleep,
 //! };
 //!
-//! // Initialize the system. This is unsafe, because we're only allowed to
-//! // create one instance on `System`.
-//! let system = unsafe { System::new() };
+//! // Initialize the peripherals. This is unsafe, because we're only allowed to
+//! // create one instance on `Peripherals`.
+//! let peripherals = unsafe { Peripherals::new() };
 //!
 //! // Let's save some peripherals in local variables for convenience. This one
 //! // here doesn't require initialization.
-//! let mut syscon = system.peripherals.syscon.api;
+//! let mut syscon = peripherals.syscon.api;
 //!
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing it will actually lead to compile-time errors.
-//! let mut gpio = system.peripherals.gpio.init(&mut syscon);
-//! let mut swm  = system.peripherals.swm.init(&mut syscon);
-//! let mut wkt  = system.peripherals.wkt.init(&mut syscon);
+//! let mut gpio = peripherals.gpio.init(&mut syscon);
+//! let mut swm  = peripherals.swm.init(&mut syscon);
+//! let mut wkt  = peripherals.wkt.init(&mut syscon);
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
 //! // that runs at 750 kHz.
-//! let clock = system.peripherals.syscon.irc_derived_clock.enable(
+//! let clock = peripherals.syscon.irc_derived_clock.enable(
 //!     &mut syscon,
-//!     system.peripherals.syscon.irc,
-//!     system.peripherals.syscon.ircout,
+//!     peripherals.syscon.irc,
+//!     peripherals.syscon.ircout,
 //! );
 //!
 //! // Set pin direction to output, so we can use it to blink an LED.
@@ -192,7 +192,6 @@
 //! [cortex-m-rt]: https://crates.io/crates/cortex-m-rt
 //! [Xargo]: https://crates.io/crates/xargo
 //! [This fork of lpc21isp]: https://github.com/hannobraun/lpc21isp
-//! [`System`]: struct.System.html
 //! [available from NXP]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
 
 
@@ -257,74 +256,6 @@ pub use self::wkt::WKT;
 /// It consists of multiple sub-structs for each category of system resource.
 ///
 /// Only one instance of this struct must exist in your program.
-pub struct System<'system> {
-    /// System peripherals
-    pub peripherals: Peripherals<'system>,
-}
-
-impl<'system> System<'system> {
-    /// Creates an instance of `System`
-    ///
-    /// Only one instance of `System` must exist in your program. Use this
-    /// method at the start of your program, to create a single `System` that
-    /// will serve as an entry point to the HAL API.
-    ///
-    /// # Safety
-    ///
-    /// You must guarantee to only use this method to create a single instance
-    /// of `System`. Usually this means you call this method once, at the
-    /// beginning of your program. But technically, you can call it again to
-    /// create another instance, if the previous one has been dropped.
-    pub unsafe fn new() -> Self {
-        let peripherals = lpc82x::Peripherals::all();
-
-        System {
-            peripherals: Peripherals {
-                cpuid: peripherals.CPUID,
-                dcb  : peripherals.DCB,
-                dwt  : peripherals.DWT,
-                nvic : peripherals.NVIC,
-                scb  : peripherals.SCB,
-                syst : peripherals.SYST,
-
-                adc       : peripherals.ADC,
-                cmp       : peripherals.CMP,
-                crc       : peripherals.CRC,
-                dma       : peripherals.DMA,
-                dmatrigmux: peripherals.DMATRIGMUX,
-                flashctrl : peripherals.FLASHCTRL,
-                i2c0      : peripherals.I2C0,
-                i2c1      : peripherals.I2C1,
-                i2c2      : peripherals.I2C2,
-                i2c3      : peripherals.I2C3,
-                inputmux  : peripherals.INPUTMUX,
-                iocon     : peripherals.IOCON,
-                mrt       : peripherals.MRT,
-                pin_int   : peripherals.PIN_INT,
-                sct       : peripherals.SCT,
-                spi0      : peripherals.SPI0,
-                spi1      : peripherals.SPI1,
-                wwdt      : peripherals.WWDT,
-
-                gpio  : GPIO::new(peripherals.GPIO_PORT),
-                pmu   : PMU::new(peripherals.PMU),
-                swm   : SWM::new(peripherals.SWM),
-                syscon: SYSCON::new(peripherals.SYSCON),
-                usart0: USART::new(peripherals.USART0),
-                usart1: USART::new(peripherals.USART1),
-                usart2: USART::new(peripherals.USART2),
-                wkt   : WKT::new(peripherals.WKT),
-            },
-        }
-    }
-}
-
-
-/// Provides access to all peripherals
-///
-/// This struct is part of [`System`].
-///
-/// [`System`]: struct.System.html
 pub struct Peripherals<'system> {
     /// CPUID register
     ///
@@ -559,6 +490,61 @@ pub struct Peripherals<'system> {
 
     /// Self-wake-up timer (WKT)
     pub wkt: WKT<'system, init_state::Unknown>,
+}
+
+impl<'system> Peripherals<'system> {
+    /// Creates an instance of `Peripherals`
+    ///
+    /// Only one instance of `Peripherals` must exist in your program. Use this
+    /// method at the start of your program, to create a single `Peripherals`
+    /// instance that will serve as an entry point to the HAL API.
+    ///
+    /// # Safety
+    ///
+    /// You must guarantee to only use this method to create a single instance
+    /// of `Peripherals`. Usually this means you call this method once, at the
+    /// beginning of your program. But technically, you can call it again to
+    /// create another instance, if the previous one has been dropped.
+    pub unsafe fn new() -> Self {
+        let peripherals = lpc82x::Peripherals::all();
+
+        Peripherals {
+            cpuid: peripherals.CPUID,
+            dcb  : peripherals.DCB,
+            dwt  : peripherals.DWT,
+            nvic : peripherals.NVIC,
+            scb  : peripherals.SCB,
+            syst : peripherals.SYST,
+
+            adc       : peripherals.ADC,
+            cmp       : peripherals.CMP,
+            crc       : peripherals.CRC,
+            dma       : peripherals.DMA,
+            dmatrigmux: peripherals.DMATRIGMUX,
+            flashctrl : peripherals.FLASHCTRL,
+            i2c0      : peripherals.I2C0,
+            i2c1      : peripherals.I2C1,
+            i2c2      : peripherals.I2C2,
+            i2c3      : peripherals.I2C3,
+            inputmux  : peripherals.INPUTMUX,
+            iocon     : peripherals.IOCON,
+            mrt       : peripherals.MRT,
+            pin_int   : peripherals.PIN_INT,
+            sct       : peripherals.SCT,
+            spi0      : peripherals.SPI0,
+            spi1      : peripherals.SPI1,
+            wwdt      : peripherals.WWDT,
+
+            gpio  : GPIO::new(peripherals.GPIO_PORT),
+            pmu   : PMU::new(peripherals.PMU),
+            swm   : SWM::new(peripherals.SWM),
+            syscon: SYSCON::new(peripherals.SYSCON),
+            usart0: USART::new(peripherals.USART0),
+            usart1: USART::new(peripherals.USART1),
+            usart2: USART::new(peripherals.USART2),
+            wkt   : WKT::new(peripherals.WKT),
+        }
+    }
 }
 
 
