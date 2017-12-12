@@ -7,7 +7,6 @@ use cortex_m::{
     asm,
     interrupt,
 };
-use cortex_m::peripheral::SCB;
 use lpc82x;
 
 use clock;
@@ -31,7 +30,7 @@ impl<'pmu> PMU<'pmu> {
     ///
     /// The microcontroller will wake up from sleep mode, if an NVIC-enabled
     /// interrupt occurs. See user manual, section 6.7.4.3.
-    pub fn enter_sleep_mode(&mut self, scb: &SCB) {
+    pub fn enter_sleep_mode(&mut self, scb: &lpc82x::SCB) {
         interrupt::free(|_| {
             // Default power mode indicates active or sleep mode.
             self.0.pcon.modify(|_, w|
