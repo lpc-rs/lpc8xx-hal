@@ -8,7 +8,7 @@ use lpc82x;
 use ::{
     swm,
     Pin,
-    Swm,
+    SWM,
     SYSCON,
 };
 use init_state::{
@@ -55,7 +55,7 @@ impl<'gpio> GPIO<'gpio> {
     ///
     /// Disables the fixed function of the given pin (thus making it available
     /// for GPIO) and sets the GPIO direction to output.
-    pub fn set_pin_to_output<P>(&mut self, swm: &mut Swm)
+    pub fn set_pin_to_output<P>(&mut self, swm: &mut SWM)
         where P: Pin + swm::PinExt
     {
         P::disable_fixed_functions(swm);

@@ -20,7 +20,7 @@ use init_state::{
 };
 use swm::{
     self,
-    Swm,
+    SWM,
 };
 use syscon::{
     self,
@@ -94,7 +94,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     pub fn init<Rx: Pin, Tx: Pin>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut SYSCON,
-        swm      : &mut Swm,
+        swm      : &mut SWM,
     ) -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !> {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
