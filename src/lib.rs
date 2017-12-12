@@ -153,8 +153,8 @@
 //! // that runs at 750 kHz.
 //! let clock = system.clocks.irc_derived_clock.enable(
 //!     &mut syscon,
-//!     system.resources.irc,
-//!     system.resources.ircout,
+//!     system.peripherals.syscon.irc,
+//!     system.peripherals.syscon.ircout,
 //! );
 //!
 //! // Set pin direction to output, so we can use it to blink an LED.
@@ -270,9 +270,6 @@ pub struct System<'system> {
 
     /// System peripherals
     pub peripherals: Peripherals<'system>,
-
-    /// Other system resources
-    pub resources: Resources,
 }
 
 impl<'system> System<'system> {
@@ -331,18 +328,6 @@ impl<'system> System<'system> {
                 usart1: USART::new(peripherals.USART1),
                 usart2: USART::new(peripherals.USART2),
                 wkt   : WKT::new(peripherals.WKT),
-            },
-            resources: Resources {
-                bod    : syscon::BOD::new(),
-                flash  : syscon::FLASH::new(),
-                irc    : syscon::IRC::new(),
-                ircout : syscon::IRCOUT::new(),
-                mtb    : syscon::MTB::new(),
-                ram0_1 : syscon::RAM0_1::new(),
-                rom    : syscon::ROM::new(),
-                sysosc : syscon::SYSOSC::new(),
-                syspll : syscon::SYSPLL::new(),
-                uartfrg: syscon::UARTFRG::new(),
             },
         }
     }
@@ -606,44 +591,6 @@ pub struct Peripherals<'system> {
 
     /// Self-wake-up timer (WKT)
     pub wkt: WKT<'system, init_state::Unknown>,
-}
-
-
-/// Provides access to other system resources
-///
-/// This struct is part of [`System`].
-///
-/// [`System`]: struct.System.html
-pub struct Resources {
-    /// Brown-out detection
-    pub bod: syscon::BOD,
-
-    /// Flash memory
-    pub flash: syscon::FLASH,
-
-    /// IRC
-    pub irc: syscon::IRC,
-
-    /// IRC output
-    pub ircout: syscon::IRCOUT,
-
-    /// Micro Trace Buffer
-    pub mtb: syscon::MTB,
-
-    /// Random access memory
-    pub ram0_1: syscon::RAM0_1,
-
-    /// Read-only memory
-    pub rom: syscon::ROM,
-
-    /// System oscillator
-    pub sysosc: syscon::SYSOSC,
-
-    /// PLL
-    pub syspll: syscon::SYSPLL,
-
-    /// UART Fractional Baud Rate Generator
-    pub uartfrg: syscon::UARTFRG,
 }
 
 

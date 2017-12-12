@@ -31,6 +31,36 @@ use clock::state::ClockState;
 pub struct SYSCON<'syscon> {
     /// Main SYSCON API
     pub api: Api<'syscon>,
+
+    /// Brown-out detection
+    pub bod: BOD,
+
+    /// Flash memory
+    pub flash: FLASH,
+
+    /// IRC
+    pub irc: IRC,
+
+    /// IRC output
+    pub ircout: IRCOUT,
+
+    /// Micro Trace Buffer
+    pub mtb: MTB,
+
+    /// Random access memory
+    pub ram0_1: RAM0_1,
+
+    /// Read-only memory
+    pub rom: ROM,
+
+    /// System oscillator
+    pub sysosc: SYSOSC,
+
+    /// PLL
+    pub syspll: SYSPLL,
+
+    /// UART Fractional Baud Rate Generator
+    pub uartfrg: UARTFRG,
 }
 
 impl<'syscon> SYSCON<'syscon> {
@@ -44,6 +74,17 @@ impl<'syscon> SYSCON<'syscon> {
                 uartfrgdiv   : &syscon.uartfrgdiv,
                 uartfrgmult  : &syscon.uartfrgmult,
             },
+
+            bod    : BOD::new(),
+            flash  : FLASH::new(),
+            irc    : IRC::new(),
+            ircout : IRCOUT::new(),
+            mtb    : MTB::new(),
+            ram0_1 : RAM0_1::new(),
+            rom    : ROM::new(),
+            sysosc : SYSOSC::new(),
+            syspll : SYSPLL::new(),
+            uartfrg: UARTFRG::new(),
         }
     }
 }
