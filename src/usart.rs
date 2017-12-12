@@ -101,11 +101,6 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         swm.assign_pin::<UsartX::Rx, Rx>();
         swm.assign_pin::<UsartX::Tx, Tx>();
 
-        syscon.set_uart_clock(
-            &baud_rate.clk_div,
-            &baud_rate.frg_mult,
-            &baud_rate.frg_div,
-        );
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brg_val) });
 
         // Disable USART peripheral before writing configuration. This is
@@ -366,21 +361,6 @@ impl Peripheral for lpc82x::USART2 {
 /// [`frg_div`]: #structfield.frg_div
 /// [`brg_val`]: #structfield.brg_val
 pub struct BaudRate {
-    /// USART clock divider value
-    ///
-    /// See user manual, section 5.6.15.
-    clk_div: UartClkDiv,
-
-    /// USART fractional generator multiplier value
-    ///
-    /// See user manual, section 5.6.20.
-    frg_mult: UartFrgMult,
-
-    /// USART fractional generator divider value
-    ///
-    /// See user manual, section 5.6.19.
-    frg_div: UartFrgDiv,
-
     /// USART Baud Rate Generator divider value
     ///
     /// See user manual, section 13.6.9.
@@ -394,12 +374,16 @@ impl BaudRate {
         frg_mult: UartFrgMult,
         frg_div : UartFrgDiv,
         brg_val : u16,
+        syscon  : &mut syscon::Api,
     ) -> Self {
+        syscon.set_uart_clock(
+            &clk_div,
+            &frg_mult,
+            &frg_div,
+        );
+
         Self {
-            clk_div : clk_div,
-            frg_mult: frg_mult,
-            frg_div : frg_div,
-            brg_val : brg_val,
+            brg_val: brg_val,
         }
     }
 
@@ -411,7 +395,7 @@ impl BaudRate {
     /// namely that the IRC running at 12 MHz is used. If you have made any
     /// changes to the main clock configuration, please don't use this function
     /// and create a `BaudRate` manually instead.
-    pub fn baud_115200() -> Self {
+    pub fn baud_115200(syscon: &mut syscon::Api) -> Self {
         // The common peripheral clock for all UART units, U_PCLK, needs to be
         // set to 16 times the desired baud rate. This results in a frequency of
         // 1843200 Hz for U_PLCK.
@@ -439,6 +423,7 @@ impl BaudRate {
             UartFrgMult(22),
             UartFrgDiv(0xff),
             0,
+            syscon
         )
     }
 }
