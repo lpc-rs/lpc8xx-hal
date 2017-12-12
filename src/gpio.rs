@@ -7,9 +7,9 @@ use lpc82x;
 
 use ::{
     swm,
+    syscon,
     Pin,
     SWM,
-    SYSCON,
 };
 use init_state::{
     self,
@@ -37,7 +37,7 @@ impl<'gpio> GPIO<'gpio, init_state::Unknown> {
     }
 
     /// Initialize GPIO
-    pub fn init(mut self, syscon: &mut SYSCON)
+    pub fn init(mut self, syscon: &mut syscon::Api)
         -> GPIO<'gpio, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.gpio);

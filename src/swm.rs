@@ -7,8 +7,8 @@ use lpc82x;
 use lpc82x::swm::pinenable0;
 
 use ::{
+    syscon,
     Pin,
-    SYSCON,
 };
 use init_state::{
     self,
@@ -36,7 +36,7 @@ impl<'swm> SWM<'swm, init_state::Unknown> {
     }
 
     /// Initialize the switch matrix
-    pub fn init(mut self, syscon: &mut SYSCON)
+    pub fn init(mut self, syscon: &mut syscon::Api)
         -> SWM<'swm, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.swm);

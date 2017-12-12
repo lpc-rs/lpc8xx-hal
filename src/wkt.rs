@@ -18,8 +18,8 @@ use lpc82x::wkt::ctrl;
 use nb;
 
 use syscon::{
+    self,
     IrcDerivedClock,
-    SYSCON,
 };
 use clock::state::ClockState;
 use init_state::{
@@ -63,7 +63,7 @@ impl<'wkt> WKT<'wkt, init_state::Unknown> {
     }
 
     /// Initialize the self-wake-up timer
-    pub fn init(mut self, syscon: &mut SYSCON)
+    pub fn init(mut self, syscon: &mut syscon::Api)
         -> WKT<'wkt, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.wkt);

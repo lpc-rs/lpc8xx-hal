@@ -24,7 +24,6 @@ use swm::{
 };
 use syscon::{
     self,
-    SYSCON,
     UartClkDiv,
     UartFrgDiv,
     UartFrgMult,
@@ -93,7 +92,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     /// [`BaudRate`]: struct.BaudRate.html
     pub fn init<Rx: Pin, Tx: Pin>(mut self,
         baud_rate: &BaudRate,
-        syscon   : &mut SYSCON,
+        syscon   : &mut syscon::Api,
         swm      : &mut SWM,
     ) -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !> {
         syscon.enable_clock(&mut self.usart);

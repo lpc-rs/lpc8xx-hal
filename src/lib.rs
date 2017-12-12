@@ -141,7 +141,7 @@
 //!
 //! // Let's save some peripherals in local variables for convenience. This one
 //! // here doesn't require initialization.
-//! let mut syscon = system.peripherals.syscon;
+//! let mut syscon = system.peripherals.syscon.api;
 //!
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing it will actually lead to compile-time errors.

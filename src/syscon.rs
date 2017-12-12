@@ -10,6 +10,12 @@ use lpc82x::syscon::{
     pdruncfg,
     presetctrl,
     sysahbclkctrl,
+    PDRUNCFG,
+    PRESETCTRL,
+    SYSAHBCLKCTRL,
+    UARTCLKDIV,
+    UARTFRGDIV,
+    UARTFRGMULT,
 };
 
 use clock;
@@ -22,30 +28,55 @@ use clock::state::ClockState;
 /// [`lpc82x::SYSCON`] directly, unless you know what you're doing.
 ///
 /// [`lpc82x::SYSCON`]: ../../lpc82x/struct.SYSCON.html
-pub struct SYSCON<'syscon>(&'syscon lpc82x::SYSCON);
+pub struct SYSCON<'syscon> {
+    /// Main SYSCON API
+    pub api: Api<'syscon>,
+}
 
 impl<'syscon> SYSCON<'syscon> {
     pub(crate) fn new(syscon: &'syscon lpc82x::SYSCON) -> Self {
-        SYSCON(syscon)
+        SYSCON {
+            api: Api {
+                pdruncfg     : &syscon.pdruncfg,
+                presetctrl   : &syscon.presetctrl,
+                sysahbclkctrl: &syscon.sysahbclkctrl,
+                uartclkdiv   : &syscon.uartclkdiv,
+                uartfrgdiv   : &syscon.uartfrgdiv,
+                uartfrgmult  : &syscon.uartfrgmult,
+            },
+        }
     }
+}
 
+
+/// Main API of the SYSCON peripheral
+pub struct Api<'syscon> {
+    pdruncfg     : &'syscon PDRUNCFG,
+    presetctrl   : &'syscon PRESETCTRL,
+    sysahbclkctrl: &'syscon SYSAHBCLKCTRL,
+    uartclkdiv   : &'syscon UARTCLKDIV,
+    uartfrgdiv   : &'syscon UARTFRGDIV,
+    uartfrgmult  : &'syscon UARTFRGMULT,
+}
+
+impl<'r> Api<'r> {
     /// Enable peripheral clock
     ///
     /// Enables the clock for a peripheral or other hardware component. HAL
     /// users usually won't have to call this method directly, as other
     /// peripheral APIs will do this for them.
     pub fn enable_clock<P: ClockControl>(&mut self, peripheral: &mut P) {
-        self.0.sysahbclkctrl.modify(|_, w| peripheral.enable_clock(w));
+        self.sysahbclkctrl.modify(|_, w| peripheral.enable_clock(w));
     }
 
     /// Disable peripheral clock
     pub fn disable_clock<P: ClockControl>(&mut self, peripheral: &mut P) {
-        self.0.sysahbclkctrl.modify(|_, w| peripheral.disable_clock(w));
+        self.sysahbclkctrl.modify(|_, w| peripheral.disable_clock(w));
     }
 
     /// Assert peripheral reset
     pub fn assert_reset<P: ResetControl>(&mut self, peripheral: &mut P) {
-        self.0.presetctrl.modify(|_, w| peripheral.assert_reset(w));
+        self.presetctrl.modify(|_, w| peripheral.assert_reset(w));
     }
 
     /// Clear peripheral reset
@@ -54,7 +85,7 @@ impl<'syscon> SYSCON<'syscon> {
     /// usually won't have to call this method directly, as other peripheral
     /// APIs will do this for them.
     pub fn clear_reset<P: ResetControl>(&mut self, peripheral: &mut P) {
-        self.0.presetctrl.modify(|_, w| peripheral.clear_reset(w));
+        self.presetctrl.modify(|_, w| peripheral.clear_reset(w));
     }
 
     /// Provide power to an analog block
@@ -62,12 +93,12 @@ impl<'syscon> SYSCON<'syscon> {
     /// HAL users usually won't have to call this method themselves, as other
     /// peripheral APIs will do this for them.
     pub fn power_up<P: AnalogBlock>(&mut self, peripheral: &mut P) {
-        self.0.pdruncfg.modify(|_, w| peripheral.power_up(w));
+        self.pdruncfg.modify(|_, w| peripheral.power_up(w));
     }
 
     /// Remove power from an analog block
     pub fn power_down<P: AnalogBlock>(&mut self, peripheral: &mut P) {
-        self.0.pdruncfg.modify(|_, w| peripheral.power_down(w));
+        self.pdruncfg.modify(|_, w| peripheral.power_down(w));
     }
 
     /// Sets the clock for all USART peripherals (U_PCLK)
@@ -87,10 +118,10 @@ impl<'syscon> SYSCON<'syscon> {
         uart_frg_div : &UartFrgDiv,
     ) {
         unsafe {
-            self.0.uartclkdiv.write(|w| w.div().bits(uart_clk_div.0));
+            self.uartclkdiv.write(|w| w.div().bits(uart_clk_div.0));
 
-            self.0.uartfrgmult.write(|w| w.mult().bits(uart_frg_mult.0));
-            self.0.uartfrgdiv.write(|w| w.div().bits(uart_frg_div.0));
+            self.uartfrgmult.write(|w| w.mult().bits(uart_frg_mult.0));
+            self.uartfrgdiv.write(|w| w.div().bits(uart_frg_div.0));
         }
     }
 }
@@ -454,7 +485,7 @@ impl IrcDerivedClock<clock::state::Disabled> {
     /// the IRC-derived clock again.
     ///
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
-    pub fn enable(self, syscon: &mut SYSCON, mut irc: IRC, mut ircout: IRCOUT)
+    pub fn enable(self, syscon: &mut Api, mut irc: IRC, mut ircout: IRCOUT)
         -> IrcDerivedClock<clock::state::Enabled>
     {
         syscon.power_up(&mut irc);
