@@ -9,7 +9,7 @@ use ::{
     swm,
     Pin,
     Swm,
-    Syscon,
+    SYSCON,
 };
 use init_state::{
     self,
@@ -37,7 +37,7 @@ impl<'gpio> GPIO<'gpio, init_state::Unknown> {
     }
 
     /// Initialize GPIO
-    pub fn init(mut self, syscon: &mut Syscon)
+    pub fn init(mut self, syscon: &mut SYSCON)
         -> GPIO<'gpio, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.gpio);

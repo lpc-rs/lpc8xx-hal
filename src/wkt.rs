@@ -19,7 +19,7 @@ use nb;
 
 use syscon::{
     IrcDerivedClock,
-    Syscon,
+    SYSCON,
 };
 use clock::state::ClockState;
 use init_state::{
@@ -63,7 +63,7 @@ impl<'wkt> WKT<'wkt, init_state::Unknown> {
     }
 
     /// Initialize the self-wake-up timer
-    pub fn init(mut self, syscon: &mut Syscon)
+    pub fn init(mut self, syscon: &mut SYSCON)
         -> WKT<'wkt, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.wkt);

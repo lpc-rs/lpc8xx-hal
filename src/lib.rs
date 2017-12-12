@@ -246,7 +246,7 @@ pub use lpc82x::{
 pub use self::gpio::GPIO;
 pub use self::pmu::Pmu;
 pub use self::swm::Swm;
-pub use self::syscon::Syscon;
+pub use self::syscon::SYSCON;
 pub use self::usart::USART;
 pub use self::wkt::WKT;
 
@@ -326,7 +326,7 @@ impl<'system> System<'system> {
                 gpio  : GPIO::new(peripherals.GPIO_PORT),
                 pmu   : Pmu::new(peripherals.PMU),
                 swm   : Swm::new(peripherals.SWM),
-                syscon: Syscon::new(peripherals.SYSCON),
+                syscon: SYSCON::new(peripherals.SYSCON),
                 usart0: USART::new(peripherals.USART0),
                 usart1: USART::new(peripherals.USART1),
                 usart2: USART::new(peripherals.USART2),
@@ -593,7 +593,7 @@ pub struct Peripherals<'system> {
     pub swm: Swm<'system, init_state::Unknown>,
 
     /// Systeom configuration (SYSCON)
-    pub syscon: Syscon<'system>,
+    pub syscon: SYSCON<'system>,
 
     /// USART0
     pub usart0: USART<'system, lpc82x::USART0, init_state::Unknown>,
