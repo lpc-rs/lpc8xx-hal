@@ -7,9 +7,9 @@ use lpc82x;
 
 use ::{
     swm,
+    syscon,
     Pin,
-    Swm,
-    Syscon,
+    SWM,
 };
 use init_state::{
     self,
@@ -23,39 +23,39 @@ use init_state::{
 /// [`lpc82x::GPIO_PORT`] directly, unless you know what you're doing.
 ///
 /// [`lpc82x::GPIO_PORT`]: ../../lpc82x/struct.GPIO_PORT.html
-pub struct Gpio<'gpio, State: InitState = init_state::Initialized> {
+pub struct GPIO<'gpio, State: InitState = init_state::Initialized> {
     gpio  : &'gpio lpc82x::GPIO_PORT,
     _state: State,
 }
 
-impl<'gpio> Gpio<'gpio, init_state::Unknown> {
+impl<'gpio> GPIO<'gpio, init_state::Unknown> {
     pub(crate) fn new(gpio: &'gpio lpc82x::GPIO_PORT) -> Self {
-        Gpio {
+        GPIO {
             gpio  : gpio,
             _state: init_state::Unknown,
         }
     }
 
     /// Initialize GPIO
-    pub fn init(mut self, syscon: &mut Syscon)
-        -> Gpio<'gpio, init_state::Initialized>
+    pub fn init(mut self, syscon: &mut syscon::Api)
+        -> GPIO<'gpio, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.gpio);
         syscon.clear_reset(&mut self.gpio);
 
-        Gpio {
+        GPIO {
             gpio  : self.gpio,
             _state: init_state::Initialized,
         }
     }
 }
 
-impl<'gpio> Gpio<'gpio> {
+impl<'gpio> GPIO<'gpio> {
     /// Sets pin direction to output
     ///
     /// Disables the fixed function of the given pin (thus making it available
     /// for GPIO) and sets the GPIO direction to output.
-    pub fn set_pin_to_output<P>(&mut self, swm: &mut Swm)
+    pub fn set_pin_to_output<P>(&mut self, swm: &mut SWM)
         where P: Pin + swm::PinExt
     {
         P::disable_fixed_functions(swm);

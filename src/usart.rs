@@ -20,11 +20,10 @@ use init_state::{
 };
 use swm::{
     self,
-    Swm,
+    SWM,
 };
 use syscon::{
     self,
-    Syscon,
     UartClkDiv,
     UartFrgDiv,
     UartFrgMult,
@@ -54,14 +53,14 @@ pub trait Write<Word> {
 
 /// Interface to the USART peripherals
 ///
-/// Each instance of `Usart` expects to have full ownership of one USART
+/// Each instance of `USART` expects to have full ownership of one USART
 /// peripheral. Don't use [`lpc82x::USART0`], [`lpc82x::USART1`], or
 /// [`lpc82x::USART2`] directly, unless you know what you're doing.
 ///
 /// [`lpc82x::USART0`]: ../../lpc82x/struct.USART0.html
 /// [`lpc82x::USART1`]: ../../lpc82x/struct.USART1.html
 /// [`lpc82x::USART2`]: ../../lpc82x/struct.USART2.html
-pub struct Usart<
+pub struct USART<
     'usart,
     UsartX: 'usart,
     State : InitState = init_state::Initialized,
@@ -70,13 +69,13 @@ pub struct Usart<
     _state: State,
 }
 
-impl<'usart, UsartX> Usart<'usart, UsartX, init_state::Unknown>
+impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     where
         UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     pub(crate) fn new(usart: &'usart UsartX) -> Self {
-        Usart {
+        USART {
             usart : usart,
             _state: init_state::Unknown,
         }
@@ -93,9 +92,9 @@ impl<'usart, UsartX> Usart<'usart, UsartX, init_state::Unknown>
     /// [`BaudRate`]: struct.BaudRate.html
     pub fn init<Rx: Pin, Tx: Pin>(mut self,
         baud_rate: &BaudRate,
-        syscon   : &mut Syscon,
-        swm      : &mut Swm,
-    ) -> nb::Result<Usart<'usart, UsartX, init_state::Initialized>, !> {
+        syscon   : &mut syscon::Api,
+        swm      : &mut SWM,
+    ) -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !> {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
 
@@ -161,14 +160,14 @@ impl<'usart, UsartX> Usart<'usart, UsartX, init_state::Unknown>
                 .autobaud().disabled()
         );
 
-        Ok(Usart {
+        Ok(USART {
             usart : self.usart,
             _state: init_state::Initialized,
         })
     }
 }
 
-impl<'usart, UsartX> Usart<'usart, UsartX>
+impl<'usart, UsartX> USART<'usart, UsartX>
     where
         UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
@@ -211,7 +210,7 @@ impl<'usart, UsartX> Usart<'usart, UsartX>
     }
 }
 
-impl<'usart, UsartX> Read<u8> for Usart<'usart, UsartX>
+impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
     where
         UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
@@ -256,7 +255,7 @@ impl<'usart, UsartX> Read<u8> for Usart<'usart, UsartX>
     }
 }
 
-impl<'usart, UsartX> Write<u8> for Usart<'usart, UsartX>
+impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
     where
         UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
@@ -284,7 +283,7 @@ impl<'usart, UsartX> Write<u8> for Usart<'usart, UsartX>
     }
 }
 
-impl<'usart, UsartX> blocking::Write<u8> for Usart<'usart, UsartX>
+impl<'usart, UsartX> blocking::Write<u8> for USART<'usart, UsartX>
     where
         UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
@@ -348,7 +347,7 @@ impl Peripheral for lpc82x::USART2 {
 
 /// Baud rate for a UART unit
 ///
-/// Can be passed to [`Usart::init`] to configure the baud rate for the USART
+/// Can be passed to [`USART::init`] to configure the baud rate for the USART
 /// peripheral.
 ///
 /// # Limitations
@@ -361,7 +360,7 @@ impl Peripheral for lpc82x::USART2 {
 /// that all the `BaudRate`s passed to them have identical values for `clk_div`,
 /// `frg_mult`, and `frg_div`.
 ///
-/// [`Usart::init`]: struct.Usart.html#method.init
+/// [`USART::init`]: struct.USART.html#method.init
 /// [`clk_div`]: #structfield.clk_div
 /// [`frg_mult`]: #structfield.frg_mult
 /// [`frg_div`]: #structfield.frg_div

@@ -127,7 +127,7 @@
 //! ``` no_run
 //! use lpc82x_hal::{
 //!     PIO0_3,
-//!     System,
+//!     Peripherals,
 //! };
 //! use lpc82x_hal::clock::Ticks;
 //! use lpc82x_hal::sleep::{
@@ -135,26 +135,26 @@
 //!     Sleep,
 //! };
 //!
-//! // Initialize the system. This is unsafe, because we're only allowed to
-//! // create one instance on `System`.
-//! let system = unsafe { System::new() };
+//! // Initialize the peripherals. This is unsafe, because we're only allowed to
+//! // create one instance on `Peripherals`.
+//! let peripherals = unsafe { Peripherals::new() };
 //!
 //! // Let's save some peripherals in local variables for convenience. This one
 //! // here doesn't require initialization.
-//! let mut syscon = system.peripherals.syscon;
+//! let mut syscon = peripherals.syscon.api;
 //!
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing it will actually lead to compile-time errors.
-//! let mut gpio = system.peripherals.gpio.init(&mut syscon);
-//! let mut swm  = system.peripherals.swm.init(&mut syscon);
-//! let mut wkt  = system.peripherals.wkt.init(&mut syscon);
+//! let mut gpio = peripherals.gpio.init(&mut syscon);
+//! let mut swm  = peripherals.swm.init(&mut syscon);
+//! let mut wkt  = peripherals.wkt.init(&mut syscon);
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
 //! // that runs at 750 kHz.
-//! let clock = system.clocks.irc_derived_clock.enable(
+//! let clock = peripherals.syscon.irc_derived_clock.enable(
 //!     &mut syscon,
-//!     system.resources.irc,
-//!     system.resources.ircout,
+//!     peripherals.syscon.irc,
+//!     peripherals.syscon.ircout,
 //! );
 //!
 //! // Set pin direction to output, so we can use it to blink an LED.
@@ -192,7 +192,6 @@
 //! [cortex-m-rt]: https://crates.io/crates/cortex-m-rt
 //! [Xargo]: https://crates.io/crates/xargo
 //! [This fork of lpc21isp]: https://github.com/hannobraun/lpc21isp
-//! [`System`]: struct.System.html
 //! [available from NXP]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
 
 
@@ -243,12 +242,12 @@ pub use lpc82x::{
     Interrupt,
 };
 
-pub use self::gpio::Gpio;
-pub use self::pmu::Pmu;
-pub use self::swm::Swm;
-pub use self::syscon::Syscon;
-pub use self::usart::Usart;
-pub use self::wkt::Wkt;
+pub use self::gpio::GPIO;
+pub use self::pmu::PMU;
+pub use self::swm::SWM;
+pub use self::syscon::SYSCON;
+pub use self::usart::USART;
+pub use self::wkt::WKT;
 
 
 /// Entry point to the HAL API
@@ -257,121 +256,6 @@ pub use self::wkt::Wkt;
 /// It consists of multiple sub-structs for each category of system resource.
 ///
 /// Only one instance of this struct must exist in your program.
-///
-/// # Limitations
-///
-/// Currently not all system resources are actually available from this struct
-/// and its sub-structs. Many of them are modelled as unit-like structs that can
-/// be used and instantiated freely. This is a temporary state of affairs, and
-/// work to integrate those types into this struct is impending.
-pub struct System<'system> {
-    /// System clocks
-    pub clocks: Clocks,
-
-    /// System peripherals
-    pub peripherals: Peripherals<'system>,
-
-    /// Other system resources
-    pub resources: Resources,
-}
-
-impl<'system> System<'system> {
-    /// Creates an instance of `System`
-    ///
-    /// Only one instance of `System` must exist in your program. Use this
-    /// method at the start of your program, to create a single `System` that
-    /// will serve as an entry point to the HAL API.
-    ///
-    /// # Safety
-    ///
-    /// You must guarantee to only use this method to create a single instance
-    /// of `System`. Usually this means you call this method once, at the
-    /// beginning of your program. But technically, you can call it again to
-    /// create another instance, if the previous one has been dropped.
-    pub unsafe fn new() -> Self {
-        let peripherals = lpc82x::Peripherals::all();
-
-        System {
-            clocks: Clocks {
-                irc_derived_clock: syscon::IrcDerivedClock::new(),
-                low_power_clock  : pmu::LowPowerClock::new(),
-            },
-            peripherals: Peripherals {
-                cpuid: peripherals.CPUID,
-                dcb  : peripherals.DCB,
-                dwt  : peripherals.DWT,
-                nvic : peripherals.NVIC,
-                scb  : peripherals.SCB,
-                syst : peripherals.SYST,
-
-                adc       : peripherals.ADC,
-                cmp       : peripherals.CMP,
-                crc       : peripherals.CRC,
-                dma       : peripherals.DMA,
-                dmatrigmux: peripherals.DMATRIGMUX,
-                flashctrl : peripherals.FLASHCTRL,
-                i2c0      : peripherals.I2C0,
-                i2c1      : peripherals.I2C1,
-                i2c2      : peripherals.I2C2,
-                i2c3      : peripherals.I2C3,
-                inputmux  : peripherals.INPUTMUX,
-                iocon     : peripherals.IOCON,
-                mrt       : peripherals.MRT,
-                pin_int   : peripherals.PIN_INT,
-                sct       : peripherals.SCT,
-                spi0      : peripherals.SPI0,
-                spi1      : peripherals.SPI1,
-                wwdt      : peripherals.WWDT,
-
-                gpio  : Gpio::new(peripherals.GPIO_PORT),
-                pmu   : Pmu::new(peripherals.PMU),
-                swm   : Swm::new(peripherals.SWM),
-                syscon: Syscon::new(peripherals.SYSCON),
-                usart0: Usart::new(peripherals.USART0),
-                usart1: Usart::new(peripherals.USART1),
-                usart2: Usart::new(peripherals.USART2),
-                wkt   : Wkt::new(peripherals.WKT),
-            },
-            resources: Resources {
-                bod    : syscon::BOD::new(),
-                flash  : syscon::FLASH::new(),
-                irc    : syscon::IRC::new(),
-                ircout : syscon::IRCOUT::new(),
-                mtb    : syscon::MTB::new(),
-                ram0_1 : syscon::RAM0_1::new(),
-                rom    : syscon::ROM::new(),
-                sysosc : syscon::SYSOSC::new(),
-                syspll : syscon::SYSPLL::new(),
-                uartfrg: syscon::UARTFRG::new(),
-            },
-        }
-    }
-}
-
-
-/// Provides access to clocks in the system
-///
-/// This struct is part of [`System`].
-///
-/// [`System`]: struct.System.html
-pub struct Clocks {
-    /// The 750 kHz IRC-derived clock
-    ///
-    /// Can be used to run the self-wake-up timer (WKT).
-    pub irc_derived_clock: syscon::IrcDerivedClock<clock::state::Disabled>,
-
-    /// The 10 kHz low-power clock
-    ///
-    /// Can be used to run the self-wake-up timer (WKT).
-    pub low_power_clock: pmu::LowPowerClock<clock::state::Disabled>,
-}
-
-
-/// Provides access to all peripherals
-///
-/// This struct is part of [`System`].
-///
-/// [`System`]: struct.System.html
 pub struct Peripherals<'system> {
     /// CPUID register
     ///
@@ -584,66 +468,83 @@ pub struct Peripherals<'system> {
     pub wwdt: &'system lpc82x::WWDT,
 
     /// General Purpose I/O (GPIO)
-    pub gpio: Gpio<'system, init_state::Unknown>,
+    pub gpio: GPIO<'system, init_state::Unknown>,
 
     /// Power Management Unit (PMU)
-    pub pmu: Pmu<'system>,
+    pub pmu: PMU<'system>,
 
     /// Switch matrix (SWM)
-    pub swm: Swm<'system, init_state::Unknown>,
+    pub swm: SWM<'system, init_state::Unknown>,
 
-    /// Systeom configuration (SYSCON)
-    pub syscon: Syscon<'system>,
+    /// System configuration (SYSCON)
+    pub syscon: SYSCON<'system>,
 
     /// USART0
-    pub usart0: Usart<'system, lpc82x::USART0, init_state::Unknown>,
+    pub usart0: USART<'system, lpc82x::USART0, init_state::Unknown>,
 
     /// USART1
-    pub usart1: Usart<'system, lpc82x::USART1, init_state::Unknown>,
+    pub usart1: USART<'system, lpc82x::USART1, init_state::Unknown>,
 
     /// USART2
-    pub usart2: Usart<'system, lpc82x::USART2, init_state::Unknown>,
+    pub usart2: USART<'system, lpc82x::USART2, init_state::Unknown>,
 
     /// Self-wake-up timer (WKT)
-    pub wkt: Wkt<'system, init_state::Unknown>,
+    pub wkt: WKT<'system, init_state::Unknown>,
 }
 
+impl<'system> Peripherals<'system> {
+    /// Creates an instance of `Peripherals`
+    ///
+    /// Only one instance of `Peripherals` must exist in your program. Use this
+    /// method at the start of your program, to create a single `Peripherals`
+    /// instance that will serve as an entry point to the HAL API.
+    ///
+    /// # Safety
+    ///
+    /// You must guarantee to only use this method to create a single instance
+    /// of `Peripherals`. Usually this means you call this method once, at the
+    /// beginning of your program. But technically, you can call it again to
+    /// create another instance, if the previous one has been dropped.
+    pub unsafe fn new() -> Self {
+        let peripherals = lpc82x::Peripherals::all();
 
-/// Provides access to other system resources
-///
-/// This struct is part of [`System`].
-///
-/// [`System`]: struct.System.html
-pub struct Resources {
-    /// Brown-out detection
-    pub bod: syscon::BOD,
+        Peripherals {
+            cpuid: peripherals.CPUID,
+            dcb  : peripherals.DCB,
+            dwt  : peripherals.DWT,
+            nvic : peripherals.NVIC,
+            scb  : peripherals.SCB,
+            syst : peripherals.SYST,
 
-    /// Flash memory
-    pub flash: syscon::FLASH,
+            adc       : peripherals.ADC,
+            cmp       : peripherals.CMP,
+            crc       : peripherals.CRC,
+            dma       : peripherals.DMA,
+            dmatrigmux: peripherals.DMATRIGMUX,
+            flashctrl : peripherals.FLASHCTRL,
+            i2c0      : peripherals.I2C0,
+            i2c1      : peripherals.I2C1,
+            i2c2      : peripherals.I2C2,
+            i2c3      : peripherals.I2C3,
+            inputmux  : peripherals.INPUTMUX,
+            iocon     : peripherals.IOCON,
+            mrt       : peripherals.MRT,
+            pin_int   : peripherals.PIN_INT,
+            sct       : peripherals.SCT,
+            spi0      : peripherals.SPI0,
+            spi1      : peripherals.SPI1,
+            wwdt      : peripherals.WWDT,
 
-    /// IRC
-    pub irc: syscon::IRC,
-
-    /// IRC output
-    pub ircout: syscon::IRCOUT,
-
-    /// Micro Trace Buffer
-    pub mtb: syscon::MTB,
-
-    /// Random access memory
-    pub ram0_1: syscon::RAM0_1,
-
-    /// Read-only memory
-    pub rom: syscon::ROM,
-
-    /// System oscillator
-    pub sysosc: syscon::SYSOSC,
-
-    /// PLL
-    pub syspll: syscon::SYSPLL,
-
-    /// UART Fractional Baud Rate Generator
-    pub uartfrg: syscon::UARTFRG,
+            gpio  : GPIO::new(peripherals.GPIO_PORT),
+            pmu   : PMU::new(peripherals.PMU),
+            swm   : SWM::new(peripherals.SWM),
+            syscon: SYSCON::new(peripherals.SYSCON),
+            usart0: USART::new(peripherals.USART0),
+            usart1: USART::new(peripherals.USART1),
+            usart2: USART::new(peripherals.USART2),
+            wkt   : WKT::new(peripherals.WKT),
+        }
+    }
 }
 
 

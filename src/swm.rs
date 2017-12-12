@@ -7,8 +7,8 @@ use lpc82x;
 use lpc82x::swm::pinenable0;
 
 use ::{
+    syscon,
     Pin,
-    Syscon,
 };
 use init_state::{
     self,
@@ -22,33 +22,33 @@ use init_state::{
 /// [`lpc82x::SWM`] directly, unless you know what you're doing.
 ///
 /// [`lpc82x::SWM`]: ../../lpc82x/struct.SWM.html
-pub struct Swm<'swm, State: InitState = init_state::Initialized> {
+pub struct SWM<'swm, State: InitState = init_state::Initialized> {
     swm   : &'swm lpc82x::SWM,
     _state: State,
 }
 
-impl<'swm> Swm<'swm, init_state::Unknown> {
+impl<'swm> SWM<'swm, init_state::Unknown> {
     pub(crate) fn new(swm: &'swm lpc82x::SWM) -> Self {
-        Swm {
+        SWM {
             swm   : swm,
             _state: init_state::Unknown,
         }
     }
 
     /// Initialize the switch matrix
-    pub fn init(mut self, syscon: &mut Syscon)
-        -> Swm<'swm, init_state::Initialized>
+    pub fn init(mut self, syscon: &mut syscon::Api)
+        -> SWM<'swm, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.swm);
 
-        Swm {
+        SWM {
             swm   : self.swm,
             _state: init_state::Initialized,
         }
     }
 }
 
-impl<'swm> Swm<'swm> {
+impl<'swm> SWM<'swm> {
     /// Assigns a movable function to a pin
     ///
     /// # Limitations
@@ -83,13 +83,13 @@ impl<'swm> Swm<'swm> {
 /// HAL users should not need to implement this trait.
 pub trait PinExt {
     /// Disables the fixed function on the pin
-    fn disable_fixed_functions(swm: &mut Swm);
+    fn disable_fixed_functions(swm: &mut SWM);
 }
 
 macro_rules! impl_pin_ext {
     ($pin:ty $(, $fixed_function:ty)*) => {
         impl PinExt for $pin {
-            fn disable_fixed_functions(_swm: &mut Swm) {
+            fn disable_fixed_functions(_swm: &mut SWM) {
                 $(
                     _swm.disable_fixed_function::<$fixed_function>();
                 )*
@@ -143,10 +143,10 @@ macro_rules! impl_movable_function {
     ($movable_function:ident, $register:ident, $field:ident) => {
         /// Represents a movable function
         ///
-        /// Can be used with [`Swm::assign_pin`] to assign this movable function
+        /// Can be used with [`SWM::assign_pin`] to assign this movable function
         /// to a pin.
         ///
-        /// [`Swm::assign_pin`]: struct.Swm.html#method.assign_pin
+        /// [`SWM::assign_pin`]: struct.SWM.html#method.assign_pin
         #[allow(non_camel_case_types)]
         pub struct $movable_function;
 
@@ -227,11 +227,11 @@ macro_rules! impl_fixed_function {
     ($fixed_function:ident, $field:ident) => {
         /// Represents a fixed function
         ///
-        /// Can be used with [`Swm::enable_fixed_function`] and
-        /// [`Swm::disable_fixed_function`].
+        /// Can be used with [`SWM::enable_fixed_function`] and
+        /// [`SWM::disable_fixed_function`].
         ///
-        /// [`Swm::enable_fixed_function`]: struct.Swm.html#method.enable_fixed_function
-        /// [`Swm::disable_fixed_function`]: struct.Swm.html#method.disable_fixed_function
+        /// [`SWM::enable_fixed_function`]: struct.SWM.html#method.enable_fixed_function
+        /// [`SWM::disable_fixed_function`]: struct.SWM.html#method.disable_fixed_function
         #[allow(non_camel_case_types)]
         pub struct $fixed_function;
 

@@ -6,20 +6,17 @@
 
 use cortex_m::asm;
 use embedded_hal::prelude::*;
-use lpc82x::{
-    NVIC,
-    SCB,
-};
+use lpc82x;
 use nb;
 
-use Pmu;
+use pmu;
 use clock::{
     self,
     Ticks,
 };
 use wkt::{
     self,
-    Wkt,
+    WKT,
 };
 
 
@@ -48,15 +45,15 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// only suitable for simple examples, or very short wait times.
 ///
 /// [`Sleep`]: trait.Sleep.html
-/// [WKT]: ../wkt/struct.Wkt.html
+/// [WKT]: ../wkt/struct.WKT.html
 /// [`wkt::Clock`]: ../wkt/trait.Clock.html
 pub struct Busy<'wkt> {
-    wkt: &'wkt mut Wkt<'wkt>,
+    wkt: &'wkt mut WKT<'wkt>,
 }
 
 impl<'wkt> Busy<'wkt> {
     /// Prepare busy sleep mode
-    pub fn prepare(wkt: &'wkt mut Wkt<'wkt>) -> Self {
+    pub fn prepare(wkt: &'wkt mut WKT<'wkt>) -> Self {
         Busy {
             wkt: wkt,
         }
@@ -98,23 +95,23 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// details.
 ///
 /// [`Sleep`]: trait.Sleep.html
-/// [WKT]: ../wkt/struct.Wkt.html
-/// [handle the WKT interrupt]: ../wkt/struct.Wkt.html#method.handle_interrupt
+/// [WKT]: ../wkt/struct.WKT.html
+/// [handle the WKT interrupt]: ../wkt/struct.WKT.html#method.handle_interrupt
 /// [`wkt::Clock`]: ../wkt/trait.Clock.html
 pub struct Regular<'r, 'pmu, 'wkt> {
-    nvic: &'r NVIC,
-    pmu : &'pmu mut Pmu<'pmu>,
-    scb : &'r SCB,
-    wkt : &'wkt mut Wkt<'wkt>,
+    nvic: &'r lpc82x::NVIC,
+    pmu : &'pmu mut pmu::Api<'pmu>,
+    scb : &'r lpc82x::SCB,
+    wkt : &'wkt mut WKT<'wkt>,
 }
 
 impl<'r, 'pmu, 'wkt> Regular<'r, 'pmu, 'wkt> {
     /// Prepare regular sleep mode
     pub fn prepare(
-        nvic: &'r NVIC,
-        pmu : &'pmu mut Pmu<'pmu>,
-        scb : &'r SCB,
-        wkt : &'wkt mut Wkt<'wkt>,
+        nvic: &'r lpc82x::NVIC,
+        pmu : &'pmu mut pmu::Api<'pmu>,
+        scb : &'r lpc82x::SCB,
+        wkt : &'wkt mut WKT<'wkt>,
     )
         -> Self
     {

@@ -7,8 +7,11 @@ use cortex_m::{
     asm,
     interrupt,
 };
-use cortex_m::peripheral::SCB;
 use lpc82x;
+use lpc82x::pmu::{
+    DPDCTRL,
+    PCON,
+};
 
 use clock;
 use clock::state::ClockState;
@@ -20,21 +23,44 @@ use clock::state::ClockState;
 /// [`lpc82x::PMU`] directly, unless you know what you're doing.
 ///
 /// [`lpc82x::PMU`]: ../../lpc82x/struct.PMU.html
-pub struct Pmu<'pmu>(&'pmu lpc82x::PMU);
+pub struct PMU<'pmu> {
+    /// Main PMU API
+    pub api: Api<'pmu>,
 
-impl<'pmu> Pmu<'pmu> {
+    /// The 10 kHz low-power clock
+    ///
+    /// Can be used to run the self-wake-up timer (WKT).
+    pub low_power_clock: LowPowerClock<clock::state::Disabled>,
+}
+
+impl<'pmu> PMU<'pmu> {
     pub(crate) fn new(pmu: &'pmu lpc82x::PMU) -> Self {
-        Pmu(pmu)
+        PMU {
+            api: Api {
+                dpdctrl: &pmu.dpdctrl,
+                pcon   : &pmu.pcon,
+            },
+            low_power_clock: LowPowerClock::new(),
+        }
     }
+}
 
+
+/// Main API of the PMU peripheral
+pub struct Api<'pmu> {
+    dpdctrl: &'pmu DPDCTRL,
+    pcon   : &'pmu PCON,
+}
+
+impl<'pmu> Api<'pmu> {
     /// Enter sleep mode
     ///
     /// The microcontroller will wake up from sleep mode, if an NVIC-enabled
     /// interrupt occurs. See user manual, section 6.7.4.3.
-    pub fn enter_sleep_mode(&mut self, scb: &SCB) {
+    pub fn enter_sleep_mode(&mut self, scb: &lpc82x::SCB) {
         interrupt::free(|_| {
             // Default power mode indicates active or sleep mode.
-            self.0.pcon.modify(|_, w|
+            self.pcon.modify(|_, w|
                 w.pm().default()
             );
             // The SLEEPDEEP bit must not be set for entering regular sleep
@@ -77,8 +103,8 @@ impl LowPowerClock<clock::state::Disabled> {
     /// instance that implements [`clock::Enabled`].
     ///
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
-    pub fn enable(self, pmu: &mut Pmu) -> LowPowerClock<clock::state::Enabled> {
-        pmu.0.dpdctrl.modify(|_, w|
+    pub fn enable(self, pmu: &mut Api) -> LowPowerClock<clock::state::Enabled> {
+        pmu.dpdctrl.modify(|_, w|
             w.lposcen().enabled()
         );
 
@@ -93,10 +119,10 @@ impl LowPowerClock<clock::state::Enabled> {
     ///
     /// This method consumes an enabled instance of `LowPowerClock` and returns
     /// an instance that is disabled.
-    pub fn disable(self, pmu: &mut Pmu)
+    pub fn disable(self, pmu: &mut Api)
         -> LowPowerClock<clock::state::Disabled>
     {
-        pmu.0.dpdctrl.modify(|_, w|
+        pmu.dpdctrl.modify(|_, w|
             w.lposcen().disabled()
         );
 

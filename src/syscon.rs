@@ -10,6 +10,12 @@ use lpc82x::syscon::{
     pdruncfg,
     presetctrl,
     sysahbclkctrl,
+    PDRUNCFG,
+    PRESETCTRL,
+    SYSAHBCLKCTRL,
+    UARTCLKDIV,
+    UARTFRGDIV,
+    UARTFRGMULT,
 };
 
 use clock;
@@ -22,30 +28,103 @@ use clock::state::ClockState;
 /// [`lpc82x::SYSCON`] directly, unless you know what you're doing.
 ///
 /// [`lpc82x::SYSCON`]: ../../lpc82x/struct.SYSCON.html
-pub struct Syscon<'syscon>(&'syscon lpc82x::SYSCON);
+pub struct SYSCON<'syscon> {
+    /// Main SYSCON API
+    pub api: Api<'syscon>,
 
-impl<'syscon> Syscon<'syscon> {
+    /// Brown-out detection
+    pub bod: BOD,
+
+    /// Flash memory
+    pub flash: FLASH,
+
+    /// IRC
+    pub irc: IRC,
+
+    /// IRC output
+    pub ircout: IRCOUT,
+
+    /// Micro Trace Buffer
+    pub mtb: MTB,
+
+    /// Random access memory
+    pub ram0_1: RAM0_1,
+
+    /// Read-only memory
+    pub rom: ROM,
+
+    /// System oscillator
+    pub sysosc: SYSOSC,
+
+    /// PLL
+    pub syspll: SYSPLL,
+
+    /// UART Fractional Baud Rate Generator
+    pub uartfrg: UARTFRG,
+
+    /// The 750 kHz IRC-derived clock
+    ///
+    /// Can be used to run the self-wake-up timer (WKT).
+    pub irc_derived_clock: IrcDerivedClock<clock::state::Disabled>,
+}
+
+impl<'syscon> SYSCON<'syscon> {
     pub(crate) fn new(syscon: &'syscon lpc82x::SYSCON) -> Self {
-        Syscon(syscon)
-    }
+        SYSCON {
+            api: Api {
+                pdruncfg     : &syscon.pdruncfg,
+                presetctrl   : &syscon.presetctrl,
+                sysahbclkctrl: &syscon.sysahbclkctrl,
+                uartclkdiv   : &syscon.uartclkdiv,
+                uartfrgdiv   : &syscon.uartfrgdiv,
+                uartfrgmult  : &syscon.uartfrgmult,
+            },
 
+            bod    : BOD(PhantomData),
+            flash  : FLASH(PhantomData),
+            irc    : IRC(PhantomData),
+            ircout : IRCOUT(PhantomData),
+            mtb    : MTB(PhantomData),
+            ram0_1 : RAM0_1(PhantomData),
+            rom    : ROM(PhantomData),
+            sysosc : SYSOSC(PhantomData),
+            syspll : SYSPLL(PhantomData),
+            uartfrg: UARTFRG(PhantomData),
+
+            irc_derived_clock: IrcDerivedClock::new(),
+        }
+    }
+}
+
+
+/// Main API of the SYSCON peripheral
+pub struct Api<'syscon> {
+    pdruncfg     : &'syscon PDRUNCFG,
+    presetctrl   : &'syscon PRESETCTRL,
+    sysahbclkctrl: &'syscon SYSAHBCLKCTRL,
+    uartclkdiv   : &'syscon UARTCLKDIV,
+    uartfrgdiv   : &'syscon UARTFRGDIV,
+    uartfrgmult  : &'syscon UARTFRGMULT,
+}
+
+impl<'r> Api<'r> {
     /// Enable peripheral clock
     ///
     /// Enables the clock for a peripheral or other hardware component. HAL
     /// users usually won't have to call this method directly, as other
     /// peripheral APIs will do this for them.
     pub fn enable_clock<P: ClockControl>(&mut self, peripheral: &mut P) {
-        self.0.sysahbclkctrl.modify(|_, w| peripheral.enable_clock(w));
+        self.sysahbclkctrl.modify(|_, w| peripheral.enable_clock(w));
     }
 
     /// Disable peripheral clock
     pub fn disable_clock<P: ClockControl>(&mut self, peripheral: &mut P) {
-        self.0.sysahbclkctrl.modify(|_, w| peripheral.disable_clock(w));
+        self.sysahbclkctrl.modify(|_, w| peripheral.disable_clock(w));
     }
 
     /// Assert peripheral reset
     pub fn assert_reset<P: ResetControl>(&mut self, peripheral: &mut P) {
-        self.0.presetctrl.modify(|_, w| peripheral.assert_reset(w));
+        self.presetctrl.modify(|_, w| peripheral.assert_reset(w));
     }
 
     /// Clear peripheral reset
@@ -54,7 +133,7 @@ impl<'syscon> Syscon<'syscon> {
     /// usually won't have to call this method directly, as other peripheral
     /// APIs will do this for them.
     pub fn clear_reset<P: ResetControl>(&mut self, peripheral: &mut P) {
-        self.0.presetctrl.modify(|_, w| peripheral.clear_reset(w));
+        self.presetctrl.modify(|_, w| peripheral.clear_reset(w));
     }
 
     /// Provide power to an analog block
@@ -62,12 +141,12 @@ impl<'syscon> Syscon<'syscon> {
     /// HAL users usually won't have to call this method themselves, as other
     /// peripheral APIs will do this for them.
     pub fn power_up<P: AnalogBlock>(&mut self, peripheral: &mut P) {
-        self.0.pdruncfg.modify(|_, w| peripheral.power_up(w));
+        self.pdruncfg.modify(|_, w| peripheral.power_up(w));
     }
 
     /// Remove power from an analog block
     pub fn power_down<P: AnalogBlock>(&mut self, peripheral: &mut P) {
-        self.0.pdruncfg.modify(|_, w| peripheral.power_down(w));
+        self.pdruncfg.modify(|_, w| peripheral.power_down(w));
     }
 
     /// Sets the clock for all USART peripherals (U_PCLK)
@@ -87,10 +166,10 @@ impl<'syscon> Syscon<'syscon> {
         uart_frg_div : &UartFrgDiv,
     ) {
         unsafe {
-            self.0.uartclkdiv.write(|w| w.div().bits(uart_clk_div.0));
+            self.uartclkdiv.write(|w| w.div().bits(uart_clk_div.0));
 
-            self.0.uartfrgmult.write(|w| w.mult().bits(uart_frg_mult.0));
-            self.0.uartfrgdiv.write(|w| w.div().bits(uart_frg_div.0));
+            self.uartfrgmult.write(|w| w.mult().bits(uart_frg_mult.0));
+            self.uartfrgdiv.write(|w| w.div().bits(uart_frg_div.0));
         }
     }
 }
@@ -98,146 +177,76 @@ impl<'syscon> Syscon<'syscon> {
 
 /// Brown-out detection
 ///
-/// Can be used to control brown-out detection using various [`Syscon`] methods.
+/// Can be used to control brown-out detection using various [`SYSCON`] methods.
 ///
-/// [`Syscon`]: struct.Syscon.html
+/// [`SYSCON`]: struct.SYSCON.html
 pub struct BOD(PhantomData<*const ()>);
-
-impl BOD {
-    pub(crate) fn new() -> Self {
-        BOD(PhantomData)
-    }
-}
-
 
 /// Flash memory
 ///
-/// Can be used to control the flash memory using various [`Syscon`] methods.
+/// Can be used to control the flash memory using various [`SYSCON`] methods.
 ///
-/// [`Syscon`]: struct.Syscon.html
+/// [`SYSCON`]: struct.SYSCON.html
 pub struct FLASH(PhantomData<*const ()>);
-
-impl FLASH {
-    pub(crate) fn new() -> Self {
-        FLASH(PhantomData)
-    }
-}
-
 
 /// IRC
 ///
-/// Can be used to control the IRC using various [`Syscon`] methods.
+/// Can be used to control the IRC using various [`SYSCON`] methods.
 ///
-/// [`Syscon`]: struct.Syscon.html
+/// [`SYSCON`]: struct.SYSCON.html
 pub struct IRC(PhantomData<*const ()>);
-
-impl IRC {
-    pub(crate) fn new() -> Self {
-        IRC(PhantomData)
-    }
-}
-
 
 /// IRC output
 ///
-/// Can be used to control IRC output using various [`Syscon`] methods.
+/// Can be used to control IRC output using various [`SYSCON`] methods.
 ///
-/// [`Syscon`]: struct.Syscon.html
+/// [`SYSCON`]: struct.SYSCON.html
 pub struct IRCOUT(PhantomData<*const ()>);
-
-impl IRCOUT {
-    pub(crate) fn new() -> Self {
-        IRCOUT(PhantomData)
-    }
-}
-
 
 /// Micro Trace Buffer
 ///
-/// Can be used to control the Micro Trace Buffer using various [`Syscon`]
+/// Can be used to control the Micro Trace Buffer using various [`SYSCON`]
 /// methods.
 ///
-/// [`Syscon`]: struct.Syscon.html
+/// [`SYSCON`]: struct.SYSCON.html
 pub struct MTB(PhantomData<*const ()>);
-
-impl MTB {
-    pub(crate) fn new() -> Self {
-        MTB(PhantomData)
-    }
-}
-
 
 /// Random access memory
 ///
-/// Can be used to control the RAM using various [`Syscon`] methods.
+/// Can be used to control the RAM using various [`SYSCON`] methods.
 ///
-/// [`Syscon`]: struct.Syscon.html
+/// [`SYSCON`]: struct.SYSCON.html
 #[allow(non_camel_case_types)]
 pub struct RAM0_1(PhantomData<*const ()>);
 
-impl RAM0_1 {
-    pub(crate) fn new() -> Self {
-        RAM0_1(PhantomData)
-    }
-}
-
-
 /// Read-only memory
 ///
-/// Can be used to control the ROM using various [`Syscon`] methods.
+/// Can be used to control the ROM using various [`SYSCON`] methods.
 ///
-/// [`Syscon`]: struct.Syscon.html
+/// [`SYSCON`]: struct.SYSCON.html
 pub struct ROM(PhantomData<*const ()>);
-
-impl ROM {
-    pub(crate) fn new() -> Self {
-        ROM(PhantomData)
-    }
-}
-
 
 /// System oscillator
 ///
-/// Can be used to control the system oscillator using various [`Syscon`]
+/// Can be used to control the system oscillator using various [`SYSCON`]
 /// methods.
 ///
-/// [`Syscon`]: struct.Syscon.html
+/// [`SYSCON`]: struct.SYSCON.html
 pub struct SYSOSC(PhantomData<*const ()>);
-
-impl SYSOSC {
-    pub(crate) fn new() -> Self {
-        SYSOSC(PhantomData)
-    }
-}
-
 
 /// PLL
 ///
-/// Can be used to control the PLL using various [`Syscon`] methods.
+/// Can be used to control the PLL using various [`SYSCON`] methods.
 ///
-/// [`Syscon`]: struct.Syscon.html
+/// [`SYSCON`]: struct.SYSCON.html
 pub struct SYSPLL(PhantomData<*const ()>);
-
-impl SYSPLL {
-    pub(crate) fn new() -> Self {
-        SYSPLL(PhantomData)
-    }
-}
-
 
 /// UART Fractional Baud Rate Generator
 ///
-/// Can be used to control the UART FRG using various [`Syscon`] methods.
+/// Can be used to control the UART FRG using various [`SYSCON`] methods.
 ///
-/// [`Syscon`]: struct.Syscon.html
+/// [`SYSCON`]: struct.SYSCON.html
 pub struct UARTFRG(PhantomData<*const ()>);
-
-impl UARTFRG {
-    pub(crate) fn new() -> Self {
-        UARTFRG(PhantomData)
-    }
-}
-
 
 
 /// Implemented for peripherals that have a clock that can be enabled
@@ -246,11 +255,11 @@ impl UARTFRG {
 /// implemented nor used outside of LPC82x HAL. Any incompatible changes to this
 /// trait won't be considered breaking changes.
 ///
-/// Please refer to [`Syscon::enable_clock`] and [`Syscon::disable_clock`] for
+/// Please refer to [`SYSCON::enable_clock`] and [`SYSCON::disable_clock`] for
 /// the public API that uses this trait.
 ///
-/// [`Syscon::enable_clock`]: struct.Syscon.html#method.enable_clock
-/// [`Syscon::disable_clock`]: struct.Syscon.html#method.disable_clock
+/// [`SYSCON::enable_clock`]: struct.SYSCON.html#method.enable_clock
+/// [`SYSCON::disable_clock`]: struct.SYSCON.html#method.disable_clock
 pub trait ClockControl {
     /// Internal method to enable a peripheral clock
     fn enable_clock<'w>(&mut self, w: &'w mut sysahbclkctrl::W)
@@ -312,11 +321,11 @@ impl_enable_clock!(&'a lpc82x::DMA      , dma     );
 /// implemented nor used outside of LPC82x HAL. Any incompatible changes to this
 /// trait won't be considered breaking changes.
 ///
-/// Please refer to [`Syscon::assert_reset`] and [`Syscon::clear_reset`] for the
+/// Please refer to [`SYSCON::assert_reset`] and [`SYSCON::clear_reset`] for the
 /// public API that uses this trait.
 ///
-/// [`Syscon::assert_reset`]: struct.Syscon.html#method.assert_reset
-/// [`Syscon::clear_reset`]: struct.Syscon.html#method.clear_reset
+/// [`SYSCON::assert_reset`]: struct.SYSCON.html#method.assert_reset
+/// [`SYSCON::clear_reset`]: struct.SYSCON.html#method.clear_reset
 pub trait ResetControl {
     /// Internal method to assert peripheral reset
     fn assert_reset<'w>(&mut self, w: &'w mut presetctrl::W)
@@ -366,11 +375,11 @@ impl_clear_reset!(&'a lpc82x::CMP      , acmp_rst_n   );
 /// implemented nor used outside of LPC82x HAL. Any incompatible changes to this
 /// trait won't be considered breaking changes.
 ///
-/// Please refer to [`Syscon::power_up`] and [`Syscon::power_down`] for the
+/// Please refer to [`SYSCON::power_up`] and [`SYSCON::power_down`] for the
 /// public API that uses this trait.
 ///
-/// [`Syscon::power_up`]: struct.Syscon.html#method.power_up
-/// [`Syscon::power_down`]: struct.Syscon.html#method.power_down
+/// [`SYSCON::power_up`]: struct.SYSCON.html#method.power_up
+/// [`SYSCON::power_down`]: struct.SYSCON.html#method.power_down
 pub trait AnalogBlock {
     /// Internal method to power up an analog block
     fn power_up<'w>(&mut self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W;
@@ -410,23 +419,23 @@ impl_analog_block!(&'a lpc82x::CMP , acmp      );
 
 /// UART clock divider value
 ///
-/// See [`Syscon::set_uart_clock`].
+/// See [`SYSCON::set_uart_clock`].
 ///
-/// [`Syscon::set_uart_clock`]: struct.Syscon.html#method.set_uart_clock
+/// [`SYSCON::set_uart_clock`]: struct.SYSCON.html#method.set_uart_clock
 pub struct UartClkDiv(pub u8);
 
 /// UART fractional generator multiplier value
 ///
-/// See [`Syscon::set_uart_clock`].
+/// See [`SYSCON::set_uart_clock`].
 ///
-/// [`Syscon::set_uart_clock`]: struct.Syscon.html#method.set_uart_clock
+/// [`SYSCON::set_uart_clock`]: struct.SYSCON.html#method.set_uart_clock
 pub struct UartFrgMult(pub u8);
 
 /// UART fractional generator divider value
 ///
-/// See [`Syscon::set_uart_clock`].
+/// See [`SYSCON::set_uart_clock`].
 ///
-/// [`Syscon::set_uart_clock`]: struct.Syscon.html#method.set_uart_clock
+/// [`SYSCON::set_uart_clock`]: struct.SYSCON.html#method.set_uart_clock
 pub struct UartFrgDiv(pub u8);
 
 
@@ -454,7 +463,7 @@ impl IrcDerivedClock<clock::state::Disabled> {
     /// the IRC-derived clock again.
     ///
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
-    pub fn enable(self, syscon: &mut Syscon, mut irc: IRC, mut ircout: IRCOUT)
+    pub fn enable(self, syscon: &mut Api, mut irc: IRC, mut ircout: IRCOUT)
         -> IrcDerivedClock<clock::state::Enabled>
     {
         syscon.power_up(&mut irc);
