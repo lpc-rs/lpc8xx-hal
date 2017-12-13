@@ -359,7 +359,7 @@ impl Peripheral for lpc82x::USART2 {
 /// [`frg_div`]: #structfield.frg_div
 /// [`brg_val`]: #structfield.brg_val
 pub struct BaudRate<'frg> {
-    _uartfrg: &'frg mut UARTFRG<'frg>,
+    _uartfrg: &'frg UARTFRG<'frg>,
 
     /// USART Baud Rate Generator divider value
     ///
@@ -369,7 +369,7 @@ pub struct BaudRate<'frg> {
 
 impl<'frg> BaudRate<'frg> {
     /// Create a `BaudRate` instance by providing the register values
-    pub fn new(uartfrg : &'frg mut UARTFRG<'frg>, brg_val : u16) -> Self {
+    pub fn new(uartfrg : &'frg UARTFRG<'frg>, brg_val : u16) -> Self {
         Self {
             _uartfrg: uartfrg,
             brg_val : brg_val,
