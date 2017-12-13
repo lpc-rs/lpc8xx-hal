@@ -54,7 +54,7 @@ impl<'gpio> GPIO<'gpio, init_state::Unknown> {
 impl<'gpio> GPIO<'gpio> {
     /// Provides access to all pins
     pub fn pins(&self) -> Pins {
-        Pins::new()
+        Pins::new(self)
     }
 
     /// Sets pin direction to output

@@ -88,7 +88,7 @@ pub trait PinExt {
 
 macro_rules! impl_pin_ext {
     ($pin:ty $(, $fixed_function:ty)*) => {
-        impl PinExt for $pin {
+        impl<'gpio> PinExt for $pin {
             fn disable_fixed_functions(_swm: &mut SWM) {
                 $(
                     _swm.disable_fixed_function::<$fixed_function>();
@@ -98,35 +98,35 @@ macro_rules! impl_pin_ext {
     }
 }
 
-impl_pin_ext!(::PIO0_0 , ACMP_I1);
-impl_pin_ext!(::PIO0_1 , ACMP_I2, CLKIN);
-impl_pin_ext!(::PIO0_2 , SWDIO);
-impl_pin_ext!(::PIO0_3 , SWCLK);
-impl_pin_ext!(::PIO0_4 , ADC_11);
-impl_pin_ext!(::PIO0_5 , RESETN);
-impl_pin_ext!(::PIO0_6 , VDDCMP, ADC_1);
-impl_pin_ext!(::PIO0_7 , ADC_0);
-impl_pin_ext!(::PIO0_8 , XTALIN);
-impl_pin_ext!(::PIO0_9 , XTALOUT);
-impl_pin_ext!(::PIO0_10, I2C0_SCL);
-impl_pin_ext!(::PIO0_11, I2C0_SDA);
-impl_pin_ext!(::PIO0_12);
-impl_pin_ext!(::PIO0_13, ADC_10);
-impl_pin_ext!(::PIO0_14, ACMP_I3, ADC_2);
-impl_pin_ext!(::PIO0_15);
-impl_pin_ext!(::PIO0_16);
-impl_pin_ext!(::PIO0_17, ADC_9);
-impl_pin_ext!(::PIO0_18, ADC_8);
-impl_pin_ext!(::PIO0_19, ADC_7);
-impl_pin_ext!(::PIO0_20, ADC_6);
-impl_pin_ext!(::PIO0_21, ADC_5);
-impl_pin_ext!(::PIO0_22, ADC_4);
-impl_pin_ext!(::PIO0_23, ACMP_I4, ADC_3);
-impl_pin_ext!(::PIO0_24);
-impl_pin_ext!(::PIO0_25);
-impl_pin_ext!(::PIO0_26);
-impl_pin_ext!(::PIO0_27);
-impl_pin_ext!(::PIO0_28);
+impl_pin_ext!(::PIO0_0<'gpio> , ACMP_I1);
+impl_pin_ext!(::PIO0_1<'gpio> , ACMP_I2, CLKIN);
+impl_pin_ext!(::PIO0_2<'gpio> , SWDIO);
+impl_pin_ext!(::PIO0_3<'gpio> , SWCLK);
+impl_pin_ext!(::PIO0_4<'gpio> , ADC_11);
+impl_pin_ext!(::PIO0_5<'gpio> , RESETN);
+impl_pin_ext!(::PIO0_6<'gpio> , VDDCMP, ADC_1);
+impl_pin_ext!(::PIO0_7<'gpio> , ADC_0);
+impl_pin_ext!(::PIO0_8<'gpio> , XTALIN);
+impl_pin_ext!(::PIO0_9<'gpio> , XTALOUT);
+impl_pin_ext!(::PIO0_10<'gpio>, I2C0_SCL);
+impl_pin_ext!(::PIO0_11<'gpio>, I2C0_SDA);
+impl_pin_ext!(::PIO0_12<'gpio>);
+impl_pin_ext!(::PIO0_13<'gpio>, ADC_10);
+impl_pin_ext!(::PIO0_14<'gpio>, ACMP_I3, ADC_2);
+impl_pin_ext!(::PIO0_15<'gpio>);
+impl_pin_ext!(::PIO0_16<'gpio>);
+impl_pin_ext!(::PIO0_17<'gpio>, ADC_9);
+impl_pin_ext!(::PIO0_18<'gpio>, ADC_8);
+impl_pin_ext!(::PIO0_19<'gpio>, ADC_7);
+impl_pin_ext!(::PIO0_20<'gpio>, ADC_6);
+impl_pin_ext!(::PIO0_21<'gpio>, ADC_5);
+impl_pin_ext!(::PIO0_22<'gpio>, ADC_4);
+impl_pin_ext!(::PIO0_23<'gpio>, ACMP_I4, ADC_3);
+impl_pin_ext!(::PIO0_24<'gpio>);
+impl_pin_ext!(::PIO0_25<'gpio>);
+impl_pin_ext!(::PIO0_26<'gpio>);
+impl_pin_ext!(::PIO0_27<'gpio>);
+impl_pin_ext!(::PIO0_28<'gpio>);
 
 
 /// Implemented for types that represent movable functions

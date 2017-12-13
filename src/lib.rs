@@ -606,14 +606,14 @@ macro_rules! pins {
     ($($field:ident, $type:ident, $id:expr;)*) => {
         /// Provides access to all pins
         #[allow(missing_docs)]
-        pub struct Pins {
-            $(pub $field: $type,)*
+        pub struct Pins<'gpio> {
+            $(pub $field: $type<'gpio>,)*
         }
 
-        impl Pins {
-            pub(crate) fn new() -> Self {
+        impl<'gpio> Pins<'gpio> {
+            pub(crate) fn new(gpio: &'gpio GPIO<'gpio>) -> Self {
                 Pins {
-                    $($field: $type,)*
+                    $($field: $type(gpio),)*
                 }
             }
         }
@@ -629,9 +629,9 @@ macro_rules! pins {
             /// of purposes. Until this shortcoming is rectified, it is your own
             /// responsibility to make sure you are using the pin correctly.
             #[allow(non_camel_case_types)]
-            pub struct $type;
+            pub struct $type<'gpio>(&'gpio GPIO<'gpio>);
 
-            impl Pin for $type {
+            impl<'gpio> Pin for $type<'gpio> {
                 fn id() -> u8 {
                     $id
                 }
