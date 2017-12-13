@@ -99,7 +99,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         swm.assign_pin::<UsartX::Rx, Rx>();
         swm.assign_pin::<UsartX::Tx, Tx>();
 
-        self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brg_val) });
+        self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 
         // Disable USART peripheral before writing configuration. This is
         // required, according to the user manual, section 13.6.1.
@@ -350,7 +350,7 @@ pub struct BaudRate<'frg> {
     /// USART Baud Rate Generator divider value
     ///
     /// See user manual, section 13.6.9.
-    brg_val: u16,
+    brgval: u16,
 }
 
 impl<'frg> BaudRate<'frg> {
@@ -374,7 +374,7 @@ impl<'frg> BaudRate<'frg> {
     pub fn new(uartfrg : &'frg UARTFRG<'frg>, brgval : u16) -> Self {
         Self {
             _uartfrg: uartfrg,
-            brg_val : brgval,
+            brgval  : brgval,
         }
     }
 }
