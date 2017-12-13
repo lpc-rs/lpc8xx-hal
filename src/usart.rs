@@ -371,10 +371,10 @@ impl<'frg> BaudRate<'frg> {
     /// forth.
     ///
     /// [`UARTFRG`]: ../syscon/struct.UARTFRG.html
-    pub fn new(uartfrg : &'frg UARTFRG<'frg>, brg_val : u16) -> Self {
+    pub fn new(uartfrg : &'frg UARTFRG<'frg>, brgval : u16) -> Self {
         Self {
             _uartfrg: uartfrg,
-            brg_val : brg_val,
+            brg_val : brgval,
         }
     }
 }
