@@ -603,7 +603,7 @@ pub trait Pin {
 
 
 macro_rules! pins {
-    ($($pin:ident, $id:expr;)*) => {
+    ($($type:ident, $id:expr;)*) => {
         $(
             /// Represents the pin this struct is named after
             ///
@@ -614,9 +614,9 @@ macro_rules! pins {
             /// of purposes. Until this shortcoming is rectified, it is your own
             /// responsibility to make sure you are using the pin correctly.
             #[allow(non_camel_case_types)]
-            pub struct $pin;
+            pub struct $type;
 
-            impl Pin for $pin {
+            impl Pin for $type {
                 fn id() -> u8 {
                     $id
                 }
