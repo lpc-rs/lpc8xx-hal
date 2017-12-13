@@ -423,28 +423,6 @@ impl_analog_block!(SYSPLL          , syspll_pd );
 impl_analog_block!(&'a lpc82x::CMP , acmp      );
 
 
-/// UART clock divider value
-///
-/// See [`SYSCON::set_uart_clock`].
-///
-/// [`SYSCON::set_uart_clock`]: struct.SYSCON.html#method.set_uart_clock
-pub struct UartClkDiv(pub u8);
-
-/// UART fractional generator multiplier value
-///
-/// See [`SYSCON::set_uart_clock`].
-///
-/// [`SYSCON::set_uart_clock`]: struct.SYSCON.html#method.set_uart_clock
-pub struct UartFrgMult(pub u8);
-
-/// UART fractional generator divider value
-///
-/// See [`SYSCON::set_uart_clock`].
-///
-/// [`SYSCON::set_uart_clock`]: struct.SYSCON.html#method.set_uart_clock
-pub struct UartFrgDiv(pub u8);
-
-
 /// The 750 kHz IRC-derived clock that can run the WKT
 ///
 /// See user manual, section 18.5.1.
