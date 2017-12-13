@@ -338,26 +338,12 @@ impl Peripheral for lpc82x::USART2 {
 }
 
 
-/// Baud rate for a UART unit
+/// Represents a UART baud rate
 ///
-/// Can be passed to [`USART::init`] to configure the baud rate for the USART
+/// Can be passed to [`USART::init`] to configure the baud rate for a USART
 /// peripheral.
 ///
-/// # Limitations
-///
-/// The fields [`clk_div`], [`frg_mult`], and [`frg_div`] represent global
-/// configuration values that are shared between all USART peripherals. Only
-/// [`brg_val`] can be set independently for each USART.
-///
-/// When running multiple USARTs, it is the user's responsibility to make sure
-/// that all the `BaudRate`s passed to them have identical values for `clk_div`,
-/// `frg_mult`, and `frg_div`.
-///
 /// [`USART::init`]: struct.USART.html#method.init
-/// [`clk_div`]: #structfield.clk_div
-/// [`frg_mult`]: #structfield.frg_mult
-/// [`frg_div`]: #structfield.frg_div
-/// [`brg_val`]: #structfield.brg_val
 pub struct BaudRate<'frg> {
     _uartfrg: &'frg UARTFRG<'frg>,
 
@@ -368,7 +354,23 @@ pub struct BaudRate<'frg> {
 }
 
 impl<'frg> BaudRate<'frg> {
-    /// Create a `BaudRate` instance by providing the register values
+    /// Create a `BaudRate` instance
+    ///
+    /// Creates a `BaudRate` instance from two components: A reference to the
+    /// [`UARTFRG`] and the BRGVAL.
+    ///
+    /// The [`UARTFRG`] controls U_PCLK, the UART clock that is shared by all
+    /// USART peripherals. Please configure it before attempting to create a
+    /// `BaudRate`. By keeping a reference to it, `BaudRate` ensures that U_PCLK
+    /// cannot be changes as long as the `BaudRate` instance exists.
+    ///
+    /// BRGVAL is an additional divider value that divides the shared baud rate
+    /// to allow individual USART peripherals to use different baud rates. A
+    /// value of `0` means that U_PCLK is used directly, `1` means that U_PCLK
+    /// is divided by 2 before using it, `2` means it's divided by 3, and so
+    /// forth.
+    ///
+    /// [`UARTFRG`]: ../syscon/struct.UARTFRG.html
     pub fn new(uartfrg : &'frg UARTFRG<'frg>, brg_val : u16) -> Self {
         Self {
             _uartfrg: uartfrg,
