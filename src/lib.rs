@@ -601,60 +601,65 @@ pub trait Pin {
     fn mask() -> u32;
 }
 
-macro_rules! impl_pin {
-    ($pin:ident, $id:expr) => {
-        /// Represents the pin this struct is named after
-        ///
-        /// # Limitations
-        ///
-        /// Currently, nothing prevents users of this HAL from creating any
-        /// number of instances of this struct and using them for all kinds of
-        /// purposes. Until this shortcoming is rectified, it is your own
-        /// responsibility to make sure you are using the pin correctly.
-        #[allow(non_camel_case_types)]
-        pub struct $pin;
 
-        impl Pin for $pin {
-            fn id() -> u8 {
-                $id
-            }
+macro_rules! pins {
+    ($($pin:ident, $id:expr;)*) => {
+        $(
+            /// Represents the pin this struct is named after
+            ///
+            /// # Limitations
+            ///
+            /// Currently, nothing prevents users of this HAL from creating any
+            /// number of instances of this struct and using them for all kinds
+            /// of purposes. Until this shortcoming is rectified, it is your own
+            /// responsibility to make sure you are using the pin correctly.
+            #[allow(non_camel_case_types)]
+            pub struct $pin;
 
-            fn mask() -> u32 {
-                0x1 << $id
+            impl Pin for $pin {
+                fn id() -> u8 {
+                    $id
+                }
+
+                fn mask() -> u32 {
+                    0x1 << $id
+                }
             }
-        }
+        )*
     }
 }
 
-impl_pin!(PIO0_0 , 0x00);
-impl_pin!(PIO0_1 , 0x01);
-impl_pin!(PIO0_2 , 0x02);
-impl_pin!(PIO0_3 , 0x03);
-impl_pin!(PIO0_4 , 0x04);
-impl_pin!(PIO0_5 , 0x05);
-impl_pin!(PIO0_6 , 0x06);
-impl_pin!(PIO0_7 , 0x07);
-impl_pin!(PIO0_8 , 0x08);
-impl_pin!(PIO0_9 , 0x09);
-impl_pin!(PIO0_10, 0x0a);
-impl_pin!(PIO0_11, 0x0b);
-impl_pin!(PIO0_12, 0x0c);
-impl_pin!(PIO0_13, 0x0d);
-impl_pin!(PIO0_14, 0x0e);
-impl_pin!(PIO0_15, 0x0f);
-impl_pin!(PIO0_16, 0x10);
-impl_pin!(PIO0_17, 0x11);
-impl_pin!(PIO0_18, 0x12);
-impl_pin!(PIO0_19, 0x13);
-impl_pin!(PIO0_20, 0x14);
-impl_pin!(PIO0_21, 0x15);
-impl_pin!(PIO0_22, 0x16);
-impl_pin!(PIO0_23, 0x17);
-impl_pin!(PIO0_24, 0x18);
-impl_pin!(PIO0_25, 0x19);
-impl_pin!(PIO0_26, 0x1a);
-impl_pin!(PIO0_27, 0x1b);
-impl_pin!(PIO0_28, 0x1c);
+pins!(
+    PIO0_0 , 0x00;
+    PIO0_1 , 0x01;
+    PIO0_2 , 0x02;
+    PIO0_3 , 0x03;
+    PIO0_4 , 0x04;
+    PIO0_5 , 0x05;
+    PIO0_6 , 0x06;
+    PIO0_7 , 0x07;
+    PIO0_8 , 0x08;
+    PIO0_9 , 0x09;
+    PIO0_10, 0x0a;
+    PIO0_11, 0x0b;
+    PIO0_12, 0x0c;
+    PIO0_13, 0x0d;
+    PIO0_14, 0x0e;
+    PIO0_15, 0x0f;
+    PIO0_16, 0x10;
+    PIO0_17, 0x11;
+    PIO0_18, 0x12;
+    PIO0_19, 0x13;
+    PIO0_20, 0x14;
+    PIO0_21, 0x15;
+    PIO0_22, 0x16;
+    PIO0_23, 0x17;
+    PIO0_24, 0x18;
+    PIO0_25, 0x19;
+    PIO0_26, 0x1a;
+    PIO0_27, 0x1b;
+    PIO0_28, 0x1c;
+);
 
 
 /// Contains types that mark the state of peripheral initialization
