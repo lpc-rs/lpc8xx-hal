@@ -9,6 +9,7 @@ use ::{
     swm,
     syscon,
     Pin,
+    Pins,
     SWM,
 };
 use init_state::{
@@ -51,6 +52,11 @@ impl<'gpio> GPIO<'gpio, init_state::Unknown> {
 }
 
 impl<'gpio> GPIO<'gpio> {
+    /// Provides access to all pins
+    pub fn pins(&self) -> Pins {
+        Pins::new()
+    }
+
     /// Sets pin direction to output
     ///
     /// Disables the fixed function of the given pin (thus making it available
