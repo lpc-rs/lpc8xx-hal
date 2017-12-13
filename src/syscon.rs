@@ -60,7 +60,7 @@ pub struct SYSCON<'syscon> {
     pub syspll: SYSPLL,
 
     /// UART Fractional Baud Rate Generator
-    pub uartfrg: UARTFRG,
+    pub uartfrg: UARTFRG<'syscon>,
 
     /// The 750 kHz IRC-derived clock
     ///
@@ -75,9 +75,6 @@ impl<'syscon> SYSCON<'syscon> {
                 pdruncfg     : &syscon.pdruncfg,
                 presetctrl   : &syscon.presetctrl,
                 sysahbclkctrl: &syscon.sysahbclkctrl,
-                uartclkdiv   : &syscon.uartclkdiv,
-                uartfrgdiv   : &syscon.uartfrgdiv,
-                uartfrgmult  : &syscon.uartfrgmult,
             },
 
             bod    : BOD(PhantomData),
@@ -89,7 +86,12 @@ impl<'syscon> SYSCON<'syscon> {
             rom    : ROM(PhantomData),
             sysosc : SYSOSC(PhantomData),
             syspll : SYSPLL(PhantomData),
-            uartfrg: UARTFRG(PhantomData),
+            uartfrg: UARTFRG {
+                uartclkdiv : &syscon.uartclkdiv,
+                uartfrgdiv : &syscon.uartfrgdiv,
+                uartfrgmult: &syscon.uartfrgmult,
+
+            },
 
             irc_derived_clock: IrcDerivedClock::new(),
         }
@@ -102,9 +104,6 @@ pub struct Api<'syscon> {
     pdruncfg     : &'syscon PDRUNCFG,
     presetctrl   : &'syscon PRESETCTRL,
     sysahbclkctrl: &'syscon SYSAHBCLKCTRL,
-    uartclkdiv   : &'syscon UARTCLKDIV,
-    uartfrgdiv   : &'syscon UARTFRGDIV,
-    uartfrgmult  : &'syscon UARTFRGMULT,
 }
 
 impl<'r> Api<'r> {
@@ -147,30 +146,6 @@ impl<'r> Api<'r> {
     /// Remove power from an analog block
     pub fn power_down<P: AnalogBlock>(&mut self, peripheral: &mut P) {
         self.pdruncfg.modify(|_, w| peripheral.power_down(w));
-    }
-
-    /// Sets the clock for all USART peripherals (U_PCLK)
-    ///
-    /// HAL users usually won't have to call this method directly, as the
-    /// [`Usart`] API will handle this.
-    ///
-    /// # Limitations
-    ///
-    /// This method can be used to overwrite the settings for USARTs that are
-    /// currently in use. Please make sure not to do that.
-    ///
-    /// [`Usart`]: ../usart/struct.Usart.html
-    pub fn set_uart_clock(&mut self,
-        uart_clk_div : &UartClkDiv,
-        uart_frg_mult: &UartFrgMult,
-        uart_frg_div : &UartFrgDiv,
-    ) {
-        unsafe {
-            self.uartclkdiv.write(|w| w.div().bits(uart_clk_div.0));
-
-            self.uartfrgmult.write(|w| w.mult().bits(uart_frg_mult.0));
-            self.uartfrgdiv.write(|w| w.div().bits(uart_frg_div.0));
-        }
     }
 }
 
@@ -243,10 +218,41 @@ pub struct SYSPLL(PhantomData<*const ()>);
 
 /// UART Fractional Baud Rate Generator
 ///
-/// Can be used to control the UART FRG using various [`SYSCON`] methods.
-///
-/// [`SYSCON`]: struct.SYSCON.html
-pub struct UARTFRG(PhantomData<*const ()>);
+/// Controls the clock for all USART peripherals (U_PCLK).
+pub struct UARTFRG<'syscon> {
+    uartclkdiv : &'syscon UARTCLKDIV,
+    uartfrgdiv : &'syscon UARTFRGDIV,
+    uartfrgmult: &'syscon UARTFRGMULT,
+}
+
+impl<'syscon> UARTFRG<'syscon> {
+    /// Set UART clock divider value (UARTCLKDIV)
+    ///
+    /// See user manual, section 5.6.15.
+    pub fn set_clkdiv(&mut self, value: u8) {
+        self.uartclkdiv.write(|w|
+            unsafe { w.div().bits(value) }
+        );
+    }
+
+    /// Set UART fractional generator multiplier value (UARTFRGMULT)
+    ///
+    /// See user manual, section 5.6.20.
+    pub fn set_frgmult(&mut self, value: u8) {
+        self.uartfrgmult.write(|w|
+            unsafe { w.mult().bits(value) }
+        );
+    }
+
+    /// Set UART fractional generator divider value (UARTFRGDIV)
+    ///
+    /// See user manual, section 5.6.19.
+    pub fn set_frgdiv(&mut self, value: u8) {
+        self.uartfrgdiv.write(|w|
+            unsafe { w.div().bits(value) }
+        );
+    }
+}
 
 
 /// Implemented for peripherals that have a clock that can be enabled
@@ -356,7 +362,7 @@ macro_rules! impl_clear_reset {
 
 impl_clear_reset!(&'a lpc82x::SPI0     , spi0_rst_n   );
 impl_clear_reset!(&'a lpc82x::SPI1     , spi1_rst_n   );
-impl_clear_reset!(UARTFRG              , uartfrg_rst_n);
+impl_clear_reset!(UARTFRG<'a>          , uartfrg_rst_n);
 impl_clear_reset!(&'a lpc82x::USART0   , uart0_rst_n  );
 impl_clear_reset!(&'a lpc82x::USART1   , uart1_rst_n  );
 impl_clear_reset!(&'a lpc82x::USART2   , uart2_rst_n  );
@@ -415,28 +421,6 @@ impl_analog_block!(SYSOSC          , sysosc_pd );
 impl_analog_block!(&'a lpc82x::WWDT, wdtosc_pd );
 impl_analog_block!(SYSPLL          , syspll_pd );
 impl_analog_block!(&'a lpc82x::CMP , acmp      );
-
-
-/// UART clock divider value
-///
-/// See [`SYSCON::set_uart_clock`].
-///
-/// [`SYSCON::set_uart_clock`]: struct.SYSCON.html#method.set_uart_clock
-pub struct UartClkDiv(pub u8);
-
-/// UART fractional generator multiplier value
-///
-/// See [`SYSCON::set_uart_clock`].
-///
-/// [`SYSCON::set_uart_clock`]: struct.SYSCON.html#method.set_uart_clock
-pub struct UartFrgMult(pub u8);
-
-/// UART fractional generator divider value
-///
-/// See [`SYSCON::set_uart_clock`].
-///
-/// [`SYSCON::set_uart_clock`]: struct.SYSCON.html#method.set_uart_clock
-pub struct UartFrgDiv(pub u8);
 
 
 /// The 750 kHz IRC-derived clock that can run the WKT

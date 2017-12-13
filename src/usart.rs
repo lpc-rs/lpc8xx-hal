@@ -24,9 +24,7 @@ use swm::{
 };
 use syscon::{
     self,
-    UartClkDiv,
-    UartFrgDiv,
-    UartFrgMult,
+    UARTFRG,
 };
 
 
@@ -101,12 +99,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         swm.assign_pin::<UsartX::Rx, Rx>();
         swm.assign_pin::<UsartX::Tx, Tx>();
 
-        syscon.set_uart_clock(
-            &baud_rate.clk_div,
-            &baud_rate.frg_mult,
-            &baud_rate.frg_div,
-        );
-        self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brg_val) });
+        self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 
         // Disable USART peripheral before writing configuration. This is
         // required, according to the user manual, section 13.6.1.
@@ -345,85 +338,43 @@ impl Peripheral for lpc82x::USART2 {
 }
 
 
-/// Baud rate for a UART unit
+/// Represents a UART baud rate
 ///
-/// Can be passed to [`USART::init`] to configure the baud rate for the USART
+/// Can be passed to [`USART::init`] to configure the baud rate for a USART
 /// peripheral.
 ///
-/// # Limitations
-///
-/// The fields [`clk_div`], [`frg_mult`], and [`frg_div`] represent global
-/// configuration values that are shared between all USART peripherals. Only
-/// [`brg_val`] can be set independently for each USART.
-///
-/// When running multiple USARTs, it is the user's responsibility to make sure
-/// that all the `BaudRate`s passed to them have identical values for `clk_div`,
-/// `frg_mult`, and `frg_div`.
-///
 /// [`USART::init`]: struct.USART.html#method.init
-/// [`clk_div`]: #structfield.clk_div
-/// [`frg_mult`]: #structfield.frg_mult
-/// [`frg_div`]: #structfield.frg_div
-/// [`brg_val`]: #structfield.brg_val
-pub struct BaudRate {
-    /// USART clock divider value
-    ///
-    /// See user manual, section 5.6.15.
-    pub clk_div: UartClkDiv,
-
-    /// USART fractional generator multiplier value
-    ///
-    /// See user manual, section 5.6.20.
-    pub frg_mult: UartFrgMult,
-
-    /// USART fractional generator divider value
-    ///
-    /// See user manual, section 5.6.19.
-    pub frg_div: UartFrgDiv,
+pub struct BaudRate<'frg> {
+    _uartfrg: &'frg UARTFRG<'frg>,
 
     /// USART Baud Rate Generator divider value
     ///
     /// See user manual, section 13.6.9.
-    pub brg_val: u16,
+    brgval: u16,
 }
 
-impl BaudRate {
-    /// Returns a `BaudRate` instance for 115200 baud
+impl<'frg> BaudRate<'frg> {
+    /// Create a `BaudRate` instance
     ///
-    /// # Limitations
+    /// Creates a `BaudRate` instance from two components: A reference to the
+    /// [`UARTFRG`] and the BRGVAL.
     ///
-    /// This function assumes the default configuration for the main clock,
-    /// namely that the IRC running at 12 MHz is used. If you have made any
-    /// changes to the main clock configuration, please don't use this function
-    /// and create a `BaudRate` manually instead.
-    pub fn baud_115200() -> Self {
-        // The common peripheral clock for all UART units, U_PCLK, needs to be
-        // set to 16 times the desired baud rate. This results in a frequency of
-        // 1843200 Hz for U_PLCK.
-        //
-        // We assume the main clock runs at 12 Mhz. To get close to the desired
-        // frequency for U_PLCK, we divide that by 6 using UARTCLKDIV, resulting
-        // in a frequency of 2 Mhz.
-        //
-        // To get to the desired 1843200 Hz, we need to further divide the
-        // frequency using the fractional baud rate generator. The fractional
-        // baud rate generator divides the frequency by `1 + MULT/DIV`.
-        //
-        // DIV must always be 256. To achieve this, we need to set the
-        // UARTFRGDIV to 0xff. MULT can then be fine-tuned to get as close as
-        // possible to the desired value. We choose the value 22, which we write
-        // into UARTFRGMULT.
-        //
-        // Finally, we can set an additional divider value for the UART unit by
-        // writing to the BRG register. As we are already close enough to the
-        // desired value, we write 0, resulting in no further division.
-        //
-        // All of this is somewhat explained in the user manual, section 13.3.1.
-        BaudRate {
-            clk_div : UartClkDiv(6),
-            frg_mult: UartFrgMult(22),
-            frg_div : UartFrgDiv(0xff),
-            brg_val : 0,
+    /// The [`UARTFRG`] controls U_PCLK, the UART clock that is shared by all
+    /// USART peripherals. Please configure it before attempting to create a
+    /// `BaudRate`. By keeping a reference to it, `BaudRate` ensures that U_PCLK
+    /// cannot be changes as long as the `BaudRate` instance exists.
+    ///
+    /// BRGVAL is an additional divider value that divides the shared baud rate
+    /// to allow individual USART peripherals to use different baud rates. A
+    /// value of `0` means that U_PCLK is used directly, `1` means that U_PCLK
+    /// is divided by 2 before using it, `2` means it's divided by 3, and so
+    /// forth.
+    ///
+    /// [`UARTFRG`]: ../syscon/struct.UARTFRG.html
+    pub fn new(uartfrg : &'frg UARTFRG<'frg>, brgval : u16) -> Self {
+        Self {
+            _uartfrg: uartfrg,
+            brgval  : brgval,
         }
     }
 }
