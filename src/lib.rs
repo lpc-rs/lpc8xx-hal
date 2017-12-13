@@ -227,6 +227,30 @@ pub mod usart;
 pub mod wkt;
 
 
+/// Re-exports various traits that are required to use lpc82x-hal
+///
+/// The purpose of this module is to improve convenience, by not requiring the
+/// user to import traits separately. Just add the following glob import to your
+/// code, and you should be good:
+///
+/// ``` rust
+/// use lpc82x_hal::prelude::*;
+/// ```
+///
+/// The traits in this module have been renamed, to avoid collisions with other
+/// imports.
+pub mod prelude {
+    pub use embedded_hal::prelude::*;
+
+    pub use clock::Enabled as _lpc82x_hal_clock_Enabled;
+    pub use clock::Frequency as _lpc82x_hal_clock_Frequency;
+    pub use sleep::Sleep as _lpc82x_hal_sleep_Sleep;
+    pub use swm::PinExt as _lpc82x_hal_swm_PinExt;
+    pub use usart::Write as _lpc82x_hal_usart_Write;
+    pub use usart::blocking::Write as _lpc82x_hal_usart_blocking_Write;
+}
+
+
 pub use lpc82x::{
     CPUID,
     DCB,
