@@ -375,44 +375,6 @@ impl<'frg> BaudRate<'frg> {
             brg_val : brg_val,
         }
     }
-
-    /// Returns a `BaudRate` instance for 115200 baud
-    ///
-    /// # Limitations
-    ///
-    /// This function assumes the default configuration for the main clock,
-    /// namely that the IRC running at 12 MHz is used. If you have made any
-    /// changes to the main clock configuration, please don't use this function
-    /// and create a `BaudRate` manually instead.
-    pub fn baud_115200(uartfrg: &'frg mut UARTFRG<'frg>) -> Self {
-        // The common peripheral clock for all UART units, U_PCLK, needs to be
-        // set to 16 times the desired baud rate. This results in a frequency of
-        // 1843200 Hz for U_PLCK.
-        //
-        // We assume the main clock runs at 12 Mhz. To get close to the desired
-        // frequency for U_PLCK, we divide that by 6 using UARTCLKDIV, resulting
-        // in a frequency of 2 Mhz.
-        //
-        // To get to the desired 1843200 Hz, we need to further divide the
-        // frequency using the fractional baud rate generator. The fractional
-        // baud rate generator divides the frequency by `1 + MULT/DIV`.
-        //
-        // DIV must always be 256. To achieve this, we need to set the
-        // UARTFRGDIV to 0xff. MULT can then be fine-tuned to get as close as
-        // possible to the desired value. We choose the value 22, which we write
-        // into UARTFRGMULT.
-        //
-        // Finally, we can set an additional divider value for the UART unit by
-        // writing to the BRG register. As we are already close enough to the
-        // desired value, we write 0, resulting in no further division.
-        //
-        // All of this is somewhat explained in the user manual, section 13.3.1.
-        uartfrg.set_clkdiv(6);
-        uartfrg.set_frgmult(22);
-        uartfrg.set_frgdiv(0xff);
-
-        BaudRate::new(uartfrg, 0)
-    }
 }
 
 
