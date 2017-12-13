@@ -25,9 +25,6 @@ use swm::{
 use syscon::{
     self,
     UARTFRG,
-    UartClkDiv,
-    UartFrgDiv,
-    UartFrgMult,
 };
 
 
@@ -362,7 +359,7 @@ impl Peripheral for lpc82x::USART2 {
 /// [`frg_div`]: #structfield.frg_div
 /// [`brg_val`]: #structfield.brg_val
 pub struct BaudRate<'frg> {
-    _uartfrg: &'frg mut UARTFRG,
+    _uartfrg: &'frg mut UARTFRG<'frg>,
 
     /// USART Baud Rate Generator divider value
     ///
@@ -372,20 +369,7 @@ pub struct BaudRate<'frg> {
 
 impl<'frg> BaudRate<'frg> {
     /// Create a `BaudRate` instance by providing the register values
-    pub fn new(
-        uartfrg : &'frg mut UARTFRG,
-        clk_div : UartClkDiv,
-        frg_mult: UartFrgMult,
-        frg_div : UartFrgDiv,
-        brg_val : u16,
-        syscon  : &mut syscon::Api,
-    ) -> Self {
-        syscon.set_uart_clock(
-            &clk_div,
-            &frg_mult,
-            &frg_div,
-        );
-
+    pub fn new(uartfrg : &'frg mut UARTFRG<'frg>, brg_val : u16) -> Self {
         Self {
             _uartfrg: uartfrg,
             brg_val : brg_val,
@@ -400,7 +384,7 @@ impl<'frg> BaudRate<'frg> {
     /// namely that the IRC running at 12 MHz is used. If you have made any
     /// changes to the main clock configuration, please don't use this function
     /// and create a `BaudRate` manually instead.
-    pub fn baud_115200(uartfrg: &'frg mut UARTFRG, syscon: &mut syscon::Api) -> Self {
+    pub fn baud_115200(uartfrg: &'frg mut UARTFRG<'frg>) -> Self {
         // The common peripheral clock for all UART units, U_PCLK, needs to be
         // set to 16 times the desired baud rate. This results in a frequency of
         // 1843200 Hz for U_PLCK.
@@ -423,14 +407,11 @@ impl<'frg> BaudRate<'frg> {
         // desired value, we write 0, resulting in no further division.
         //
         // All of this is somewhat explained in the user manual, section 13.3.1.
-        BaudRate::new(
-            uartfrg,
-            UartClkDiv(6),
-            UartFrgMult(22),
-            UartFrgDiv(0xff),
-            0,
-            syscon
-        )
+        uartfrg.set_clkdiv(6);
+        uartfrg.set_frgmult(22);
+        uartfrg.set_frgdiv(0xff);
+
+        BaudRate::new(uartfrg, 0)
     }
 }
 
