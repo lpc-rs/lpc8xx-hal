@@ -13,7 +13,7 @@ use lpc82x::{
 };
 use nb;
 
-use Pin;
+use gpio::Pin;
 use init_state::{
     self,
     InitState,
