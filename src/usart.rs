@@ -13,7 +13,7 @@ use lpc82x::{
 };
 use nb;
 
-use gpio::Pin;
+use gpio::PinName;
 use init_state::{
     self,
     InitState,
@@ -88,7 +88,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     /// to the documentation of [`BaudRate`] for full details.
     ///
     /// [`BaudRate`]: struct.BaudRate.html
-    pub fn init<Rx: Pin, Tx: Pin>(mut self,
+    pub fn init<Rx: PinName, Tx: PinName>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Api,
         swm      : &mut SWM,

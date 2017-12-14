@@ -56,17 +56,17 @@ impl<'gpio> GPIO<'gpio> {
 }
 
 
-/// Represents a pin
+/// Represents a specific pin
 ///
-/// This trait is implemented by all types that represent a pin. HAL users
-/// shouldn't need to implement this trait themselves.
+/// This trait is implemented by all types that represent a specific pin. HAL
+/// users shouldn't need to implement this trait themselves.
 ///
 /// It also should not be necessary for HAL users to use the methods of this
 /// trait directly, unless compensating for missing pieces of HAL functionality.
 /// Ideally, there should be higher-level peripheral methods that take pins as
 /// parameters and use the methods of this trait to take care of the low-level
 /// details.
-pub trait Pin {
+pub trait PinName {
     /// Returns a number that identifies the pin
     ///
     /// This is `0` for [`PIO0_0`], `1` for [`PIO0_1`] and so forth.
@@ -115,7 +115,7 @@ macro_rules! pins {
             #[allow(non_camel_case_types)]
             pub struct $type<'gpio>(&'gpio GPIO<'gpio>);
 
-            impl<'gpio> Pin for $type<'gpio> {
+            impl<'gpio> PinName for $type<'gpio> {
                 fn id() -> u8 {
                     $id
                 }

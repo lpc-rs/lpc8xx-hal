@@ -6,7 +6,7 @@
 use lpc82x;
 use lpc82x::swm::pinenable0;
 
-use gpio::Pin;
+use gpio::PinName;
 use init_state::{
     self,
     InitState,
@@ -54,7 +54,7 @@ impl<'swm> SWM<'swm> {
     /// This method can be used to assign movable functions to pins that are
     /// currently used for something else. The HAL user needs to make sure that
     /// this assignment doesn't conflict with any other uses of the pin.
-    pub fn assign_pin<F: MovableFunction, P: Pin>(&mut self) {
+    pub fn assign_pin<F: MovableFunction, P: PinName>(&mut self) {
         F::assign_pin::<P>(&self.swm);
     }
 
@@ -134,7 +134,7 @@ impl_pin_ext!(::gpio::PIO0_28<'gpio>);
 /// trait won't be considered breaking changes.
 pub trait MovableFunction {
     /// Internal method to assign a pin to a movable function.
-    fn assign_pin<P: Pin>(swm: &lpc82x::SWM);
+    fn assign_pin<P: PinName>(swm: &lpc82x::SWM);
 }
 
 macro_rules! impl_movable_function {
@@ -149,7 +149,7 @@ macro_rules! impl_movable_function {
         pub struct $movable_function;
 
         impl MovableFunction for $movable_function {
-            fn assign_pin<P: Pin>(swm: &lpc82x::SWM) {
+            fn assign_pin<P: PinName>(swm: &lpc82x::SWM) {
                 swm.$register.modify(|_, w|
                     unsafe { w.$field().bits(P::id())
                 })
