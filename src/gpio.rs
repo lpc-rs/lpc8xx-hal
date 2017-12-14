@@ -95,7 +95,7 @@ macro_rules! pins {
         }
 
         impl<'gpio> Pins<'gpio> {
-            pub(crate) fn new(gpio: &'gpio GPIO<'gpio>) -> Self {
+            fn new(gpio: &'gpio GPIO<'gpio>) -> Self {
                 Pins {
                     $($field: $type(gpio),)*
                 }
