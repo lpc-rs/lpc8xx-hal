@@ -6,7 +6,6 @@
 use lpc82x;
 
 use ::{
-    swm,
     syscon,
     SWM,
 };
@@ -53,34 +52,6 @@ impl<'gpio> GPIO<'gpio> {
     /// Provides access to all pins
     pub fn pins(&self) -> Pins {
         Pins::new(self)
-    }
-
-    /// Sets pin direction to output
-    ///
-    /// Disables the fixed function of the given pin (thus making it available
-    /// for GPIO) and sets the GPIO direction to output.
-    pub fn set_pin_to_output<P>(&mut self, swm: &mut SWM)
-        where P: Pin + swm::PinExt
-    {
-        P::disable_fixed_functions(swm);
-
-        self.gpio.dirset0.write(|w|
-            unsafe { w.dirsetp().bits(P::mask()) }
-        )
-    }
-
-    /// Set pin output to HIGH
-    pub fn set_high<P>(&mut self) where P: Pin {
-        self.gpio.set0.write(|w|
-            unsafe { w.setp().bits(P::mask()) }
-        )
-    }
-
-    /// Set pin output to LOW
-    pub fn set_low<P>(&mut self) where P: Pin {
-        self.gpio.clr0.write(|w|
-            unsafe { w.clrp().bits(P::mask()) }
-        );
     }
 }
 
@@ -151,6 +122,35 @@ macro_rules! pins {
 
                 fn mask() -> u32 {
                     0x1 << $id
+                }
+            }
+
+            impl<'gpio> $type<'gpio> {
+                /// Sets pin direction to output
+                ///
+                /// Disables the fixed function of the given pin (thus making it
+                /// available for GPIO) and sets the GPIO direction to output.
+                pub fn set_pin_to_output(&mut self, swm: &mut SWM) {
+                    use swm::PinExt;
+                    Self::disable_fixed_functions(swm);
+
+                    self.0.gpio.dirset0.write(|w|
+                        unsafe { w.dirsetp().bits(Self::mask()) }
+                    )
+                }
+
+                /// Set pin output to HIGH
+                pub fn set_high(&mut self) {
+                    self.0.gpio.set0.write(|w|
+                        unsafe { w.setp().bits(Self::mask()) }
+                    )
+                }
+
+                /// Set pin output to LOW
+                pub fn set_low(&mut self) {
+                    self.0.gpio.clr0.write(|w|
+                        unsafe { w.clrp().bits(Self::mask()) }
+                    );
                 }
             }
         )*
