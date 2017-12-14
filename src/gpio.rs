@@ -96,13 +96,13 @@ macro_rules! pins {
         /// Provides access to all pins
         #[allow(missing_docs)]
         pub struct Pins<'gpio> {
-            $(pub $field: $type<'gpio>,)*
+            $(pub $field: Pin<'gpio, $type>,)*
         }
 
         impl<'gpio> Pins<'gpio> {
             fn new(gpio: &'gpio GPIO<'gpio>) -> Self {
                 Pins {
-                    $($field: $type(gpio),)*
+                    $($field: Pin { gpio: gpio, _ty: $type(()) },)*
                 }
             }
         }
@@ -111,42 +111,14 @@ macro_rules! pins {
         $(
             /// Identifies the pin this struct is named after
             #[allow(non_camel_case_types)]
-            pub struct $type<'gpio>(&'gpio GPIO<'gpio>);
+            pub struct $type(());
 
-            impl<'gpio> PinName for $type<'gpio> {
+            impl PinName for $type {
                 const ID  : u8  = $id;
                 const MASK: u32 = 0x1 << $id;
 
                 fn disable_fixed_functions(_swm: &mut SWM) {
                     $(_swm.disable_fixed_function::<swm::$fixed_function>();)*
-                }
-            }
-
-            impl<'gpio> $type<'gpio> {
-                /// Sets pin direction to output
-                ///
-                /// Disables the fixed function of the given pin (thus making it
-                /// available for GPIO) and sets the GPIO direction to output.
-                pub fn set_pin_to_output(&mut self, swm: &mut SWM) {
-                    Self::disable_fixed_functions(swm);
-
-                    self.0.gpio.dirset0.write(|w|
-                        unsafe { w.dirsetp().bits(Self::MASK) }
-                    )
-                }
-
-                /// Set pin output to HIGH
-                pub fn set_high(&mut self) {
-                    self.0.gpio.set0.write(|w|
-                        unsafe { w.setp().bits(Self::MASK) }
-                    )
-                }
-
-                /// Set pin output to LOW
-                pub fn set_low(&mut self) {
-                    self.0.gpio.clr0.write(|w|
-                        unsafe { w.clrp().bits(Self::MASK) }
-                    );
                 }
             }
         )*
@@ -184,3 +156,38 @@ pins!(
     pio0_27, PIO0_27, 0x1b;
     pio0_28, PIO0_28, 0x1c;
 );
+
+
+/// A pin that can be used for GPIO, fixed functions, or movable functions
+pub struct Pin<'gpio, T: PinName> {
+    gpio: &'gpio GPIO<'gpio>,
+    _ty : T,
+}
+
+impl<'gpio, T> Pin<'gpio, T> where T: PinName {
+    /// Sets pin direction to output
+    ///
+    /// Disables the fixed function of the given pin (thus making it available
+    /// for GPIO) and sets the GPIO direction to output.
+    pub fn set_pin_to_output(&mut self, swm: &mut SWM) {
+        T::disable_fixed_functions(swm);
+
+        self.gpio.gpio.dirset0.write(|w|
+            unsafe { w.dirsetp().bits(T::MASK) }
+        )
+    }
+
+    /// Set pin output to HIGH
+    pub fn set_high(&mut self) {
+        self.gpio.gpio.set0.write(|w|
+            unsafe { w.setp().bits(T::MASK) }
+        )
+    }
+
+    /// Set pin output to LOW
+    pub fn set_low(&mut self) {
+        self.gpio.gpio.clr0.write(|w|
+            unsafe { w.clrp().bits(T::MASK) }
+        );
+    }
+}
