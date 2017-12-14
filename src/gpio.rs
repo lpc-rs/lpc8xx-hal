@@ -104,14 +104,7 @@ macro_rules! pins {
 
 
         $(
-            /// Represents the pin this struct is named after
-            ///
-            /// # Limitations
-            ///
-            /// Currently, nothing prevents users of this HAL from creating any
-            /// number of instances of this struct and using them for all kinds
-            /// of purposes. Until this shortcoming is rectified, it is your own
-            /// responsibility to make sure you are using the pin correctly.
+            /// Identifies the pin this struct is named after
             #[allow(non_camel_case_types)]
             pub struct $type<'gpio>(&'gpio GPIO<'gpio>);
 
