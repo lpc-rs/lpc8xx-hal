@@ -92,7 +92,9 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Api,
         swm      : &mut SWM,
-    ) -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !> {
+    )
+        -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !>
+    {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
 
