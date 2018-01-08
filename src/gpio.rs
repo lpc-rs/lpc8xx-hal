@@ -67,22 +67,22 @@ impl<'gpio> GPIO<'gpio> {
 /// parameters and use the methods of this trait to take care of the low-level
 /// details.
 pub trait PinName {
-    /// Returns a number that identifies the pin
+    /// A number that identifies the pin
     ///
     /// This is `0` for [`PIO0_0`], `1` for [`PIO0_1`] and so forth.
     ///
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO0_1`]: struct.PIO0_1.html
-    fn id() -> u8;
+    const ID: u8;
 
-    /// Returns the pin's mask
+    /// The pin's bit mask
     ///
     /// This is `0x00000001` for [`PIO0_0`], `0x00000002` for [`PIO0_1`] and so
     /// forth.
     ///
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO0_1`]: struct.PIO0_1.html
-    fn mask() -> u32;
+    const MASK: u32;
 }
 
 
@@ -116,13 +116,8 @@ macro_rules! pins {
             pub struct $type<'gpio>(&'gpio GPIO<'gpio>);
 
             impl<'gpio> PinName for $type<'gpio> {
-                fn id() -> u8 {
-                    $id
-                }
-
-                fn mask() -> u32 {
-                    0x1 << $id
-                }
+                const ID  : u8  = $id;
+                const MASK: u32 = 0x1 << $id;
             }
 
             impl<'gpio> $type<'gpio> {
@@ -135,21 +130,21 @@ macro_rules! pins {
                     Self::disable_fixed_functions(swm);
 
                     self.0.gpio.dirset0.write(|w|
-                        unsafe { w.dirsetp().bits(Self::mask()) }
+                        unsafe { w.dirsetp().bits(Self::MASK) }
                     )
                 }
 
                 /// Set pin output to HIGH
                 pub fn set_high(&mut self) {
                     self.0.gpio.set0.write(|w|
-                        unsafe { w.setp().bits(Self::mask()) }
+                        unsafe { w.setp().bits(Self::MASK) }
                     )
                 }
 
                 /// Set pin output to LOW
                 pub fn set_low(&mut self) {
                     self.0.gpio.clr0.write(|w|
-                        unsafe { w.clrp().bits(Self::mask()) }
+                        unsafe { w.clrp().bits(Self::MASK) }
                     );
                 }
             }

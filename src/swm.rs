@@ -151,7 +151,7 @@ macro_rules! impl_movable_function {
         impl MovableFunction for $movable_function {
             fn assign_pin<P: PinName>(swm: &lpc82x::SWM) {
                 swm.$register.modify(|_, w|
-                    unsafe { w.$field().bits(P::id())
+                    unsafe { w.$field().bits(P::ID)
                 })
             }
         }
