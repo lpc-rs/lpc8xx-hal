@@ -581,13 +581,13 @@ pub mod init_state {
     /// implement this trait, nor use it directly.
     pub trait InitState {}
 
-    /// Marks a peripherals initialization state as being unknown
+    /// Marks a peripheral's initialization state as being unknown
     ///
     /// This is usually the initial state after system initialization.
     pub struct Unknown;
     impl InitState for Unknown {}
 
-    /// Marks a peripherals as being initialized
+    /// Marks a peripheral as being initialized
     pub struct Initialized;
     impl InitState for Initialized {}
 }
