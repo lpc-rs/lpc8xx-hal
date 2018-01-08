@@ -6,6 +6,7 @@
 use lpc82x;
 
 use ::{
+    swm,
     syscon,
     SWM,
 };
@@ -83,11 +84,15 @@ pub trait PinName {
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO0_1`]: struct.PIO0_1.html
     const MASK: u32;
+
+    /// Disables all fixed functions for the given pin
+    fn disable_fixed_functions(swm: &mut SWM)
+        where Self: Sized;
 }
 
 
 macro_rules! pins {
-    ($($field:ident, $type:ident, $id:expr;)*) => {
+    ($($field:ident, $type:ident, $id:expr $(, $fixed_function:ident)*;)*) => {
         /// Provides access to all pins
         #[allow(missing_docs)]
         pub struct Pins<'gpio> {
@@ -111,6 +116,10 @@ macro_rules! pins {
             impl<'gpio> PinName for $type<'gpio> {
                 const ID  : u8  = $id;
                 const MASK: u32 = 0x1 << $id;
+
+                fn disable_fixed_functions(_swm: &mut SWM) {
+                    $(_swm.disable_fixed_function::<swm::$fixed_function>();)*
+                }
             }
 
             impl<'gpio> $type<'gpio> {
@@ -119,7 +128,6 @@ macro_rules! pins {
                 /// Disables the fixed function of the given pin (thus making it
                 /// available for GPIO) and sets the GPIO direction to output.
                 pub fn set_pin_to_output(&mut self, swm: &mut SWM) {
-                    use swm::PinExt;
                     Self::disable_fixed_functions(swm);
 
                     self.0.gpio.dirset0.write(|w|
@@ -146,30 +154,30 @@ macro_rules! pins {
 }
 
 pins!(
-    pio0_0 , PIO0_0 , 0x00;
-    pio0_1 , PIO0_1 , 0x01;
-    pio0_2 , PIO0_2 , 0x02;
-    pio0_3 , PIO0_3 , 0x03;
-    pio0_4 , PIO0_4 , 0x04;
-    pio0_5 , PIO0_5 , 0x05;
-    pio0_6 , PIO0_6 , 0x06;
-    pio0_7 , PIO0_7 , 0x07;
-    pio0_8 , PIO0_8 , 0x08;
-    pio0_9 , PIO0_9 , 0x09;
-    pio0_10, PIO0_10, 0x0a;
-    pio0_11, PIO0_11, 0x0b;
+    pio0_0 , PIO0_0 , 0x00, ACMP_I1;
+    pio0_1 , PIO0_1 , 0x01, ACMP_I2, CLKIN;
+    pio0_2 , PIO0_2 , 0x02, SWDIO;
+    pio0_3 , PIO0_3 , 0x03, SWCLK;
+    pio0_4 , PIO0_4 , 0x04, ADC_11;
+    pio0_5 , PIO0_5 , 0x05, RESETN;
+    pio0_6 , PIO0_6 , 0x06, VDDCMP, ADC_1;
+    pio0_7 , PIO0_7 , 0x07, ADC_0;
+    pio0_8 , PIO0_8 , 0x08, XTALIN;
+    pio0_9 , PIO0_9 , 0x09, XTALOUT;
+    pio0_10, PIO0_10, 0x0a, I2C0_SCL;
+    pio0_11, PIO0_11, 0x0b, I2C0_SDA;
     pio0_12, PIO0_12, 0x0c;
-    pio0_13, PIO0_13, 0x0d;
-    pio0_14, PIO0_14, 0x0e;
+    pio0_13, PIO0_13, 0x0d, ADC_10;
+    pio0_14, PIO0_14, 0x0e, ACMP_I3, ADC_2;
     pio0_15, PIO0_15, 0x0f;
     pio0_16, PIO0_16, 0x10;
-    pio0_17, PIO0_17, 0x11;
-    pio0_18, PIO0_18, 0x12;
-    pio0_19, PIO0_19, 0x13;
-    pio0_20, PIO0_20, 0x14;
-    pio0_21, PIO0_21, 0x15;
-    pio0_22, PIO0_22, 0x16;
-    pio0_23, PIO0_23, 0x17;
+    pio0_17, PIO0_17, 0x11, ADC_9;
+    pio0_18, PIO0_18, 0x12, ADC_8;
+    pio0_19, PIO0_19, 0x13, ADC_7;
+    pio0_20, PIO0_20, 0x14, ADC_6;
+    pio0_21, PIO0_21, 0x15, ADC_5;
+    pio0_22, PIO0_22, 0x16, ADC_4;
+    pio0_23, PIO0_23, 0x17, ACMP_I4, ADC_3;
     pio0_24, PIO0_24, 0x18;
     pio0_25, PIO0_25, 0x19;
     pio0_26, PIO0_26, 0x1a;

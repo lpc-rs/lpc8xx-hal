@@ -76,57 +76,6 @@ impl<'swm> SWM<'swm> {
 }
 
 
-/// Extends [`Pin`] with SWM-specific functionality
-///
-/// HAL users should not need to implement this trait.
-pub trait PinExt {
-    /// Disables the fixed function on the pin
-    fn disable_fixed_functions(swm: &mut SWM);
-}
-
-macro_rules! impl_pin_ext {
-    ($pin:ty $(, $fixed_function:ty)*) => {
-        impl<'gpio> PinExt for $pin {
-            fn disable_fixed_functions(_swm: &mut SWM) {
-                $(
-                    _swm.disable_fixed_function::<$fixed_function>();
-                )*
-            }
-        }
-    }
-}
-
-impl_pin_ext!(::gpio::PIO0_0<'gpio> , ACMP_I1);
-impl_pin_ext!(::gpio::PIO0_1<'gpio> , ACMP_I2, CLKIN);
-impl_pin_ext!(::gpio::PIO0_2<'gpio> , SWDIO);
-impl_pin_ext!(::gpio::PIO0_3<'gpio> , SWCLK);
-impl_pin_ext!(::gpio::PIO0_4<'gpio> , ADC_11);
-impl_pin_ext!(::gpio::PIO0_5<'gpio> , RESETN);
-impl_pin_ext!(::gpio::PIO0_6<'gpio> , VDDCMP, ADC_1);
-impl_pin_ext!(::gpio::PIO0_7<'gpio> , ADC_0);
-impl_pin_ext!(::gpio::PIO0_8<'gpio> , XTALIN);
-impl_pin_ext!(::gpio::PIO0_9<'gpio> , XTALOUT);
-impl_pin_ext!(::gpio::PIO0_10<'gpio>, I2C0_SCL);
-impl_pin_ext!(::gpio::PIO0_11<'gpio>, I2C0_SDA);
-impl_pin_ext!(::gpio::PIO0_12<'gpio>);
-impl_pin_ext!(::gpio::PIO0_13<'gpio>, ADC_10);
-impl_pin_ext!(::gpio::PIO0_14<'gpio>, ACMP_I3, ADC_2);
-impl_pin_ext!(::gpio::PIO0_15<'gpio>);
-impl_pin_ext!(::gpio::PIO0_16<'gpio>);
-impl_pin_ext!(::gpio::PIO0_17<'gpio>, ADC_9);
-impl_pin_ext!(::gpio::PIO0_18<'gpio>, ADC_8);
-impl_pin_ext!(::gpio::PIO0_19<'gpio>, ADC_7);
-impl_pin_ext!(::gpio::PIO0_20<'gpio>, ADC_6);
-impl_pin_ext!(::gpio::PIO0_21<'gpio>, ADC_5);
-impl_pin_ext!(::gpio::PIO0_22<'gpio>, ADC_4);
-impl_pin_ext!(::gpio::PIO0_23<'gpio>, ACMP_I4, ADC_3);
-impl_pin_ext!(::gpio::PIO0_24<'gpio>);
-impl_pin_ext!(::gpio::PIO0_25<'gpio>);
-impl_pin_ext!(::gpio::PIO0_26<'gpio>);
-impl_pin_ext!(::gpio::PIO0_27<'gpio>);
-impl_pin_ext!(::gpio::PIO0_28<'gpio>);
-
-
 /// Implemented for types that represent movable functions
 ///
 /// This trait is an internal implementation detail and should neither be

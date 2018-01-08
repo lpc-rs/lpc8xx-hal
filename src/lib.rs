@@ -245,7 +245,6 @@ pub mod prelude {
     pub use clock::Enabled as _lpc82x_hal_clock_Enabled;
     pub use clock::Frequency as _lpc82x_hal_clock_Frequency;
     pub use sleep::Sleep as _lpc82x_hal_sleep_Sleep;
-    pub use swm::PinExt as _lpc82x_hal_swm_PinExt;
     pub use usart::Write as _lpc82x_hal_usart_Write;
     pub use usart::blocking::Write as _lpc82x_hal_usart_blocking_Write;
 }
