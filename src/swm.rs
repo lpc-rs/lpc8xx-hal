@@ -6,14 +6,12 @@
 use lpc82x;
 use lpc82x::swm::pinenable0;
 
-use ::{
-    syscon,
-    Pin,
-};
+use gpio::PinName;
 use init_state::{
     self,
     InitState,
 };
+use syscon;
 
 
 /// Interface to the switch matrix (SWM)
@@ -56,7 +54,7 @@ impl<'swm> SWM<'swm> {
     /// This method can be used to assign movable functions to pins that are
     /// currently used for something else. The HAL user needs to make sure that
     /// this assignment doesn't conflict with any other uses of the pin.
-    pub fn assign_pin<F: MovableFunction, P: Pin>(&mut self) {
+    pub fn assign_pin<F: MovableFunction, P: PinName>(&mut self) {
         F::assign_pin::<P>(&self.swm);
     }
 
@@ -78,57 +76,6 @@ impl<'swm> SWM<'swm> {
 }
 
 
-/// Extends [`Pin`] with SWM-specific functionality
-///
-/// HAL users should not need to implement this trait.
-pub trait PinExt {
-    /// Disables the fixed function on the pin
-    fn disable_fixed_functions(swm: &mut SWM);
-}
-
-macro_rules! impl_pin_ext {
-    ($pin:ty $(, $fixed_function:ty)*) => {
-        impl PinExt for $pin {
-            fn disable_fixed_functions(_swm: &mut SWM) {
-                $(
-                    _swm.disable_fixed_function::<$fixed_function>();
-                )*
-            }
-        }
-    }
-}
-
-impl_pin_ext!(::PIO0_0 , ACMP_I1);
-impl_pin_ext!(::PIO0_1 , ACMP_I2, CLKIN);
-impl_pin_ext!(::PIO0_2 , SWDIO);
-impl_pin_ext!(::PIO0_3 , SWCLK);
-impl_pin_ext!(::PIO0_4 , ADC_11);
-impl_pin_ext!(::PIO0_5 , RESETN);
-impl_pin_ext!(::PIO0_6 , VDDCMP, ADC_1);
-impl_pin_ext!(::PIO0_7 , ADC_0);
-impl_pin_ext!(::PIO0_8 , XTALIN);
-impl_pin_ext!(::PIO0_9 , XTALOUT);
-impl_pin_ext!(::PIO0_10, I2C0_SCL);
-impl_pin_ext!(::PIO0_11, I2C0_SDA);
-impl_pin_ext!(::PIO0_12);
-impl_pin_ext!(::PIO0_13, ADC_10);
-impl_pin_ext!(::PIO0_14, ACMP_I3, ADC_2);
-impl_pin_ext!(::PIO0_15);
-impl_pin_ext!(::PIO0_16);
-impl_pin_ext!(::PIO0_17, ADC_9);
-impl_pin_ext!(::PIO0_18, ADC_8);
-impl_pin_ext!(::PIO0_19, ADC_7);
-impl_pin_ext!(::PIO0_20, ADC_6);
-impl_pin_ext!(::PIO0_21, ADC_5);
-impl_pin_ext!(::PIO0_22, ADC_4);
-impl_pin_ext!(::PIO0_23, ACMP_I4, ADC_3);
-impl_pin_ext!(::PIO0_24);
-impl_pin_ext!(::PIO0_25);
-impl_pin_ext!(::PIO0_26);
-impl_pin_ext!(::PIO0_27);
-impl_pin_ext!(::PIO0_28);
-
-
 /// Implemented for types that represent movable functions
 ///
 /// This trait is an internal implementation detail and should neither be
@@ -136,7 +83,7 @@ impl_pin_ext!(::PIO0_28);
 /// trait won't be considered breaking changes.
 pub trait MovableFunction {
     /// Internal method to assign a pin to a movable function.
-    fn assign_pin<P: Pin>(swm: &lpc82x::SWM);
+    fn assign_pin<P: PinName>(swm: &lpc82x::SWM);
 }
 
 macro_rules! impl_movable_function {
@@ -151,9 +98,9 @@ macro_rules! impl_movable_function {
         pub struct $movable_function;
 
         impl MovableFunction for $movable_function {
-            fn assign_pin<P: Pin>(swm: &lpc82x::SWM) {
+            fn assign_pin<P: PinName>(swm: &lpc82x::SWM) {
                 swm.$register.modify(|_, w|
-                    unsafe { w.$field().bits(P::id())
+                    unsafe { w.$field().bits(P::ID)
                 })
             }
         }

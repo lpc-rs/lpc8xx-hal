@@ -125,11 +125,9 @@
 //! The following is an example of a simple application that blinks an LED.
 //!
 //! ``` no_run
-//! use lpc82x_hal::{
-//!     PIO0_3,
-//!     Peripherals,
-//! };
+//! use lpc82x_hal::Peripherals;
 //! use lpc82x_hal::clock::Ticks;
+//! use lpc82x_hal::gpio::PIO0_3;
 //! use lpc82x_hal::sleep::{
 //!     self,
 //!     Sleep,
@@ -157,8 +155,10 @@
 //!     peripherals.syscon.ircout,
 //! );
 //!
+//! let mut pio0_3 = gpio.pins().pio0_3;
+//!
 //! // Set pin direction to output, so we can use it to blink an LED.
-//! gpio.set_pin_to_output::<PIO0_3>(&mut swm);
+//! pio0_3.set_pin_to_output(&mut swm);
 //!
 //! // Let's already initialize the durations that we're going to sleep for
 //! // between changing the LED state. We do this by specifying the number of
@@ -176,9 +176,9 @@
 //!
 //! // Blink the LED
 //! loop {
-//!     gpio.set_high::<PIO0_3>();
+//!     pio0_3.set_high();
 //!     sleep.sleep(high_time);
-//!     gpio.set_low::<PIO0_3>();
+//!     pio0_3.set_low();
 //!     sleep.sleep(low_time);
 //! }
 //! ```
@@ -245,7 +245,6 @@ pub mod prelude {
     pub use clock::Enabled as _lpc82x_hal_clock_Enabled;
     pub use clock::Frequency as _lpc82x_hal_clock_Frequency;
     pub use sleep::Sleep as _lpc82x_hal_sleep_Sleep;
-    pub use swm::PinExt as _lpc82x_hal_swm_PinExt;
     pub use usart::Write as _lpc82x_hal_usart_Write;
     pub use usart::blocking::Write as _lpc82x_hal_usart_blocking_Write;
 }
@@ -572,91 +571,6 @@ impl<'system> Peripherals<'system> {
 }
 
 
-/// Represents a pin
-///
-/// This trait is implemented by all types that represent a pin. HAL users
-/// shouldn't need to implement this trait themselves.
-///
-/// It also should not be necessary for HAL users to use the methods of this
-/// trait directly, unless compensating for missing pieces of HAL functionality.
-/// Ideally, there should be higher-level peripheral methods that take pins as
-/// parameters and use the methods of this trait to take care of the low-level
-/// details.
-pub trait Pin {
-    /// Returns a number that identifies the pin
-    ///
-    /// This is `0` for [`PIO0_0`], `1` for [`PIO0_1`] and so forth.
-    ///
-    /// [`PIO0_0`]: struct.PIO0_0.html
-    /// [`PIO0_1`]: struct.PIO0_1.html
-    fn id() -> u8;
-
-    /// Returns the pin's mask
-    ///
-    /// This is `0x00000001` for [`PIO0_0`], `0x00000002` for [`PIO0_1`] and so
-    /// forth.
-    ///
-    /// [`PIO0_0`]: struct.PIO0_0.html
-    /// [`PIO0_1`]: struct.PIO0_1.html
-    fn mask() -> u32;
-}
-
-macro_rules! impl_pin {
-    ($pin:ident, $id:expr) => {
-        /// Represents the pin this struct is named after
-        ///
-        /// # Limitations
-        ///
-        /// Currently, nothing prevents users of this HAL from creating any
-        /// number of instances of this struct and using them for all kinds of
-        /// purposes. Until this shortcoming is rectified, it is your own
-        /// responsibility to make sure you are using the pin correctly.
-        #[allow(non_camel_case_types)]
-        pub struct $pin;
-
-        impl Pin for $pin {
-            fn id() -> u8 {
-                $id
-            }
-
-            fn mask() -> u32 {
-                0x1 << $id
-            }
-        }
-    }
-}
-
-impl_pin!(PIO0_0 , 0x00);
-impl_pin!(PIO0_1 , 0x01);
-impl_pin!(PIO0_2 , 0x02);
-impl_pin!(PIO0_3 , 0x03);
-impl_pin!(PIO0_4 , 0x04);
-impl_pin!(PIO0_5 , 0x05);
-impl_pin!(PIO0_6 , 0x06);
-impl_pin!(PIO0_7 , 0x07);
-impl_pin!(PIO0_8 , 0x08);
-impl_pin!(PIO0_9 , 0x09);
-impl_pin!(PIO0_10, 0x0a);
-impl_pin!(PIO0_11, 0x0b);
-impl_pin!(PIO0_12, 0x0c);
-impl_pin!(PIO0_13, 0x0d);
-impl_pin!(PIO0_14, 0x0e);
-impl_pin!(PIO0_15, 0x0f);
-impl_pin!(PIO0_16, 0x10);
-impl_pin!(PIO0_17, 0x11);
-impl_pin!(PIO0_18, 0x12);
-impl_pin!(PIO0_19, 0x13);
-impl_pin!(PIO0_20, 0x14);
-impl_pin!(PIO0_21, 0x15);
-impl_pin!(PIO0_22, 0x16);
-impl_pin!(PIO0_23, 0x17);
-impl_pin!(PIO0_24, 0x18);
-impl_pin!(PIO0_25, 0x19);
-impl_pin!(PIO0_26, 0x1a);
-impl_pin!(PIO0_27, 0x1b);
-impl_pin!(PIO0_28, 0x1c);
-
-
 /// Contains types that mark the state of peripheral initialization
 pub mod init_state {
     /// Implemented by types that indicate peripheral initialization state
@@ -666,13 +580,13 @@ pub mod init_state {
     /// implement this trait, nor use it directly.
     pub trait InitState {}
 
-    /// Marks a peripherals initialization state as being unknown
+    /// Marks a peripheral's initialization state as being unknown
     ///
     /// This is usually the initial state after system initialization.
     pub struct Unknown;
     impl InitState for Unknown {}
 
-    /// Marks a peripherals as being initialized
+    /// Marks a peripheral as being initialized
     pub struct Initialized;
     impl InitState for Initialized {}
 }
