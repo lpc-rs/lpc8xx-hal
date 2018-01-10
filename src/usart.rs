@@ -18,10 +18,7 @@ use init_state::{
     self,
     InitState,
 };
-use swm::{
-    self,
-    SWM,
-};
+use swm;
 use syscon::{
     self,
     UARTFRG,
@@ -91,7 +88,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     pub fn init<Rx: PinName, Tx: PinName>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Api,
-        swm      : &mut SWM,
+        swm      : &mut swm::Api,
     )
         -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !>
     {

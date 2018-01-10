@@ -20,14 +20,29 @@ use syscon;
 /// [`lpc82x::SWM`] directly, unless you know what you're doing.
 ///
 /// [`lpc82x::SWM`]: ../../lpc82x/struct.SWM.html
-pub struct SWM<'swm, State: InitState = init_state::Initialized> {
+pub struct SWM<'swm> {
+    /// Main SWM API
+    pub api: Api<'swm, init_state::Unknown>,
+}
+
+impl<'swm> SWM<'swm> {
+    pub(crate) fn new(swm: &'swm lpc82x::SWM) -> Self {
+        SWM {
+            api: Api::new(swm),
+        }
+    }
+}
+
+
+/// Main API of the SWM peripheral
+pub struct Api<'swm, State: InitState = init_state::Initialized> {
     swm   : &'swm lpc82x::SWM,
     _state: State,
 }
 
-impl<'swm> SWM<'swm, init_state::Unknown> {
+impl<'swm> Api<'swm, init_state::Unknown> {
     pub(crate) fn new(swm: &'swm lpc82x::SWM) -> Self {
-        SWM {
+        Api {
             swm   : swm,
             _state: init_state::Unknown,
         }
@@ -35,18 +50,18 @@ impl<'swm> SWM<'swm, init_state::Unknown> {
 
     /// Initialize the switch matrix
     pub fn init(mut self, syscon: &mut syscon::Api)
-        -> SWM<'swm, init_state::Initialized>
+        -> Api<'swm, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.swm);
 
-        SWM {
+        Api {
             swm   : self.swm,
             _state: init_state::Initialized,
         }
     }
 }
 
-impl<'swm> SWM<'swm> {
+impl<'swm> Api<'swm> {
     /// Assigns a movable function to a pin
     ///
     /// # Limitations

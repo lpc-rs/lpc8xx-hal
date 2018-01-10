@@ -8,7 +8,6 @@ use lpc82x;
 use ::{
     swm,
     syscon,
-    SWM,
 };
 use init_state::{
     self,
@@ -86,7 +85,7 @@ pub trait PinName {
     const MASK: u32;
 
     /// Disables all fixed functions for the given pin
-    fn disable_fixed_functions(swm: &mut SWM)
+    fn disable_fixed_functions(swm: &mut swm::Api)
         where Self: Sized;
 }
 
@@ -117,7 +116,7 @@ macro_rules! pins {
                 const ID  : u8  = $id;
                 const MASK: u32 = 0x1 << $id;
 
-                fn disable_fixed_functions(_swm: &mut SWM) {
+                fn disable_fixed_functions(_swm: &mut swm::Api) {
                     $(_swm.disable_fixed_function::<swm::$fixed_function>();)*
                 }
             }
@@ -169,7 +168,7 @@ impl<'gpio, T> Pin<'gpio, T> where T: PinName {
     ///
     /// Disables the fixed function of the given pin (thus making it available
     /// for GPIO) and sets the GPIO direction to output.
-    pub fn set_pin_to_output(&mut self, swm: &mut SWM) {
+    pub fn set_pin_to_output(&mut self, swm: &mut swm::Api) {
         T::disable_fixed_functions(swm);
 
         self.gpio.gpio.dirset0.write(|w|

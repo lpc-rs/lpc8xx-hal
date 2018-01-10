@@ -144,7 +144,7 @@
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing it will actually lead to compile-time errors.
 //! let mut gpio = peripherals.gpio.init(&mut syscon);
-//! let mut swm  = peripherals.swm.init(&mut syscon);
+//! let mut swm  = peripherals.swm.api.init(&mut syscon);
 //! let mut wkt  = peripherals.wkt.init(&mut syscon);
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
@@ -497,7 +497,7 @@ pub struct Peripherals<'system> {
     pub pmu: PMU<'system>,
 
     /// Switch matrix (SWM)
-    pub swm: SWM<'system, init_state::Unknown>,
+    pub swm: SWM<'system>,
 
     /// System configuration (SYSCON)
     pub syscon: SYSCON<'system>,
