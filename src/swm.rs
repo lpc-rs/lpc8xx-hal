@@ -195,7 +195,7 @@ pub trait FixedFunction {
 }
 
 macro_rules! fixed_functions {
-    ($($fixed_function:ident, $field:ident;)*) => {
+    ($($type:ident, $field:ident;)*) => {
         $(
             /// Represents a fixed function
             ///
@@ -205,9 +205,9 @@ macro_rules! fixed_functions {
             /// [`SWM::enable_fixed_function`]: struct.SWM.html#method.enable_fixed_function
             /// [`SWM::disable_fixed_function`]: struct.SWM.html#method.disable_fixed_function
             #[allow(non_camel_case_types)]
-            pub struct $fixed_function;
+            pub struct $type;
 
-            impl FixedFunction for $fixed_function {
+            impl FixedFunction for $type {
                 fn enable(w: &mut pinenable0::W) -> &mut pinenable0::W {
                     w.$field().clear_bit()
                 }
