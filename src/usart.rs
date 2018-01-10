@@ -67,9 +67,9 @@ pub struct USART<
     _state: State,
 }
 
-impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
+impl<'usart, 'swm, UsartX> USART<'usart, UsartX, init_state::Unknown>
     where
-        UsartX            : Peripheral,
+        UsartX            : Peripheral<'swm>,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     pub(crate) fn new(usart: &'usart UsartX) -> Self {
@@ -166,7 +166,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
 
 impl<'usart, UsartX> USART<'usart, UsartX>
     where
-        UsartX            : Peripheral,
+        UsartX            : for<'a> Peripheral<'a>,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     /// Enables the USART interrupts
@@ -209,7 +209,7 @@ impl<'usart, UsartX> USART<'usart, UsartX>
 
 impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
     where
-        UsartX            : Peripheral,
+        UsartX            : for<'a> Peripheral<'a>,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     type Error = Error;
@@ -254,7 +254,7 @@ impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
 
 impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
     where
-        UsartX            : Peripheral,
+        UsartX            : for<'a> Peripheral<'a>,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     type Error = !;
@@ -282,7 +282,7 @@ impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
 
 impl<'usart, UsartX> blocking::Write<u8> for USART<'usart, UsartX>
     where
-        UsartX            : Peripheral,
+        UsartX            : for<'a> Peripheral<'a>,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     type Error = !;
@@ -304,7 +304,7 @@ impl<'usart, UsartX> blocking::Write<u8> for USART<'usart, UsartX>
 /// the other traits required are implemented for `&Self`. This should be
 /// resolved once we pick up some changes to upstream dependencies that are
 /// currently coming down the pipe.
-pub trait Peripheral:
+pub trait Peripheral<'swm>:
     Deref<Target = lpc82x::usart0::RegisterBlock>
     where
         for<'a> &'a Self: syscon::ClockControl,
@@ -320,25 +320,25 @@ pub trait Peripheral:
     type Tx: swm::MovableFunction;
 }
 
-impl Peripheral for lpc82x::USART0 {
+impl<'swm> Peripheral<'swm> for lpc82x::USART0 {
     const INTERRUPT: Interrupt = Interrupt::UART0;
 
-    type Rx = swm::U0_RXD;
-    type Tx = swm::U0_TXD;
+    type Rx = swm::U0_RXD<'swm>;
+    type Tx = swm::U0_TXD<'swm>;
 }
 
-impl Peripheral for lpc82x::USART1 {
+impl<'swm> Peripheral<'swm> for lpc82x::USART1 {
     const INTERRUPT: Interrupt = Interrupt::UART1;
 
-    type Rx = swm::U1_RXD;
-    type Tx = swm::U1_TXD;
+    type Rx = swm::U1_RXD<'swm>;
+    type Tx = swm::U1_TXD<'swm>;
 }
 
-impl Peripheral for lpc82x::USART2 {
+impl<'swm> Peripheral<'swm> for lpc82x::USART2 {
     const INTERRUPT: Interrupt = Interrupt::UART2;
 
-    type Rx = swm::U2_RXD;
-    type Tx = swm::U2_TXD;
+    type Rx = swm::U2_RXD<'swm>;
+    type Tx = swm::U2_TXD<'swm>;
 }
 
 
