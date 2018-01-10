@@ -26,6 +26,9 @@ pub struct SWM<'swm> {
 
     /// Movable functions
     pub movable_functions: MovableFunctions,
+
+    /// Fixed functions
+    pub fixed_functions: FixedFunctions,
 }
 
 impl<'swm> SWM<'swm> {
@@ -33,6 +36,7 @@ impl<'swm> SWM<'swm> {
         SWM {
             api              : Api::new(swm),
             movable_functions: MovableFunctions::new(),
+            fixed_functions  : FixedFunctions::new(),
         }
     }
 }
@@ -196,6 +200,21 @@ pub trait FixedFunction {
 
 macro_rules! fixed_functions {
     ($($type:ident, $field:ident;)*) => {
+        // Provides access to all fixed functions
+        #[allow(missing_docs)]
+        pub struct FixedFunctions {
+            $(pub $field: $type,)*
+        }
+
+        impl FixedFunctions {
+            fn new() -> Self {
+                FixedFunctions {
+                    $($field: $type,)*
+                }
+            }
+        }
+
+
         $(
             /// Represents a fixed function
             ///
