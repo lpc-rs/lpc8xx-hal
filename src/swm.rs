@@ -17,6 +17,7 @@ use lpc82x::swm::{
     PINASSIGN9,
     PINASSIGN10,
     PINASSIGN11,
+    PINENABLE0,
 };
 
 use gpio::PinName;
@@ -41,7 +42,7 @@ pub struct SWM<'swm> {
     pub movable_functions: MovableFunctions<'swm>,
 
     /// Fixed functions
-    pub fixed_functions: FixedFunctions,
+    pub fixed_functions: FixedFunctions<'swm>,
 }
 
 impl<'swm> SWM<'swm> {
@@ -49,7 +50,7 @@ impl<'swm> SWM<'swm> {
         SWM {
             api              : Api::new(swm),
             movable_functions: MovableFunctions::new(swm),
-            fixed_functions  : FixedFunctions::new(),
+            fixed_functions  : FixedFunctions::new(swm),
         }
     }
 }
@@ -210,14 +211,14 @@ macro_rules! fixed_functions {
     ($($type:ident, $field:ident;)*) => {
         // Provides access to all fixed functions
         #[allow(missing_docs)]
-        pub struct FixedFunctions {
-            $(pub $field: $type,)*
+        pub struct FixedFunctions<'swm> {
+            $(pub $field: $type<'swm>,)*
         }
 
-        impl FixedFunctions {
-            fn new() -> Self {
+        impl<'swm> FixedFunctions<'swm> {
+            fn new(swm: &'swm lpc82x::SWM) -> Self {
                 FixedFunctions {
-                    $($field: $type,)*
+                    $($field: $type(&swm.pinenable0),)*
                 }
             }
         }
@@ -226,9 +227,9 @@ macro_rules! fixed_functions {
         $(
             /// Represents a fixed function
             #[allow(non_camel_case_types)]
-            pub struct $type;
+            pub struct $type<'swm>(&'swm PINENABLE0);
 
-            impl FixedFunction for $type {
+            impl<'swm> FixedFunction for $type<'swm> {
                 fn enable(&mut self, swm: &mut Api) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
                 }
