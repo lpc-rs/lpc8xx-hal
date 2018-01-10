@@ -74,7 +74,7 @@ impl<'swm> Api<'swm> {
     /// currently used for something else. The HAL user needs to make sure that
     /// this assignment doesn't conflict with any other uses of the pin.
     pub fn assign_pin<F: MovableFunction, P: PinName>(&mut self) {
-        F::assign_pin::<P>(&self.swm);
+        F::assign::<P>(&self.swm);
     }
 
     /// Enables a fixed function
@@ -102,7 +102,7 @@ impl<'swm> Api<'swm> {
 /// trait won't be considered breaking changes.
 pub trait MovableFunction {
     /// Internal method to assign a pin to a movable function.
-    fn assign_pin<P: PinName>(swm: &lpc82x::SWM);
+    fn assign<P: PinName>(swm: &lpc82x::SWM);
 }
 
 macro_rules! movable_functions {
@@ -133,7 +133,7 @@ macro_rules! movable_functions {
             pub struct $type;
 
             impl MovableFunction for $type {
-                fn assign_pin<P: PinName>(swm: &lpc82x::SWM) {
+                fn assign<P: PinName>(swm: &lpc82x::SWM) {
                     swm.$register.modify(|_, w|
                         unsafe { w.$reg_field().bits(P::ID)
                     })
