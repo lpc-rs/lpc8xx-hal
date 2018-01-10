@@ -86,75 +86,79 @@ pub trait MovableFunction {
     fn assign_pin<P: PinName>(swm: &lpc82x::SWM);
 }
 
-macro_rules! impl_movable_function {
-    ($movable_function:ident, $register:ident, $field:ident) => {
-        /// Represents a movable function
-        ///
-        /// Can be used with [`SWM::assign_pin`] to assign this movable function
-        /// to a pin.
-        ///
-        /// [`SWM::assign_pin`]: struct.SWM.html#method.assign_pin
-        #[allow(non_camel_case_types)]
-        pub struct $movable_function;
+macro_rules! movable_functions {
+    ($($movable_function:ident, $register:ident, $field:ident;)*) => {
+        $(
+            /// Represents a movable function
+            ///
+            /// Can be used with [`SWM::assign_pin`] to assign this movable
+            /// function to a pin.
+            ///
+            /// [`SWM::assign_pin`]: struct.SWM.html#method.assign_pin
+            #[allow(non_camel_case_types)]
+            pub struct $movable_function;
 
-        impl MovableFunction for $movable_function {
-            fn assign_pin<P: PinName>(swm: &lpc82x::SWM) {
-                swm.$register.modify(|_, w|
-                    unsafe { w.$field().bits(P::ID)
-                })
+            impl MovableFunction for $movable_function {
+                fn assign_pin<P: PinName>(swm: &lpc82x::SWM) {
+                    swm.$register.modify(|_, w|
+                        unsafe { w.$field().bits(P::ID)
+                    })
+                }
             }
-        }
+        )*
     }
 }
 
-impl_movable_function!(U0_TXD       , pinassign0 , u0_txd_o       );
-impl_movable_function!(U0_RXD       , pinassign0 , u0_rxd_i       );
-impl_movable_function!(U0_RTS       , pinassign0 , u0_rts_o       );
-impl_movable_function!(U0_CTS       , pinassign0 , u0_cts_i       );
-impl_movable_function!(U0_SCLK      , pinassign1 , u0_sclk_io     );
-impl_movable_function!(U1_TXD       , pinassign1 , u1_txd_o       );
-impl_movable_function!(U1_RXD       , pinassign1 , u1_rxd_i       );
-impl_movable_function!(U1_RTS       , pinassign1 , u1_rts_o       );
-impl_movable_function!(U1_CTS       , pinassign2 , u1_cts_i       );
-impl_movable_function!(U1_SCLK      , pinassign2 , u1_sclk_io     );
-impl_movable_function!(U2_TXD       , pinassign2 , u2_txd_o       );
-impl_movable_function!(U2_RXD       , pinassign2 , u2_rxd_i       );
-impl_movable_function!(U2_RTS       , pinassign3 , u2_rts_o       );
-impl_movable_function!(U2_CTS       , pinassign3 , u2_cts_i       );
-impl_movable_function!(U2_SCLK      , pinassign3 , u2_sclk_io     );
-impl_movable_function!(SPI0_SCK     , pinassign3 , spi0_sck_io    );
-impl_movable_function!(SPI0_MOSI    , pinassign4 , spi0_mosi_io   );
-impl_movable_function!(SPI0_MISO    , pinassign4 , spi0_miso_io   );
-impl_movable_function!(SPI0_SSEL0   , pinassign4 , spi0_ssel0_io  );
-impl_movable_function!(SPI0_SSEL1   , pinassign4 , spi0_ssel1_io  );
-impl_movable_function!(SPI0_SSEL2   , pinassign5 , spi0_ssel2_io  );
-impl_movable_function!(SPI0_SSEL3   , pinassign5 , spi0_ssel3_io  );
-impl_movable_function!(SPI1_SCK     , pinassign5 , spi1_sck_io    );
-impl_movable_function!(SPI1_MOSI    , pinassign5 , spi1_mosi_io   );
-impl_movable_function!(SPI1_MISO    , pinassign6 , spi1_miso_io   );
-impl_movable_function!(SPI1_SSEL0   , pinassign6 , spi1_ssel0_io  );
-impl_movable_function!(SPI1_SSEL1   , pinassign6 , spi1_ssel1_io  );
-impl_movable_function!(SCT_PIN0     , pinassign6 , sct_in0_i      );
-impl_movable_function!(SCT_PIN1     , pinassign7 , sct_in1_i      );
-impl_movable_function!(SCT_PIN2     , pinassign7 , sct_in2_i      );
-impl_movable_function!(SCT_PIN3     , pinassign7 , sct_in3_i      );
-impl_movable_function!(SCT_OUT0     , pinassign7 , sct_out0_o     );
-impl_movable_function!(SCT_OUT1     , pinassign8 , sct_out1_o     );
-impl_movable_function!(SCT_OUT2     , pinassign8 , sct_out2_o     );
-impl_movable_function!(SCT_OUT3     , pinassign8 , sct_out3_o     );
-impl_movable_function!(SCT_OUT4     , pinassign8 , sct_out4_o     );
-impl_movable_function!(SCT_OUT5     , pinassign9 , sct_out5_o     );
-impl_movable_function!(I2C1_SDA     , pinassign9 , i2c1_sda_io    );
-impl_movable_function!(I2C1_SCL     , pinassign9 , i2c1_scl_io    );
-impl_movable_function!(I2C2_SDA     , pinassign9 , i2c2_sda_io    );
-impl_movable_function!(I2C2_SCL     , pinassign10, i2c2_scl_io    );
-impl_movable_function!(I2C3_SDA     , pinassign10, i2c3_sda_io    );
-impl_movable_function!(I2C3_SCL     , pinassign10, i2c3_scl_io    );
-impl_movable_function!(ADC_PINTRIG0 , pinassign10, adc_pintrig0_i );
-impl_movable_function!(ADC_PINTRIG1 , pinassign11, adc_pintrig1_i );
-impl_movable_function!(ACMP_O       , pinassign11, acmp_o_o       );
-impl_movable_function!(CLKOUT       , pinassign11, clkout_o       );
-impl_movable_function!(GPIO_INT_BMAT, pinassign11, gpio_int_bmat_o);
+movable_functions!(
+    U0_TXD       , pinassign0 , u0_txd_o;
+    U0_RXD       , pinassign0 , u0_rxd_i;
+    U0_RTS       , pinassign0 , u0_rts_o;
+    U0_CTS       , pinassign0 , u0_cts_i;
+    U0_SCLK      , pinassign1 , u0_sclk_io;
+    U1_TXD       , pinassign1 , u1_txd_o;
+    U1_RXD       , pinassign1 , u1_rxd_i;
+    U1_RTS       , pinassign1 , u1_rts_o;
+    U1_CTS       , pinassign2 , u1_cts_i;
+    U1_SCLK      , pinassign2 , u1_sclk_io;
+    U2_TXD       , pinassign2 , u2_txd_o;
+    U2_RXD       , pinassign2 , u2_rxd_i;
+    U2_RTS       , pinassign3 , u2_rts_o;
+    U2_CTS       , pinassign3 , u2_cts_i;
+    U2_SCLK      , pinassign3 , u2_sclk_io;
+    SPI0_SCK     , pinassign3 , spi0_sck_io;
+    SPI0_MOSI    , pinassign4 , spi0_mosi_io;
+    SPI0_MISO    , pinassign4 , spi0_miso_io;
+    SPI0_SSEL0   , pinassign4 , spi0_ssel0_io;
+    SPI0_SSEL1   , pinassign4 , spi0_ssel1_io;
+    SPI0_SSEL2   , pinassign5 , spi0_ssel2_io;
+    SPI0_SSEL3   , pinassign5 , spi0_ssel3_io;
+    SPI1_SCK     , pinassign5 , spi1_sck_io;
+    SPI1_MOSI    , pinassign5 , spi1_mosi_io;
+    SPI1_MISO    , pinassign6 , spi1_miso_io;
+    SPI1_SSEL0   , pinassign6 , spi1_ssel0_io;
+    SPI1_SSEL1   , pinassign6 , spi1_ssel1_io;
+    SCT_PIN0     , pinassign6 , sct_in0_i;
+    SCT_PIN1     , pinassign7 , sct_in1_i;
+    SCT_PIN2     , pinassign7 , sct_in2_i;
+    SCT_PIN3     , pinassign7 , sct_in3_i;
+    SCT_OUT0     , pinassign7 , sct_out0_o;
+    SCT_OUT1     , pinassign8 , sct_out1_o;
+    SCT_OUT2     , pinassign8 , sct_out2_o;
+    SCT_OUT3     , pinassign8 , sct_out3_o;
+    SCT_OUT4     , pinassign8 , sct_out4_o;
+    SCT_OUT5     , pinassign9 , sct_out5_o;
+    I2C1_SDA     , pinassign9 , i2c1_sda_io;
+    I2C1_SCL     , pinassign9 , i2c1_scl_io;
+    I2C2_SDA     , pinassign9 , i2c2_sda_io;
+    I2C2_SCL     , pinassign10, i2c2_scl_io;
+    I2C3_SDA     , pinassign10, i2c3_sda_io;
+    I2C3_SCL     , pinassign10, i2c3_scl_io;
+    ADC_PINTRIG0 , pinassign10, adc_pintrig0_i;
+    ADC_PINTRIG1 , pinassign11, adc_pintrig1_i;
+    ACMP_O       , pinassign11, acmp_o_o;
+    CLKOUT       , pinassign11, clkout_o;
+    GPIO_INT_BMAT, pinassign11, gpio_int_bmat_o;
+);
 
 
 /// Implemented for types that represent movable functions
