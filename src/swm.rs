@@ -194,52 +194,56 @@ pub trait FixedFunction {
     fn disable(w: &mut pinenable0::W) -> &mut pinenable0::W;
 }
 
-macro_rules! impl_fixed_function {
-    ($fixed_function:ident, $field:ident) => {
-        /// Represents a fixed function
-        ///
-        /// Can be used with [`SWM::enable_fixed_function`] and
-        /// [`SWM::disable_fixed_function`].
-        ///
-        /// [`SWM::enable_fixed_function`]: struct.SWM.html#method.enable_fixed_function
-        /// [`SWM::disable_fixed_function`]: struct.SWM.html#method.disable_fixed_function
-        #[allow(non_camel_case_types)]
-        pub struct $fixed_function;
+macro_rules! fixed_functions {
+    ($($fixed_function:ident, $field:ident;)*) => {
+        $(
+            /// Represents a fixed function
+            ///
+            /// Can be used with [`SWM::enable_fixed_function`] and
+            /// [`SWM::disable_fixed_function`].
+            ///
+            /// [`SWM::enable_fixed_function`]: struct.SWM.html#method.enable_fixed_function
+            /// [`SWM::disable_fixed_function`]: struct.SWM.html#method.disable_fixed_function
+            #[allow(non_camel_case_types)]
+            pub struct $fixed_function;
 
-        impl FixedFunction for $fixed_function {
-            fn enable(w: &mut pinenable0::W) -> &mut pinenable0::W {
-                w.$field().clear_bit()
-            }
+            impl FixedFunction for $fixed_function {
+                fn enable(w: &mut pinenable0::W) -> &mut pinenable0::W {
+                    w.$field().clear_bit()
+                }
 
-            fn disable(w: &mut pinenable0::W) -> &mut pinenable0::W {
-                w.$field().set_bit()
+                fn disable(w: &mut pinenable0::W) -> &mut pinenable0::W {
+                    w.$field().set_bit()
+                }
             }
-        }
+        )*
     }
 }
 
-impl_fixed_function!(ACMP_I1 , acmp_i1 );
-impl_fixed_function!(ACMP_I2 , acmp_i2 );
-impl_fixed_function!(ACMP_I3 , acmp_i3 );
-impl_fixed_function!(ACMP_I4 , acmp_i4 );
-impl_fixed_function!(SWCLK   , swclk   );
-impl_fixed_function!(SWDIO   , swdio   );
-impl_fixed_function!(XTALIN  , xtalin  );
-impl_fixed_function!(XTALOUT , xtalout );
-impl_fixed_function!(RESETN  , resetn  );
-impl_fixed_function!(CLKIN   , clkin   );
-impl_fixed_function!(VDDCMP  , vddcmp  );
-impl_fixed_function!(I2C0_SDA, i2c0_sda);
-impl_fixed_function!(I2C0_SCL, i2c0_scl);
-impl_fixed_function!(ADC_0   , adc_0   );
-impl_fixed_function!(ADC_1   , adc_1   );
-impl_fixed_function!(ADC_2   , adc_2   );
-impl_fixed_function!(ADC_3   , adc_3   );
-impl_fixed_function!(ADC_4   , adc_4   );
-impl_fixed_function!(ADC_5   , adc_5   );
-impl_fixed_function!(ADC_6   , adc_6   );
-impl_fixed_function!(ADC_7   , adc_7   );
-impl_fixed_function!(ADC_8   , adc_8   );
-impl_fixed_function!(ADC_9   , adc_9   );
-impl_fixed_function!(ADC_10  , adc_10  );
-impl_fixed_function!(ADC_11  , adc_11  );
+fixed_functions!(
+    ACMP_I1 , acmp_i1;
+    ACMP_I2 , acmp_i2;
+    ACMP_I3 , acmp_i3;
+    ACMP_I4 , acmp_i4;
+    SWCLK   , swclk;
+    SWDIO   , swdio;
+    XTALIN  , xtalin;
+    XTALOUT , xtalout;
+    RESETN  , resetn;
+    CLKIN   , clkin;
+    VDDCMP  , vddcmp;
+    I2C0_SDA, i2c0_sda;
+    I2C0_SCL, i2c0_scl;
+    ADC_0   , adc_0;
+    ADC_1   , adc_1;
+    ADC_2   , adc_2;
+    ADC_3   , adc_3;
+    ADC_4   , adc_4;
+    ADC_5   , adc_5;
+    ADC_6   , adc_6;
+    ADC_7   , adc_7;
+    ADC_8   , adc_8;
+    ADC_9   , adc_9;
+    ADC_10  , adc_10;
+    ADC_11  , adc_11;
+);
