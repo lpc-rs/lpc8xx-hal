@@ -82,7 +82,7 @@ pub trait MovableFunction {
 }
 
 macro_rules! movable_functions {
-    ($($field:ident, $type:ident, $register:ident, $reg_field:ident;)*) => {
+    ($($field:ident, $type:ident, $reg_name:ident, $reg_field:ident;)*) => {
         /// Provides access to all movable functions
         #[allow(missing_docs)]
         pub struct MovableFunctions {
@@ -105,7 +105,7 @@ macro_rules! movable_functions {
 
             impl MovableFunction for $type {
                 fn assign<P: PinName>(&mut self, swm: &mut Api) {
-                    swm.swm.$register.modify(|_, w|
+                    swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(P::ID)
                     })
                 }
