@@ -4,7 +4,6 @@
 
 
 use lpc82x;
-use lpc82x::swm::pinenable0;
 
 use gpio::PinName;
 use init_state::{
@@ -66,24 +65,6 @@ impl<'swm> Api<'swm, init_state::Unknown> {
             swm   : self.swm,
             _state: init_state::Initialized,
         }
-    }
-}
-
-impl<'swm> Api<'swm> {
-    /// Enables a fixed function
-    ///
-    /// # Limitations
-    ///
-    /// The fixed function can be enabled on a pin that is currently used for
-    /// something else. The HAL user needs to make sure that this assignment
-    /// doesn't conflict with any other uses of the pin.
-    pub fn enable_fixed_function<F: FixedFunction>(&mut self) {
-        self.swm.pinenable0.modify(|_, w| F::enable(w));
-    }
-
-    /// Disables a fixed function
-    pub fn disable_fixed_function<F: FixedFunction>(&mut self) {
-        self.swm.pinenable0.modify(|_, w| F::disable(w));
     }
 }
 
@@ -185,17 +166,19 @@ movable_functions!(
 );
 
 
-/// Implemented for types that represent movable functions
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any incompatible changes to this
-/// trait won't be considered breaking changes.
+/// Implemented for types that represent fixed functions
 pub trait FixedFunction {
-    /// Internal method to enable a fixed function
-    fn enable(w: &mut pinenable0::W) -> &mut pinenable0::W;
+    /// Enable the fixed function
+    ///
+    /// # Limitations
+    ///
+    /// The fixed function can be enabled on a pin that is currently used for
+    /// something else. The HAL user needs to make sure that this assignment
+    /// doesn't conflict with any other uses of the pin.
+    fn enable(&mut self, swm: &mut Api);
 
-    /// Internal method to disable a fixed function
-    fn disable(w: &mut pinenable0::W) -> &mut pinenable0::W;
+    /// Disable the fixed function
+    fn disable(&mut self, swm: &mut Api);
 }
 
 macro_rules! fixed_functions {
@@ -217,22 +200,16 @@ macro_rules! fixed_functions {
 
         $(
             /// Represents a fixed function
-            ///
-            /// Can be used with [`SWM::enable_fixed_function`] and
-            /// [`SWM::disable_fixed_function`].
-            ///
-            /// [`SWM::enable_fixed_function`]: struct.SWM.html#method.enable_fixed_function
-            /// [`SWM::disable_fixed_function`]: struct.SWM.html#method.disable_fixed_function
             #[allow(non_camel_case_types)]
             pub struct $type;
 
             impl FixedFunction for $type {
-                fn enable(w: &mut pinenable0::W) -> &mut pinenable0::W {
-                    w.$field().clear_bit()
+                fn enable(&mut self, swm: &mut Api) {
+                    swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
                 }
 
-                fn disable(w: &mut pinenable0::W) -> &mut pinenable0::W {
-                    w.$field().set_bit()
+                fn disable(&mut self, swm: &mut Api) {
+                    swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
                 }
             }
         )*
