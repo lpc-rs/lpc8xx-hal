@@ -66,17 +66,6 @@ impl<'swm> Api<'swm, init_state::Unknown> {
 }
 
 impl<'swm> Api<'swm> {
-    /// Assigns a movable function to a pin
-    ///
-    /// # Limitations
-    ///
-    /// This method can be used to assign movable functions to pins that are
-    /// currently used for something else. The HAL user needs to make sure that
-    /// this assignment doesn't conflict with any other uses of the pin.
-    pub fn assign_pin<F: MovableFunction, P: PinName>(&mut self) {
-        F::assign::<P>(&self.swm);
-    }
-
     /// Enables a fixed function
     ///
     /// # Limitations
@@ -96,13 +85,15 @@ impl<'swm> Api<'swm> {
 
 
 /// Implemented for types that represent movable functions
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any incompatible changes to this
-/// trait won't be considered breaking changes.
 pub trait MovableFunction {
-    /// Internal method to assign a pin to a movable function.
-    fn assign<P: PinName>(swm: &lpc82x::SWM);
+    /// Assigns the movable function to a pin
+    ///
+    /// # Limitations
+    ///
+    /// This method can be used to assign the movable function to pins that are
+    /// currently used for something else. The HAL user needs to make sure that
+    /// this assignment doesn't conflict with any other uses of the pin.
+    fn assign<P: PinName>(&mut self, swm: &mut Api);
 }
 
 macro_rules! movable_functions {
@@ -124,17 +115,12 @@ macro_rules! movable_functions {
 
         $(
             /// Represents a movable function
-            ///
-            /// Can be used with [`SWM::assign_pin`] to assign this movable
-            /// function to a pin.
-            ///
-            /// [`SWM::assign_pin`]: struct.SWM.html#method.assign_pin
             #[allow(non_camel_case_types)]
             pub struct $type;
 
             impl MovableFunction for $type {
-                fn assign<P: PinName>(swm: &lpc82x::SWM) {
-                    swm.$register.modify(|_, w|
+                fn assign<P: PinName>(&mut self, swm: &mut Api) {
+                    swm.swm.$register.modify(|_, w|
                         unsafe { w.$reg_field().bits(P::ID)
                     })
                 }

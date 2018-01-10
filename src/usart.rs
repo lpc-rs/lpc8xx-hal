@@ -18,7 +18,10 @@ use init_state::{
     self,
     InitState,
 };
-use swm;
+use swm::{
+    self,
+    MovableFunction,
+};
 use syscon::{
     self,
     UARTFRG,
@@ -88,6 +91,8 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     pub fn init<Rx: PinName, Tx: PinName>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Api,
+        rxd      : &mut UsartX::Rx,
+        txd      : &mut UsartX::Tx,
         swm      : &mut swm::Api,
     )
         -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !>
@@ -95,8 +100,8 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
 
-        swm.assign_pin::<UsartX::Rx, Rx>();
-        swm.assign_pin::<UsartX::Tx, Tx>();
+        rxd.assign::<Rx>(swm);
+        txd.assign::<Tx>(swm);
 
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 
