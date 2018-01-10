@@ -87,7 +87,7 @@ pub trait MovableFunction {
 }
 
 macro_rules! movable_functions {
-    ($($movable_function:ident, $register:ident, $field:ident;)*) => {
+    ($($type:ident, $register:ident, $reg_field:ident;)*) => {
         $(
             /// Represents a movable function
             ///
@@ -96,12 +96,12 @@ macro_rules! movable_functions {
             ///
             /// [`SWM::assign_pin`]: struct.SWM.html#method.assign_pin
             #[allow(non_camel_case_types)]
-            pub struct $movable_function;
+            pub struct $type;
 
-            impl MovableFunction for $movable_function {
+            impl MovableFunction for $type {
                 fn assign_pin<P: PinName>(swm: &lpc82x::SWM) {
                     swm.$register.modify(|_, w|
-                        unsafe { w.$field().bits(P::ID)
+                        unsafe { w.$reg_field().bits(P::ID)
                     })
                 }
             }
