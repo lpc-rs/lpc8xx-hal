@@ -107,7 +107,11 @@ impl<'swm> Api<'swm, init_state::Unknown> {
 }
 
 
-/// Implemented for types that represent movable functions
+/// A movable function
+///
+/// This trait is implemented for all types that represent movable functions.
+/// The user should not need to implement this trait, nor use its methods
+/// directly. Any changes to this trait will not be considered breaking changes.
 pub trait MovableFunction {
     /// Assigns the movable function to a pin
     ///
@@ -237,7 +241,11 @@ movable_functions!(
 );
 
 
-/// Implemented for types that represent fixed functions
+/// A fixed function
+///
+/// This trait is implemented for all types that represent fixed functions. The
+/// user should not need to implement this trait, nor use its methods directly.
+/// Any changes to this trait will not be considered breaking changes.
 pub trait FixedFunction {
     /// The pin that this fixed function can be enabled on
     type Pin: PinName;
