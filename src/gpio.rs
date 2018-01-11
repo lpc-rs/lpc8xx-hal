@@ -105,7 +105,7 @@ macro_rules! pins {
         impl<'gpio> Pins<'gpio> {
             fn new(gpio: &'gpio GPIO<'gpio>) -> Self {
                 Pins {
-                    $($field: Pin { gpio: gpio, _ty: $type(()) },)*
+                    $($field: Pin { gpio: gpio, ty: $type(()) },)*
                 }
             }
         }
@@ -170,7 +170,7 @@ pins!(
 /// A pin that can be used for GPIO, fixed functions, or movable functions
 pub struct Pin<'gpio, T: PinName> {
     gpio: &'gpio GPIO<'gpio>,
-    _ty : T,
+    ty  : T,
 }
 
 impl<'gpio, T> Pin<'gpio, T> where T: PinName {
@@ -184,7 +184,7 @@ impl<'gpio, T> Pin<'gpio, T> where T: PinName {
     pub fn assign_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
         where F: MovableFunction
     {
-        function.assign::<T>(&mut self._ty, swm);
+        function.assign::<T>(&mut self.ty, swm);
     }
 
     /// Unassign a movable function from the pin
@@ -197,7 +197,7 @@ impl<'gpio, T> Pin<'gpio, T> where T: PinName {
     pub fn unassign_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
         where F: MovableFunction
     {
-        function.unassign::<T>(&mut self._ty, swm);
+        function.unassign::<T>(&mut self.ty, swm);
     }
 
     /// Sets pin direction to output
