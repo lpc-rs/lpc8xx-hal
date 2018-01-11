@@ -94,6 +94,16 @@ pub trait MovableFunction {
     /// currently used for something else. The HAL user needs to make sure that
     /// this assignment doesn't conflict with any other uses of the pin.
     fn assign<P: PinName>(&mut self, swm: &mut Api);
+
+    /// Unassign the movable function
+    ///
+    /// # Limitations
+    ///
+    /// This method can be used to unassign a movable function from a pin, while
+    /// that pin is being used by some other parts of the code. The HAL user
+    /// needs to make sure not to unassign any functions that other code relies
+    /// on.
+    fn unassign<P: PinName>(&mut self, swm: &mut Api);
 }
 
 macro_rules! movable_functions {
@@ -134,6 +144,15 @@ macro_rules! movable_functions {
                     self.0.modify(|_, w|
                         unsafe { w.$reg_field().bits(P::ID)
                     })
+                }
+
+                fn unassign<P: PinName>(&mut self, _swm: &mut Api) {
+                    // We're not using the `_swm` argument, but we require it,
+                    // because the SWM needs to be clocked for this to work.
+
+                    self.0.modify(|_, w|
+                        unsafe { w.$reg_field().bits(0xff) }
+                    )
                 }
             }
         )*
