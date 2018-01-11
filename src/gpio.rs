@@ -11,6 +11,7 @@ use init_state::{
 };
 use swm::{
     self,
+    FixedFunction,
     MovableFunction,
 };
 use syscon;
@@ -86,7 +87,7 @@ pub trait PinName {
     const MASK: u32;
 
     /// Disables all fixed functions for the given pin
-    fn disable_fixed_functions(
+    fn disable_fixed_functions(&mut self,
         _swm            : &mut swm::Api,
         _fixed_functions: &mut swm::FixedFunctions,
     )
@@ -120,7 +121,7 @@ macro_rules! pins {
                 const ID  : u8  = $id;
                 const MASK: u32 = 0x1 << $id;
 
-                fn disable_fixed_functions(
+                fn disable_fixed_functions(&mut self,
                     _swm            : &mut swm::Api,
                     _fixed_functions: &mut swm::FixedFunctions,
                 ) {
@@ -174,6 +175,42 @@ pub struct Pin<'gpio, T: PinName> {
 }
 
 impl<'gpio, T> Pin<'gpio, T> where T: PinName {
+    /// Enable the fixed function on this pin
+    ///
+    /// # Limitations
+    ///
+    /// This method can be used to enable a fixed function for a pin that is
+    /// currently used for something else. The HAL user needs to make sure that
+    /// the fixed function doesn't conflict with any other uses of the pin.
+    ///
+    /// This method also doesn't check, whether the fixed function provided
+    /// actually belongs to this pin, so it can be used to enable fixed
+    /// functions of other pins. The user needs to make sure not to do that or,
+    /// at the very least, be intentional about it.
+    pub fn enable_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
+        where F: FixedFunction
+    {
+        function.enable(swm);
+    }
+
+    /// Disable the fixed function on this pin
+    ///
+    /// # Limitations
+    ///
+    /// This method can be used to disable a fixed function while other code
+    /// relies on that fixed function being enabled. The HAL user needs to make
+    /// sure not to use this method in any way that breaks other code.
+    ///
+    /// This method also doesn't check, whether the fixed function provided
+    /// actually belongs to this pin, so it can be used to disable fixed
+    /// functions of other pins. The user needs to make sure not to do that or,
+    /// at the very least, be intentional about it.
+    pub fn disable_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
+        where F: FixedFunction
+    {
+        function.disable(swm);
+    }
+
     /// Assign a movable function to the pin
     ///
     /// # Limitations
@@ -208,7 +245,7 @@ impl<'gpio, T> Pin<'gpio, T> where T: PinName {
         swm            : &mut swm::Api,
         fixed_functions: &mut swm::FixedFunctions,
     ) {
-        T::disable_fixed_functions(swm, fixed_functions);
+        self.ty.disable_fixed_functions(swm, fixed_functions);
 
         self.gpio.gpio.dirset0.write(|w|
             unsafe { w.dirsetp().bits(T::MASK) }
