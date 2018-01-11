@@ -142,8 +142,8 @@ macro_rules! movable_functions {
                     // because the SWM needs to be clocked for this to work.
 
                     self.0.modify(|_, w|
-                        unsafe { w.$reg_field().bits(P::ID)
-                    })
+                        unsafe { w.$reg_field().bits(P::ID) }
+                    )
                 }
 
                 fn unassign<P: PinName>(&mut self, _swm: &mut Api) {
