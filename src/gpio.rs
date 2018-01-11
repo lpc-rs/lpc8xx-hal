@@ -5,14 +5,15 @@
 
 use lpc82x;
 
-use ::{
-    swm,
-    syscon,
-};
 use init_state::{
     self,
     InitState,
 };
+use swm::{
+    self,
+    MovableFunction,
+};
+use syscon;
 
 
 /// Interface to general-purpose I/O (GPIO)
@@ -173,6 +174,20 @@ pub struct Pin<'gpio, T: PinName> {
 }
 
 impl<'gpio, T> Pin<'gpio, T> where T: PinName {
+    /// Assign a movable function to the pin
+    pub fn assign_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
+        where F: MovableFunction
+    {
+        function.assign::<T>(swm);
+    }
+
+    /// Unassign a movable function from the pin
+    pub fn unassign_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
+        where F: MovableFunction
+    {
+        function.unassign::<T>(swm);
+    }
+
     /// Sets pin direction to output
     ///
     /// Disables the fixed function of the given pin (thus making it available

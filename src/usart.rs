@@ -13,15 +13,15 @@ use lpc82x::{
 };
 use nb;
 
-use gpio::PinName;
+use gpio::{
+    Pin,
+    PinName,
+};
 use init_state::{
     self,
     InitState,
 };
-use swm::{
-    self,
-    MovableFunction,
-};
+use swm;
 use syscon::{
     self,
     UARTFRG,
@@ -91,6 +91,8 @@ impl<'usart, 'swm, UsartX> USART<'usart, UsartX, init_state::Unknown>
     pub fn init<Rx: PinName, Tx: PinName>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Api,
+        rx       : &mut Pin<Rx>,
+        tx       : &mut Pin<Tx>,
         rxd      : &mut UsartX::Rx,
         txd      : &mut UsartX::Tx,
         swm      : &mut swm::Api,
@@ -100,8 +102,8 @@ impl<'usart, 'swm, UsartX> USART<'usart, UsartX, init_state::Unknown>
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
 
-        rxd.assign::<Rx>(swm);
-        txd.assign::<Tx>(swm);
+        rx.assign_function(rxd, swm);
+        tx.assign_function(txd, swm);
 
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 
