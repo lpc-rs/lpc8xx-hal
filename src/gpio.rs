@@ -50,7 +50,7 @@ impl<'gpio> GPIO<'gpio, init_state::Unknown> {
 
 impl<'gpio> GPIO<'gpio> {
     /// Provides access to all pins
-    pub fn pins(&self) -> Pins {
+    pub fn pins(&mut self) -> Pins {
         Pins::new(self)
     }
 }
