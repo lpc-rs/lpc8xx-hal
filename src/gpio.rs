@@ -128,7 +128,7 @@ macro_rules! pins {
                     #[allow(unused_imports)]
                     use swm::FixedFunction;
 
-                    $(_fixed_functions.$fixed_function.disable(_swm);)*
+                    $(_fixed_functions.$fixed_function.disable(self, _swm);)*
                 }
             }
         )*
@@ -182,15 +182,10 @@ impl<'gpio, T> Pin<'gpio, T> where T: PinName {
     /// This method can be used to enable a fixed function for a pin that is
     /// currently used for something else. The HAL user needs to make sure that
     /// the fixed function doesn't conflict with any other uses of the pin.
-    ///
-    /// This method also doesn't check, whether the fixed function provided
-    /// actually belongs to this pin, so it can be used to enable fixed
-    /// functions of other pins. The user needs to make sure not to do that or,
-    /// at the very least, be intentional about it.
     pub fn enable_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
-        where F: FixedFunction
+        where F: FixedFunction<Pin=T>
     {
-        function.enable(swm);
+        function.enable(&mut self.ty, swm);
     }
 
     /// Disable the fixed function on this pin
@@ -200,15 +195,10 @@ impl<'gpio, T> Pin<'gpio, T> where T: PinName {
     /// This method can be used to disable a fixed function while other code
     /// relies on that fixed function being enabled. The HAL user needs to make
     /// sure not to use this method in any way that breaks other code.
-    ///
-    /// This method also doesn't check, whether the fixed function provided
-    /// actually belongs to this pin, so it can be used to disable fixed
-    /// functions of other pins. The user needs to make sure not to do that or,
-    /// at the very least, be intentional about it.
     pub fn disable_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
-        where F: FixedFunction
+        where F: FixedFunction<Pin=T>
     {
-        function.disable(swm);
+        function.disable(&mut self.ty, swm);
     }
 
     /// Assign a movable function to the pin

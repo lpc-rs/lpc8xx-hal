@@ -20,7 +20,30 @@ use lpc82x::swm::{
     PINENABLE0,
 };
 
-use gpio::PinName;
+use gpio::{
+    PIO0_0,
+    PIO0_1,
+    PIO0_2,
+    PIO0_3,
+    PIO0_4,
+    PIO0_5,
+    PIO0_6,
+    PIO0_7,
+    PIO0_8,
+    PIO0_9,
+    PIO0_10,
+    PIO0_11,
+    PIO0_13,
+    PIO0_14,
+    PIO0_17,
+    PIO0_18,
+    PIO0_19,
+    PIO0_20,
+    PIO0_21,
+    PIO0_22,
+    PIO0_23,
+    PinName,
+};
 use init_state::{
     self,
     InitState,
@@ -216,21 +239,28 @@ movable_functions!(
 
 /// Implemented for types that represent fixed functions
 pub trait FixedFunction {
+    /// The pin that this fixed function can be enabled on
+    type Pin: PinName;
+
     /// Enable the fixed function
     ///
-    /// # Limitations
+    /// This method is intended for internal use. Please use
+    /// [`Pin::enable_function`] instead.
     ///
-    /// The fixed function can be enabled on a pin that is currently used for
-    /// something else. The HAL user needs to make sure that this assignment
-    /// doesn't conflict with any other uses of the pin.
-    fn enable(&mut self, swm: &mut Api);
+    /// [`Pin::enable_function`]: ../gpio/struct.Pin.html#method.enable_function
+    fn enable(&mut self, pin: &mut Self::Pin, swm: &mut Api);
 
     /// Disable the fixed function
-    fn disable(&mut self, swm: &mut Api);
+    ///
+    /// This method is intended for internal use. Please use
+    /// [`Pin::disable_function`] instead.
+    ///
+    /// [`Pin::disable_function`]: ../gpio/struct.Pin.html#method.disable_function
+    fn disable(&mut self, pin: &mut Self::Pin, swm: &mut Api);
 }
 
 macro_rules! fixed_functions {
-    ($($type:ident, $field:ident;)*) => {
+    ($($type:ident, $field:ident, $pin:ty;)*) => {
         // Provides access to all fixed functions
         #[allow(missing_docs)]
         pub struct FixedFunctions<'swm> {
@@ -252,11 +282,13 @@ macro_rules! fixed_functions {
             pub struct $type<'swm>(&'swm PINENABLE0);
 
             impl<'swm> FixedFunction for $type<'swm> {
-                fn enable(&mut self, swm: &mut Api) {
+                type Pin = $pin;
+
+                fn enable(&mut self, _pin: &mut Self::Pin, swm: &mut Api) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
                 }
 
-                fn disable(&mut self, swm: &mut Api) {
+                fn disable(&mut self, _pin: &mut Self::Pin, swm: &mut Api) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
                 }
             }
@@ -265,29 +297,29 @@ macro_rules! fixed_functions {
 }
 
 fixed_functions!(
-    ACMP_I1 , acmp_i1;
-    ACMP_I2 , acmp_i2;
-    ACMP_I3 , acmp_i3;
-    ACMP_I4 , acmp_i4;
-    SWCLK   , swclk;
-    SWDIO   , swdio;
-    XTALIN  , xtalin;
-    XTALOUT , xtalout;
-    RESETN  , resetn;
-    CLKIN   , clkin;
-    VDDCMP  , vddcmp;
-    I2C0_SDA, i2c0_sda;
-    I2C0_SCL, i2c0_scl;
-    ADC_0   , adc_0;
-    ADC_1   , adc_1;
-    ADC_2   , adc_2;
-    ADC_3   , adc_3;
-    ADC_4   , adc_4;
-    ADC_5   , adc_5;
-    ADC_6   , adc_6;
-    ADC_7   , adc_7;
-    ADC_8   , adc_8;
-    ADC_9   , adc_9;
-    ADC_10  , adc_10;
-    ADC_11  , adc_11;
+    ACMP_I1 , acmp_i1 , PIO0_0;
+    ACMP_I2 , acmp_i2 , PIO0_1;
+    ACMP_I3 , acmp_i3 , PIO0_14;
+    ACMP_I4 , acmp_i4 , PIO0_23;
+    SWCLK   , swclk   , PIO0_3;
+    SWDIO   , swdio   , PIO0_2;
+    XTALIN  , xtalin  , PIO0_8;
+    XTALOUT , xtalout , PIO0_9;
+    RESETN  , resetn  , PIO0_5;
+    CLKIN   , clkin   , PIO0_1;
+    VDDCMP  , vddcmp  , PIO0_6;
+    I2C0_SDA, i2c0_sda, PIO0_11;
+    I2C0_SCL, i2c0_scl, PIO0_10;
+    ADC_0   , adc_0   , PIO0_7;
+    ADC_1   , adc_1   , PIO0_6;
+    ADC_2   , adc_2   , PIO0_14;
+    ADC_3   , adc_3   , PIO0_23;
+    ADC_4   , adc_4   , PIO0_22;
+    ADC_5   , adc_5   , PIO0_21;
+    ADC_6   , adc_6   , PIO0_20;
+    ADC_7   , adc_7   , PIO0_19;
+    ADC_8   , adc_8   , PIO0_18;
+    ADC_9   , adc_9   , PIO0_17;
+    ADC_10  , adc_10  , PIO0_13;
+    ADC_11  , adc_11  , PIO0_4;
 );
