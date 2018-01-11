@@ -88,22 +88,19 @@ impl<'swm> Api<'swm, init_state::Unknown> {
 pub trait MovableFunction {
     /// Assigns the movable function to a pin
     ///
-    /// # Limitations
+    /// This method is intended for internal use. Please use
+    /// [`Pin::assign_function`] instead.
     ///
-    /// This method can be used to assign the movable function to pins that are
-    /// currently used for something else. The HAL user needs to make sure that
-    /// this assignment doesn't conflict with any other uses of the pin.
-    fn assign<P: PinName>(&mut self, swm: &mut Api);
+    /// [`Pin::assign_function`]: ../gpio/struct.Pin.html#method.assign_function
+    fn assign<P: PinName>(&mut self, pin: &mut P, swm: &mut Api);
 
     /// Unassign the movable function
     ///
-    /// # Limitations
+    /// This method is intended for internal use. Please use
+    /// [`Pin::unassign_function`] instead.
     ///
-    /// This method can be used to unassign a movable function from a pin, while
-    /// that pin is being used by some other parts of the code. The HAL user
-    /// needs to make sure not to unassign any functions that other code relies
-    /// on.
-    fn unassign<P: PinName>(&mut self, swm: &mut Api);
+    /// [`Pin::unassign_function`]: ../gpio/struct.Pin.html#method.unassign_function
+    fn unassign<P: PinName>(&mut self, pin: &mut P, swm: &mut Api);
 }
 
 macro_rules! movable_functions {
@@ -137,7 +134,10 @@ macro_rules! movable_functions {
             pub struct $type<'swm>(&'swm $reg_type);
 
             impl<'swm> MovableFunction for $type<'swm> {
-                fn assign<P: PinName>(&mut self, _swm: &mut Api) {
+                fn assign<P: PinName>(&mut self,
+                    _pin: &mut P,
+                    _swm: &mut Api,
+                ) {
                     // We're not using the `_swm` argument, but we require it,
                     // because the SWM needs to be clocked for this to work.
 
@@ -146,7 +146,10 @@ macro_rules! movable_functions {
                     )
                 }
 
-                fn unassign<P: PinName>(&mut self, _swm: &mut Api) {
+                fn unassign<P: PinName>(&mut self,
+                    _pin: &mut P,
+                    _swm: &mut Api,
+                ) {
                     // We're not using the `_swm` argument, but we require it,
                     // because the SWM needs to be clocked for this to work.
 

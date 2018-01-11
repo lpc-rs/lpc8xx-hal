@@ -175,17 +175,29 @@ pub struct Pin<'gpio, T: PinName> {
 
 impl<'gpio, T> Pin<'gpio, T> where T: PinName {
     /// Assign a movable function to the pin
+    ///
+    /// # Limitations
+    ///
+    /// This method can be used to assign a movable function to pins that are
+    /// currently used for something else. The HAL user needs to make sure that
+    /// this assignment doesn't conflict with any other uses of the pin.
     pub fn assign_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
         where F: MovableFunction
     {
-        function.assign::<T>(swm);
+        function.assign::<T>(&mut self._ty, swm);
     }
 
     /// Unassign a movable function from the pin
+    ///
+    /// # Limitations
+    ///
+    /// This method can be used to unassign a movable function from a pin, while
+    /// other parts of the code still rely on that function being assigned. The
+    /// HAL user is responsible for making sure this method is used correctly.
     pub fn unassign_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
         where F: MovableFunction
     {
-        function.unassign::<T>(swm);
+        function.unassign::<T>(&mut self._ty, swm);
     }
 
     /// Sets pin direction to output
