@@ -8,7 +8,6 @@ use lpc82x;
 use ::{
     swm,
     syscon,
-    SWM,
 };
 use init_state::{
     self,
@@ -86,7 +85,10 @@ pub trait PinName {
     const MASK: u32;
 
     /// Disables all fixed functions for the given pin
-    fn disable_fixed_functions(swm: &mut SWM)
+    fn disable_fixed_functions(
+        _swm            : &mut swm::Api,
+        _fixed_functions: &mut swm::FixedFunctions,
+    )
         where Self: Sized;
 }
 
@@ -117,8 +119,14 @@ macro_rules! pins {
                 const ID  : u8  = $id;
                 const MASK: u32 = 0x1 << $id;
 
-                fn disable_fixed_functions(_swm: &mut SWM) {
-                    $(_swm.disable_fixed_function::<swm::$fixed_function>();)*
+                fn disable_fixed_functions(
+                    _swm            : &mut swm::Api,
+                    _fixed_functions: &mut swm::FixedFunctions,
+                ) {
+                    #[allow(unused_imports)]
+                    use swm::FixedFunction;
+
+                    $(_fixed_functions.$fixed_function.disable(_swm);)*
                 }
             }
         )*
@@ -126,30 +134,30 @@ macro_rules! pins {
 }
 
 pins!(
-    pio0_0 , PIO0_0 , 0x00, ACMP_I1;
-    pio0_1 , PIO0_1 , 0x01, ACMP_I2, CLKIN;
-    pio0_2 , PIO0_2 , 0x02, SWDIO;
-    pio0_3 , PIO0_3 , 0x03, SWCLK;
-    pio0_4 , PIO0_4 , 0x04, ADC_11;
-    pio0_5 , PIO0_5 , 0x05, RESETN;
-    pio0_6 , PIO0_6 , 0x06, VDDCMP, ADC_1;
-    pio0_7 , PIO0_7 , 0x07, ADC_0;
-    pio0_8 , PIO0_8 , 0x08, XTALIN;
-    pio0_9 , PIO0_9 , 0x09, XTALOUT;
-    pio0_10, PIO0_10, 0x0a, I2C0_SCL;
-    pio0_11, PIO0_11, 0x0b, I2C0_SDA;
+    pio0_0 , PIO0_0 , 0x00, acmp_i1;
+    pio0_1 , PIO0_1 , 0x01, acmp_i2, clkin;
+    pio0_2 , PIO0_2 , 0x02, swdio;
+    pio0_3 , PIO0_3 , 0x03, swclk;
+    pio0_4 , PIO0_4 , 0x04, adc_11;
+    pio0_5 , PIO0_5 , 0x05, resetn;
+    pio0_6 , PIO0_6 , 0x06, vddcmp, adc_1;
+    pio0_7 , PIO0_7 , 0x07, adc_0;
+    pio0_8 , PIO0_8 , 0x08, xtalin;
+    pio0_9 , PIO0_9 , 0x09, xtalout;
+    pio0_10, PIO0_10, 0x0a, i2c0_scl;
+    pio0_11, PIO0_11, 0x0b, i2c0_sda;
     pio0_12, PIO0_12, 0x0c;
-    pio0_13, PIO0_13, 0x0d, ADC_10;
-    pio0_14, PIO0_14, 0x0e, ACMP_I3, ADC_2;
+    pio0_13, PIO0_13, 0x0d, adc_10;
+    pio0_14, PIO0_14, 0x0e, acmp_i3, adc_2;
     pio0_15, PIO0_15, 0x0f;
     pio0_16, PIO0_16, 0x10;
-    pio0_17, PIO0_17, 0x11, ADC_9;
-    pio0_18, PIO0_18, 0x12, ADC_8;
-    pio0_19, PIO0_19, 0x13, ADC_7;
-    pio0_20, PIO0_20, 0x14, ADC_6;
-    pio0_21, PIO0_21, 0x15, ADC_5;
-    pio0_22, PIO0_22, 0x16, ADC_4;
-    pio0_23, PIO0_23, 0x17, ACMP_I4, ADC_3;
+    pio0_17, PIO0_17, 0x11, adc_9;
+    pio0_18, PIO0_18, 0x12, adc_8;
+    pio0_19, PIO0_19, 0x13, adc_7;
+    pio0_20, PIO0_20, 0x14, adc_6;
+    pio0_21, PIO0_21, 0x15, adc_5;
+    pio0_22, PIO0_22, 0x16, adc_4;
+    pio0_23, PIO0_23, 0x17, acmp_i4, adc_3;
     pio0_24, PIO0_24, 0x18;
     pio0_25, PIO0_25, 0x19;
     pio0_26, PIO0_26, 0x1a;
@@ -169,8 +177,11 @@ impl<'gpio, T> Pin<'gpio, T> where T: PinName {
     ///
     /// Disables the fixed function of the given pin (thus making it available
     /// for GPIO) and sets the GPIO direction to output.
-    pub fn set_pin_to_output(&mut self, swm: &mut SWM) {
-        T::disable_fixed_functions(swm);
+    pub fn set_pin_to_output(&mut self,
+        swm            : &mut swm::Api,
+        fixed_functions: &mut swm::FixedFunctions,
+    ) {
+        T::disable_fixed_functions(swm, fixed_functions);
 
         self.gpio.gpio.dirset0.write(|w|
             unsafe { w.dirsetp().bits(T::MASK) }

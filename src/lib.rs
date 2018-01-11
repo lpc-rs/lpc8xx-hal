@@ -135,7 +135,7 @@
 //!
 //! // Initialize the peripherals. This is unsafe, because we're only allowed to
 //! // create one instance on `Peripherals`.
-//! let peripherals = unsafe { Peripherals::new() };
+//! let mut peripherals = unsafe { Peripherals::new() };
 //!
 //! // Let's save some peripherals in local variables for convenience. This one
 //! // here doesn't require initialization.
@@ -144,7 +144,7 @@
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing it will actually lead to compile-time errors.
 //! let mut gpio = peripherals.gpio.init(&mut syscon);
-//! let mut swm  = peripherals.swm.init(&mut syscon);
+//! let mut swm  = peripherals.swm.api.init(&mut syscon);
 //! let mut wkt  = peripherals.wkt.init(&mut syscon);
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
@@ -158,7 +158,7 @@
 //! let mut pio0_3 = gpio.pins().pio0_3;
 //!
 //! // Set pin direction to output, so we can use it to blink an LED.
-//! pio0_3.set_pin_to_output(&mut swm);
+//! pio0_3.set_pin_to_output(&mut swm, &mut peripherals.swm.fixed_functions);
 //!
 //! // Let's already initialize the durations that we're going to sleep for
 //! // between changing the LED state. We do this by specifying the number of
@@ -497,7 +497,7 @@ pub struct Peripherals<'system> {
     pub pmu: PMU<'system>,
 
     /// Switch matrix (SWM)
-    pub swm: SWM<'system, init_state::Unknown>,
+    pub swm: SWM<'system>,
 
     /// System configuration (SYSCON)
     pub syscon: SYSCON<'system>,
