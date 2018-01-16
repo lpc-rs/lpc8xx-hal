@@ -260,7 +260,11 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
 
         Pin {
             ty   : self.ty,
-            state: pin_state::Gpio(gpio),
+            state: pin_state::Gpio {
+                dirset0: &gpio.gpio.dirset0,
+                set0   : &gpio.gpio.set0,
+                clr0   : &gpio.gpio.clr0,
+            },
         }
     }
 }
@@ -268,21 +272,21 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
 impl<'gpio, T> Pin<T, pin_state::Gpio<'gpio>> where T: PinName {
     /// Sets pin direction to output
     pub fn as_output(&mut self) {
-        self.state.0.gpio.dirset0.write(|w|
+        self.state.dirset0.write(|w|
             unsafe { w.dirsetp().bits(T::MASK) }
         )
     }
 
     /// Set pin output to HIGH
     pub fn set_high(&mut self) {
-        self.state.0.gpio.set0.write(|w|
+        self.state.set0.write(|w|
             unsafe { w.setp().bits(T::MASK) }
         )
     }
 
     /// Set pin output to LOW
     pub fn set_low(&mut self) {
-        self.state.0.gpio.clr0.write(|w|
+        self.state.clr0.write(|w|
             unsafe { w.clrp().bits(T::MASK) }
         );
     }
@@ -291,7 +295,11 @@ impl<'gpio, T> Pin<T, pin_state::Gpio<'gpio>> where T: PinName {
 
 /// Contains types that mark pin states
 pub mod pin_state {
-    use super::GPIO;
+    use lpc82x::gpio_port::{
+        CLR0,
+        DIRSET0,
+        SET0,
+    };
 
 
     /// Implemented by types that indicate pin state
@@ -301,14 +309,22 @@ pub mod pin_state {
     /// use it directly.
     pub trait PinState {}
 
+
     /// Marks a pin's state as being unknown
     ///
     /// As we can't know what happened to the hardware before the HAL was
     /// initializized, this is the initial state of all pins.
     pub struct Unknown;
+
     impl PinState for Unknown {}
 
+
     /// Marks a pin as being assigned to general-purpose I/O
-    pub struct Gpio<'gpio>(pub &'gpio GPIO<'gpio>);
+    pub struct Gpio<'gpio> {
+        pub(crate) dirset0: &'gpio DIRSET0,
+        pub(crate) set0   : &'gpio SET0,
+        pub(crate) clr0   : &'gpio CLR0,
+    }
+
     impl<'gpio> PinState for Gpio<'gpio> {}
 }
