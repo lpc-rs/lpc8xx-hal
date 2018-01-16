@@ -4,21 +4,6 @@
 
 
 use lpc82x;
-use lpc82x::swm::{
-    PINASSIGN0,
-    PINASSIGN1,
-    PINASSIGN2,
-    PINASSIGN3,
-    PINASSIGN4,
-    PINASSIGN5,
-    PINASSIGN6,
-    PINASSIGN7,
-    PINASSIGN8,
-    PINASSIGN9,
-    PINASSIGN10,
-    PINASSIGN11,
-    PINENABLE0,
-};
 
 use gpio::{
     PIO0_0,
@@ -62,18 +47,18 @@ pub struct SWM<'swm> {
     pub api: Api<'swm, init_state::Unknown>,
 
     /// Movable functions
-    pub movable_functions: MovableFunctions<'swm>,
+    pub movable_functions: MovableFunctions,
 
     /// Fixed functions
-    pub fixed_functions: FixedFunctions<'swm>,
+    pub fixed_functions: FixedFunctions,
 }
 
 impl<'swm> SWM<'swm> {
     pub(crate) fn new(swm: &'swm lpc82x::SWM) -> Self {
         SWM {
             api              : Api::new(swm),
-            movable_functions: MovableFunctions::new(swm),
-            fixed_functions  : FixedFunctions::new(swm),
+            movable_functions: MovableFunctions::new(),
+            fixed_functions  : FixedFunctions::new(),
         }
     }
 }
@@ -142,14 +127,14 @@ macro_rules! movable_functions {
     ) => {
         /// Provides access to all movable functions
         #[allow(missing_docs)]
-        pub struct MovableFunctions<'swm> {
-            $(pub $field: $type<'swm>,)*
+        pub struct MovableFunctions {
+            $(pub $field: $type,)*
         }
 
-        impl<'swm> MovableFunctions<'swm> {
-            fn new(swm: &'swm lpc82x::SWM) -> Self {
+        impl MovableFunctions {
+            fn new() -> Self {
                 MovableFunctions {
-                    $($field: $type(&swm.$reg_name),)*
+                    $($field: $type(()),)*
                 }
             }
         }
@@ -158,29 +143,23 @@ macro_rules! movable_functions {
         $(
             /// Represents a movable function
             #[allow(non_camel_case_types)]
-            pub struct $type<'swm>(&'swm $reg_type);
+            pub struct $type(());
 
-            impl<'swm> MovableFunction for $type<'swm> {
+            impl MovableFunction for $type {
                 fn assign<P: PinName>(&mut self,
                     _pin: &mut P,
-                    _swm: &mut Api,
+                    swm : &mut Api,
                 ) {
-                    // We're not using the `_swm` argument, but we require it,
-                    // because the SWM needs to be clocked for this to work.
-
-                    self.0.modify(|_, w|
+                    swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(P::ID) }
                     )
                 }
 
                 fn unassign<P: PinName>(&mut self,
                     _pin: &mut P,
-                    _swm: &mut Api,
+                    swm : &mut Api,
                 ) {
-                    // We're not using the `_swm` argument, but we require it,
-                    // because the SWM needs to be clocked for this to work.
-
-                    self.0.modify(|_, w|
+                    swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(0xff) }
                     )
                 }
@@ -271,14 +250,14 @@ macro_rules! fixed_functions {
     ($($type:ident, $field:ident, $pin:ty;)*) => {
         // Provides access to all fixed functions
         #[allow(missing_docs)]
-        pub struct FixedFunctions<'swm> {
-            $(pub $field: $type<'swm>,)*
+        pub struct FixedFunctions {
+            $(pub $field: $type,)*
         }
 
-        impl<'swm> FixedFunctions<'swm> {
-            fn new(swm: &'swm lpc82x::SWM) -> Self {
+        impl FixedFunctions {
+            fn new() -> Self {
                 FixedFunctions {
-                    $($field: $type(&swm.pinenable0),)*
+                    $($field: $type(()),)*
                 }
             }
         }
@@ -287,9 +266,9 @@ macro_rules! fixed_functions {
         $(
             /// Represents a fixed function
             #[allow(non_camel_case_types)]
-            pub struct $type<'swm>(&'swm PINENABLE0);
+            pub struct $type(());
 
-            impl<'swm> FixedFunction for $type<'swm> {
+            impl FixedFunction for $type {
                 type Pin = $pin;
 
                 fn enable(&mut self, _pin: &mut Self::Pin, swm: &mut Api) {
