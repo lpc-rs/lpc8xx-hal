@@ -156,7 +156,11 @@
 //! );
 //!
 //! let mut pio0_3 = gpio.pins().pio0_3
-//!     .as_gpio_pin(&mut peripherals.swm.fixed_functions, &mut swm);
+//!     .as_gpio_pin(
+//!         &gpio,
+//!         &mut peripherals.swm.fixed_functions,
+//!         &mut swm,
+//!     );
 //!
 //! // Set pin direction to output, so we can use it to blink an LED.
 //! pio0_3.as_output();

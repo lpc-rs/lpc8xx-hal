@@ -55,7 +55,7 @@ impl<'gpio> GPIO<'gpio, init_state::Unknown> {
 impl<'gpio> GPIO<'gpio> {
     /// Provides access to all pins
     pub fn pins(&mut self) -> Pins {
-        Pins::new(self)
+        Pins::new()
     }
 }
 
@@ -101,16 +101,15 @@ macro_rules! pins {
     ($($field:ident, $type:ident, $id:expr $(, $fixed_function:ident)*;)*) => {
         /// Provides access to all pins
         #[allow(missing_docs)]
-        pub struct Pins<'gpio> {
-            $(pub $field: Pin<'gpio, $type, pin_state::Unknown>,)*
+        pub struct Pins {
+            $(pub $field: Pin<$type, pin_state::Unknown>,)*
         }
 
-        impl<'gpio> Pins<'gpio> {
-            fn new(gpio: &'gpio GPIO<'gpio>) -> Self {
+        impl Pins {
+            fn new() -> Self {
                 Pins {
                     $(
                         $field: Pin {
-                            gpio  : gpio,
                             ty    : $type(()),
                             _state: pin_state::Unknown,
                         },
@@ -177,13 +176,12 @@ pins!(
 
 
 /// A pin that can be used for GPIO, fixed functions, or movable functions
-pub struct Pin<'gpio, T: PinName, S: PinState> {
-    gpio  : &'gpio GPIO<'gpio>,
+pub struct Pin<T: PinName, S: PinState> {
     ty    : T,
     _state: S,
 }
 
-impl<'gpio, T> Pin<'gpio, T, pin_state::Unknown> where T: PinName {
+impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// Enable the fixed function on this pin
     ///
     /// # Limitations
@@ -251,43 +249,43 @@ impl<'gpio, T> Pin<'gpio, T, pin_state::Unknown> where T: PinName {
     ///
     /// If any movable functions have been assigned to the pin, please make sure
     /// to disable them manually.
-    pub fn as_gpio_pin(mut self,
+    pub fn as_gpio_pin<'gpio>(mut self,
+        gpio           : &'gpio GPIO<'gpio>,
         fixed_functions: &mut swm::FixedFunctions,
         swm            : &mut swm::Api,
     )
-        -> Pin<'gpio, T, pin_state::Gpio>
+        -> Pin<T, pin_state::Gpio<'gpio>>
     {
         self.ty.disable_fixed_functions(swm, fixed_functions);
 
         Pin {
-            gpio  : self.gpio,
             ty    : self.ty,
-            _state: pin_state::Gpio,
+            _state: pin_state::Gpio(gpio),
         }
     }
 }
 
-impl<'gpio, T> Pin<'gpio, T, pin_state::Gpio> where T: PinName {
+impl<'gpio, T> Pin<T, pin_state::Gpio<'gpio>> where T: PinName {
     /// Sets pin direction to output
     ///
     /// Disables the fixed function of the given pin (thus making it available
     /// for GPIO) and sets the GPIO direction to output.
     pub fn as_output(&mut self) {
-        self.gpio.gpio.dirset0.write(|w|
+        self._state.0.gpio.dirset0.write(|w|
             unsafe { w.dirsetp().bits(T::MASK) }
         )
     }
 
     /// Set pin output to HIGH
     pub fn set_high(&mut self) {
-        self.gpio.gpio.set0.write(|w|
+        self._state.0.gpio.set0.write(|w|
             unsafe { w.setp().bits(T::MASK) }
         )
     }
 
     /// Set pin output to LOW
     pub fn set_low(&mut self) {
-        self.gpio.gpio.clr0.write(|w|
+        self._state.0.gpio.clr0.write(|w|
             unsafe { w.clrp().bits(T::MASK) }
         );
     }
@@ -296,6 +294,9 @@ impl<'gpio, T> Pin<'gpio, T, pin_state::Gpio> where T: PinName {
 
 /// Contains types that mark pin states
 pub mod pin_state {
+    use super::GPIO;
+
+
     /// Implemented by types that indicate pin state
     ///
     /// This type is used as a trait bound for type parameters that indicate a
@@ -311,6 +312,6 @@ pub mod pin_state {
     impl PinState for Unknown {}
 
     /// Marks a pin as being assigned to general-purpose I/O
-    pub struct Gpio;
-    impl PinState for Gpio {}
+    pub struct Gpio<'gpio>(pub &'gpio GPIO<'gpio>);
+    impl<'gpio> PinState for Gpio<'gpio> {}
 }
