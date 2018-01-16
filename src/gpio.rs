@@ -267,9 +267,6 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
 
 impl<'gpio, T> Pin<T, pin_state::Gpio<'gpio>> where T: PinName {
     /// Sets pin direction to output
-    ///
-    /// Disables the fixed function of the given pin (thus making it available
-    /// for GPIO) and sets the GPIO direction to output.
     pub fn as_output(&mut self) {
         self.state.0.gpio.dirset0.write(|w|
             unsafe { w.dirsetp().bits(T::MASK) }
