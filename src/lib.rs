@@ -143,7 +143,7 @@
 //!
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing it will actually lead to compile-time errors.
-//! let mut gpio = peripherals.gpio.init(&mut syscon);
+//! let mut gpio = peripherals.gpio.handle.init(&mut syscon);
 //! let mut swm  = peripherals.swm.api.init(&mut syscon);
 //! let mut wkt  = peripherals.wkt.init(&mut syscon);
 //!
@@ -156,7 +156,7 @@
 //! );
 //!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
-//! let mut pio0_3 = gpio.pins().pio0_3
+//! let mut pio0_3 = peripherals.gpio.pins.pio0_3
 //!     .as_gpio_pin(&gpio)
 //!     .as_output();
 //!
@@ -491,7 +491,7 @@ pub struct Peripherals<'system> {
     pub wwdt: &'system lpc82x::WWDT,
 
     /// General Purpose I/O (GPIO)
-    pub gpio: GPIO<'system, init_state::Unknown>,
+    pub gpio: GPIO<'system>,
 
     /// Power Management Unit (PMU)
     pub pmu: PMU<'system>,

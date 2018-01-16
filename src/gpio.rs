@@ -26,37 +26,45 @@ use self::pin_state::PinState;
 /// [`lpc82x::GPIO_PORT`] directly, unless you know what you're doing.
 ///
 /// [`lpc82x::GPIO_PORT`]: ../../lpc82x/struct.GPIO_PORT.html
-pub struct GPIO<'gpio, State: InitState = init_state::Initialized> {
+pub struct GPIO<'gpio> {
+    /// Handle for the GPIO peripheral
+    pub handle: Handle<'gpio, init_state::Unknown,>,
+
+    /// All pins that can be used for GPIO or other functions
+    pub pins: Pins,
+}
+
+impl<'gpio> GPIO<'gpio> {
+    pub(crate) fn new(gpio: &'gpio lpc82x::GPIO_PORT) -> Self {
+        GPIO {
+            handle: Handle {
+                gpio  : gpio,
+                _state: init_state::Unknown,
+            },
+            pins: Pins::new(),
+        }
+    }
+}
+
+
+/// Handle for the GPIO peripheral
+pub struct Handle<'gpio, State: InitState = init_state::Initialized> {
     gpio  : &'gpio lpc82x::GPIO_PORT,
     _state: State,
 }
 
-impl<'gpio> GPIO<'gpio, init_state::Unknown> {
-    pub(crate) fn new(gpio: &'gpio lpc82x::GPIO_PORT) -> Self {
-        GPIO {
-            gpio  : gpio,
-            _state: init_state::Unknown,
-        }
-    }
-
+impl<'gpio> Handle<'gpio, init_state::Unknown> {
     /// Initialize GPIO
     pub fn init(mut self, syscon: &mut syscon::Api)
-        -> GPIO<'gpio, init_state::Initialized>
+        -> Handle<'gpio, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.gpio);
         syscon.clear_reset(&mut self.gpio);
 
-        GPIO {
+        Handle {
             gpio  : self.gpio,
             _state: init_state::Initialized,
         }
-    }
-}
-
-impl<'gpio> GPIO<'gpio> {
-    /// Provides access to all pins
-    pub fn pins(&mut self) -> Pins {
-        Pins::new()
     }
 }
 
@@ -225,7 +233,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// This method doesn't disable any fixed functions or unsassign any
     /// movable functions. Before calling this function, the user must manually
     /// disable or unassign any active functions on this pin.
-    pub fn as_gpio_pin<'gpio>(self, gpio: &'gpio GPIO<'gpio>)
+    pub fn as_gpio_pin<'gpio>(self, gpio: &'gpio Handle<'gpio>)
         -> Pin<T, pin_state::Gpio<'gpio, direction::Unknown>>
     {
         Pin {
