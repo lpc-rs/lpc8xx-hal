@@ -88,18 +88,11 @@ pub trait PinName {
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO0_1`]: struct.PIO0_1.html
     const MASK: u32;
-
-    /// Disables all fixed functions for the given pin
-    fn disable_fixed_functions(&mut self,
-        _swm            : &mut swm::Api,
-        _fixed_functions: &mut swm::FixedFunctions,
-    )
-        where Self: Sized;
 }
 
 
 macro_rules! pins {
-    ($($field:ident, $type:ident, $id:expr $(, $fixed_function:ident)*;)*) => {
+    ($($field:ident, $type:ident, $id:expr;)*) => {
         /// Provides access to all pins
         #[allow(missing_docs)]
         pub struct Pins {
@@ -128,46 +121,36 @@ macro_rules! pins {
             impl PinName for $type {
                 const ID  : u8  = $id;
                 const MASK: u32 = 0x1 << $id;
-
-                fn disable_fixed_functions(&mut self,
-                    _swm            : &mut swm::Api,
-                    _fixed_functions: &mut swm::FixedFunctions,
-                ) {
-                    #[allow(unused_imports)]
-                    use swm::FixedFunction;
-
-                    $(_fixed_functions.$fixed_function.disable(self, _swm);)*
-                }
             }
         )*
     }
 }
 
 pins!(
-    pio0_0 , PIO0_0 , 0x00, acmp_i1;
-    pio0_1 , PIO0_1 , 0x01, acmp_i2, clkin;
-    pio0_2 , PIO0_2 , 0x02, swdio;
-    pio0_3 , PIO0_3 , 0x03, swclk;
-    pio0_4 , PIO0_4 , 0x04, adc_11;
-    pio0_5 , PIO0_5 , 0x05, resetn;
-    pio0_6 , PIO0_6 , 0x06, vddcmp, adc_1;
-    pio0_7 , PIO0_7 , 0x07, adc_0;
-    pio0_8 , PIO0_8 , 0x08, xtalin;
-    pio0_9 , PIO0_9 , 0x09, xtalout;
-    pio0_10, PIO0_10, 0x0a, i2c0_scl;
-    pio0_11, PIO0_11, 0x0b, i2c0_sda;
+    pio0_0 , PIO0_0 , 0x00;
+    pio0_1 , PIO0_1 , 0x01;
+    pio0_2 , PIO0_2 , 0x02;
+    pio0_3 , PIO0_3 , 0x03;
+    pio0_4 , PIO0_4 , 0x04;
+    pio0_5 , PIO0_5 , 0x05;
+    pio0_6 , PIO0_6 , 0x06;
+    pio0_7 , PIO0_7 , 0x07;
+    pio0_8 , PIO0_8 , 0x08;
+    pio0_9 , PIO0_9 , 0x09;
+    pio0_10, PIO0_10, 0x0a;
+    pio0_11, PIO0_11, 0x0b;
     pio0_12, PIO0_12, 0x0c;
-    pio0_13, PIO0_13, 0x0d, adc_10;
-    pio0_14, PIO0_14, 0x0e, acmp_i3, adc_2;
+    pio0_13, PIO0_13, 0x0d;
+    pio0_14, PIO0_14, 0x0e;
     pio0_15, PIO0_15, 0x0f;
     pio0_16, PIO0_16, 0x10;
-    pio0_17, PIO0_17, 0x11, adc_9;
-    pio0_18, PIO0_18, 0x12, adc_8;
-    pio0_19, PIO0_19, 0x13, adc_7;
-    pio0_20, PIO0_20, 0x14, adc_6;
-    pio0_21, PIO0_21, 0x15, adc_5;
-    pio0_22, PIO0_22, 0x16, adc_4;
-    pio0_23, PIO0_23, 0x17, acmp_i4, adc_3;
+    pio0_17, PIO0_17, 0x11;
+    pio0_18, PIO0_18, 0x12;
+    pio0_19, PIO0_19, 0x13;
+    pio0_20, PIO0_20, 0x14;
+    pio0_21, PIO0_21, 0x15;
+    pio0_22, PIO0_22, 0x16;
+    pio0_23, PIO0_23, 0x17;
     pio0_24, PIO0_24, 0x18;
     pio0_25, PIO0_25, 0x19;
     pio0_26, PIO0_26, 0x1a;
@@ -237,28 +220,14 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
 
     /// Makes this pin available for GPIO
     ///
-    /// Disables all fixed functions of this pin, thereby making it available
-    /// for general-purpose I/O. It might be necessary to call this method, as
-    /// some pins have fixed functions enabled by default.
-    ///
     /// # Limitations
     ///
-    /// This method doesn't unsassign any movable functions that might be assign
-    /// to the pin. This is not a problem if you're using this method for the
-    /// initial initialization of the pin, as no movable functions are assigned
-    /// by default.
-    ///
-    /// If any movable functions have been assigned to the pin, please make sure
-    /// to disable them manually.
-    pub fn as_gpio_pin<'gpio>(mut self,
-        gpio           : &'gpio GPIO<'gpio>,
-        fixed_functions: &mut swm::FixedFunctions,
-        swm            : &mut swm::Api,
-    )
+    /// This method doesn't disable any fixed functions or unsassign any
+    /// movable functions. Before calling this function, the user must manually
+    /// disable or unassign any active functions on this pin.
+    pub fn as_gpio_pin<'gpio>(self, gpio: &'gpio GPIO<'gpio>)
         -> Pin<T, pin_state::Gpio<'gpio, direction::Unknown>>
     {
-        self.ty.disable_fixed_functions(swm, fixed_functions);
-
         Pin {
             ty   : self.ty,
             state: pin_state::Gpio {

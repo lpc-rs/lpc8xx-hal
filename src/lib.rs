@@ -157,11 +157,7 @@
 //!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
 //! let mut pio0_3 = gpio.pins().pio0_3
-//!     .as_gpio_pin(
-//!         &gpio,
-//!         &mut peripherals.swm.fixed_functions,
-//!         &mut swm,
-//!     )
+//!     .as_gpio_pin(&gpio)
 //!     .as_output();
 //!
 //! // Let's already initialize the durations that we're going to sleep for
