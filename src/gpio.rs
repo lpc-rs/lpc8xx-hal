@@ -110,8 +110,8 @@ macro_rules! pins {
                 Pins {
                     $(
                         $field: Pin {
-                            ty    : $type(()),
-                            _state: pin_state::Unknown,
+                            ty   : $type(()),
+                            state: pin_state::Unknown,
                         },
                     )*
                 }
@@ -177,8 +177,8 @@ pins!(
 
 /// A pin that can be used for GPIO, fixed functions, or movable functions
 pub struct Pin<T: PinName, S: PinState> {
-    ty    : T,
-    _state: S,
+    ty   : T,
+    state: S,
 }
 
 impl<T> Pin<T, pin_state::Unknown> where T: PinName {
@@ -259,8 +259,8 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
         self.ty.disable_fixed_functions(swm, fixed_functions);
 
         Pin {
-            ty    : self.ty,
-            _state: pin_state::Gpio(gpio),
+            ty   : self.ty,
+            state: pin_state::Gpio(gpio),
         }
     }
 }
@@ -271,21 +271,21 @@ impl<'gpio, T> Pin<T, pin_state::Gpio<'gpio>> where T: PinName {
     /// Disables the fixed function of the given pin (thus making it available
     /// for GPIO) and sets the GPIO direction to output.
     pub fn as_output(&mut self) {
-        self._state.0.gpio.dirset0.write(|w|
+        self.state.0.gpio.dirset0.write(|w|
             unsafe { w.dirsetp().bits(T::MASK) }
         )
     }
 
     /// Set pin output to HIGH
     pub fn set_high(&mut self) {
-        self._state.0.gpio.set0.write(|w|
+        self.state.0.gpio.set0.write(|w|
             unsafe { w.setp().bits(T::MASK) }
         )
     }
 
     /// Set pin output to LOW
     pub fn set_low(&mut self) {
-        self._state.0.gpio.clr0.write(|w|
+        self.state.0.gpio.clr0.write(|w|
             unsafe { w.clrp().bits(T::MASK) }
         );
     }
