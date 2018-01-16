@@ -16,6 +16,7 @@ use swm::{
 };
 use syscon;
 
+use self::direction::Direction;
 use self::pin_state::PinState;
 
 
@@ -254,7 +255,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
         fixed_functions: &mut swm::FixedFunctions,
         swm            : &mut swm::Api,
     )
-        -> Pin<T, pin_state::Gpio<'gpio>>
+        -> Pin<T, pin_state::Gpio<'gpio, direction::Unknown>>
     {
         self.ty.disable_fixed_functions(swm, fixed_functions);
 
@@ -264,19 +265,43 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
                 dirset0: &gpio.gpio.dirset0,
                 set0   : &gpio.gpio.set0,
                 clr0   : &gpio.gpio.clr0,
+
+                _direction: direction::Unknown,
             },
         }
     }
 }
 
-impl<'gpio, T> Pin<T, pin_state::Gpio<'gpio>> where T: PinName {
+impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
+    where
+        T: PinName,
+        D: Direction + direction::NotOutput,
+{
     /// Sets pin direction to output
-    pub fn as_output(&mut self) {
+    pub fn as_output(self)
+        -> Pin<T, pin_state::Gpio<'gpio, direction::Output>>
+    {
         self.state.dirset0.write(|w|
             unsafe { w.dirsetp().bits(T::MASK) }
-        )
-    }
+        );
 
+        Pin {
+            ty: self.ty,
+
+            state: pin_state::Gpio {
+                dirset0: self.state.dirset0,
+                set0   : self.state.set0,
+                clr0   : self.state.clr0,
+
+                _direction: direction::Output,
+            }
+        }
+    }
+}
+
+impl<'gpio, T> Pin<T, pin_state::Gpio<'gpio, direction::Output>>
+    where T: PinName
+{
     /// Set pin output to HIGH
     pub fn set_high(&mut self) {
         self.state.set0.write(|w|
@@ -301,6 +326,8 @@ pub mod pin_state {
         SET0,
     };
 
+    use super::direction::Direction;
+
 
     /// Implemented by types that indicate pin state
     ///
@@ -320,11 +347,45 @@ pub mod pin_state {
 
 
     /// Marks a pin as being assigned to general-purpose I/O
-    pub struct Gpio<'gpio> {
+    pub struct Gpio<'gpio, D: Direction> {
         pub(crate) dirset0: &'gpio DIRSET0,
         pub(crate) set0   : &'gpio SET0,
         pub(crate) clr0   : &'gpio CLR0,
+
+        pub(crate) _direction: D,
     }
 
-    impl<'gpio> PinState for Gpio<'gpio> {}
+    impl<'gpio, D> PinState for Gpio<'gpio, D> where D: Direction {}
+}
+
+
+/// Contains types that mark the direction of GPIO pins
+pub mod direction {
+    /// Implemented by types that indicate GPIO pin direction
+    pub trait Direction {}
+
+    /// Marks a pin's GPIO direction as being unknown
+    ///
+    /// As we can't know what happened to the hardware before the HAL was
+    /// initialized, this is the initial state.
+    pub struct Unknown;
+    impl Direction for Unknown {}
+
+    /// Marks a GPIO pin as being configured for input
+    pub struct Input;
+    impl Direction for Input {}
+
+    /// Marks a GPIO pin as being configured for output
+    pub struct Output;
+    impl Direction for Output {}
+
+
+    /// Marks a direction as being unknown or input (i.e. not being output)
+    ///
+    /// This is a helper trait used to more precisely define `impl` blocks. It
+    /// is of no concern to users of this crate.
+    pub trait NotOutput: Direction {}
+
+    impl NotOutput for Unknown {}
+    impl NotOutput for Input {}
 }
