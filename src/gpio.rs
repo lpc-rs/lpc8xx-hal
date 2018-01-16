@@ -253,7 +253,7 @@ impl<'gpio, T> Pin<'gpio, T> where T: PinName {
     ///
     /// Disables the fixed function of the given pin (thus making it available
     /// for GPIO) and sets the GPIO direction to output.
-    pub fn set_pin_to_output(&mut self) {
+    pub fn as_output(&mut self) {
         self.gpio.gpio.dirset0.write(|w|
             unsafe { w.dirsetp().bits(T::MASK) }
         )
