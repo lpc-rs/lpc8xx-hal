@@ -155,10 +155,10 @@
 //!     peripherals.syscon.ircout,
 //! );
 //!
-//! let mut pio0_3 = gpio.pins().pio0_3;
+//! let mut pio0_3 = gpio.pins().pio0_3
+//!     .as_gpio_pin(&mut peripherals.swm.fixed_functions, &mut swm);
 //!
 //! // Set pin direction to output, so we can use it to blink an LED.
-//! pio0_3.as_gpio_pin(&mut peripherals.swm.fixed_functions, &mut swm);
 //! pio0_3.as_output();
 //!
 //! // Let's already initialize the durations that we're going to sleep for

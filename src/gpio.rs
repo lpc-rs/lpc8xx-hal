@@ -251,13 +251,23 @@ impl<'gpio, T> Pin<'gpio, T, pin_state::Unknown> where T: PinName {
     ///
     /// If any movable functions have been assigned to the pin, please make sure
     /// to disable them manually.
-    pub fn as_gpio_pin(&mut self,
+    pub fn as_gpio_pin(mut self,
         fixed_functions: &mut swm::FixedFunctions,
         swm            : &mut swm::Api,
-    ) {
+    )
+        -> Pin<'gpio, T, pin_state::Gpio>
+    {
         self.ty.disable_fixed_functions(swm, fixed_functions);
-    }
 
+        Pin {
+            gpio  : self.gpio,
+            ty    : self.ty,
+            _state: pin_state::Gpio,
+        }
+    }
+}
+
+impl<'gpio, T> Pin<'gpio, T, pin_state::Gpio> where T: PinName {
     /// Sets pin direction to output
     ///
     /// Disables the fixed function of the given pin (thus making it available
@@ -299,4 +309,8 @@ pub mod pin_state {
     /// initializized, this is the initial state of all pins.
     pub struct Unknown;
     impl PinState for Unknown {}
+
+    /// Marks a pin as being assigned to general-purpose I/O
+    pub struct Gpio;
+    impl PinState for Gpio {}
 }
