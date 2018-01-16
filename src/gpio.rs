@@ -16,6 +16,8 @@ use swm::{
 };
 use syscon;
 
+use self::pin_state::PinState;
+
 
 /// Interface to general-purpose I/O (GPIO)
 ///
@@ -100,13 +102,19 @@ macro_rules! pins {
         /// Provides access to all pins
         #[allow(missing_docs)]
         pub struct Pins<'gpio> {
-            $(pub $field: Pin<'gpio, $type>,)*
+            $(pub $field: Pin<'gpio, $type, pin_state::Unknown>,)*
         }
 
         impl<'gpio> Pins<'gpio> {
             fn new(gpio: &'gpio GPIO<'gpio>) -> Self {
                 Pins {
-                    $($field: Pin { gpio: gpio, ty: $type(()) },)*
+                    $(
+                        $field: Pin {
+                            gpio  : gpio,
+                            ty    : $type(()),
+                            _state: pin_state::Unknown,
+                        },
+                    )*
                 }
             }
         }
@@ -169,12 +177,13 @@ pins!(
 
 
 /// A pin that can be used for GPIO, fixed functions, or movable functions
-pub struct Pin<'gpio, T: PinName> {
-    gpio: &'gpio GPIO<'gpio>,
-    ty  : T,
+pub struct Pin<'gpio, T: PinName, S: PinState> {
+    gpio  : &'gpio GPIO<'gpio>,
+    ty    : T,
+    _state: S,
 }
 
-impl<'gpio, T> Pin<'gpio, T> where T: PinName {
+impl<'gpio, T> Pin<'gpio, T, pin_state::Unknown> where T: PinName {
     /// Enable the fixed function on this pin
     ///
     /// # Limitations
@@ -272,4 +281,22 @@ impl<'gpio, T> Pin<'gpio, T> where T: PinName {
             unsafe { w.clrp().bits(T::MASK) }
         );
     }
+}
+
+
+/// Contains types that mark pin states
+pub mod pin_state {
+    /// Implemented by types that indicate pin state
+    ///
+    /// This type is used as a trait bound for type parameters that indicate a
+    /// pin's state. HAL users should never need to implement this trait, nor
+    /// use it directly.
+    pub trait PinState {}
+
+    /// Marks a pin's state as being unknown
+    ///
+    /// As we can't know what happened to the hardware before the HAL was
+    /// initializized, this is the initial state of all pins.
+    pub struct Unknown;
+    impl PinState for Unknown {}
 }

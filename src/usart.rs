@@ -14,6 +14,7 @@ use lpc82x::{
 use nb;
 
 use gpio::{
+    pin_state,
     Pin,
     PinName,
 };
@@ -91,8 +92,8 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     pub fn init<Rx: PinName, Tx: PinName>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Api,
-        rx       : &mut Pin<Rx>,
-        tx       : &mut Pin<Tx>,
+        rx       : &mut Pin<Rx, pin_state::Unknown>,
+        tx       : &mut Pin<Tx, pin_state::Unknown>,
         rxd      : &mut UsartX::Rx,
         txd      : &mut UsartX::Tx,
         swm      : &mut swm::Api,
