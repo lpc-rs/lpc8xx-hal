@@ -227,16 +227,33 @@ impl<'gpio, T> Pin<'gpio, T> where T: PinName {
         function.unassign::<T>(&mut self.ty, swm);
     }
 
+    /// Makes this pin available for GPIO
+    ///
+    /// Disables all fixed functions of this pin, thereby making it available
+    /// for general-purpose I/O. It might be necessary to call this method, as
+    /// some pins have fixed functions enabled by default.
+    ///
+    /// # Limitations
+    ///
+    /// This method doesn't unsassign any movable functions that might be assign
+    /// to the pin. This is not a problem if you're using this method for the
+    /// initial initialization of the pin, as no movable functions are assigned
+    /// by default.
+    ///
+    /// If any movable functions have been assigned to the pin, please make sure
+    /// to disable them manually.
+    pub fn as_gpio_pin(&mut self,
+        fixed_functions: &mut swm::FixedFunctions,
+        swm            : &mut swm::Api,
+    ) {
+        self.ty.disable_fixed_functions(swm, fixed_functions);
+    }
+
     /// Sets pin direction to output
     ///
     /// Disables the fixed function of the given pin (thus making it available
     /// for GPIO) and sets the GPIO direction to output.
-    pub fn set_pin_to_output(&mut self,
-        swm            : &mut swm::Api,
-        fixed_functions: &mut swm::FixedFunctions,
-    ) {
-        self.ty.disable_fixed_functions(swm, fixed_functions);
-
+    pub fn set_pin_to_output(&mut self) {
         self.gpio.gpio.dirset0.write(|w|
             unsafe { w.dirsetp().bits(T::MASK) }
         )
