@@ -13,15 +13,16 @@ use lpc82x::{
 };
 use nb;
 
-use gpio::PinName;
+use gpio::{
+    pin_state,
+    Pin,
+    PinName,
+};
 use init_state::{
     self,
     InitState,
 };
-use swm::{
-    self,
-    MovableFunction,
-};
+use swm;
 use syscon::{
     self,
     UARTFRG,
@@ -67,9 +68,9 @@ pub struct USART<
     _state: State,
 }
 
-impl<'usart, 'swm, UsartX> USART<'usart, UsartX, init_state::Unknown>
+impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     where
-        UsartX            : Peripheral<'swm>,
+        UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     pub(crate) fn new(usart: &'usart UsartX) -> Self {
@@ -91,6 +92,8 @@ impl<'usart, 'swm, UsartX> USART<'usart, UsartX, init_state::Unknown>
     pub fn init<Rx: PinName, Tx: PinName>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Api,
+        rx       : &mut Pin<Rx, pin_state::Unknown>,
+        tx       : &mut Pin<Tx, pin_state::Unknown>,
         rxd      : &mut UsartX::Rx,
         txd      : &mut UsartX::Tx,
         swm      : &mut swm::Api,
@@ -100,8 +103,8 @@ impl<'usart, 'swm, UsartX> USART<'usart, UsartX, init_state::Unknown>
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
 
-        rxd.assign::<Rx>(swm);
-        txd.assign::<Tx>(swm);
+        rx.assign_function(rxd, swm);
+        tx.assign_function(txd, swm);
 
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 
@@ -166,7 +169,7 @@ impl<'usart, 'swm, UsartX> USART<'usart, UsartX, init_state::Unknown>
 
 impl<'usart, UsartX> USART<'usart, UsartX>
     where
-        UsartX            : for<'a> Peripheral<'a>,
+        UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     /// Enables the USART interrupts
@@ -209,7 +212,7 @@ impl<'usart, UsartX> USART<'usart, UsartX>
 
 impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
     where
-        UsartX            : for<'a> Peripheral<'a>,
+        UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     type Error = Error;
@@ -254,7 +257,7 @@ impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
 
 impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
     where
-        UsartX            : for<'a> Peripheral<'a>,
+        UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     type Error = !;
@@ -282,7 +285,7 @@ impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
 
 impl<'usart, UsartX> blocking::Write<u8> for USART<'usart, UsartX>
     where
-        UsartX            : for<'a> Peripheral<'a>,
+        UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     type Error = !;
@@ -304,7 +307,7 @@ impl<'usart, UsartX> blocking::Write<u8> for USART<'usart, UsartX>
 /// the other traits required are implemented for `&Self`. This should be
 /// resolved once we pick up some changes to upstream dependencies that are
 /// currently coming down the pipe.
-pub trait Peripheral<'swm>:
+pub trait Peripheral:
     Deref<Target = lpc82x::usart0::RegisterBlock>
     where
         for<'a> &'a Self: syscon::ClockControl,
@@ -320,25 +323,25 @@ pub trait Peripheral<'swm>:
     type Tx: swm::MovableFunction;
 }
 
-impl<'swm> Peripheral<'swm> for lpc82x::USART0 {
+impl Peripheral for lpc82x::USART0 {
     const INTERRUPT: Interrupt = Interrupt::UART0;
 
-    type Rx = swm::U0_RXD<'swm>;
-    type Tx = swm::U0_TXD<'swm>;
+    type Rx = swm::U0_RXD;
+    type Tx = swm::U0_TXD;
 }
 
-impl<'swm> Peripheral<'swm> for lpc82x::USART1 {
+impl Peripheral for lpc82x::USART1 {
     const INTERRUPT: Interrupt = Interrupt::UART1;
 
-    type Rx = swm::U1_RXD<'swm>;
-    type Tx = swm::U1_TXD<'swm>;
+    type Rx = swm::U1_RXD;
+    type Tx = swm::U1_TXD;
 }
 
-impl<'swm> Peripheral<'swm> for lpc82x::USART2 {
+impl Peripheral for lpc82x::USART2 {
     const INTERRUPT: Interrupt = Interrupt::UART2;
 
-    type Rx = swm::U2_RXD<'swm>;
-    type Tx = swm::U2_TXD<'swm>;
+    type Rx = swm::U2_RXD;
+    type Tx = swm::U2_TXD;
 }
 
 
