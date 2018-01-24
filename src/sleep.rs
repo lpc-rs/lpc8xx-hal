@@ -75,7 +75,7 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
             return;
         }
 
-        self.wkt.set_timeout(ticks.value);
+        self.wkt.start(ticks.value);
         while let Err(nb::Error::WouldBlock) = self.wkt.wait() {
             asm::nop();
         }
@@ -141,7 +141,7 @@ impl<'r, 'pmu, 'wkt, Clock> Sleep<Clock> for Regular<'r, 'pmu, 'wkt>
 
         self.wkt.select_clock::<Clock>();
         self.wkt.enable_interrupt(self.nvic);
-        self.wkt.set_timeout(ticks.value);
+        self.wkt.start(ticks.value);
 
         while let Err(nb::Error::WouldBlock) = self.wkt.wait() {
             self.pmu.enter_sleep_mode(self.scb);

@@ -9,7 +9,7 @@ use cortex_m::interrupt::{
     self,
     Mutex,
 };
-use embedded_hal;
+use embedded_hal::timer;
 use lpc82x::{
     self,
     Interrupt,
@@ -153,26 +153,10 @@ impl<'wkt> WKT<'wkt> {
     }
 }
 
-impl<'wkt> embedded_hal::Timer for WKT<'wkt> {
+impl<'wkt> timer::CountDown for WKT<'wkt> {
     type Time = u32;
 
-    fn get_timeout(&self) -> Self::Time {
-        unimplemented!();
-    }
-
-    fn pause(&mut self) {
-        unimplemented!();
-    }
-
-    fn restart(&mut self) {
-        unimplemented!();
-    }
-
-    fn resume(&mut self) {
-        unimplemented!();
-    }
-
-    fn set_timeout<T>(&mut self, timeout: T) where T: Into<Self::Time> {
+    fn start<T>(&mut self, timeout: T) where T: Into<Self::Time> {
         interrupt::free(|cs| {
             let mut has_woken = HAS_WOKEN
                 .borrow(cs)
