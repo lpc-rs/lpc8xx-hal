@@ -5,7 +5,10 @@
 
 use core::ops::Deref;
 
-use embedded_hal::serial::Read;
+use embedded_hal::serial::{
+    Read,
+    Write,
+};
 use lpc82x::{
     self,
     Interrupt,
@@ -27,27 +30,6 @@ use syscon::{
     self,
     UARTFRG,
 };
-
-
-/// Write half of a serial interface
-///
-/// # License Note
-///
-/// This trait is a modified version of the same trait from embedded-hal and is
-/// subject to embedded-hal's license. It has been [proposed] for inclusion in
-/// embedded-hal.
-///
-/// [proposed]: https://github.com/japaric/embedded-hal/pull/22
-pub trait Write<Word> {
-    /// Write error
-    type Error;
-
-    /// Writes a single word to the serial interface
-    fn write(&mut self, word: Word) -> nb::Result<(), Self::Error>;
-
-    /// Ensures that none of the previously written words are still buffered
-    fn flush(&mut self) -> nb::Result<(), Self::Error>;
-}
 
 
 /// Interface to the USART peripherals
