@@ -159,7 +159,7 @@ impl<'usart, UsartX> USART<'usart, UsartX>
     /// Enables the interrupts for this USART peripheral. This only enables
     /// interrupts in general. It doesn't enable any specific interrupt. Other
     /// methods must be used for this.
-    pub fn enable_interrupts(&mut self, nvic: &NVIC) {
+    pub fn enable_interrupts(&mut self, nvic: &mut NVIC) {
         nvic.enable(UsartX::INTERRUPT);
     }
 

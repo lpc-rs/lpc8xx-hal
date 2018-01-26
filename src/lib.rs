@@ -125,6 +125,9 @@
 //! The following is an example of a simple application that blinks an LED.
 //!
 //! ``` no_run
+//! extern crate lpc82x;
+//! extern crate lpc82x_hal;
+//!
 //! use lpc82x_hal::Peripherals;
 //! use lpc82x_hal::clock::Ticks;
 //! use lpc82x_hal::gpio::PIO0_3;
@@ -135,7 +138,12 @@
 //!
 //! // Initialize the peripherals. This is unsafe, because we're only allowed to
 //! // create one instance on `Peripherals`.
-//! let mut peripherals = unsafe { Peripherals::new() };
+//! let mut peripherals = unsafe {
+//!     Peripherals::new(
+//!         lpc82x::CorePeripherals.take().unwrap(),
+//!         lpc82x::Peripherals.take().unwrap(),
+//!     )
+//! };
 //!
 //! // Let's save some peripherals in local variables for convenience. This one
 //! // here doesn't require initialization.
@@ -258,14 +266,10 @@ pub use lpc82x::{
     CPUID,
     DCB,
     DWT,
-    FPB,
-    FPU,
-    ITM,
     MPU,
     NVIC,
     SCB,
     SYST,
-    TPIU,
     Interrupt,
 };
 
@@ -532,44 +536,45 @@ impl<'system> Peripherals<'system> {
     /// of `Peripherals`. Usually this means you call this method once, at the
     /// beginning of your program. But technically, you can call it again to
     /// create another instance, if the previous one has been dropped.
-    pub unsafe fn new() -> Self {
-        let peripherals = lpc82x::Peripherals::all();
-
+    pub unsafe fn new(
+        core_peripherals: &'system lpc82x::CorePeripherals,
+        peripherals     : &'system lpc82x::Peripherals,
+    ) -> Self {
         Peripherals {
-            cpuid: peripherals.CPUID,
-            dcb  : peripherals.DCB,
-            dwt  : peripherals.DWT,
-            nvic : peripherals.NVIC,
-            scb  : peripherals.SCB,
-            syst : peripherals.SYST,
+            cpuid: &core_peripherals.CPUID,
+            dcb  : &core_peripherals.DCB,
+            dwt  : &core_peripherals.DWT,
+            nvic : &core_peripherals.NVIC,
+            scb  : &core_peripherals.SCB,
+            syst : &core_peripherals.SYST,
 
-            adc       : peripherals.ADC,
-            cmp       : peripherals.CMP,
-            crc       : peripherals.CRC,
-            dma       : peripherals.DMA,
-            dmatrigmux: peripherals.DMATRIGMUX,
-            flashctrl : peripherals.FLASHCTRL,
-            i2c0      : peripherals.I2C0,
-            i2c1      : peripherals.I2C1,
-            i2c2      : peripherals.I2C2,
-            i2c3      : peripherals.I2C3,
-            inputmux  : peripherals.INPUTMUX,
-            iocon     : peripherals.IOCON,
-            mrt       : peripherals.MRT,
-            pin_int   : peripherals.PIN_INT,
-            sct       : peripherals.SCT,
-            spi0      : peripherals.SPI0,
-            spi1      : peripherals.SPI1,
-            wwdt      : peripherals.WWDT,
+            adc       : &peripherals.ADC,
+            cmp       : &peripherals.CMP,
+            crc       : &peripherals.CRC,
+            dma       : &peripherals.DMA,
+            dmatrigmux: &peripherals.DMATRIGMUX,
+            flashctrl : &peripherals.FLASHCTRL,
+            i2c0      : &peripherals.I2C0,
+            i2c1      : &peripherals.I2C1,
+            i2c2      : &peripherals.I2C2,
+            i2c3      : &peripherals.I2C3,
+            inputmux  : &peripherals.INPUTMUX,
+            iocon     : &peripherals.IOCON,
+            mrt       : &peripherals.MRT,
+            pin_int   : &peripherals.PIN_INT,
+            sct       : &peripherals.SCT,
+            spi0      : &peripherals.SPI0,
+            spi1      : &peripherals.SPI1,
+            wwdt      : &peripherals.WWDT,
 
-            gpio  : GPIO::new(peripherals.GPIO_PORT),
-            pmu   : PMU::new(peripherals.PMU),
-            swm   : SWM::new(peripherals.SWM),
-            syscon: SYSCON::new(peripherals.SYSCON),
-            usart0: USART::new(peripherals.USART0),
-            usart1: USART::new(peripherals.USART1),
-            usart2: USART::new(peripherals.USART2),
-            wkt   : WKT::new(peripherals.WKT),
+            gpio  : GPIO::new(&peripherals.GPIO_PORT),
+            pmu   : PMU::new(&peripherals.PMU),
+            swm   : SWM::new(&peripherals.SWM),
+            syscon: SYSCON::new(&peripherals.SYSCON),
+            usart0: USART::new(&peripherals.USART0),
+            usart1: USART::new(&peripherals.USART1),
+            usart2: USART::new(&peripherals.USART2),
+            wkt   : WKT::new(&peripherals.WKT),
         }
     }
 }

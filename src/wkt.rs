@@ -101,7 +101,7 @@ impl<'wkt> WKT<'wkt> {
     /// See [`handle_interrupt`] for details.
     ///
     /// [`handle_interrupt`]: #method.handle_interrupt
-    pub fn enable_interrupt(&mut self, nvic: &lpc82x::NVIC) {
+    pub fn enable_interrupt(&mut self, nvic: &mut lpc82x::NVIC) {
         nvic.enable(Interrupt::WKT);
     }
 
@@ -148,7 +148,11 @@ impl<'wkt> WKT<'wkt> {
 
             // Reset the alarm flag. Otherwise the interrupt will be triggered
             // over and over.
-            lpc82x::WKT.borrow(cs).ctrl.modify(|_, w| w.alarmflag().set_bit());
+            unsafe {
+                lpc82x::Peripherals::steal().WKT.ctrl.modify(|_, w|
+                    w.alarmflag().set_bit()
+                );
+            }
         });
     }
 }
