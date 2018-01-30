@@ -3,6 +3,7 @@
 //! See user manual, chapter 9.
 
 
+use embedded_hal::digital::OutputPin;
 use lpc82x;
 
 use init_state::{
@@ -240,6 +241,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
             ty   : self.ty,
             state: pin_state::Gpio {
                 dirset0: &gpio.gpio.dirset0,
+                pin0   : &gpio.gpio.pin0,
                 set0   : &gpio.gpio.set0,
                 clr0   : &gpio.gpio.clr0,
 
@@ -267,6 +269,7 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
 
             state: pin_state::Gpio {
                 dirset0: self.state.dirset0,
+                pin0   : self.state.pin0,
                 set0   : self.state.set0,
                 clr0   : self.state.clr0,
 
@@ -276,18 +279,26 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     }
 }
 
-impl<'gpio, T> Pin<T, pin_state::Gpio<'gpio, direction::Output>>
+impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
     where T: PinName
 {
+    fn is_high(&self) -> bool {
+        self.state.pin0.read().port().bits() & T::MASK == T::MASK
+    }
+
+    fn is_low(&self) -> bool {
+        !self.state.pin0.read().port().bits() & T::MASK == T::MASK
+    }
+
     /// Set pin output to HIGH
-    pub fn set_high(&mut self) {
+    fn set_high(&mut self) {
         self.state.set0.write(|w|
             unsafe { w.setp().bits(T::MASK) }
         )
     }
 
     /// Set pin output to LOW
-    pub fn set_low(&mut self) {
+    fn set_low(&mut self) {
         self.state.clr0.write(|w|
             unsafe { w.clrp().bits(T::MASK) }
         );
@@ -300,6 +311,7 @@ pub mod pin_state {
     use lpc82x::gpio_port::{
         CLR0,
         DIRSET0,
+        PIN0,
         SET0,
     };
 
@@ -326,6 +338,7 @@ pub mod pin_state {
     /// Marks a pin as being assigned to general-purpose I/O
     pub struct Gpio<'gpio, D: Direction> {
         pub(crate) dirset0: &'gpio DIRSET0,
+        pub(crate) pin0   : &'gpio PIN0,
         pub(crate) set0   : &'gpio SET0,
         pub(crate) clr0   : &'gpio CLR0,
 

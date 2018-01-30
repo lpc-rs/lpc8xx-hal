@@ -125,6 +125,7 @@
 //! The following is an example of a simple application that blinks an LED.
 //!
 //! ``` no_run
+//! use lpc82x_hal::prelude::*;
 //! use lpc82x_hal::Peripherals;
 //! use lpc82x_hal::clock::Ticks;
 //! use lpc82x_hal::gpio::PIO0_3;
