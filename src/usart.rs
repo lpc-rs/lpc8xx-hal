@@ -314,22 +314,22 @@ pub trait Peripheral:
 impl Peripheral for lpc82x::USART0 {
     const INTERRUPT: Interrupt = Interrupt::UART0;
 
-    type Rx = swm::U0_RXD;
-    type Tx = swm::U0_TXD;
+    type Rx = swm::U0_RXD<movable_function::state::Unassigned>;
+    type Tx = swm::U0_TXD<movable_function::state::Unassigned>;
 }
 
 impl Peripheral for lpc82x::USART1 {
     const INTERRUPT: Interrupt = Interrupt::UART1;
 
-    type Rx = swm::U1_RXD;
-    type Tx = swm::U1_TXD;
+    type Rx = swm::U1_RXD<movable_function::state::Unassigned>;
+    type Tx = swm::U1_TXD<movable_function::state::Unassigned>;
 }
 
 impl Peripheral for lpc82x::USART2 {
     const INTERRUPT: Interrupt = Interrupt::UART2;
 
-    type Rx = swm::U2_RXD;
-    type Tx = swm::U2_TXD;
+    type Rx = swm::U2_RXD<movable_function::state::Unassigned>;
+    type Tx = swm::U2_TXD<movable_function::state::Unassigned>;
 }
 
 

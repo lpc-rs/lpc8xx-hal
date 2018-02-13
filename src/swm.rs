@@ -3,6 +3,8 @@
 //! See user manual, chapter 7.
 
 
+use core::marker::PhantomData;
+
 use lpc82x;
 
 use gpio::{
@@ -143,6 +145,42 @@ pub mod movable_function {
         /// [`Pin::unassign_function`]: ../gpio/struct.Pin.html#method.unassign_function
         fn unassign(self, pin: &mut P, swm: &mut swm::Api) -> Self::Unassigned;
     }
+
+
+    /// Contains types that indicate the state of a movable function
+    pub mod state {
+        use core::marker::PhantomData;
+
+
+        /// Implemented by types that indicate the state of a movable function
+        ///
+        /// This trait is implemented by types that indicate the state of a
+        /// movable function. It exists only to document which types those are.
+        /// The user should not need to implement this trait, nor use it
+        /// directly.
+        pub trait State {}
+
+
+        /// Indicates that the current state of the movable function is unknown
+        ///
+        /// This is the case after the HAL is initialized, as we can't know what
+        /// happened before that.
+        pub struct Unknown;
+
+        impl State for Unknown {}
+
+
+        /// Indicates that the movable function is unassigned
+        pub struct Unassigned;
+
+        impl State for Unassigned {}
+
+
+        /// Indicates that the movable function is assigned to a pin
+        pub struct Assigned<Pin>(PhantomData<Pin>);
+
+        impl<Pin> State for Assigned<Pin> {}
+    }
 }
 
 macro_rules! movable_functions {
@@ -158,13 +196,13 @@ macro_rules! movable_functions {
         /// Provides access to all movable functions
         #[allow(missing_docs)]
         pub struct MovableFunctions {
-            $(pub $field: $type,)*
+            $(pub $field: $type<movable_function::state::Unknown>,)*
         }
 
         impl MovableFunctions {
             fn new() -> Self {
                 MovableFunctions {
-                    $($field: $type(()),)*
+                    $($field: $type(PhantomData),)*
                 }
             }
         }
@@ -173,10 +211,34 @@ macro_rules! movable_functions {
         $(
             /// Represents a movable function
             #[allow(non_camel_case_types)]
-            pub struct $type(());
+            pub struct $type<State>(PhantomData<State>)
+                where State: movable_function::state::State;
 
-            impl<P> movable_function::Assign<P> for $type where P: PinName {
-                type Assigned = Self;
+            impl $type<movable_function::state::Unknown> {
+                /// Affirm that the movable function is in its default state
+                ///
+                /// By calling this method, the user promises that the movable
+                /// function is in its default state. This is safe to do, if
+                /// nothing has changed that state before the HAL has been
+                /// initialized.
+                ///
+                /// If the movable function's state has been changed by any
+                /// other means than the HAL API, then the user must use those
+                /// means to return the movable function to its default state,
+                /// as specified in the user manual, before calling this method.
+                pub unsafe fn affirm_default_state(self)
+                    -> $type<movable_function::state::Unassigned>
+                {
+                    $type(PhantomData)
+                }
+
+            }
+
+            impl<P> movable_function::Assign<P>
+                for $type<movable_function::state::Unassigned>
+                where P: PinName
+            {
+                type Assigned = $type<movable_function::state::Assigned<P>>;
 
                 fn assign(self,
                     _pin: &mut P,
@@ -187,12 +249,15 @@ macro_rules! movable_functions {
                     swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(P::ID) }
                     );
-                    self
+                    $type(PhantomData)
                 }
             }
 
-            impl<P> movable_function::Unassign<P> for $type where P: PinName {
-                type Unassigned = Self;
+            impl<P> movable_function::Unassign<P>
+                for $type<movable_function::state::Assigned<P>>
+                where P: PinName
+            {
+                type Unassigned = $type<movable_function::state::Unassigned>;
 
                 fn unassign(self,
                     _pin: &mut P,
@@ -203,7 +268,7 @@ macro_rules! movable_functions {
                     swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(0xff) }
                     );
-                    self
+                    $type(PhantomData)
                 }
             }
         )*
