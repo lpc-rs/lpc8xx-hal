@@ -12,8 +12,8 @@ use init_state::{
 };
 use swm::{
     self,
+    movable_function,
     FixedFunction,
-    MovableFunction,
 };
 use syscon;
 
@@ -209,7 +209,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// currently used for something else. The HAL user needs to make sure that
     /// this assignment doesn't conflict with any other uses of the pin.
     pub fn assign_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
-        where F: MovableFunction
+        where F: movable_function::Assign
     {
         function.assign::<T>(&mut self.ty, swm);
     }
@@ -222,7 +222,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// other parts of the code still rely on that function being assigned. The
     /// HAL user is responsible for making sure this method is used correctly.
     pub fn unassign_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
-        where F: MovableFunction
+        where F: movable_function::Unassign
     {
         function.unassign::<T>(&mut self.ty, swm);
     }

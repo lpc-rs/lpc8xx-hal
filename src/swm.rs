@@ -92,27 +92,39 @@ impl<'swm> Api<'swm, init_state::Unknown> {
 }
 
 
-/// A movable function
+/// Traits implemented by movable functions
 ///
-/// This trait is implemented for all types that represent movable functions.
-/// The user should not need to implement this trait, nor use its methods
-/// directly. Any changes to this trait will not be considered breaking changes.
-pub trait MovableFunction {
-    /// Assigns the movable function to a pin
-    ///
-    /// This method is intended for internal use. Please use
-    /// [`Pin::assign_function`] instead.
-    ///
-    /// [`Pin::assign_function`]: ../gpio/struct.Pin.html#method.assign_function
-    fn assign<P: PinName>(&mut self, pin: &mut P, swm: &mut Api);
+/// These traits are implemented for all types that represent movable functions.
+/// The user should not need to implement these traits, nor use their methods
+/// directly. Changes made to this module will not be considered breaking
+/// changes.
+pub mod movable_function {
+    use gpio::PinName;
+    use swm;
 
-    /// Unassign the movable function
-    ///
-    /// This method is intended for internal use. Please use
-    /// [`Pin::unassign_function`] instead.
-    ///
-    /// [`Pin::unassign_function`]: ../gpio/struct.Pin.html#method.unassign_function
-    fn unassign<P: PinName>(&mut self, pin: &mut P, swm: &mut Api);
+
+    /// Internal trait for unassigned movable functions that can be assigned
+    pub trait Assign {
+        /// Assigns the movable function to a pin
+        ///
+        /// This method is intended for internal use. Please use
+        /// [`Pin::assign_function`] instead.
+        ///
+        /// [`Pin::assign_function`]: ../gpio/struct.Pin.html#method.assign_function
+        fn assign<P: PinName>(&mut self, pin: &mut P, swm: &mut swm::Api);
+    }
+
+
+    /// Internal trait for assigned movable functions that can be unassigned
+    pub trait Unassign {
+        /// Unassign the movable function
+        ///
+        /// This method is intended for internal use. Please use
+        /// [`Pin::unassign_function`] instead.
+        ///
+        /// [`Pin::unassign_function`]: ../gpio/struct.Pin.html#method.unassign_function
+        fn unassign<P: PinName>(&mut self, pin: &mut P, swm: &mut swm::Api);
+    }
 }
 
 macro_rules! movable_functions {
@@ -145,7 +157,7 @@ macro_rules! movable_functions {
             #[allow(non_camel_case_types)]
             pub struct $type(());
 
-            impl MovableFunction for $type {
+            impl movable_function::Assign for $type {
                 fn assign<P: PinName>(&mut self,
                     _pin: &mut P,
                     swm : &mut Api,
@@ -154,7 +166,9 @@ macro_rules! movable_functions {
                         unsafe { w.$reg_field().bits(P::ID) }
                     )
                 }
+            }
 
+            impl movable_function::Unassign for $type {
                 fn unassign<P: PinName>(&mut self,
                     _pin: &mut P,
                     swm : &mut Api,

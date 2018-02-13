@@ -299,10 +299,10 @@ pub trait Peripheral:
     const INTERRUPT: Interrupt;
 
     /// The movable function that needs to be assigned to this USART's RX pin
-    type Rx: swm::MovableFunction;
+    type Rx: swm::movable_function::Assign;
 
     /// The movable function that needs to be assigned to this USART's TX pin
-    type Tx: swm::MovableFunction;
+    type Tx: swm::movable_function::Assign;
 }
 
 impl Peripheral for lpc82x::USART0 {
