@@ -13,6 +13,9 @@ use init_state::{
 use swm::{
     self,
     movable_function,
+};
+use swm::fixed_function::{
+    self,
     FixedFunction,
 };
 use syscon;
@@ -184,7 +187,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// the fixed function doesn't conflict with any other uses of the pin.
     pub fn enable_function<F>(mut self, function: &mut F, swm: &mut swm::Api)
         -> Self
-        where F: FixedFunction<Pin=T>
+        where F: FixedFunction<Pin=T> + fixed_function::Enable
     {
         function.enable(&mut self.ty, swm);
         self
@@ -199,7 +202,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// sure not to use this method in any way that breaks other code.
     pub fn disable_function<F>(mut self, function: &mut F, swm: &mut swm::Api)
         -> Self
-        where F: FixedFunction<Pin=T>
+        where F: FixedFunction<Pin=T> + fixed_function::Disable
     {
         function.disable(&mut self.ty, swm);
         self

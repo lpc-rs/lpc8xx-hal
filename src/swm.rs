@@ -37,6 +37,8 @@ use init_state::{
 };
 use syscon;
 
+use self::fixed_function::FixedFunction;
+
 
 /// Interface to the switch matrix (SWM)
 ///
@@ -327,30 +329,48 @@ movable_functions!(
 );
 
 
-/// A fixed function
+/// Traits implemented by fixed functions
 ///
-/// This trait is implemented for all types that represent fixed functions. The
-/// user should not need to implement this trait, nor use its methods directly.
-/// Any changes to this trait will not be considered breaking changes.
-pub trait FixedFunction {
-    /// The pin that this fixed function can be enabled on
-    type Pin: PinName;
+/// These traits are implemented for all types that represent fixed functions.
+/// The user should not need to implement these traits, nor use their methods
+/// directly. Changes made to this module will not be considered breaking
+/// changes.
+pub mod fixed_function {
+    use gpio::PinName;
+    use swm;
 
-    /// Enable the fixed function
-    ///
-    /// This method is intended for internal use. Please use
-    /// [`Pin::enable_function`] instead.
-    ///
-    /// [`Pin::enable_function`]: ../gpio/struct.Pin.html#method.enable_function
-    fn enable(&mut self, pin: &mut Self::Pin, swm: &mut Api);
 
-    /// Disable the fixed function
+    /// A fixed function
     ///
-    /// This method is intended for internal use. Please use
-    /// [`Pin::disable_function`] instead.
-    ///
-    /// [`Pin::disable_function`]: ../gpio/struct.Pin.html#method.disable_function
-    fn disable(&mut self, pin: &mut Self::Pin, swm: &mut Api);
+    /// This trait is implemented for all types that represent fixed functions.
+    /// The user should not need to implement this trait, nor use it directly.
+    /// Any changes to this trait will not be considered breaking changes.
+    pub trait FixedFunction {
+        /// The pin that this fixed function can be enabled on
+        type Pin: PinName;
+    }
+
+    /// Internal trait for disabled fixed functions that can be enabled
+    pub trait Enable: FixedFunction {
+        /// Enable the fixed function
+        ///
+        /// This method is intended for internal use. Please use
+        /// [`Pin::enable_function`] instead.
+        ///
+        /// [`Pin::enable_function`]: ../gpio/struct.Pin.html#method.enable_function
+        fn enable(&mut self, pin: &mut Self::Pin, swm: &mut swm::Api);
+    }
+
+    /// Internal trait for enabled fixed functions that can be disabled
+    pub trait Disable: FixedFunction {
+        /// Disable the fixed function
+        ///
+        /// This method is intended for internal use. Please use
+        /// [`Pin::disable_function`] instead.
+        ///
+        /// [`Pin::disable_function`]: ../gpio/struct.Pin.html#method.disable_function
+        fn disable(&mut self, pin: &mut Self::Pin, swm: &mut swm::Api);
+    }
 }
 
 macro_rules! fixed_functions {
@@ -377,11 +397,15 @@ macro_rules! fixed_functions {
 
             impl FixedFunction for $type {
                 type Pin = $pin;
+            }
 
+            impl fixed_function::Enable for $type {
                 fn enable(&mut self, _pin: &mut Self::Pin, swm: &mut Api) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
                 }
+            }
 
+            impl fixed_function::Disable for $type {
                 fn disable(&mut self, _pin: &mut Self::Pin, swm: &mut Api) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
                 }
