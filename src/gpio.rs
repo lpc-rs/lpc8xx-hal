@@ -185,12 +185,12 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// This method can be used to enable a fixed function for a pin that is
     /// currently used for something else. The HAL user needs to make sure that
     /// the fixed function doesn't conflict with any other uses of the pin.
-    pub fn enable_function<F>(mut self, function: &mut F, swm: &mut swm::Api)
-        -> Self
+    pub fn enable_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Self, F::Enabled)
         where F: FixedFunction<Pin=T> + fixed_function::Enable
     {
-        function.enable(&mut self.ty, swm);
-        self
+        let function = function.enable(&mut self.ty, swm);
+        (self, function)
     }
 
     /// Disable the fixed function on this pin
@@ -200,12 +200,12 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// This method can be used to disable a fixed function while other code
     /// relies on that fixed function being enabled. The HAL user needs to make
     /// sure not to use this method in any way that breaks other code.
-    pub fn disable_function<F>(mut self, function: &mut F, swm: &mut swm::Api)
-        -> Self
+    pub fn disable_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Self, F::Disabled)
         where F: FixedFunction<Pin=T> + fixed_function::Disable
     {
-        function.disable(&mut self.ty, swm);
-        self
+        let function = function.disable(&mut self.ty, swm);
+        (self, function)
     }
 
     /// Assign a movable function to the pin
