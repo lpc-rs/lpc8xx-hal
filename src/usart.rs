@@ -85,8 +85,8 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     )
         -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !>
         where
-            UsartX::Rx: movable_function::Assign,
-            UsartX::Tx: movable_function::Assign,
+            UsartX::Rx: movable_function::Assign<Rx>,
+            UsartX::Tx: movable_function::Assign<Tx>,
     {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);

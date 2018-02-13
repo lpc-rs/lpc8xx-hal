@@ -104,7 +104,7 @@ pub mod movable_function {
 
 
     /// Internal trait for unassigned movable functions that can be assigned
-    pub trait Assign {
+    pub trait Assign<P> where P: PinName {
         /// The type that is returned by [`assign`].
         ///
         /// Typically, this will be the same type that implements this trait,
@@ -120,13 +120,12 @@ pub mod movable_function {
         /// [`Pin::assign_function`] instead.
         ///
         /// [`Pin::assign_function`]: ../gpio/struct.Pin.html#method.assign_function
-        fn assign<P: PinName>(self, pin: &mut P, swm: &mut swm::Api)
-            -> Self::Assigned;
+        fn assign(self, pin: &mut P, swm: &mut swm::Api) -> Self::Assigned;
     }
 
 
     /// Internal trait for assigned movable functions that can be unassigned
-    pub trait Unassign {
+    pub trait Unassign<P> where P: PinName {
         /// The type that is returned by [`unassign`].
         ///
         /// Typically, this will be the same type that implements this trait,
@@ -142,8 +141,7 @@ pub mod movable_function {
         /// [`Pin::unassign_function`] instead.
         ///
         /// [`Pin::unassign_function`]: ../gpio/struct.Pin.html#method.unassign_function
-        fn unassign<P: PinName>(self, pin: &mut P, swm: &mut swm::Api)
-            -> Self::Unassigned;
+        fn unassign(self, pin: &mut P, swm: &mut swm::Api) -> Self::Unassigned;
     }
 }
 
@@ -177,10 +175,10 @@ macro_rules! movable_functions {
             #[allow(non_camel_case_types)]
             pub struct $type(());
 
-            impl movable_function::Assign for $type {
+            impl<P> movable_function::Assign<P> for $type where P: PinName {
                 type Assigned = Self;
 
-                fn assign<P: PinName>(self,
+                fn assign(self,
                     _pin: &mut P,
                     swm : &mut Api,
                 )
@@ -193,10 +191,10 @@ macro_rules! movable_functions {
                 }
             }
 
-            impl movable_function::Unassign for $type {
+            impl<P> movable_function::Unassign<P> for $type where P: PinName {
                 type Unassigned = Self;
 
-                fn unassign<P: PinName>(self,
+                fn unassign(self,
                     _pin: &mut P,
                     swm : &mut Api,
                 )

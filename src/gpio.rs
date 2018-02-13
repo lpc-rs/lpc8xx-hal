@@ -214,9 +214,9 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// this assignment doesn't conflict with any other uses of the pin.
     pub fn assign_function<F>(mut self, function: F, swm: &mut swm::Api)
         -> (Self, F::Assigned)
-        where F: movable_function::Assign
+        where F: movable_function::Assign<T>
     {
-        let function = function.assign::<T>(&mut self.ty, swm);
+        let function = function.assign(&mut self.ty, swm);
         (self, function)
     }
 
@@ -229,9 +229,9 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// HAL user is responsible for making sure this method is used correctly.
     pub fn unassign_function<F>(mut self, function: F, swm: &mut swm::Api)
         -> (Self, F::Unassigned)
-        where F: movable_function::Unassign
+        where F: movable_function::Unassign<T>
     {
-        let function = function.unassign::<T>(&mut self.ty, swm);
+        let function = function.unassign(&mut self.ty, swm);
         (self, function)
     }
 
