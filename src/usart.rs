@@ -25,7 +25,10 @@ use init_state::{
     self,
     InitState,
 };
-use swm;
+use swm::{
+    self,
+    movable_function,
+};
 use syscon::{
     self,
     UARTFRG,
@@ -81,6 +84,9 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         swm      : &mut swm::Api,
     )
         -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !>
+        where
+            UsartX::Rx: movable_function::Assign,
+            UsartX::Tx: movable_function::Assign,
     {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
@@ -299,10 +305,10 @@ pub trait Peripheral:
     const INTERRUPT: Interrupt;
 
     /// The movable function that needs to be assigned to this USART's RX pin
-    type Rx: swm::movable_function::Assign;
+    type Rx;
 
     /// The movable function that needs to be assigned to this USART's TX pin
-    type Tx: swm::movable_function::Assign;
+    type Tx;
 }
 
 impl Peripheral for lpc82x::USART0 {
