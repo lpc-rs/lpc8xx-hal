@@ -395,7 +395,7 @@ pub mod fixed_function {
 
 macro_rules! fixed_functions {
     ($($type:ident, $field:ident, $pin:ty;)*) => {
-        // Provides access to all fixed functions
+        /// Provides access to all fixed functions
         #[allow(missing_docs)]
         pub struct FixedFunctions {
             $(pub $field: $type,)*
