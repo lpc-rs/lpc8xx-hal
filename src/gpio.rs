@@ -182,10 +182,12 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// This method can be used to enable a fixed function for a pin that is
     /// currently used for something else. The HAL user needs to make sure that
     /// the fixed function doesn't conflict with any other uses of the pin.
-    pub fn enable_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
+    pub fn enable_function<F>(mut self, function: &mut F, swm: &mut swm::Api)
+        -> Self
         where F: FixedFunction<Pin=T>
     {
         function.enable(&mut self.ty, swm);
+        self
     }
 
     /// Disable the fixed function on this pin
@@ -195,10 +197,12 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// This method can be used to disable a fixed function while other code
     /// relies on that fixed function being enabled. The HAL user needs to make
     /// sure not to use this method in any way that breaks other code.
-    pub fn disable_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
+    pub fn disable_function<F>(mut self, function: &mut F, swm: &mut swm::Api)
+        -> Self
         where F: FixedFunction<Pin=T>
     {
         function.disable(&mut self.ty, swm);
+        self
     }
 
     /// Assign a movable function to the pin
@@ -208,10 +212,12 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// This method can be used to assign a movable function to pins that are
     /// currently used for something else. The HAL user needs to make sure that
     /// this assignment doesn't conflict with any other uses of the pin.
-    pub fn assign_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
+    pub fn assign_function<F>(mut self, function: &mut F, swm: &mut swm::Api)
+        -> Self
         where F: movable_function::Assign
     {
         function.assign::<T>(&mut self.ty, swm);
+        self
     }
 
     /// Unassign a movable function from the pin
@@ -221,10 +227,12 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// This method can be used to unassign a movable function from a pin, while
     /// other parts of the code still rely on that function being assigned. The
     /// HAL user is responsible for making sure this method is used correctly.
-    pub fn unassign_function<F>(&mut self, function: &mut F, swm: &mut swm::Api)
+    pub fn unassign_function<F>(mut self, function: &mut F, swm: &mut swm::Api)
+        -> Self
         where F: movable_function::Unassign
     {
         function.unassign::<T>(&mut self.ty, swm);
+        self
     }
 
     /// Makes this pin available for GPIO
