@@ -212,12 +212,12 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// This method can be used to assign a movable function to pins that are
     /// currently used for something else. The HAL user needs to make sure that
     /// this assignment doesn't conflict with any other uses of the pin.
-    pub fn assign_function<F>(mut self, function: &mut F, swm: &mut swm::Api)
-        -> Self
+    pub fn assign_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Self, F::Assigned)
         where F: movable_function::Assign
     {
-        function.assign::<T>(&mut self.ty, swm);
-        self
+        let function = function.assign::<T>(&mut self.ty, swm);
+        (self, function)
     }
 
     /// Unassign a movable function from the pin
@@ -227,12 +227,12 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// This method can be used to unassign a movable function from a pin, while
     /// other parts of the code still rely on that function being assigned. The
     /// HAL user is responsible for making sure this method is used correctly.
-    pub fn unassign_function<F>(mut self, function: &mut F, swm: &mut swm::Api)
-        -> Self
+    pub fn unassign_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Self, F::Unassigned)
         where F: movable_function::Unassign
     {
-        function.unassign::<T>(&mut self.ty, swm);
-        self
+        let function = function.unassign::<T>(&mut self.ty, swm);
+        (self, function)
     }
 
     /// Makes this pin available for GPIO

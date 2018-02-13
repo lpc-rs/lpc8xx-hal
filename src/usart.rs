@@ -76,8 +76,8 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         syscon   : &mut syscon::Api,
         rx       : Pin<Rx, pin_state::Unknown>,
         tx       : Pin<Tx, pin_state::Unknown>,
-        rxd      : &mut UsartX::Rx,
-        txd      : &mut UsartX::Tx,
+        rxd      : UsartX::Rx,
+        txd      : UsartX::Tx,
         swm      : &mut swm::Api,
     )
         -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !>

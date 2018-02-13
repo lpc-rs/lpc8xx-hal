@@ -105,25 +105,45 @@ pub mod movable_function {
 
     /// Internal trait for unassigned movable functions that can be assigned
     pub trait Assign {
+        /// The type that is returned by [`assign`].
+        ///
+        /// Typically, this will be the same type that implements this trait,
+        /// but with a type parameter changed to indicate that the function has
+        /// been assigned to a pin.
+        ///
+        /// [`assign`]: #tymethod.assign
+        type Assigned;
+
         /// Assigns the movable function to a pin
         ///
         /// This method is intended for internal use. Please use
         /// [`Pin::assign_function`] instead.
         ///
         /// [`Pin::assign_function`]: ../gpio/struct.Pin.html#method.assign_function
-        fn assign<P: PinName>(&mut self, pin: &mut P, swm: &mut swm::Api);
+        fn assign<P: PinName>(self, pin: &mut P, swm: &mut swm::Api)
+            -> Self::Assigned;
     }
 
 
     /// Internal trait for assigned movable functions that can be unassigned
     pub trait Unassign {
+        /// The type that is returned by [`unassign`].
+        ///
+        /// Typically, this will be the same type that implements this trait,
+        /// but with a type parameter changed to indicate that the function is
+        /// no longer assigned to a pin.
+        ///
+        /// [`unassign`]: #tymethod.unassign
+        type Unassigned;
+
         /// Unassign the movable function
         ///
         /// This method is intended for internal use. Please use
         /// [`Pin::unassign_function`] instead.
         ///
         /// [`Pin::unassign_function`]: ../gpio/struct.Pin.html#method.unassign_function
-        fn unassign<P: PinName>(&mut self, pin: &mut P, swm: &mut swm::Api);
+        fn unassign<P: PinName>(self, pin: &mut P, swm: &mut swm::Api)
+            -> Self::Unassigned;
     }
 }
 
@@ -158,24 +178,34 @@ macro_rules! movable_functions {
             pub struct $type(());
 
             impl movable_function::Assign for $type {
-                fn assign<P: PinName>(&mut self,
+                type Assigned = Self;
+
+                fn assign<P: PinName>(self,
                     _pin: &mut P,
                     swm : &mut Api,
-                ) {
+                )
+                    -> Self::Assigned
+                {
                     swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(P::ID) }
-                    )
+                    );
+                    self
                 }
             }
 
             impl movable_function::Unassign for $type {
-                fn unassign<P: PinName>(&mut self,
+                type Unassigned = Self;
+
+                fn unassign<P: PinName>(self,
                     _pin: &mut P,
                     swm : &mut Api,
-                ) {
+                )
+                    -> Self::Unassigned
+                {
                     swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(0xff) }
-                    )
+                    );
+                    self
                 }
             }
         )*
