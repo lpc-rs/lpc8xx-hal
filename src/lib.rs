@@ -156,12 +156,16 @@
 //!     peripherals.syscon.ircout,
 //! );
 //!
+//! // We haven't done anything to enable or disable any fixed functions before
+//! // initializing the HAL. Therefore we can safely affirm that the fixed
+//! // function still is in its default state.
+//! let swclk = unsafe {
+//!     peripherals.swm.fixed_functions.swclk.affirm_default_state()
+//! };
+//!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
 //! let (pio0_3, _) = peripherals.gpio.pins.pio0_3
-//!     .disable_function(
-//!         peripherals.swm.fixed_functions.swclk,
-//!         &mut swm,
-//!     );
+//!     .disable_function(swclk, &mut swm);
 //! let mut pio0_3 = pio0_3
 //!     .as_gpio_pin(&gpio)
 //!     .as_output();

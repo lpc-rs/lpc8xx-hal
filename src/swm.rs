@@ -430,13 +430,13 @@ macro_rules! fixed_functions {
         /// Provides access to all fixed functions
         #[allow(missing_docs)]
         pub struct FixedFunctions {
-            $(pub $field: $type,)*
+            $(pub $field: $type<fixed_function::state::Unknown>,)*
         }
 
         impl FixedFunctions {
             fn new() -> Self {
                 FixedFunctions {
-                    $($field: $type(()),)*
+                    $($field: $type(PhantomData),)*
                 }
             }
         }
@@ -445,33 +445,60 @@ macro_rules! fixed_functions {
         $(
             /// Represents a fixed function
             #[allow(non_camel_case_types)]
-            pub struct $type(());
+            pub struct $type<State>(PhantomData<State>)
+                where State: fixed_function::state::State;
 
-            impl FixedFunction for $type {
+            impl $type<fixed_function::state::Unknown> {
+                /// Affirm that the fixed function is in its default state
+                ///
+                /// By calling this method, the user promises that the fixed
+                /// function is in its default state. This is safe to do, if
+                /// nothing has changed that state before the HAL has been
+                /// initialized.
+                ///
+                /// If the fixed function's state has been changed by any other
+                /// means than the HAL API, then the user must use those means
+                /// to return the fixed function to its default state, as
+                /// specified in the user manual, before calling this method.
+                pub unsafe fn affirm_default_state(self)
+                    -> $type<<Self as FixedFunction>::DefaultState>
+                {
+                    $type(PhantomData)
+                }
+
+            }
+
+            impl<State> FixedFunction for $type<State>
+                where State: fixed_function::state::State
+            {
                 type Pin = $pin;
 
                 type DefaultState = fixed_function::state::$default_state;
             }
 
-            impl fixed_function::Enable for $type {
-                type Enabled = Self;
+            impl fixed_function::Enable for
+                $type<fixed_function::state::Disabled>
+            {
+                type Enabled = $type<fixed_function::state::Enabled>;
 
                 fn enable(self, _pin: &mut Self::Pin, swm: &mut Api)
                     -> Self::Enabled
                 {
                     swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
-                    self
+                    $type(PhantomData)
                 }
             }
 
-            impl fixed_function::Disable for $type {
-                type Disabled = Self;
+            impl fixed_function::Disable for
+                $type<fixed_function::state::Enabled>
+            {
+                type Disabled = $type<fixed_function::state::Disabled>;
 
                 fn disable(self, _pin: &mut Self::Pin, swm: &mut Api)
                     -> Self::Disabled
                 {
                     swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
-                    self
+                    $type(PhantomData)
                 }
             }
         )*
