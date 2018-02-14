@@ -25,7 +25,10 @@ use init_state::{
     self,
     InitState,
 };
-use swm;
+use swm::{
+    self,
+    movable_function,
+};
 use syscon::{
     self,
     UARTFRG,
@@ -74,13 +77,16 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     pub fn init<Rx: PinName, Tx: PinName>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Api,
-        rx       : &mut Pin<Rx, pin_state::Unknown>,
-        tx       : &mut Pin<Tx, pin_state::Unknown>,
-        rxd      : &mut UsartX::Rx,
-        txd      : &mut UsartX::Tx,
+        rx       : Pin<Rx, pin_state::Unknown>,
+        tx       : Pin<Tx, pin_state::Unknown>,
+        rxd      : UsartX::Rx,
+        txd      : UsartX::Tx,
         swm      : &mut swm::Api,
     )
         -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !>
+        where
+            UsartX::Rx: movable_function::Assign<Rx>,
+            UsartX::Tx: movable_function::Assign<Tx>,
     {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
@@ -299,31 +305,31 @@ pub trait Peripheral:
     const INTERRUPT: Interrupt;
 
     /// The movable function that needs to be assigned to this USART's RX pin
-    type Rx: swm::MovableFunction;
+    type Rx;
 
     /// The movable function that needs to be assigned to this USART's TX pin
-    type Tx: swm::MovableFunction;
+    type Tx;
 }
 
 impl Peripheral for lpc82x::USART0 {
     const INTERRUPT: Interrupt = Interrupt::UART0;
 
-    type Rx = swm::U0_RXD;
-    type Tx = swm::U0_TXD;
+    type Rx = swm::U0_RXD<movable_function::state::Unassigned>;
+    type Tx = swm::U0_TXD<movable_function::state::Unassigned>;
 }
 
 impl Peripheral for lpc82x::USART1 {
     const INTERRUPT: Interrupt = Interrupt::UART1;
 
-    type Rx = swm::U1_RXD;
-    type Tx = swm::U1_TXD;
+    type Rx = swm::U1_RXD<movable_function::state::Unassigned>;
+    type Tx = swm::U1_TXD<movable_function::state::Unassigned>;
 }
 
 impl Peripheral for lpc82x::USART2 {
     const INTERRUPT: Interrupt = Interrupt::UART2;
 
-    type Rx = swm::U2_RXD;
-    type Tx = swm::U2_TXD;
+    type Rx = swm::U2_RXD<movable_function::state::Unassigned>;
+    type Tx = swm::U2_TXD<movable_function::state::Unassigned>;
 }
 
 
