@@ -339,6 +339,8 @@ pub mod fixed_function {
     use gpio::PinName;
     use swm;
 
+    use self::state::State;
+
 
     /// A fixed function
     ///
@@ -348,6 +350,9 @@ pub mod fixed_function {
     pub trait FixedFunction {
         /// The pin that this fixed function can be enabled on
         type Pin: PinName;
+
+        /// The default state of this function
+        type DefaultState: State;
     }
 
     /// Internal trait for disabled fixed functions that can be enabled
@@ -391,10 +396,37 @@ pub mod fixed_function {
         fn disable(self, pin: &mut Self::Pin, swm: &mut swm::Api)
             -> Self::Disabled;
     }
+
+
+    /// Contains types that indicate the state of a fixed function
+    pub mod state {
+        /// Implemented by types that indicate the state of a fixed function
+        ///
+        /// This trait is implemented by types that indicate the state of a
+        /// fixed function. It exists only to document which types those are.
+        /// The user should not need to implement this trait, nor use it
+        /// directly.
+        pub trait State {}
+
+        /// Indicates that the current state of the fixed function is unknown
+        ///
+        /// This is the case after the HAL is initialized, as we can't know what
+        /// happened before that.
+        pub struct Unknown;
+        impl State for Unknown {}
+
+        /// Indicates that the fixed function is disabled
+        pub struct Disabled;
+        impl State for Disabled {}
+
+        /// Indicates that the fixed function is enabled
+        pub struct Enabled;
+        impl State for Enabled {}
+    }
 }
 
 macro_rules! fixed_functions {
-    ($($type:ident, $field:ident, $pin:ty;)*) => {
+    ($($type:ident, $field:ident, $pin:ty, $default_state:ident;)*) => {
         /// Provides access to all fixed functions
         #[allow(missing_docs)]
         pub struct FixedFunctions {
@@ -417,6 +449,8 @@ macro_rules! fixed_functions {
 
             impl FixedFunction for $type {
                 type Pin = $pin;
+
+                type DefaultState = fixed_function::state::$default_state;
             }
 
             impl fixed_function::Enable for $type {
@@ -445,29 +479,29 @@ macro_rules! fixed_functions {
 }
 
 fixed_functions!(
-    ACMP_I1 , acmp_i1 , PIO0_0;
-    ACMP_I2 , acmp_i2 , PIO0_1;
-    ACMP_I3 , acmp_i3 , PIO0_14;
-    ACMP_I4 , acmp_i4 , PIO0_23;
-    SWCLK   , swclk   , PIO0_3;
-    SWDIO   , swdio   , PIO0_2;
-    XTALIN  , xtalin  , PIO0_8;
-    XTALOUT , xtalout , PIO0_9;
-    RESETN  , resetn  , PIO0_5;
-    CLKIN   , clkin   , PIO0_1;
-    VDDCMP  , vddcmp  , PIO0_6;
-    I2C0_SDA, i2c0_sda, PIO0_11;
-    I2C0_SCL, i2c0_scl, PIO0_10;
-    ADC_0   , adc_0   , PIO0_7;
-    ADC_1   , adc_1   , PIO0_6;
-    ADC_2   , adc_2   , PIO0_14;
-    ADC_3   , adc_3   , PIO0_23;
-    ADC_4   , adc_4   , PIO0_22;
-    ADC_5   , adc_5   , PIO0_21;
-    ADC_6   , adc_6   , PIO0_20;
-    ADC_7   , adc_7   , PIO0_19;
-    ADC_8   , adc_8   , PIO0_18;
-    ADC_9   , adc_9   , PIO0_17;
-    ADC_10  , adc_10  , PIO0_13;
-    ADC_11  , adc_11  , PIO0_4;
+    ACMP_I1 , acmp_i1 , PIO0_0 , Disabled;
+    ACMP_I2 , acmp_i2 , PIO0_1 , Disabled;
+    ACMP_I3 , acmp_i3 , PIO0_14, Disabled;
+    ACMP_I4 , acmp_i4 , PIO0_23, Disabled;
+    SWCLK   , swclk   , PIO0_3 , Enabled;
+    SWDIO   , swdio   , PIO0_2 , Enabled;
+    XTALIN  , xtalin  , PIO0_8 , Disabled;
+    XTALOUT , xtalout , PIO0_9 , Disabled;
+    RESETN  , resetn  , PIO0_5 , Enabled;
+    CLKIN   , clkin   , PIO0_1 , Disabled;
+    VDDCMP  , vddcmp  , PIO0_6 , Disabled;
+    I2C0_SDA, i2c0_sda, PIO0_11, Disabled;
+    I2C0_SCL, i2c0_scl, PIO0_10, Disabled;
+    ADC_0   , adc_0   , PIO0_7 , Disabled;
+    ADC_1   , adc_1   , PIO0_6 , Disabled;
+    ADC_2   , adc_2   , PIO0_14, Disabled;
+    ADC_3   , adc_3   , PIO0_23, Disabled;
+    ADC_4   , adc_4   , PIO0_22, Disabled;
+    ADC_5   , adc_5   , PIO0_21, Disabled;
+    ADC_6   , adc_6   , PIO0_20, Disabled;
+    ADC_7   , adc_7   , PIO0_19, Disabled;
+    ADC_8   , adc_8   , PIO0_18, Disabled;
+    ADC_9   , adc_9   , PIO0_17, Disabled;
+    ADC_10  , adc_10  , PIO0_13, Disabled;
+    ADC_11  , adc_11  , PIO0_4 , Disabled;
 );
