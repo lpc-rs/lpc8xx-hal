@@ -242,9 +242,9 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     ///
     /// # Limitations
     ///
-    /// This method doesn't disable any fixed functions or unsassign any
-    /// movable functions. Before calling this function, the user must manually
-    /// disable or unassign any active functions on this pin.
+    /// This method doesn't disable any fixed functions or unassign any movable
+    /// functions. Before calling this function, the user must manually disable
+    /// or unassign any active functions on this pin.
     pub fn as_gpio_pin<'gpio>(self, gpio: &'gpio Handle<'gpio>)
         -> Pin<T, pin_state::Gpio<'gpio, direction::Unknown>>
     {
