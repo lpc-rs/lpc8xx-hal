@@ -13,6 +13,7 @@ use init_state::{
 use swm::{
     self,
     movable_function,
+    AdcFunction,
 };
 use swm::fixed_function::{
     self,
@@ -238,6 +239,37 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
         (self, function)
     }
 
+    /// Makes the pin available for the ADC
+    ///
+    /// # Limitations
+    ///
+    /// This method doesn't disable any fixed functions or unassign any movable
+    /// functions. Before calling this function, the user must manually disable
+    /// or unassign any active functions on this pin.
+    ///
+    /// This method enables the analog function for this pin via the switch
+    /// matrix, but as of now, there is no HAL API to actually control the ADC.
+    /// You can use this method to enable the analog function and make sure that
+    /// no conflicting functions can be enabled for the pin. After that, you
+    /// need to use the raw [`IOCON`] and [`ADC`] register mappings to actually
+    /// do anything with it.
+    ///
+    /// [`IOCON`]: ../../lpc82x/constant.IOCON.html
+    /// [`ADC`]: ../../lpc82x/constant.ADC.html
+    pub fn as_adc_pin<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Pin<T, pin_state::Adc>, F::Enabled)
+        where F: AdcFunction + FixedFunction<Pin=T> + fixed_function::Enable
+    {
+        let function = function.enable(&mut self.ty, swm);
+
+        let pin = Pin {
+            ty   : self.ty,
+            state: pin_state::Adc,
+        };
+
+        (pin, function)
+    }
+
     /// Makes this pin available for GPIO
     ///
     /// # Limitations
@@ -344,6 +376,12 @@ pub mod pin_state {
     pub struct Unknown;
 
     impl PinState for Unknown {}
+
+
+    /// Marks the pin as being assigned to the analog-to-digital converter
+    pub struct Adc;
+
+    impl PinState for Adc {}
 
 
     /// Marks a pin as being assigned to general-purpose I/O
