@@ -28,6 +28,7 @@ use init_state::{
 use swm::{
     self,
     movable_function,
+    OutputFunction,
 };
 use syscon::{
     self,
@@ -86,7 +87,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !>
         where
             UsartX::Rx: movable_function::Assign<Rx>,
-            UsartX::Tx: movable_function::Assign<Tx>,
+            UsartX::Tx: movable_function::Assign<Tx> + OutputFunction,
     {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
@@ -96,7 +97,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
             .assign_function(rxd, swm);
         tx
             .as_swm_pin()
-            .assign_function(txd, swm);
+            .assign_output_function(txd, swm);
 
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 

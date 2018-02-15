@@ -14,6 +14,7 @@ use swm::{
     self,
     movable_function,
     AdcFunction,
+    OutputFunction,
 };
 use swm::fixed_function::{
     self,
@@ -156,35 +157,35 @@ macro_rules! pins {
 }
 
 pins!(
-    pio0_0 , PIO0_0 , 0x00, pin_state::Unused, pin_state::Unused;
-    pio0_1 , PIO0_1 , 0x01, pin_state::Unused, pin_state::Unused;
-    pio0_2 , PIO0_2 , 0x02, pin_state::Swm   , pin_state::Swm;
-    pio0_3 , PIO0_3 , 0x03, pin_state::Swm   , pin_state::Swm;
-    pio0_4 , PIO0_4 , 0x04, pin_state::Unused, pin_state::Unused;
-    pio0_5 , PIO0_5 , 0x05, pin_state::Swm   , pin_state::Swm;
-    pio0_6 , PIO0_6 , 0x06, pin_state::Unused, pin_state::Unused;
-    pio0_7 , PIO0_7 , 0x07, pin_state::Unused, pin_state::Unused;
-    pio0_8 , PIO0_8 , 0x08, pin_state::Unused, pin_state::Unused;
-    pio0_9 , PIO0_9 , 0x09, pin_state::Unused, pin_state::Unused;
-    pio0_10, PIO0_10, 0x0a, pin_state::Unused, pin_state::Unused;
-    pio0_11, PIO0_11, 0x0b, pin_state::Unused, pin_state::Unused;
-    pio0_12, PIO0_12, 0x0c, pin_state::Unused, pin_state::Unused;
-    pio0_13, PIO0_13, 0x0d, pin_state::Unused, pin_state::Unused;
-    pio0_14, PIO0_14, 0x0e, pin_state::Unused, pin_state::Unused;
-    pio0_15, PIO0_15, 0x0f, pin_state::Unused, pin_state::Unused;
-    pio0_16, PIO0_16, 0x10, pin_state::Unused, pin_state::Unused;
-    pio0_17, PIO0_17, 0x11, pin_state::Unused, pin_state::Unused;
-    pio0_18, PIO0_18, 0x12, pin_state::Unused, pin_state::Unused;
-    pio0_19, PIO0_19, 0x13, pin_state::Unused, pin_state::Unused;
-    pio0_20, PIO0_20, 0x14, pin_state::Unused, pin_state::Unused;
-    pio0_21, PIO0_21, 0x15, pin_state::Unused, pin_state::Unused;
-    pio0_22, PIO0_22, 0x16, pin_state::Unused, pin_state::Unused;
-    pio0_23, PIO0_23, 0x17, pin_state::Unused, pin_state::Unused;
-    pio0_24, PIO0_24, 0x18, pin_state::Unused, pin_state::Unused;
-    pio0_25, PIO0_25, 0x19, pin_state::Unused, pin_state::Unused;
-    pio0_26, PIO0_26, 0x1a, pin_state::Unused, pin_state::Unused;
-    pio0_27, PIO0_27, 0x1b, pin_state::Unused, pin_state::Unused;
-    pio0_28, PIO0_28, 0x1c, pin_state::Unused, pin_state::Unused;
+    pio0_0 , PIO0_0 , 0x00, pin_state::Unused    , pin_state::Unused;
+    pio0_1 , PIO0_1 , 0x01, pin_state::Unused    , pin_state::Unused;
+    pio0_2 , PIO0_2 , 0x02, pin_state::Swm<((),)>, pin_state::Swm(((),));
+    pio0_3 , PIO0_3 , 0x03, pin_state::Swm<((),)>, pin_state::Swm(((),));
+    pio0_4 , PIO0_4 , 0x04, pin_state::Unused    , pin_state::Unused;
+    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<()>   , pin_state::Swm(());
+    pio0_6 , PIO0_6 , 0x06, pin_state::Unused    , pin_state::Unused;
+    pio0_7 , PIO0_7 , 0x07, pin_state::Unused    , pin_state::Unused;
+    pio0_8 , PIO0_8 , 0x08, pin_state::Unused    , pin_state::Unused;
+    pio0_9 , PIO0_9 , 0x09, pin_state::Unused    , pin_state::Unused;
+    pio0_10, PIO0_10, 0x0a, pin_state::Unused    , pin_state::Unused;
+    pio0_11, PIO0_11, 0x0b, pin_state::Unused    , pin_state::Unused;
+    pio0_12, PIO0_12, 0x0c, pin_state::Unused    , pin_state::Unused;
+    pio0_13, PIO0_13, 0x0d, pin_state::Unused    , pin_state::Unused;
+    pio0_14, PIO0_14, 0x0e, pin_state::Unused    , pin_state::Unused;
+    pio0_15, PIO0_15, 0x0f, pin_state::Unused    , pin_state::Unused;
+    pio0_16, PIO0_16, 0x10, pin_state::Unused    , pin_state::Unused;
+    pio0_17, PIO0_17, 0x11, pin_state::Unused    , pin_state::Unused;
+    pio0_18, PIO0_18, 0x12, pin_state::Unused    , pin_state::Unused;
+    pio0_19, PIO0_19, 0x13, pin_state::Unused    , pin_state::Unused;
+    pio0_20, PIO0_20, 0x14, pin_state::Unused    , pin_state::Unused;
+    pio0_21, PIO0_21, 0x15, pin_state::Unused    , pin_state::Unused;
+    pio0_22, PIO0_22, 0x16, pin_state::Unused    , pin_state::Unused;
+    pio0_23, PIO0_23, 0x17, pin_state::Unused    , pin_state::Unused;
+    pio0_24, PIO0_24, 0x18, pin_state::Unused    , pin_state::Unused;
+    pio0_25, PIO0_25, 0x19, pin_state::Unused    , pin_state::Unused;
+    pio0_26, PIO0_26, 0x1a, pin_state::Unused    , pin_state::Unused;
+    pio0_27, PIO0_27, 0x1b, pin_state::Unused    , pin_state::Unused;
+    pio0_28, PIO0_28, 0x1c, pin_state::Unused    , pin_state::Unused;
 );
 
 
@@ -257,10 +258,10 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     }
 
     /// Makes this pin available for function assignment by the switch matrix
-    pub fn as_swm_pin(self) -> Pin<T, pin_state::Swm> {
+    pub fn as_swm_pin(self) -> Pin<T, pin_state::Swm<()>> {
         Pin {
             ty   : self.ty,
-            state: pin_state::Swm,
+            state: pin_state::Swm(()),
         }
     }
 }
@@ -319,7 +320,71 @@ impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
     }
 }
 
-impl<T> Pin<T, pin_state::Swm> where T: PinName {
+impl<T> Pin<T, pin_state::Swm<()>> where T: PinName {
+    /// Enable the fixed function on this pin
+    pub fn enable_output_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Pin<T, pin_state::Swm<((),)>>, F::Enabled)
+        where F: OutputFunction + FixedFunction<Pin=T> + fixed_function::Enable
+    {
+        let function = function.enable(&mut self.ty, swm);
+
+        let pin = Pin {
+            ty   : self.ty,
+            state: pin_state::Swm(((),)),
+        };
+
+        (pin, function)
+    }
+
+    /// Assign a movable function to the pin
+    pub fn assign_output_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Pin<T, pin_state::Swm<((),)>>, F::Assigned)
+        where F: OutputFunction + movable_function::Assign<T>
+    {
+        let function = function.assign(&mut self.ty, swm);
+
+        let pin = Pin {
+            ty   : self.ty,
+            state: pin_state::Swm(((),)),
+        };
+
+        (pin, function)
+    }
+}
+
+impl<T> Pin<T, pin_state::Swm<((),)>> where T: PinName {
+    /// Disable the fixed function on this pin
+    pub fn disable_output_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Pin<T, pin_state::Swm<()>>, F::Disabled)
+        where F: OutputFunction + FixedFunction<Pin=T> + fixed_function::Disable
+    {
+        let function = function.disable(&mut self.ty, swm);
+
+        let pin = Pin {
+            ty   : self.ty,
+            state: pin_state::Swm(()),
+        };
+
+        (pin, function)
+    }
+
+    /// Unassign a movable function from the pin
+    pub fn unassign_output_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Pin<T, pin_state::Swm<()>>, F::Unassigned)
+        where F: OutputFunction + movable_function::Unassign<T>
+    {
+        let function = function.unassign(&mut self.ty, swm);
+
+        let pin = Pin {
+            ty   : self.ty,
+            state: pin_state::Swm(()),
+        };
+
+        (pin, function)
+    }
+}
+
+impl<T, Outputs> Pin<T, pin_state::Swm<Outputs>> where T: PinName {
     /// Enable the fixed function on this pin
     ///
     /// # Limitations
@@ -367,14 +432,16 @@ impl<T> Pin<T, pin_state::Swm> where T: PinName {
         let function = function.unassign(&mut self.ty, swm);
         (self, function)
     }
+}
 
+impl<T> Pin<T, pin_state::Swm<()>> where T: PinName {
     /// Marks the pin as being unused
     ///
     /// # Limitations
     ///
-    /// This method doesn't ensure that all fixed and movable functions have
-    /// actually been unassigned. Please make sure that no fixed or movable
-    /// functions are assigned to this pin before calling this method.
+    /// This method doesn't ensure that all input functions have been
+    /// unassigned. You must make sure that no input functions have been
+    /// assigned to the pin before calling this method.
     pub fn as_unused_pin(self) -> Pin<T, pin_state::Unused> {
         Pin {
             ty   : self.ty,
@@ -439,9 +506,14 @@ pub mod pin_state {
 
 
     /// Marks a ping as being available for switch matrix function assigment
-    pub struct Swm;
+    ///
+    /// The `Output` type parameter tracks whether an output function has been
+    /// assigned. It uses nested tuples to achieve this, the empty tuple `()`
+    /// representing zero assigned output functions, `((),)` representing one
+    /// assigned output function.
+    pub struct Swm<Output>(pub(crate) Output);
 
-    impl PinState for Swm {}
+    impl<Output> PinState for Swm<Output> {}
 }
 
 
