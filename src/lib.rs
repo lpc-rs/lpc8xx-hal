@@ -163,9 +163,14 @@
 //!     peripherals.swm.fixed_functions.swclk.affirm_default_state()
 //! };
 //!
+//! // Affirm that PIO0_3 is in its initial state. This is safe to do, as we
+//! // haven't done anything with it since the microcontroller was initialized.
+//! // Calling this method makes sure the compiler knows the initial state of
+//! // this pin, allowing it to prevent any mistakes we could make in its use.
+//! let pio0_3 = unsafe { peripherals.gpio.pins.pio0_3.affirm_default_state() };
+//!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
-//! let (pio0_3, _) = peripherals.gpio.pins.pio0_3
-//!     .as_swm_pin()
+//! let (pio0_3, _) = pio0_3
 //!     .disable_function(swclk, &mut swm);
 //! let mut pio0_3 = pio0_3
 //!     .as_unused_pin()

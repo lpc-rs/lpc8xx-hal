@@ -85,6 +85,9 @@ impl<'gpio> Handle<'gpio, init_state::Unknown> {
 /// parameters and use the methods of this trait to take care of the low-level
 /// details.
 pub trait PinName {
+    /// The default state of the pin after microcontroller initialization
+    type DefaultState: PinState;
+
     /// A number that identifies the pin
     ///
     /// This is `0` for [`PIO0_0`], `1` for [`PIO0_1`] and so forth.
@@ -101,11 +104,20 @@ pub trait PinName {
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO0_1`]: struct.PIO0_1.html
     const MASK: u32;
+
+    /// The initial value of the pin state after microcontroller initialization
+    const INITIAL_STATE: Self::DefaultState;
 }
 
 
 macro_rules! pins {
-    ($($field:ident, $type:ident, $id:expr;)*) => {
+    ($(
+        $field:ident,
+        $type:ident,
+        $id:expr,
+        $default_state:ty,
+        $default_state_val:expr;
+    )*) => {
         /// Provides access to all pins
         #[allow(missing_docs)]
         pub struct Pins {
@@ -132,43 +144,47 @@ macro_rules! pins {
             pub struct $type(());
 
             impl PinName for $type {
+                type DefaultState = $default_state;
+
                 const ID  : u8  = $id;
                 const MASK: u32 = 0x1 << $id;
+
+                const INITIAL_STATE: Self::DefaultState = $default_state_val;
             }
         )*
     }
 }
 
 pins!(
-    pio0_0 , PIO0_0 , 0x00;
-    pio0_1 , PIO0_1 , 0x01;
-    pio0_2 , PIO0_2 , 0x02;
-    pio0_3 , PIO0_3 , 0x03;
-    pio0_4 , PIO0_4 , 0x04;
-    pio0_5 , PIO0_5 , 0x05;
-    pio0_6 , PIO0_6 , 0x06;
-    pio0_7 , PIO0_7 , 0x07;
-    pio0_8 , PIO0_8 , 0x08;
-    pio0_9 , PIO0_9 , 0x09;
-    pio0_10, PIO0_10, 0x0a;
-    pio0_11, PIO0_11, 0x0b;
-    pio0_12, PIO0_12, 0x0c;
-    pio0_13, PIO0_13, 0x0d;
-    pio0_14, PIO0_14, 0x0e;
-    pio0_15, PIO0_15, 0x0f;
-    pio0_16, PIO0_16, 0x10;
-    pio0_17, PIO0_17, 0x11;
-    pio0_18, PIO0_18, 0x12;
-    pio0_19, PIO0_19, 0x13;
-    pio0_20, PIO0_20, 0x14;
-    pio0_21, PIO0_21, 0x15;
-    pio0_22, PIO0_22, 0x16;
-    pio0_23, PIO0_23, 0x17;
-    pio0_24, PIO0_24, 0x18;
-    pio0_25, PIO0_25, 0x19;
-    pio0_26, PIO0_26, 0x1a;
-    pio0_27, PIO0_27, 0x1b;
-    pio0_28, PIO0_28, 0x1c;
+    pio0_0 , PIO0_0 , 0x00, pin_state::Unused, pin_state::Unused;
+    pio0_1 , PIO0_1 , 0x01, pin_state::Unused, pin_state::Unused;
+    pio0_2 , PIO0_2 , 0x02, pin_state::Swm   , pin_state::Swm;
+    pio0_3 , PIO0_3 , 0x03, pin_state::Swm   , pin_state::Swm;
+    pio0_4 , PIO0_4 , 0x04, pin_state::Unused, pin_state::Unused;
+    pio0_5 , PIO0_5 , 0x05, pin_state::Swm   , pin_state::Swm;
+    pio0_6 , PIO0_6 , 0x06, pin_state::Unused, pin_state::Unused;
+    pio0_7 , PIO0_7 , 0x07, pin_state::Unused, pin_state::Unused;
+    pio0_8 , PIO0_8 , 0x08, pin_state::Unused, pin_state::Unused;
+    pio0_9 , PIO0_9 , 0x09, pin_state::Unused, pin_state::Unused;
+    pio0_10, PIO0_10, 0x0a, pin_state::Unused, pin_state::Unused;
+    pio0_11, PIO0_11, 0x0b, pin_state::Unused, pin_state::Unused;
+    pio0_12, PIO0_12, 0x0c, pin_state::Unused, pin_state::Unused;
+    pio0_13, PIO0_13, 0x0d, pin_state::Unused, pin_state::Unused;
+    pio0_14, PIO0_14, 0x0e, pin_state::Unused, pin_state::Unused;
+    pio0_15, PIO0_15, 0x0f, pin_state::Unused, pin_state::Unused;
+    pio0_16, PIO0_16, 0x10, pin_state::Unused, pin_state::Unused;
+    pio0_17, PIO0_17, 0x11, pin_state::Unused, pin_state::Unused;
+    pio0_18, PIO0_18, 0x12, pin_state::Unused, pin_state::Unused;
+    pio0_19, PIO0_19, 0x13, pin_state::Unused, pin_state::Unused;
+    pio0_20, PIO0_20, 0x14, pin_state::Unused, pin_state::Unused;
+    pio0_21, PIO0_21, 0x15, pin_state::Unused, pin_state::Unused;
+    pio0_22, PIO0_22, 0x16, pin_state::Unused, pin_state::Unused;
+    pio0_23, PIO0_23, 0x17, pin_state::Unused, pin_state::Unused;
+    pio0_24, PIO0_24, 0x18, pin_state::Unused, pin_state::Unused;
+    pio0_25, PIO0_25, 0x19, pin_state::Unused, pin_state::Unused;
+    pio0_26, PIO0_26, 0x1a, pin_state::Unused, pin_state::Unused;
+    pio0_27, PIO0_27, 0x1b, pin_state::Unused, pin_state::Unused;
+    pio0_28, PIO0_28, 0x1c, pin_state::Unused, pin_state::Unused;
 );
 
 
@@ -179,13 +195,28 @@ pub struct Pin<T: PinName, S: PinState> {
 }
 
 impl<T> Pin<T, pin_state::Unknown> where T: PinName {
+    /// Affirm that the pin is in its default state
+    ///
+    /// By calling this method, the user promises that the pin is in its default
+    /// states. For most pins, this means that the pin is unused, but some pins
+    /// are initially assigned to the switch matrix.
+    ///
+    /// Calling this method is safe, if the pin state has not been changed since
+    /// the microcontroller was initialized. If the pin state has been changed
+    /// since then, the user must change it back to the pin's initial state
+    /// before calling this function.
+    pub unsafe fn affirm_default_state(self) -> Pin<T, T::DefaultState> {
+        Pin {
+            ty   : self.ty,
+            state: T::INITIAL_STATE,
+        }
+    }
+}
+
+impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// Makes the pin available for the ADC
     ///
     /// # Limitations
-    ///
-    /// This method doesn't disable any fixed functions or unassign any movable
-    /// functions. Before calling this function, the user must manually disable
-    /// or unassign any active functions on this pin.
     ///
     /// This method enables the analog function for this pin via the switch
     /// matrix, but as of now, there is no HAL API to actually control the ADC.
@@ -211,12 +242,6 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     }
 
     /// Makes this pin available for GPIO
-    ///
-    /// # Limitations
-    ///
-    /// This method doesn't disable any fixed functions or unassign any movable
-    /// functions. Before calling this function, the user must manually disable
-    /// or unassign any active functions on this pin.
     pub fn as_gpio_pin<'gpio>(self, gpio: &'gpio Handle<'gpio>)
         -> Pin<T, pin_state::Gpio<'gpio, direction::Unknown>>
     {
@@ -352,10 +377,10 @@ impl<T> Pin<T, pin_state::Swm> where T: PinName {
     /// This method doesn't ensure that all fixed and movable functions have
     /// actually been unassigned. Please make sure that no fixed or movable
     /// functions are assigned to this pin before calling this method.
-    pub fn as_unused_pin(self) -> Pin<T, pin_state::Unknown> {
+    pub fn as_unused_pin(self) -> Pin<T, pin_state::Unused> {
         Pin {
             ty   : self.ty,
-            state: pin_state::Unknown,
+            state: pin_state::Unused,
         }
     }
 }
@@ -388,6 +413,12 @@ pub mod pin_state {
     pub struct Unknown;
 
     impl PinState for Unknown {}
+
+
+    /// Marks the pin as being unused
+    pub struct Unused;
+
+    impl PinState for Unused {}
 
 
     /// Marks the pin as being assigned to the analog-to-digital converter
