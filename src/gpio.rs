@@ -385,7 +385,7 @@ impl<T> Pin<T, pin_state::Swm<((),)>> where T: PinName {
     }
 }
 
-impl<T, Outputs> Pin<T, pin_state::Swm<Outputs>> where T: PinName {
+impl<T, Output> Pin<T, pin_state::Swm<Output>> where T: PinName {
     /// Enable the fixed function on this pin
     pub fn enable_input_function<F>(mut self, function: F, swm: &mut swm::Api)
         -> (Self, F::Enabled)
