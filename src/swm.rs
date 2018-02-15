@@ -561,3 +561,101 @@ impl<State> AdcFunction for ADC_10<State>
     where State: fixed_function::state::State {}
 impl<State> AdcFunction for ADC_11<State>
     where State: fixed_function::state::State {}
+
+
+/// Marker trait for output functions
+///
+/// This trait marks all functions that include output, which means
+/// bidirectional functions are also included.
+pub trait OutputFunction {}
+
+// Which movable functions are output functions is documented in the user manual
+// in section 7.4.1, table 65.
+impl<State> OutputFunction for U0_TXD<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for U0_RTS<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for U0_SCLK<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for U1_TXD<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for U1_RTS<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for U1_SCLK<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for U2_TXD<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for U2_RTS<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for U2_SCLK<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI0_SCK<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI0_MOSI<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI0_MISO<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI0_SSEL0<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI0_SSEL1<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI0_SSEL2<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI0_SSEL3<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI1_SCK<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI1_MOSI<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI1_MISO<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI1_SSEL0<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SPI1_SSEL1<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SCT_OUT0<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SCT_OUT1<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SCT_OUT2<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SCT_OUT3<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SCT_OUT4<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for SCT_OUT5<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for I2C1_SDA<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for I2C1_SCL<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for I2C2_SDA<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for I2C2_SCL<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for I2C3_SDA<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for I2C3_SCL<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for ACMP_O<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for CLKOUT<State>
+    where State: movable_function::state::State {}
+impl<State> OutputFunction for GPIO_INT_BMAT<State>
+    where State: movable_function::state::State {}
+
+// See user manual, section 31.4, table 397
+impl<State> OutputFunction for SWCLK<State>
+    where State: fixed_function::state::State {}
+impl<State> OutputFunction for SWDIO<State>
+    where State: fixed_function::state::State {}
+
+// See user manual, section 5.4, table 20
+impl<State> OutputFunction for XTALOUT<State>
+    where State: fixed_function::state::State {}
+
+// See user manual, section 15.4, table 202
+impl<State> OutputFunction for I2C0_SDA<State>
+    where State: fixed_function::state::State {}
+impl<State> OutputFunction for I2C0_SCL<State>
+    where State: fixed_function::state::State {}
