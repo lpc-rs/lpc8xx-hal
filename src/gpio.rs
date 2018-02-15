@@ -216,8 +216,6 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
 impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// Makes the pin available for the ADC
     ///
-    /// # Limitations
-    ///
     /// This method enables the analog function for this pin via the switch
     /// matrix, but as of now, there is no HAL API to actually control the ADC.
     /// You can use this method to enable the analog function and make sure that
