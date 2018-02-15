@@ -95,7 +95,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
 
         rx
             .as_swm_pin()
-            .assign_function(rxd, swm);
+            .assign_input_function(rxd, swm);
         tx
             .as_swm_pin()
             .assign_output_function(txd, swm);

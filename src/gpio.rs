@@ -387,7 +387,7 @@ impl<T> Pin<T, pin_state::Swm<((),)>> where T: PinName {
 
 impl<T, Outputs> Pin<T, pin_state::Swm<Outputs>> where T: PinName {
     /// Enable the fixed function on this pin
-    pub fn enable_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn enable_input_function<F>(mut self, function: F, swm: &mut swm::Api)
         -> (Self, F::Enabled)
         where F: InputFunction + FixedFunction<Pin=T> + fixed_function::Enable
     {
@@ -396,7 +396,7 @@ impl<T, Outputs> Pin<T, pin_state::Swm<Outputs>> where T: PinName {
     }
 
     /// Disable the fixed function on this pin
-    pub fn disable_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn disable_input_function<F>(mut self, function: F, swm: &mut swm::Api)
         -> (Self, F::Disabled)
         where F: InputFunction + FixedFunction<Pin=T> + fixed_function::Disable
     {
@@ -405,7 +405,7 @@ impl<T, Outputs> Pin<T, pin_state::Swm<Outputs>> where T: PinName {
     }
 
     /// Assign a movable function to the pin
-    pub fn assign_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn assign_input_function<F>(mut self, function: F, swm: &mut swm::Api)
         -> (Self, F::Assigned)
         where F: InputFunction + movable_function::Assign<T>
     {
@@ -414,7 +414,7 @@ impl<T, Outputs> Pin<T, pin_state::Swm<Outputs>> where T: PinName {
     }
 
     /// Unassign a movable function from the pin
-    pub fn unassign_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn unassign_input_function<F>(mut self, function: F, swm: &mut swm::Api)
         -> (Self, F::Unassigned)
         where F: InputFunction + movable_function::Unassign<T>
     {
