@@ -532,3 +532,32 @@ fixed_functions!(
     ADC_10  , adc_10  , PIO0_13, Disabled;
     ADC_11  , adc_11  , PIO0_4 , Disabled;
 );
+
+
+/// Marker trait to mark all ADC functions
+pub trait AdcFunction {}
+
+impl<State> AdcFunction for ADC_0<State>
+    where State: fixed_function::state::State {}
+impl<State> AdcFunction for ADC_1<State>
+    where State: fixed_function::state::State {}
+impl<State> AdcFunction for ADC_2<State>
+    where State: fixed_function::state::State {}
+impl<State> AdcFunction for ADC_3<State>
+    where State: fixed_function::state::State {}
+impl<State> AdcFunction for ADC_4<State>
+    where State: fixed_function::state::State {}
+impl<State> AdcFunction for ADC_5<State>
+    where State: fixed_function::state::State {}
+impl<State> AdcFunction for ADC_6<State>
+    where State: fixed_function::state::State {}
+impl<State> AdcFunction for ADC_7<State>
+    where State: fixed_function::state::State {}
+impl<State> AdcFunction for ADC_8<State>
+    where State: fixed_function::state::State {}
+impl<State> AdcFunction for ADC_9<State>
+    where State: fixed_function::state::State {}
+impl<State> AdcFunction for ADC_10<State>
+    where State: fixed_function::state::State {}
+impl<State> AdcFunction for ADC_11<State>
+    where State: fixed_function::state::State {}
