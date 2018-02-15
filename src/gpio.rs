@@ -179,54 +179,6 @@ pub struct Pin<T: PinName, S: PinState> {
 }
 
 impl<T> Pin<T, pin_state::Unknown> where T: PinName {
-    /// Enable the fixed function on this pin
-    ///
-    /// # Limitations
-    ///
-    /// This method can be used to enable a fixed function for a pin that is
-    /// currently used for something else. The HAL user needs to make sure that
-    /// the fixed function doesn't conflict with any other uses of the pin.
-    pub fn enable_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Self, F::Enabled)
-        where F: FixedFunction<Pin=T> + fixed_function::Enable
-    {
-        let function = function.enable(&mut self.ty, swm);
-        (self, function)
-    }
-
-    /// Disable the fixed function on this pin
-    pub fn disable_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Self, F::Disabled)
-        where F: FixedFunction<Pin=T> + fixed_function::Disable
-    {
-        let function = function.disable(&mut self.ty, swm);
-        (self, function)
-    }
-
-    /// Assign a movable function to the pin
-    ///
-    /// # Limitations
-    ///
-    /// This method can be used to assign a movable function to pins that are
-    /// currently used for something else. The HAL user needs to make sure that
-    /// this assignment doesn't conflict with any other uses of the pin.
-    pub fn assign_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Self, F::Assigned)
-        where F: movable_function::Assign<T>
-    {
-        let function = function.assign(&mut self.ty, swm);
-        (self, function)
-    }
-
-    /// Unassign a movable function from the pin
-    pub fn unassign_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Self, F::Unassigned)
-        where F: movable_function::Unassign<T>
-    {
-        let function = function.unassign(&mut self.ty, swm);
-        (self, function)
-    }
-
     /// Makes the pin available for the ADC
     ///
     /// # Limitations
@@ -278,6 +230,14 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
 
                 _direction: direction::Unknown,
             },
+        }
+    }
+
+    /// Makes this pin available for function assignment by the switch matrix
+    pub fn as_swm_pin(self) -> Pin<T, pin_state::Swm> {
+        Pin {
+            ty   : self.ty,
+            state: pin_state::Swm,
         }
     }
 }
@@ -336,6 +296,70 @@ impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
     }
 }
 
+impl<T> Pin<T, pin_state::Swm> where T: PinName {
+    /// Enable the fixed function on this pin
+    ///
+    /// # Limitations
+    ///
+    /// This method can be used to enable a fixed function for a pin that is
+    /// currently used for something else. The HAL user needs to make sure that
+    /// the fixed function doesn't conflict with any other uses of the pin.
+    pub fn enable_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Self, F::Enabled)
+        where F: FixedFunction<Pin=T> + fixed_function::Enable
+    {
+        let function = function.enable(&mut self.ty, swm);
+        (self, function)
+    }
+
+    /// Disable the fixed function on this pin
+    pub fn disable_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Self, F::Disabled)
+        where F: FixedFunction<Pin=T> + fixed_function::Disable
+    {
+        let function = function.disable(&mut self.ty, swm);
+        (self, function)
+    }
+
+    /// Assign a movable function to the pin
+    ///
+    /// # Limitations
+    ///
+    /// This method can be used to assign a movable function to pins that are
+    /// currently used for something else. The HAL user needs to make sure that
+    /// this assignment doesn't conflict with any other uses of the pin.
+    pub fn assign_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Self, F::Assigned)
+        where F: movable_function::Assign<T>
+    {
+        let function = function.assign(&mut self.ty, swm);
+        (self, function)
+    }
+
+    /// Unassign a movable function from the pin
+    pub fn unassign_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Self, F::Unassigned)
+        where F: movable_function::Unassign<T>
+    {
+        let function = function.unassign(&mut self.ty, swm);
+        (self, function)
+    }
+
+    /// Marks the pin as being unused
+    ///
+    /// # Limitations
+    ///
+    /// This method doesn't ensure that all fixed and movable functions have
+    /// actually been unassigned. Please make sure that no fixed or movable
+    /// functions are assigned to this pin before calling this method.
+    pub fn as_unused_pin(self) -> Pin<T, pin_state::Unknown> {
+        Pin {
+            ty   : self.ty,
+            state: pin_state::Unknown,
+        }
+    }
+}
+
 
 /// Contains types that mark pin states
 pub mod pin_state {
@@ -383,6 +407,12 @@ pub mod pin_state {
     }
 
     impl<'gpio, D> PinState for Gpio<'gpio, D> where D: Direction {}
+
+
+    /// Marks a ping as being available for switch matrix function assigment
+    pub struct Swm;
+
+    impl PinState for Swm {}
 }
 
 

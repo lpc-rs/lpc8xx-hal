@@ -165,8 +165,10 @@
 //!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
 //! let (pio0_3, _) = peripherals.gpio.pins.pio0_3
+//!     .as_swm_pin()
 //!     .disable_function(swclk, &mut swm);
 //! let mut pio0_3 = pio0_3
+//!     .as_unused_pin()
 //!     .as_gpio_pin(&gpio)
 //!     .as_output();
 //!

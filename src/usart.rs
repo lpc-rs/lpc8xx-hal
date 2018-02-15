@@ -91,8 +91,12 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
 
-        rx.assign_function(rxd, swm);
-        tx.assign_function(txd, swm);
+        rx
+            .as_swm_pin()
+            .assign_function(rxd, swm);
+        tx
+            .as_swm_pin()
+            .assign_function(txd, swm);
 
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 
