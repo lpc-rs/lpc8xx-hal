@@ -28,6 +28,7 @@ use init_state::{
 use swm::{
     self,
     movable_function,
+    InputFunction,
     OutputFunction,
 };
 use syscon::{
@@ -86,7 +87,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     )
         -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !>
         where
-            UsartX::Rx: movable_function::Assign<Rx>,
+            UsartX::Rx: movable_function::Assign<Rx> + InputFunction,
             UsartX::Tx: movable_function::Assign<Tx> + OutputFunction,
     {
         syscon.enable_clock(&mut self.usart);

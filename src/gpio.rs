@@ -14,6 +14,7 @@ use swm::{
     self,
     movable_function,
     AdcFunction,
+    InputFunction,
     OutputFunction,
 };
 use swm::fixed_function::{
@@ -386,15 +387,9 @@ impl<T> Pin<T, pin_state::Swm<((),)>> where T: PinName {
 
 impl<T, Outputs> Pin<T, pin_state::Swm<Outputs>> where T: PinName {
     /// Enable the fixed function on this pin
-    ///
-    /// # Limitations
-    ///
-    /// This method can be used to enable a fixed function for a pin that is
-    /// currently used for something else. The HAL user needs to make sure that
-    /// the fixed function doesn't conflict with any other uses of the pin.
     pub fn enable_function<F>(mut self, function: F, swm: &mut swm::Api)
         -> (Self, F::Enabled)
-        where F: FixedFunction<Pin=T> + fixed_function::Enable
+        where F: InputFunction + FixedFunction<Pin=T> + fixed_function::Enable
     {
         let function = function.enable(&mut self.ty, swm);
         (self, function)
@@ -403,22 +398,16 @@ impl<T, Outputs> Pin<T, pin_state::Swm<Outputs>> where T: PinName {
     /// Disable the fixed function on this pin
     pub fn disable_function<F>(mut self, function: F, swm: &mut swm::Api)
         -> (Self, F::Disabled)
-        where F: FixedFunction<Pin=T> + fixed_function::Disable
+        where F: InputFunction + FixedFunction<Pin=T> + fixed_function::Disable
     {
         let function = function.disable(&mut self.ty, swm);
         (self, function)
     }
 
     /// Assign a movable function to the pin
-    ///
-    /// # Limitations
-    ///
-    /// This method can be used to assign a movable function to pins that are
-    /// currently used for something else. The HAL user needs to make sure that
-    /// this assignment doesn't conflict with any other uses of the pin.
     pub fn assign_function<F>(mut self, function: F, swm: &mut swm::Api)
         -> (Self, F::Assigned)
-        where F: movable_function::Assign<T>
+        where F: InputFunction + movable_function::Assign<T>
     {
         let function = function.assign(&mut self.ty, swm);
         (self, function)
@@ -427,7 +416,7 @@ impl<T, Outputs> Pin<T, pin_state::Swm<Outputs>> where T: PinName {
     /// Unassign a movable function from the pin
     pub fn unassign_function<F>(mut self, function: F, swm: &mut swm::Api)
         -> (Self, F::Unassigned)
-        where F: movable_function::Unassign<T>
+        where F: InputFunction + movable_function::Unassign<T>
     {
         let function = function.unassign(&mut self.ty, swm);
         (self, function)
