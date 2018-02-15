@@ -659,3 +659,57 @@ impl<State> OutputFunction for I2C0_SDA<State>
     where State: fixed_function::state::State {}
 impl<State> OutputFunction for I2C0_SCL<State>
     where State: fixed_function::state::State {}
+
+
+/// Marker trait for input functions
+///
+/// This trait marks only functions that are pure input functions, which means
+/// bidirectional functions are not included.
+pub trait InputFunction {}
+
+// Which movable functions are input functions is documented in the user manual
+// in section 7.4.1, table 65.
+impl<State> InputFunction for U0_RXD<State>
+    where State: movable_function::state::State {}
+impl<State> InputFunction for U0_CTS<State>
+    where State: movable_function::state::State {}
+impl<State> InputFunction for U1_RXD<State>
+    where State: movable_function::state::State {}
+impl<State> InputFunction for U1_CTS<State>
+    where State: movable_function::state::State {}
+impl<State> InputFunction for U2_RXD<State>
+    where State: movable_function::state::State {}
+impl<State> InputFunction for U2_CTS<State>
+    where State: movable_function::state::State {}
+impl<State> InputFunction for SCT_PIN0<State>
+    where State: movable_function::state::State {}
+impl<State> InputFunction for SCT_PIN1<State>
+    where State: movable_function::state::State {}
+impl<State> InputFunction for SCT_PIN2<State>
+    where State: movable_function::state::State {}
+impl<State> InputFunction for SCT_PIN3<State>
+    where State: movable_function::state::State {}
+impl<State> InputFunction for ADC_PINTRIG0<State>
+    where State: movable_function::state::State {}
+impl<State> InputFunction for ADC_PINTRIG1<State>
+    where State: movable_function::state::State {}
+
+// See user manual, section 22.4, table 294
+impl<State> InputFunction for ACMP_I1<State>
+    where State: fixed_function::state::State {}
+impl<State> InputFunction for ACMP_I2<State>
+    where State: fixed_function::state::State {}
+impl<State> InputFunction for ACMP_I3<State>
+    where State: fixed_function::state::State {}
+impl<State> InputFunction for ACMP_I4<State>
+    where State: fixed_function::state::State {}
+impl<State> InputFunction for VDDCMP<State>
+    where State: fixed_function::state::State {}
+
+// See user manual, section 5.4, table 20
+impl<State> InputFunction for XTALIN<State>
+    where State: fixed_function::state::State {}
+impl<State> InputFunction for RESETN<State>
+    where State: fixed_function::state::State {}
+impl<State> InputFunction for CLKIN<State>
+    where State: fixed_function::state::State {}
