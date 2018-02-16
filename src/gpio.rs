@@ -158,35 +158,35 @@ macro_rules! pins {
 }
 
 pins!(
-    pio0_0 , PIO0_0 , 0x00, pin_state::Unused    , pin_state::Unused;
-    pio0_1 , PIO0_1 , 0x01, pin_state::Unused    , pin_state::Unused;
+    pio0_0 , PIO0_0 , 0x00, pin_state::Unused        , pin_state::Unused;
+    pio0_1 , PIO0_1 , 0x01, pin_state::Unused        , pin_state::Unused;
     pio0_2 , PIO0_2 , 0x02, pin_state::Swm<((),), ()>, pin_state::Swm::new();
     pio0_3 , PIO0_3 , 0x03, pin_state::Swm<((),), ()>, pin_state::Swm::new();
-    pio0_4 , PIO0_4 , 0x04, pin_state::Unused    , pin_state::Unused;
-    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<(), ((),)>   , pin_state::Swm::new();
-    pio0_6 , PIO0_6 , 0x06, pin_state::Unused    , pin_state::Unused;
-    pio0_7 , PIO0_7 , 0x07, pin_state::Unused    , pin_state::Unused;
-    pio0_8 , PIO0_8 , 0x08, pin_state::Unused    , pin_state::Unused;
-    pio0_9 , PIO0_9 , 0x09, pin_state::Unused    , pin_state::Unused;
-    pio0_10, PIO0_10, 0x0a, pin_state::Unused    , pin_state::Unused;
-    pio0_11, PIO0_11, 0x0b, pin_state::Unused    , pin_state::Unused;
-    pio0_12, PIO0_12, 0x0c, pin_state::Unused    , pin_state::Unused;
-    pio0_13, PIO0_13, 0x0d, pin_state::Unused    , pin_state::Unused;
-    pio0_14, PIO0_14, 0x0e, pin_state::Unused    , pin_state::Unused;
-    pio0_15, PIO0_15, 0x0f, pin_state::Unused    , pin_state::Unused;
-    pio0_16, PIO0_16, 0x10, pin_state::Unused    , pin_state::Unused;
-    pio0_17, PIO0_17, 0x11, pin_state::Unused    , pin_state::Unused;
-    pio0_18, PIO0_18, 0x12, pin_state::Unused    , pin_state::Unused;
-    pio0_19, PIO0_19, 0x13, pin_state::Unused    , pin_state::Unused;
-    pio0_20, PIO0_20, 0x14, pin_state::Unused    , pin_state::Unused;
-    pio0_21, PIO0_21, 0x15, pin_state::Unused    , pin_state::Unused;
-    pio0_22, PIO0_22, 0x16, pin_state::Unused    , pin_state::Unused;
-    pio0_23, PIO0_23, 0x17, pin_state::Unused    , pin_state::Unused;
-    pio0_24, PIO0_24, 0x18, pin_state::Unused    , pin_state::Unused;
-    pio0_25, PIO0_25, 0x19, pin_state::Unused    , pin_state::Unused;
-    pio0_26, PIO0_26, 0x1a, pin_state::Unused    , pin_state::Unused;
-    pio0_27, PIO0_27, 0x1b, pin_state::Unused    , pin_state::Unused;
-    pio0_28, PIO0_28, 0x1c, pin_state::Unused    , pin_state::Unused;
+    pio0_4 , PIO0_4 , 0x04, pin_state::Unused        , pin_state::Unused;
+    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<(), ((),)>, pin_state::Swm::new();
+    pio0_6 , PIO0_6 , 0x06, pin_state::Unused        , pin_state::Unused;
+    pio0_7 , PIO0_7 , 0x07, pin_state::Unused        , pin_state::Unused;
+    pio0_8 , PIO0_8 , 0x08, pin_state::Unused        , pin_state::Unused;
+    pio0_9 , PIO0_9 , 0x09, pin_state::Unused        , pin_state::Unused;
+    pio0_10, PIO0_10, 0x0a, pin_state::Unused        , pin_state::Unused;
+    pio0_11, PIO0_11, 0x0b, pin_state::Unused        , pin_state::Unused;
+    pio0_12, PIO0_12, 0x0c, pin_state::Unused        , pin_state::Unused;
+    pio0_13, PIO0_13, 0x0d, pin_state::Unused        , pin_state::Unused;
+    pio0_14, PIO0_14, 0x0e, pin_state::Unused        , pin_state::Unused;
+    pio0_15, PIO0_15, 0x0f, pin_state::Unused        , pin_state::Unused;
+    pio0_16, PIO0_16, 0x10, pin_state::Unused        , pin_state::Unused;
+    pio0_17, PIO0_17, 0x11, pin_state::Unused        , pin_state::Unused;
+    pio0_18, PIO0_18, 0x12, pin_state::Unused        , pin_state::Unused;
+    pio0_19, PIO0_19, 0x13, pin_state::Unused        , pin_state::Unused;
+    pio0_20, PIO0_20, 0x14, pin_state::Unused        , pin_state::Unused;
+    pio0_21, PIO0_21, 0x15, pin_state::Unused        , pin_state::Unused;
+    pio0_22, PIO0_22, 0x16, pin_state::Unused        , pin_state::Unused;
+    pio0_23, PIO0_23, 0x17, pin_state::Unused        , pin_state::Unused;
+    pio0_24, PIO0_24, 0x18, pin_state::Unused        , pin_state::Unused;
+    pio0_25, PIO0_25, 0x19, pin_state::Unused        , pin_state::Unused;
+    pio0_26, PIO0_26, 0x1a, pin_state::Unused        , pin_state::Unused;
+    pio0_27, PIO0_27, 0x1b, pin_state::Unused        , pin_state::Unused;
+    pio0_28, PIO0_28, 0x1c, pin_state::Unused        , pin_state::Unused;
 );
 
 
