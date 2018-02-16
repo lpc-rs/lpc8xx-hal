@@ -231,7 +231,6 @@ extern crate embedded_hal;
 #[cfg_attr(feature = "rt",
     macro_reexport(default_handler, exception, interrupt))]
 extern crate lpc82x;
-#[macro_use]
 extern crate nb;
 
 
@@ -263,7 +262,6 @@ pub mod prelude {
     pub use clock::Enabled as _lpc82x_hal_clock_Enabled;
     pub use clock::Frequency as _lpc82x_hal_clock_Frequency;
     pub use sleep::Sleep as _lpc82x_hal_sleep_Sleep;
-    pub use usart::blocking::Write as _lpc82x_hal_usart_blocking_Write;
 }
 
 
