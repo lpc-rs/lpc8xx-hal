@@ -212,6 +212,7 @@
 //! [available from NXP]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
 
 
+#![feature(const_fn)]
 #![feature(const_refcell_new)]
 #![feature(macro_reexport)]
 #![feature(never_type)]

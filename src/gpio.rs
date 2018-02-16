@@ -3,8 +3,6 @@
 //! See user manual, chapter 9.
 
 
-use core::marker::PhantomData;
-
 use embedded_hal::digital::OutputPin;
 use lpc82x;
 
@@ -162,10 +160,10 @@ macro_rules! pins {
 pins!(
     pio0_0 , PIO0_0 , 0x00, pin_state::Unused    , pin_state::Unused;
     pio0_1 , PIO0_1 , 0x01, pin_state::Unused    , pin_state::Unused;
-    pio0_2 , PIO0_2 , 0x02, pin_state::Swm<((),), ()>, pin_state::Swm(PhantomData, PhantomData);
-    pio0_3 , PIO0_3 , 0x03, pin_state::Swm<((),), ()>, pin_state::Swm(PhantomData, PhantomData);
+    pio0_2 , PIO0_2 , 0x02, pin_state::Swm<((),), ()>, pin_state::Swm::new();
+    pio0_3 , PIO0_3 , 0x03, pin_state::Swm<((),), ()>, pin_state::Swm::new();
     pio0_4 , PIO0_4 , 0x04, pin_state::Unused    , pin_state::Unused;
-    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<(), ((),)>   , pin_state::Swm(PhantomData, PhantomData);
+    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<(), ((),)>   , pin_state::Swm::new();
     pio0_6 , PIO0_6 , 0x06, pin_state::Unused    , pin_state::Unused;
     pio0_7 , PIO0_7 , 0x07, pin_state::Unused    , pin_state::Unused;
     pio0_8 , PIO0_8 , 0x08, pin_state::Unused    , pin_state::Unused;
@@ -264,7 +262,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     pub fn as_swm_pin(self) -> Pin<T, pin_state::Swm<(), ()>> {
         Pin {
             ty   : self.ty,
-            state: pin_state::Swm(PhantomData, PhantomData),
+            state: pin_state::Swm::new(),
         }
     }
 }
@@ -333,7 +331,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(PhantomData, PhantomData),
+            state: pin_state::Swm::new(),
         };
 
         (pin, function)
@@ -348,7 +346,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(PhantomData, PhantomData),
+            state: pin_state::Swm::new(),
         };
 
         (pin, function)
@@ -365,7 +363,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(PhantomData, PhantomData),
+            state: pin_state::Swm::new(),
         };
 
         (pin, function)
@@ -380,7 +378,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(PhantomData, PhantomData),
+            state: pin_state::Swm::new(),
         };
 
         (pin, function)
@@ -399,7 +397,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(PhantomData, PhantomData),
+            state: pin_state::Swm::new(),
         };
 
         (pin, function)
@@ -414,7 +412,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(PhantomData, PhantomData),
+            state: pin_state::Swm::new(),
         };
 
         (pin, function)
@@ -433,7 +431,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(PhantomData, PhantomData),
+            state: pin_state::Swm::new(),
         };
 
         (pin, function)
@@ -448,7 +446,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(PhantomData, PhantomData),
+            state: pin_state::Swm::new(),
         };
 
         (pin, function)
@@ -541,6 +539,12 @@ pub mod pin_state {
         pub(crate) PhantomData<Output>,
         pub(crate) PhantomData<Inputs>,
     );
+
+    impl<Output, Inputs> Swm<Output, Inputs> {
+        pub(crate) const fn new() -> Self {
+            Swm(PhantomData, PhantomData)
+        }
+    }
 
     impl<Output, Inputs> PinState for Swm<Output, Inputs> {}
 }
