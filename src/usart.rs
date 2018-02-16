@@ -75,6 +75,10 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     /// their baud rate settings don't interfere with each other. Please refer
     /// to the documentation of [`BaudRate`] for full details.
     ///
+    /// For USART to function correctly, the UARTFRG reset must be cleared. This
+    /// is the default case, so unless you have messed with those settings, you
+    /// should be good.
+    ///
     /// [`BaudRate`]: struct.BaudRate.html
     pub fn init<Rx: PinName, Tx: PinName>(mut self,
         baud_rate: &BaudRate,
