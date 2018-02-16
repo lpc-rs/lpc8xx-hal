@@ -160,10 +160,10 @@ macro_rules! pins {
 pins!(
     pio0_0 , PIO0_0 , 0x00, pin_state::Unused    , pin_state::Unused;
     pio0_1 , PIO0_1 , 0x01, pin_state::Unused    , pin_state::Unused;
-    pio0_2 , PIO0_2 , 0x02, pin_state::Swm<((),)>, pin_state::Swm(((),));
-    pio0_3 , PIO0_3 , 0x03, pin_state::Swm<((),)>, pin_state::Swm(((),));
+    pio0_2 , PIO0_2 , 0x02, pin_state::Swm<((),), ()>, pin_state::Swm(((),), ());
+    pio0_3 , PIO0_3 , 0x03, pin_state::Swm<((),), ()>, pin_state::Swm(((),), ());
     pio0_4 , PIO0_4 , 0x04, pin_state::Unused    , pin_state::Unused;
-    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<()>   , pin_state::Swm(());
+    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<(), ((),)>   , pin_state::Swm((), ((),));
     pio0_6 , PIO0_6 , 0x06, pin_state::Unused    , pin_state::Unused;
     pio0_7 , PIO0_7 , 0x07, pin_state::Unused    , pin_state::Unused;
     pio0_8 , PIO0_8 , 0x08, pin_state::Unused    , pin_state::Unused;
@@ -259,10 +259,10 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     }
 
     /// Makes this pin available for function assignment by the switch matrix
-    pub fn as_swm_pin(self) -> Pin<T, pin_state::Swm<()>> {
+    pub fn as_swm_pin(self) -> Pin<T, pin_state::Swm<(), ()>> {
         Pin {
             ty   : self.ty,
-            state: pin_state::Swm(()),
+            state: pin_state::Swm((), ()),
         }
     }
 }
@@ -321,17 +321,17 @@ impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
     }
 }
 
-impl<T> Pin<T, pin_state::Swm<()>> where T: PinName {
+impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     /// Enable the fixed function on this pin
     pub fn enable_output_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Pin<T, pin_state::Swm<((),)>>, F::Enabled)
+        -> (Pin<T, pin_state::Swm<((),), Inputs>>, F::Enabled)
         where F: OutputFunction + FixedFunction<Pin=T> + fixed_function::Enable
     {
         let function = function.enable(&mut self.ty, swm);
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(((),)),
+            state: pin_state::Swm(((),), self.state.1),
         };
 
         (pin, function)
@@ -339,31 +339,31 @@ impl<T> Pin<T, pin_state::Swm<()>> where T: PinName {
 
     /// Assign a movable function to the pin
     pub fn assign_output_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Pin<T, pin_state::Swm<((),)>>, F::Assigned)
+        -> (Pin<T, pin_state::Swm<((),), Inputs>>, F::Assigned)
         where F: OutputFunction + movable_function::Assign<T>
     {
         let function = function.assign(&mut self.ty, swm);
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(((),)),
+            state: pin_state::Swm(((),), self.state.1),
         };
 
         (pin, function)
     }
 }
 
-impl<T> Pin<T, pin_state::Swm<((),)>> where T: PinName {
+impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     /// Disable the fixed function on this pin
     pub fn disable_output_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Pin<T, pin_state::Swm<()>>, F::Disabled)
+        -> (Pin<T, pin_state::Swm<(), Inputs>>, F::Disabled)
         where F: OutputFunction + FixedFunction<Pin=T> + fixed_function::Disable
     {
         let function = function.disable(&mut self.ty, swm);
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(()),
+            state: pin_state::Swm((), self.state.1),
         };
 
         (pin, function)
@@ -371,66 +371,90 @@ impl<T> Pin<T, pin_state::Swm<((),)>> where T: PinName {
 
     /// Unassign a movable function from the pin
     pub fn unassign_output_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Pin<T, pin_state::Swm<()>>, F::Unassigned)
+        -> (Pin<T, pin_state::Swm<(), Inputs>>, F::Unassigned)
         where F: OutputFunction + movable_function::Unassign<T>
     {
         let function = function.unassign(&mut self.ty, swm);
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(()),
+            state: pin_state::Swm((), self.state.1),
         };
 
         (pin, function)
     }
 }
 
-impl<T, Output> Pin<T, pin_state::Swm<Output>> where T: PinName {
+impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
+    where T: PinName
+{
     /// Enable the fixed function on this pin
     pub fn enable_input_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Self, F::Enabled)
+        -> (Pin<T, pin_state::Swm<Output, (Inputs,)>>, F::Enabled)
         where F: InputFunction + FixedFunction<Pin=T> + fixed_function::Enable
     {
         let function = function.enable(&mut self.ty, swm);
-        (self, function)
-    }
 
-    /// Disable the fixed function on this pin
-    pub fn disable_input_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Self, F::Disabled)
-        where F: InputFunction + FixedFunction<Pin=T> + fixed_function::Disable
-    {
-        let function = function.disable(&mut self.ty, swm);
-        (self, function)
+        let pin = Pin {
+            ty   : self.ty,
+            state: pin_state::Swm(self.state.0, (self.state.1,)),
+        };
+
+        (pin, function)
     }
 
     /// Assign a movable function to the pin
     pub fn assign_input_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Self, F::Assigned)
+        -> (Pin<T, pin_state::Swm<Output, (Inputs,)>>, F::Assigned)
         where F: InputFunction + movable_function::Assign<T>
     {
         let function = function.assign(&mut self.ty, swm);
-        (self, function)
+
+        let pin = Pin {
+            ty   : self.ty,
+            state: pin_state::Swm(self.state.0, (self.state.1,)),
+        };
+
+        (pin, function)
+    }
+}
+
+impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
+    where T: PinName
+{
+    /// Disable the fixed function on this pin
+    pub fn disable_input_function<F>(mut self, function: F, swm: &mut swm::Api)
+        -> (Pin<T, pin_state::Swm<Output, Inputs>>, F::Disabled)
+        where F: InputFunction + FixedFunction<Pin=T> + fixed_function::Disable
+    {
+        let function = function.disable(&mut self.ty, swm);
+
+        let pin = Pin {
+            ty   : self.ty,
+            state: pin_state::Swm(self.state.0, (self.state.1).0),
+        };
+
+        (pin, function)
     }
 
     /// Unassign a movable function from the pin
     pub fn unassign_input_function<F>(mut self, function: F, swm: &mut swm::Api)
-        -> (Self, F::Unassigned)
+        -> (Pin<T, pin_state::Swm<Output, Inputs>>, F::Unassigned)
         where F: InputFunction + movable_function::Unassign<T>
     {
         let function = function.unassign(&mut self.ty, swm);
-        (self, function)
+
+        let pin = Pin {
+            ty   : self.ty,
+            state: pin_state::Swm(self.state.0, (self.state.1).0),
+        };
+
+        (pin, function)
     }
 }
 
-impl<T> Pin<T, pin_state::Swm<()>> where T: PinName {
+impl<T> Pin<T, pin_state::Swm<(), ()>> where T: PinName {
     /// Marks the pin as being unused
-    ///
-    /// # Limitations
-    ///
-    /// This method doesn't ensure that all input functions have been
-    /// unassigned. You must make sure that no input functions have been
-    /// assigned to the pin before calling this method.
     pub fn as_unused_pin(self) -> Pin<T, pin_state::Unused> {
         Pin {
             ty   : self.ty,
@@ -496,13 +520,22 @@ pub mod pin_state {
 
     /// Marks a ping as being available for switch matrix function assigment
     ///
-    /// The `Output` type parameter tracks whether an output function has been
-    /// assigned. It uses nested tuples to achieve this, the empty tuple `()`
-    /// representing zero assigned output functions, `((),)` representing one
-    /// assigned output function.
-    pub struct Swm<Output>(pub(crate) Output);
+    /// This type has type parameters that track whether output and input
+    /// functions have been assigned to a pin:
+    /// - `Output` tracks whether an output function has been assigned. The only
+    ///   valid states are no output functions being assigned, or exactly one
+    ///   output function being assigned.
+    /// - `Inputs` tracks the number of assigned input functions. Any number of
+    ///   input functions may be assigned at the same time.
+    ///
+    /// Both type parameters use nested tuples to count the number of assigned
+    /// functions. The empty tuple (`()`) represents zero assigned functions,
+    /// the empty tuple nested in another tuple (`((),)`) represents one
+    /// function being assigned, and so forth. This is a bit of a hack, of
+    /// course, but it will do until const generics become available.
+    pub struct Swm<Output, Inputs>(pub(crate) Output, pub(crate) Inputs);
 
-    impl<Output> PinState for Swm<Output> {}
+    impl<Output, Inputs> PinState for Swm<Output, Inputs> {}
 }
 
 
