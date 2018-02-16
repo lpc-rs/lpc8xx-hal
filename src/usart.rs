@@ -9,6 +9,7 @@ use embedded_hal::serial::{
     Read,
     Write,
 };
+use embedded_hal::blocking::serial::write::Default as BlockingWriteDefault;
 use lpc82x::{
     self,
     Interrupt,
@@ -277,17 +278,11 @@ impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
     }
 }
 
-impl<'usart, UsartX> blocking::Write<u8> for USART<'usart, UsartX>
+impl<'usart, UsartX> BlockingWriteDefault<u8> for USART<'usart, UsartX>
     where
         UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
-{
-    type Error = !;
-
-    fn write_all(&mut self, buffer: &[u8]) -> Result<(), Self::Error> {
-        blocking::write_all(self, buffer)
-    }
-}
+{}
 
 
 /// Implemented for all USART peripherals
@@ -395,46 +390,4 @@ pub enum Error {
 
     /// Parity error detected in received character
     Parity,
-}
-
-
-/// Platform-independent, blocking code
-///
-/// This is based on [a proposal] for embedded-hal.
-///
-/// [a proposal]: https://github.com/japaric/embedded-hal/issues/18
-pub mod blocking {
-    use usart as serial;
-
-
-    /// Write half of a serial interface (blocking implementation)
-    pub trait Write<Word> {
-        /// The type or error that can occur when writing
-        type Error;
-
-        /// Writes a slice, blocking until everything has been written
-        fn write_all(&mut self, buffer: &[Word]) -> Result<(), Self::Error>;
-    }
-
-
-    /// Implements a blocking write over a non-blocking [`Write`]
-    ///
-    /// Can be used by HAL implementations as a default implementation for
-    /// [`blocking::Write`].
-    ///
-    /// [`Write`]: ../trait.Write.html
-    /// [`blocking::Write`]: trait.Write.html
-    pub fn write_all<S, Word>(serial: &mut S, buffer: &[Word])
-        -> Result<(), S::Error>
-        where
-            S   : serial::Write<Word>,
-            Word: Copy,
-    {
-        for &word in buffer {
-            block!(serial.write(word))?;
-        }
-        block!(serial.flush())?;
-
-        Ok(())
-    }
 }
