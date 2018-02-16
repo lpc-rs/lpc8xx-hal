@@ -3,6 +3,8 @@
 //! See user manual, chapter 9.
 
 
+use core::marker::PhantomData;
+
 use embedded_hal::digital::OutputPin;
 use lpc82x;
 
@@ -160,10 +162,10 @@ macro_rules! pins {
 pins!(
     pio0_0 , PIO0_0 , 0x00, pin_state::Unused    , pin_state::Unused;
     pio0_1 , PIO0_1 , 0x01, pin_state::Unused    , pin_state::Unused;
-    pio0_2 , PIO0_2 , 0x02, pin_state::Swm<((),), ()>, pin_state::Swm(((),), ());
-    pio0_3 , PIO0_3 , 0x03, pin_state::Swm<((),), ()>, pin_state::Swm(((),), ());
+    pio0_2 , PIO0_2 , 0x02, pin_state::Swm<((),), ()>, pin_state::Swm(PhantomData, PhantomData);
+    pio0_3 , PIO0_3 , 0x03, pin_state::Swm<((),), ()>, pin_state::Swm(PhantomData, PhantomData);
     pio0_4 , PIO0_4 , 0x04, pin_state::Unused    , pin_state::Unused;
-    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<(), ((),)>   , pin_state::Swm((), ((),));
+    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<(), ((),)>   , pin_state::Swm(PhantomData, PhantomData);
     pio0_6 , PIO0_6 , 0x06, pin_state::Unused    , pin_state::Unused;
     pio0_7 , PIO0_7 , 0x07, pin_state::Unused    , pin_state::Unused;
     pio0_8 , PIO0_8 , 0x08, pin_state::Unused    , pin_state::Unused;
@@ -262,7 +264,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     pub fn as_swm_pin(self) -> Pin<T, pin_state::Swm<(), ()>> {
         Pin {
             ty   : self.ty,
-            state: pin_state::Swm((), ()),
+            state: pin_state::Swm(PhantomData, PhantomData),
         }
     }
 }
@@ -331,7 +333,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(((),), self.state.1),
+            state: pin_state::Swm(PhantomData, PhantomData),
         };
 
         (pin, function)
@@ -346,7 +348,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(((),), self.state.1),
+            state: pin_state::Swm(PhantomData, PhantomData),
         };
 
         (pin, function)
@@ -363,7 +365,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm((), self.state.1),
+            state: pin_state::Swm(PhantomData, PhantomData),
         };
 
         (pin, function)
@@ -378,7 +380,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm((), self.state.1),
+            state: pin_state::Swm(PhantomData, PhantomData),
         };
 
         (pin, function)
@@ -397,7 +399,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(self.state.0, (self.state.1,)),
+            state: pin_state::Swm(PhantomData, PhantomData),
         };
 
         (pin, function)
@@ -412,7 +414,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(self.state.0, (self.state.1,)),
+            state: pin_state::Swm(PhantomData, PhantomData),
         };
 
         (pin, function)
@@ -431,7 +433,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(self.state.0, (self.state.1).0),
+            state: pin_state::Swm(PhantomData, PhantomData),
         };
 
         (pin, function)
@@ -446,7 +448,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
 
         let pin = Pin {
             ty   : self.ty,
-            state: pin_state::Swm(self.state.0, (self.state.1).0),
+            state: pin_state::Swm(PhantomData, PhantomData),
         };
 
         (pin, function)
@@ -466,6 +468,8 @@ impl<T> Pin<T, pin_state::Swm<(), ()>> where T: PinName {
 
 /// Contains types that mark pin states
 pub mod pin_state {
+    use core::marker::PhantomData;
+
     use lpc82x::gpio_port::{
         CLR0,
         DIRSET0,
@@ -533,7 +537,10 @@ pub mod pin_state {
     /// the empty tuple nested in another tuple (`((),)`) represents one
     /// function being assigned, and so forth. This is a bit of a hack, of
     /// course, but it will do until const generics become available.
-    pub struct Swm<Output, Inputs>(pub(crate) Output, pub(crate) Inputs);
+    pub struct Swm<Output, Inputs>(
+        pub(crate) PhantomData<Output>,
+        pub(crate) PhantomData<Inputs>,
+    );
 
     impl<Output, Inputs> PinState for Swm<Output, Inputs> {}
 }
