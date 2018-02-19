@@ -49,7 +49,7 @@ static HAS_WOKEN: Mutex<RefCell<bool>> = Mutex::new(RefCell::new(false));
 /// [`Timer`]: ../../embedded_hal/trait.Timer.html
 /// [`Timer::set_timeout`]: ../../embedded_hal/trait.Timer.html#tymethod.set_timeout
 /// [`Timer::wait`]: ../../embedded_hal/trait.Timer.html#tymethod.wait
-pub struct WKT<'wkt, State: InitState = init_state::Initialized> {
+pub struct WKT<'wkt, State: InitState = init_state::Enabled> {
     wkt   : &'wkt lpc82x::WKT,
     _state: State,
 }
@@ -64,14 +64,14 @@ impl<'wkt> WKT<'wkt, init_state::Unknown> {
 
     /// Initialize the self-wake-up timer
     pub fn init(mut self, syscon: &mut syscon::Handle)
-        -> WKT<'wkt, init_state::Initialized>
+        -> WKT<'wkt, init_state::Enabled>
     {
         syscon.enable_clock(&mut self.wkt);
         syscon.clear_reset(&mut self.wkt);
 
         WKT {
             wkt   : self.wkt,
-            _state: init_state::Initialized,
+            _state: init_state::Enabled,
         }
     }
 }

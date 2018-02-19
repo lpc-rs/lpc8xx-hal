@@ -602,6 +602,6 @@ pub mod init_state {
     impl InitState for Unknown {}
 
     /// Marks a peripheral as being initialized
-    pub struct Initialized;
-    impl InitState for Initialized {}
+    pub struct Enabled;
+    impl InitState for Enabled {}
 }

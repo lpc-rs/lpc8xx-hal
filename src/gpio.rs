@@ -55,7 +55,7 @@ impl<'gpio> GPIO<'gpio> {
 
 
 /// Handle for the GPIO peripheral
-pub struct Handle<'gpio, State: InitState = init_state::Initialized> {
+pub struct Handle<'gpio, State: InitState = init_state::Enabled> {
     gpio  : &'gpio lpc82x::GPIO_PORT,
     _state: State,
 }
@@ -63,14 +63,14 @@ pub struct Handle<'gpio, State: InitState = init_state::Initialized> {
 impl<'gpio> Handle<'gpio, init_state::Unknown> {
     /// Initialize GPIO
     pub fn init(mut self, syscon: &mut syscon::Handle)
-        -> Handle<'gpio, init_state::Initialized>
+        -> Handle<'gpio, init_state::Enabled>
     {
         syscon.enable_clock(&mut self.gpio);
         syscon.clear_reset(&mut self.gpio);
 
         Handle {
             gpio  : self.gpio,
-            _state: init_state::Initialized,
+            _state: init_state::Enabled,
         }
     }
 }

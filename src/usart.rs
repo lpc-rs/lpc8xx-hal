@@ -50,7 +50,7 @@ use syscon::{
 pub struct USART<
     'usart,
     UsartX: 'usart,
-    State : InitState = init_state::Initialized,
+    State : InitState = init_state::Enabled,
 > {
     usart : &'usart UsartX,
     _state: State,
@@ -90,7 +90,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         txd      : UsartX::Tx,
         swm      : &mut swm::Handle,
     )
-        -> nb::Result<USART<'usart, UsartX, init_state::Initialized>, !>
+        -> nb::Result<USART<'usart, UsartX, init_state::Enabled>, !>
         where
             UsartX::Rx: movable_function::Assign<Rx> + InputFunction,
             UsartX::Tx: movable_function::Assign<Tx> + OutputFunction,
@@ -161,7 +161,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
 
         Ok(USART {
             usart : self.usart,
-            _state: init_state::Initialized,
+            _state: init_state::Enabled,
         })
     }
 }
