@@ -48,7 +48,7 @@ use self::fixed_function::FixedFunction;
 /// [`lpc82x::SWM`]: ../../lpc82x/struct.SWM.html
 pub struct SWM<'swm> {
     /// Main SWM API
-    pub api: Api<'swm, init_state::Unknown>,
+    pub handle: Handle<'swm, init_state::Unknown>,
 
     /// Movable functions
     pub movable_functions: MovableFunctions,
@@ -60,7 +60,7 @@ pub struct SWM<'swm> {
 impl<'swm> SWM<'swm> {
     pub(crate) fn new(swm: &'swm lpc82x::SWM) -> Self {
         SWM {
-            api              : Api::new(swm),
+            handle           : Handle::new(swm),
             movable_functions: MovableFunctions::new(),
             fixed_functions  : FixedFunctions::new(),
         }
@@ -69,14 +69,14 @@ impl<'swm> SWM<'swm> {
 
 
 /// Main API of the SWM peripheral
-pub struct Api<'swm, State: InitState = init_state::Initialized> {
+pub struct Handle<'swm, State: InitState = init_state::Initialized> {
     swm   : &'swm lpc82x::SWM,
     _state: State,
 }
 
-impl<'swm> Api<'swm, init_state::Unknown> {
+impl<'swm> Handle<'swm, init_state::Unknown> {
     pub(crate) fn new(swm: &'swm lpc82x::SWM) -> Self {
-        Api {
+        Handle {
             swm   : swm,
             _state: init_state::Unknown,
         }
@@ -84,11 +84,11 @@ impl<'swm> Api<'swm, init_state::Unknown> {
 
     /// Initialize the switch matrix
     pub fn init(mut self, syscon: &mut syscon::Api)
-        -> Api<'swm, init_state::Initialized>
+        -> Handle<'swm, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.swm);
 
-        Api {
+        Handle {
             swm   : self.swm,
             _state: init_state::Initialized,
         }
@@ -124,7 +124,7 @@ pub mod movable_function {
         /// [`Pin::assign_function`] instead.
         ///
         /// [`Pin::assign_function`]: ../gpio/struct.Pin.html#method.assign_function
-        fn assign(self, pin: &mut P, swm: &mut swm::Api) -> Self::Assigned;
+        fn assign(self, pin: &mut P, swm: &mut swm::Handle) -> Self::Assigned;
     }
 
 
@@ -145,7 +145,8 @@ pub mod movable_function {
         /// [`Pin::unassign_function`] instead.
         ///
         /// [`Pin::unassign_function`]: ../gpio/struct.Pin.html#method.unassign_function
-        fn unassign(self, pin: &mut P, swm: &mut swm::Api) -> Self::Unassigned;
+        fn unassign(self, pin: &mut P, swm: &mut swm::Handle)
+            -> Self::Unassigned;
     }
 
 
@@ -244,7 +245,7 @@ macro_rules! movable_functions {
 
                 fn assign(self,
                     _pin: &mut P,
-                    swm : &mut Api,
+                    swm : &mut Handle,
                 )
                     -> Self::Assigned
                 {
@@ -263,7 +264,7 @@ macro_rules! movable_functions {
 
                 fn unassign(self,
                     _pin: &mut P,
-                    swm : &mut Api,
+                    swm : &mut Handle,
                 )
                     -> Self::Unassigned
                 {
@@ -372,7 +373,7 @@ pub mod fixed_function {
         /// [`Pin::enable_function`] instead.
         ///
         /// [`Pin::enable_function`]: ../gpio/struct.Pin.html#method.enable_function
-        fn enable(self, pin: &mut Self::Pin, swm: &mut swm::Api)
+        fn enable(self, pin: &mut Self::Pin, swm: &mut swm::Handle)
             -> Self::Enabled;
     }
 
@@ -393,7 +394,7 @@ pub mod fixed_function {
         /// [`Pin::disable_function`] instead.
         ///
         /// [`Pin::disable_function`]: ../gpio/struct.Pin.html#method.disable_function
-        fn disable(self, pin: &mut Self::Pin, swm: &mut swm::Api)
+        fn disable(self, pin: &mut Self::Pin, swm: &mut swm::Handle)
             -> Self::Disabled;
     }
 
@@ -481,7 +482,7 @@ macro_rules! fixed_functions {
             {
                 type Enabled = $type<fixed_function::state::Enabled>;
 
-                fn enable(self, _pin: &mut Self::Pin, swm: &mut Api)
+                fn enable(self, _pin: &mut Self::Pin, swm: &mut Handle)
                     -> Self::Enabled
                 {
                     swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
@@ -494,7 +495,7 @@ macro_rules! fixed_functions {
             {
                 type Disabled = $type<fixed_function::state::Disabled>;
 
-                fn disable(self, _pin: &mut Self::Pin, swm: &mut Api)
+                fn disable(self, _pin: &mut Self::Pin, swm: &mut Handle)
                     -> Self::Disabled
                 {
                     swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());

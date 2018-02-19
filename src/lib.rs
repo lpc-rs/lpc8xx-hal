@@ -145,7 +145,7 @@
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing it will actually lead to compile-time errors.
 //! let mut gpio = peripherals.gpio.handle.init(&mut syscon);
-//! let mut swm  = peripherals.swm.api.init(&mut syscon);
+//! let mut swm  = peripherals.swm.handle.init(&mut syscon);
 //! let mut wkt  = peripherals.wkt.init(&mut syscon);
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
