@@ -30,7 +30,7 @@ use clock::state::ClockState;
 /// [`lpc82x::SYSCON`]: ../../lpc82x/struct.SYSCON.html
 pub struct SYSCON<'syscon> {
     /// Main SYSCON API
-    pub api: Api<'syscon>,
+    pub handle: Handle<'syscon>,
 
     /// Brown-out detection
     pub bod: BOD,
@@ -71,7 +71,7 @@ pub struct SYSCON<'syscon> {
 impl<'syscon> SYSCON<'syscon> {
     pub(crate) fn new(syscon: &'syscon lpc82x::SYSCON) -> Self {
         SYSCON {
-            api: Api {
+            handle: Handle {
                 pdruncfg     : &syscon.pdruncfg,
                 presetctrl   : &syscon.presetctrl,
                 sysahbclkctrl: &syscon.sysahbclkctrl,
@@ -100,13 +100,13 @@ impl<'syscon> SYSCON<'syscon> {
 
 
 /// Main API of the SYSCON peripheral
-pub struct Api<'syscon> {
+pub struct Handle<'syscon> {
     pdruncfg     : &'syscon PDRUNCFG,
     presetctrl   : &'syscon PRESETCTRL,
     sysahbclkctrl: &'syscon SYSAHBCLKCTRL,
 }
 
-impl<'r> Api<'r> {
+impl<'r> Handle<'r> {
     /// Enable peripheral clock
     ///
     /// Enables the clock for a peripheral or other hardware component. HAL
@@ -447,7 +447,7 @@ impl IrcDerivedClock<clock::state::Disabled> {
     /// the IRC-derived clock again.
     ///
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
-    pub fn enable(self, syscon: &mut Api, mut irc: IRC, mut ircout: IRCOUT)
+    pub fn enable(self, syscon: &mut Handle, mut irc: IRC, mut ircout: IRCOUT)
         -> IrcDerivedClock<clock::state::Enabled>
     {
         syscon.power_up(&mut irc);

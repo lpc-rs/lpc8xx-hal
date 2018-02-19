@@ -62,7 +62,7 @@ pub struct Handle<'gpio, State: InitState = init_state::Initialized> {
 
 impl<'gpio> Handle<'gpio, init_state::Unknown> {
     /// Initialize GPIO
-    pub fn init(mut self, syscon: &mut syscon::Api)
+    pub fn init(mut self, syscon: &mut syscon::Handle)
         -> Handle<'gpio, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.gpio);

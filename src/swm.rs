@@ -83,7 +83,7 @@ impl<'swm> Handle<'swm, init_state::Unknown> {
     }
 
     /// Initialize the switch matrix
-    pub fn init(mut self, syscon: &mut syscon::Api)
+    pub fn init(mut self, syscon: &mut syscon::Handle)
         -> Handle<'swm, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.swm);

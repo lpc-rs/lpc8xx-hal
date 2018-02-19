@@ -83,7 +83,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     /// [`BaudRate`]: struct.BaudRate.html
     pub fn init<Rx: PinName, Tx: PinName>(mut self,
         baud_rate: &BaudRate,
-        syscon   : &mut syscon::Api,
+        syscon   : &mut syscon::Handle,
         rx       : Pin<Rx, pin_state::Unused>,
         tx       : Pin<Tx, pin_state::Unused>,
         rxd      : UsartX::Rx,
