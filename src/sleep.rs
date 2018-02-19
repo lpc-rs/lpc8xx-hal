@@ -100,7 +100,7 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// [`wkt::Clock`]: ../wkt/trait.Clock.html
 pub struct Regular<'r, 'pmu, 'wkt> {
     nvic: &'r lpc82x::NVIC,
-    pmu : &'pmu mut pmu::Api<'pmu>,
+    pmu : &'pmu mut pmu::Handle<'pmu>,
     scb : &'r lpc82x::SCB,
     wkt : &'wkt mut WKT<'wkt>,
 }
@@ -109,7 +109,7 @@ impl<'r, 'pmu, 'wkt> Regular<'r, 'pmu, 'wkt> {
     /// Prepare regular sleep mode
     pub fn prepare(
         nvic: &'r lpc82x::NVIC,
-        pmu : &'pmu mut pmu::Api<'pmu>,
+        pmu : &'pmu mut pmu::Handle<'pmu>,
         scb : &'r lpc82x::SCB,
         wkt : &'wkt mut WKT<'wkt>,
     )
