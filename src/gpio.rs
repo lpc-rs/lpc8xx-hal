@@ -62,7 +62,7 @@ pub struct Handle<'gpio, State: InitState = init_state::Initialized> {
 
 impl<'gpio> Handle<'gpio, init_state::Unknown> {
     /// Initialize GPIO
-    pub fn init(mut self, syscon: &mut syscon::Api)
+    pub fn init(mut self, syscon: &mut syscon::Handle)
         -> Handle<'gpio, init_state::Initialized>
     {
         syscon.enable_clock(&mut self.gpio);
@@ -227,7 +227,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     ///
     /// [`IOCON`]: ../../lpc82x/constant.IOCON.html
     /// [`ADC`]: ../../lpc82x/constant.ADC.html
-    pub fn as_adc_pin<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn as_adc_pin<F>(mut self, function: F, swm: &mut swm::Handle)
         -> (Pin<T, pin_state::Adc>, F::Enabled)
         where F: AdcFunction + FixedFunction<Pin=T> + fixed_function::Enable
     {
@@ -323,7 +323,10 @@ impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
 
 impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     /// Enable the fixed function on this pin
-    pub fn enable_output_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn enable_output_function<F>(mut self,
+            function: F,
+            swm     : &mut swm::Handle,
+        )
         -> (Pin<T, pin_state::Swm<((),), Inputs>>, F::Enabled)
         where F: OutputFunction + FixedFunction<Pin=T> + fixed_function::Enable
     {
@@ -338,7 +341,10 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     }
 
     /// Assign a movable function to the pin
-    pub fn assign_output_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn assign_output_function<F>(mut self,
+        function: F,
+        swm     : &mut swm::Handle,
+    )
         -> (Pin<T, pin_state::Swm<((),), Inputs>>, F::Assigned)
         where F: OutputFunction + movable_function::Assign<T>
     {
@@ -355,7 +361,10 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
 
 impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     /// Disable the fixed function on this pin
-    pub fn disable_output_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn disable_output_function<F>(mut self,
+        function: F,
+        swm     : &mut swm::Handle,
+    )
         -> (Pin<T, pin_state::Swm<(), Inputs>>, F::Disabled)
         where F: OutputFunction + FixedFunction<Pin=T> + fixed_function::Disable
     {
@@ -370,7 +379,10 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     }
 
     /// Unassign a movable function from the pin
-    pub fn unassign_output_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn unassign_output_function<F>(mut self,
+        function: F,
+        swm     : &mut swm::Handle,
+    )
         -> (Pin<T, pin_state::Swm<(), Inputs>>, F::Unassigned)
         where F: OutputFunction + movable_function::Unassign<T>
     {
@@ -389,7 +401,10 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     where T: PinName
 {
     /// Enable the fixed function on this pin
-    pub fn enable_input_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn enable_input_function<F>(mut self,
+        function: F,
+        swm     : &mut swm::Handle,
+    )
         -> (Pin<T, pin_state::Swm<Output, (Inputs,)>>, F::Enabled)
         where F: InputFunction + FixedFunction<Pin=T> + fixed_function::Enable
     {
@@ -404,7 +419,10 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     }
 
     /// Assign a movable function to the pin
-    pub fn assign_input_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn assign_input_function<F>(mut self,
+        function: F,
+        swm     : &mut swm::Handle,
+    )
         -> (Pin<T, pin_state::Swm<Output, (Inputs,)>>, F::Assigned)
         where F: InputFunction + movable_function::Assign<T>
     {
@@ -423,7 +441,10 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     where T: PinName
 {
     /// Disable the fixed function on this pin
-    pub fn disable_input_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn disable_input_function<F>(mut self,
+        function: F,
+        swm     : &mut swm::Handle,
+    )
         -> (Pin<T, pin_state::Swm<Output, Inputs>>, F::Disabled)
         where F: InputFunction + FixedFunction<Pin=T> + fixed_function::Disable
     {
@@ -438,7 +459,10 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     }
 
     /// Unassign a movable function from the pin
-    pub fn unassign_input_function<F>(mut self, function: F, swm: &mut swm::Api)
+    pub fn unassign_input_function<F>(mut self,
+        function: F,
+        swm     : &mut swm::Handle,
+    )
         -> (Pin<T, pin_state::Swm<Output, Inputs>>, F::Unassigned)
         where F: InputFunction + movable_function::Unassign<T>
     {
