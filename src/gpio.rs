@@ -548,6 +548,7 @@ pub mod pin_state {
     ///
     /// This type has type parameters that track whether output and input
     /// functions have been assigned to a pin:
+    ///
     /// - `Output` tracks whether an output function has been assigned. The only
     ///   valid states are no output functions being assigned, or exactly one
     ///   output function being assigned.
