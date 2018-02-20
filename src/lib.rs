@@ -300,6 +300,30 @@ pub use self::wkt::WKT;
 ///
 /// Only one instance of this struct must exist in your program.
 pub struct Peripherals<'system> {
+    /// General Purpose I/O (GPIO)
+    pub gpio: GPIO<'system>,
+
+    /// Power Management Unit (PMU)
+    pub pmu: PMU<'system>,
+
+    /// Switch matrix (SWM)
+    pub swm: SWM<'system>,
+
+    /// System configuration (SYSCON)
+    pub syscon: SYSCON<'system>,
+
+    /// USART0
+    pub usart0: USART<'system, lpc82x::USART0, init_state::Unknown>,
+
+    /// USART1
+    pub usart1: USART<'system, lpc82x::USART1, init_state::Unknown>,
+
+    /// USART2
+    pub usart2: USART<'system, lpc82x::USART2, init_state::Unknown>,
+
+    /// Self-wake-up timer (WKT)
+    pub wkt: WKT<'system, init_state::Unknown>,
+
     /// CPUID register
     ///
     /// This peripheral is available in all Cortex-M0+ microcontrollers and has
@@ -509,30 +533,6 @@ pub struct Peripherals<'system> {
     ///
     /// [lpc82x]: https://crates.io/crates/lpc82x
     pub wwdt: &'system lpc82x::WWDT,
-
-    /// General Purpose I/O (GPIO)
-    pub gpio: GPIO<'system>,
-
-    /// Power Management Unit (PMU)
-    pub pmu: PMU<'system>,
-
-    /// Switch matrix (SWM)
-    pub swm: SWM<'system>,
-
-    /// System configuration (SYSCON)
-    pub syscon: SYSCON<'system>,
-
-    /// USART0
-    pub usart0: USART<'system, lpc82x::USART0, init_state::Unknown>,
-
-    /// USART1
-    pub usart1: USART<'system, lpc82x::USART1, init_state::Unknown>,
-
-    /// USART2
-    pub usart2: USART<'system, lpc82x::USART2, init_state::Unknown>,
-
-    /// Self-wake-up timer (WKT)
-    pub wkt: WKT<'system, init_state::Unknown>,
 }
 
 impl<'system> Peripherals<'system> {
@@ -552,6 +552,15 @@ impl<'system> Peripherals<'system> {
         let peripherals = lpc82x::Peripherals::all();
 
         Peripherals {
+            gpio  : GPIO::new(peripherals.GPIO_PORT),
+            pmu   : PMU::new(peripherals.PMU),
+            swm   : SWM::new(peripherals.SWM),
+            syscon: SYSCON::new(peripherals.SYSCON),
+            usart0: USART::new(peripherals.USART0),
+            usart1: USART::new(peripherals.USART1),
+            usart2: USART::new(peripherals.USART2),
+            wkt   : WKT::new(peripherals.WKT),
+
             cpuid: peripherals.CPUID,
             dcb  : peripherals.DCB,
             dwt  : peripherals.DWT,
@@ -577,15 +586,6 @@ impl<'system> Peripherals<'system> {
             spi0      : peripherals.SPI0,
             spi1      : peripherals.SPI1,
             wwdt      : peripherals.WWDT,
-
-            gpio  : GPIO::new(peripherals.GPIO_PORT),
-            pmu   : PMU::new(peripherals.PMU),
-            swm   : SWM::new(peripherals.SWM),
-            syscon: SYSCON::new(peripherals.SYSCON),
-            usart0: USART::new(peripherals.USART0),
-            usart1: USART::new(peripherals.USART1),
-            usart2: USART::new(peripherals.USART2),
-            wkt   : WKT::new(peripherals.WKT),
         }
     }
 }
