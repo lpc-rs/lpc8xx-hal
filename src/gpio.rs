@@ -216,31 +216,6 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
 }
 
 impl<T> Pin<T, pin_state::Unused> where T: PinName {
-    /// Makes the pin available for the ADC
-    ///
-    /// This method enables the analog function for this pin via the switch
-    /// matrix, but as of now, there is no HAL API to actually control the ADC.
-    /// You can use this method to enable the analog function and make sure that
-    /// no conflicting functions can be enabled for the pin. After that, you
-    /// need to use the raw [`IOCON`] and [`ADC`] register mappings to actually
-    /// do anything with it.
-    ///
-    /// [`IOCON`]: ../../lpc82x/constant.IOCON.html
-    /// [`ADC`]: ../../lpc82x/constant.ADC.html
-    pub fn as_adc_pin<F>(mut self, function: F, swm: &mut swm::Handle)
-        -> (Pin<T, pin_state::Adc>, F::Enabled)
-        where F: AdcFunction + FixedFunction<Pin=T> + fixed_function::Enable
-    {
-        let function = function.enable(&mut self.ty, swm);
-
-        let pin = Pin {
-            ty   : self.ty,
-            state: pin_state::Adc,
-        };
-
-        (pin, function)
-    }
-
     /// Makes this pin available for GPIO
     pub fn as_gpio_pin<'gpio>(self, gpio: &'gpio Handle<'gpio>)
         -> Pin<T, pin_state::Gpio<'gpio, direction::Unknown>>
@@ -264,6 +239,31 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
             ty   : self.ty,
             state: pin_state::Swm::new(),
         }
+    }
+
+    /// Makes the pin available for the ADC
+    ///
+    /// This method enables the analog function for this pin via the switch
+    /// matrix, but as of now, there is no HAL API to actually control the ADC.
+    /// You can use this method to enable the analog function and make sure that
+    /// no conflicting functions can be enabled for the pin. After that, you
+    /// need to use the raw [`IOCON`] and [`ADC`] register mappings to actually
+    /// do anything with it.
+    ///
+    /// [`IOCON`]: ../../lpc82x/constant.IOCON.html
+    /// [`ADC`]: ../../lpc82x/constant.ADC.html
+    pub fn as_adc_pin<F>(mut self, function: F, swm: &mut swm::Handle)
+        -> (Pin<T, pin_state::Adc>, F::Enabled)
+        where F: AdcFunction + FixedFunction<Pin=T> + fixed_function::Enable
+    {
+        let function = function.enable(&mut self.ty, swm);
+
+        let pin = Pin {
+            ty   : self.ty,
+            state: pin_state::Adc,
+        };
+
+        (pin, function)
     }
 }
 
