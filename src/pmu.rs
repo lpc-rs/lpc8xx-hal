@@ -1,6 +1,35 @@
-//! APIs for the power management unit (PMU)
+//! API for the Power Management Unit (PMU)
 //!
-//! See user manual, chapter 6.
+//! To use this API, you need to gain access to the [`PMU`] instance via
+//! [`Peripherals`]. From [`PMU`], you can get the [`pmu::Handle`] and other
+//! parts of the PMU API.
+//!
+//! This API expects to be the sole owner of the PMU. Don't use [`lpc82x::PMU`]
+//! directly, unless you know what you're doing.
+//!
+//! The PMU is described in the user manual, chapter 6.
+//!
+//! # Examples
+//!
+//! Use the PMU to enter sleep mode:
+//!
+//! ``` no_run
+//! use lpc82x_hal::Peripherals;
+//!
+//! let peripherals = unsafe { Peripherals::new() };
+//!
+//! let mut pmu = peripherals.pmu.handle;
+//! let     scb = peripherals.scb;
+//!
+//! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
+//! // from this again.
+//! pmu.enter_sleep_mode(&scb);
+//! ```
+//!
+//! [`PMU`]: struct.PMU.html
+//! [`Peripherals`]: ../struct.Peripherals.html
+//! [`pmu::Handle`]: struct.Handle.html
+//! [`lpc82x::PMU`]: ../../lpc82x/struct.PMU.html
 
 
 use cortex_m::{
@@ -17,19 +46,25 @@ use clock;
 use clock::state::ClockState;
 
 
-/// Interface to the power management unit (PMU)
+/// Entry point to the PMU API
 ///
-/// This API expects to be the sole owner of the PMU peripheral. Don't use
-/// [`lpc82x::PMU`] directly, unless you know what you're doing.
+/// Provides access to all types that make up the PMU API. Please refer to the
+/// [module documentation] for more information.
 ///
-/// [`lpc82x::PMU`]: ../../lpc82x/struct.PMU.html
+/// [module documentation]: index.html
 pub struct PMU<'pmu> {
-    /// Main PMU API
+    /// The handle to the PMU peripheral
     pub handle: Handle<'pmu>,
 
     /// The 10 kHz low-power clock
     ///
-    /// Can be used to run the self-wake-up timer (WKT).
+    /// # Limitations
+    ///
+    /// This field currently assumes that the low-power clock always starts out
+    /// being disabled, but since we don't know what happened before the HAL API
+    /// was initialized, this might not be the case. Please make sure you
+    /// haven't enabled the low-power clock, or called any code that might have,
+    /// before using this field.
     pub low_power_clock: LowPowerClock<clock::state::Disabled>,
 }
 
@@ -46,7 +81,12 @@ impl<'pmu> PMU<'pmu> {
 }
 
 
-/// Main API of the PMU peripheral
+/// The handle to the PMU peripheral
+///
+/// Please refer to the [module documentation] for more information about the
+/// PMU.
+///
+/// [module documentation]: index.html
 pub struct Handle<'pmu> {
     dpdctrl: &'pmu DPDCTRL,
     pcon   : &'pmu PCON,
@@ -80,27 +120,31 @@ impl<'pmu> Handle<'pmu> {
 
 /// The 10 kHz low-power clock
 ///
+/// This is one of the clocks that can be used to run the self-wake-up timer
+/// (WKT).
+///
 /// See user manual, section 18.5.1.
 pub struct LowPowerClock<State: ClockState = clock::state::Enabled> {
     _state: State,
 }
 
 impl LowPowerClock<clock::state::Disabled> {
-    /// Create a new instance of the low-power clock
-    ///
-    /// This method is only intended for use within [`System`].
-    ///
-    /// [`System`]: ../struct.System.html
     pub(crate) fn new() -> Self {
         LowPowerClock {
             _state: clock::state::Disabled,
         }
     }
 
-    /// Enables the clock
+    /// Enable the low-power clock
     ///
-    /// This method consumes this instance of `LowPowerClock` and returns an
-    /// instance that implements [`clock::Enabled`].
+    /// This method is only available if the low-power clock is disabled. Code
+    /// attempting to call this method when this is not the case will not
+    /// compile.
+    ///
+    /// Consumes this instance of `LowPowerClock` and returns a new instance
+    /// whose state indicates that the clock is enabled. That new instance
+    /// implements [`clock::Enabled`], which might be required by APIs that need
+    /// an enabled clock.
     ///
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
     pub fn enable(self, pmu: &mut Handle)
@@ -117,10 +161,14 @@ impl LowPowerClock<clock::state::Disabled> {
 }
 
 impl LowPowerClock<clock::state::Enabled> {
-    /// Disables the clock
+    /// Disable the low-power clock
     ///
-    /// This method consumes an enabled instance of `LowPowerClock` and returns
-    /// an instance that is disabled.
+    /// This method is only available if the low-power clock is enabled. Code
+    /// attempting to call this method when this is not the case will not
+    /// compile.
+    ///
+    /// Consumes this instance of `LowPowerClock` and returns a new instance
+    /// whose state indicates that the clock is disabled.
     pub fn disable(self, pmu: &mut Handle)
         -> LowPowerClock<clock::state::Disabled>
     {
