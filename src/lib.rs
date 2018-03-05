@@ -252,8 +252,8 @@ pub mod wkt;
 /// Re-exports various traits that are required to use lpc82x-hal
 ///
 /// The purpose of this module is to improve convenience, by not requiring the
-/// user to import traits separately. Just add the following glob import to your
-/// code, and you should be good:
+/// user to import traits separately. Just add the following to your code, and
+/// you should be good to go:
 ///
 /// ``` rust
 /// use lpc82x_hal::prelude::*;
