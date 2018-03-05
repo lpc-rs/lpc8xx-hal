@@ -591,22 +591,31 @@ impl<'system> Peripherals<'system> {
 }
 
 
-/// Contains types that mark the state of peripheral initialization
+/// Contains types that encode the state hardware initialization
+///
+/// The types in this module are used by structs representing peripherals or
+/// other hardware components, to encode the initialization state of the
+/// underlying hardware as part of the type.
 pub mod init_state {
-    /// Implemented by types that indicate peripheral initialization state
+    /// Implemented by the types that represent the initialization states
     ///
-    /// This type is used as a trait bound for type paramters that indicate a
-    /// peripheral's initialization state. HAL users should never need to
-    /// implement this trait, nor use it directly.
+    /// This type is used as a trait bound for type paramters that represent
+    /// initialization states. This is done for the purpose of documentation.
+    /// HAL users should never need to implement this trait, nor use it
+    /// directly.
     pub trait InitState {}
 
-    /// Marks a peripheral's initialization state as being unknown
+    /// Indicates that the hardware's state is currently unknown
     ///
-    /// This is usually the initial state after system initialization.
+    /// This is usually the initial state after the HAL API has been
+    /// initialized, as we don't know what happened before that.
     pub struct Unknown;
     impl InitState for Unknown {}
 
-    /// Marks a peripheral as being initialized
+    /// Indicates that the hardware component is enabled
+    ///
+    /// This usually indicates that the hardware has been initialized and can be
+    /// used for its intended purpose.
     pub struct Enabled;
     impl InitState for Enabled {}
 }
