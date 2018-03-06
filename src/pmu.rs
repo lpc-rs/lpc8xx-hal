@@ -121,9 +121,7 @@ impl<'pmu> Handle<'pmu> {
 /// The 10 kHz low-power clock
 ///
 /// This is one of the clocks that can be used to run the self-wake-up timer
-/// (WKT).
-///
-/// See user manual, section 18.5.1.
+/// (WKT). See user manual, section 18.5.1.
 pub struct LowPowerClock<State: ClockState = clock::state::Enabled> {
     _state: State,
 }
