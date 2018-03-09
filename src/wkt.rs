@@ -1,6 +1,36 @@
-//! APIs for the self-wake-up timer (WKT)
+//! API for the self-wake-up timer (WKT)
 //!
-//! See user manual, chapter 18.
+//! This API expects to be the sole owner of the WKT peripheral. Don't use
+//! [`lpc82x::WKT`] directly, unless you know what you're doing.
+//!
+//! The WKT peripheral is described in the user manual, chapter 9.
+//!
+//! # Examples
+//!
+//! ``` no_run
+//! # extern crate lpc82x_hal;
+//! # extern crate nb;
+//! #
+//! # fn main() {
+//! use lpc82x_hal::prelude::*;
+//! use lpc82x_hal::Peripherals;
+//!
+//! let peripherals = unsafe { Peripherals::new() };
+//!
+//! let mut syscon = peripherals.syscon.handle;
+//! let mut timer  = peripherals.wkt.init(&mut syscon);
+//!
+//! // Start the timer at 750000. Sine the IRC-derived clock runs at 750 kHz,
+//! // this translates to a one second wait.
+//! timer.start(750_000u32);
+//!
+//! while let Err(nb::Error::WouldBlock) = timer.wait() {
+//!     // do stuff
+//! }
+//! # }
+//! ```
+//!
+//! [`lpc82x::WKT`]: ../../lpc82x/struct.WKT.html
 
 
 use core::cell::RefCell;
@@ -35,20 +65,14 @@ use pmu::LowPowerClock;
 static HAS_WOKEN: Mutex<RefCell<bool>> = Mutex::new(RefCell::new(false));
 
 
-/// Interface to the self-wake-up timer (WKT)
+/// The API for the self-wake-up timer (WKT)
 ///
-/// This API expects to be the sole owner of the WKT peripheral. Don't use
-/// [`lpc82x::WKT`] directly, unless you know what you're doing.
+/// This is the main API for the WKT. All aspects of the WKT can be controlled
+/// via this struct.
 ///
-/// # Limitations
+/// Please refer to the [module documentation] for more information.
 ///
-/// This struct implements [`Timer`], but only [`Timer::set_timeout`] and
-/// [`Timer::wait`] are implemented. All other [`Timer`] methods will panic.
-///
-/// [`lpc82x::WKT`]: ../../lpc82x/struct.WKT.html
-/// [`Timer`]: ../../embedded_hal/trait.Timer.html
-/// [`Timer::set_timeout`]: ../../embedded_hal/trait.Timer.html#tymethod.set_timeout
-/// [`Timer::wait`]: ../../embedded_hal/trait.Timer.html#tymethod.wait
+/// [module documentation]: index.html
 pub struct WKT<'wkt, State: InitState = init_state::Enabled> {
     wkt   : &'wkt lpc82x::WKT,
     _state: State,
@@ -63,6 +87,18 @@ impl<'wkt> WKT<'wkt, init_state::Unknown> {
     }
 
     /// Initialize the self-wake-up timer
+    ///
+    /// This method is only available, if `WKT` is in the [`Unknown`] state.
+    /// This is the initial state after initializing the HAL API. Code that
+    /// attempts to call this method after the WKT has been initialized will not
+    /// compile.
+    ///
+    /// Consumes this instance of `WKT` and returns another instance that has
+    /// its `State` type parameter set to [`Enabled`]. This makes available
+    /// those methods that can only work if the WKT is enabled.
+    ///
+    /// [`Unknown`]: ../init_state/struct.Unknown.html
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn init(mut self, syscon: &mut syscon::Handle)
         -> WKT<'wkt, init_state::Enabled>
     {
@@ -77,15 +113,24 @@ impl<'wkt> WKT<'wkt, init_state::Unknown> {
 }
 
 impl<'wkt> WKT<'wkt> {
-    /// Select the clock that runs the self-wake-up timer
+    /// Select the clock to run the self-wake-up timer
     ///
-    /// Clocks that can run the self-wake-up timer implement [`wkt::Clock`].
+    /// This method is only available if the WKT has been initialized. Code
+    /// attempting to call this method when this is not the case, will not
+    /// compile. Call [`init`] to initialize the WKT.
+    ///
+    /// All clocks that can run the WKT implement a common trait. Please refer
+    /// to [`wkt::Clock`] for a list of clocks that can be passed to this
+    /// method. Selecting an external clock via the WKTCLKIN pin is currently
+    /// not supported.
     ///
     /// # Limitations
     ///
-    /// Selecting an external clock via the WKTCLKIN pin is currently not
-    /// supported.
+    /// Currently nothing prevents the user from selecting a clock that is
+    /// disabled, attempting to start the timer while the clock is disabled, or
+    /// disabling the clock while the timer is running.
     ///
+    /// [`init`]: #method.init
     /// [`wkt::Clock`]: trait.Clock.html
     pub fn select_clock<C>(&mut self) where C: Clock {
         self.wkt.ctrl.modify(|r, w|
@@ -95,20 +140,27 @@ impl<'wkt> WKT<'wkt> {
 
     /// Enable the WKT interrupt
     ///
-    /// The user is responsible for handling that interrupt. If the interrupt is
-    /// not handled, the timer won't work correctly.
+    /// This method is only available if the WKT has been initialized. Code
+    /// attempting to call this method when this is not the case, will not
+    /// compile. Call [`init`] to initialize the WKT.
     ///
-    /// See [`handle_interrupt`] for details.
+    /// If you enable the WKT interrupt by calling this method, you must handle
+    /// it for the WKT API to work correctly. Please refer to
+    /// [`handle_interrupt`] for details.
     ///
+    /// [`init`]: #method.init
     /// [`handle_interrupt`]: #method.handle_interrupt
     pub fn enable_interrupt(&mut self, nvic: &lpc82x::NVIC) {
         nvic.enable(Interrupt::WKT);
     }
 
-    /// Handles the WKT interrupt
+    /// Handle the WKT interrupt
     ///
     /// If the WKT interrupt has been enabled, this function must be called from
-    /// the interrupt handler.
+    /// the interrupt handler. If this function isn't called from the interrupt
+    /// handler, the WKT API will not work correctly.
+    ///
+    /// # Limitations
     ///
     /// If this function is called from any other context than the interrupt
     /// handler, the WKT API will believe that an interrupt has occured, which
@@ -207,7 +259,7 @@ impl<'wkt> timer::CountDown for WKT<'wkt> {
 /// WKT. The user shouldn't need to implement this trait themselves, except to
 /// compensate for missing pieces of HAL functionality.
 pub trait Clock {
-    /// Select the clock as the clock source for the WKT
+    /// Internal method to select the clock as the clock source for the WKT
     ///
     /// This is an internal method, to be called by the WKT API. Users generally
     /// shouldn't need to call this. This method is exempt from any guarantees
