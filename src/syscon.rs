@@ -1,6 +1,11 @@
-//! APIs for system configuration (SYSCON)
+//! API for system configuration (SYSCON)
 //!
-//! See user manual, chapter 5.
+//! This API expects to be the sole owner of the SYSCON interface. Don't use
+//! [`lpc82x::SYSCON`] directly, unless you know what you're doing.
+//!
+//! The SYSCON peripheral is described in the user manual, chapter 5.
+//!
+//! [`lpc82x::SYSCON`]: ../../lpc82x/struct.SYSCON.html
 
 
 use core::marker::PhantomData;
@@ -22,14 +27,11 @@ use clock;
 use clock::state::ClockState;
 
 
-/// Interface to system configuration (SYSCON)
+/// Entry point to the SYSCON API.
 ///
-/// This API expects to be the sole owner of the SYSCON interface. Don't use
-/// [`lpc82x::SYSCON`] directly, unless you know what you're doing.
-///
-/// [`lpc82x::SYSCON`]: ../../lpc82x/struct.SYSCON.html
+/// Provides access to all types that make up the SYSCON API.
 pub struct SYSCON<'syscon> {
-    /// Main SYSCON API
+    /// The handle to the SYSCON peripheral
     pub handle: Handle<'syscon>,
 
     /// Brown-out detection
@@ -64,7 +66,13 @@ pub struct SYSCON<'syscon> {
 
     /// The 750 kHz IRC-derived clock
     ///
-    /// Can be used to run the self-wake-up timer (WKT).
+    /// # Limitations
+    ///
+    /// This field currently assumes that the IRC-derived clock always starts
+    /// out being disabled, but since we don't know what happened before the HAL
+    /// API was initialized, this might not be the case. Please make sure you
+    /// haven't enabled the IRC-derived clock, or called any code that might
+    /// have, before using this field.
     pub irc_derived_clock: IrcDerivedClock<clock::state::Disabled>,
 }
 
@@ -99,7 +107,7 @@ impl<'syscon> SYSCON<'syscon> {
 }
 
 
-/// Main API of the SYSCON peripheral
+/// The handle to the SYSCON peripheral
 pub struct Handle<'syscon> {
     pdruncfg     : &'syscon PDRUNCFG,
     presetctrl   : &'syscon PRESETCTRL,
@@ -152,73 +160,81 @@ impl<'r> Handle<'r> {
 
 /// Brown-out detection
 ///
-/// Can be used to control brown-out detection using various [`SYSCON`] methods.
+/// Can be used to control brown-out detection using various methods on
+/// [`syscon::Handle`].
 ///
-/// [`SYSCON`]: struct.SYSCON.html
+/// [`syscon::Handle`]: struct.Handle.html
 pub struct BOD(PhantomData<*const ()>);
 
 /// Flash memory
 ///
-/// Can be used to control the flash memory using various [`SYSCON`] methods.
+/// Can be used to control flash memory using various methods on
+/// [`syscon::Handle`].
 ///
-/// [`SYSCON`]: struct.SYSCON.html
+/// [`syscon::Handle`]: struct.Handle.html
 pub struct FLASH(PhantomData<*const ()>);
 
 /// IRC
 ///
-/// Can be used to control the IRC using various [`SYSCON`] methods.
+/// Can be used to control the IRC using various methods on [`syscon::Handle`].
 ///
-/// [`SYSCON`]: struct.SYSCON.html
+/// [`syscon::Handle`]: struct.Handle.html
 pub struct IRC(PhantomData<*const ()>);
 
 /// IRC output
 ///
-/// Can be used to control IRC output using various [`SYSCON`] methods.
+/// Can be used to control IRC output using various methods on
+/// [`syscon::Handle`].
 ///
-/// [`SYSCON`]: struct.SYSCON.html
+/// [`syscon::Handle`]: struct.Handle.html
 pub struct IRCOUT(PhantomData<*const ()>);
 
 /// Micro Trace Buffer
 ///
-/// Can be used to control the Micro Trace Buffer using various [`SYSCON`]
-/// methods.
+/// Can be used to control the Micro Trace Buffer using various methods on
+/// [`syscon::Handle`].
 ///
-/// [`SYSCON`]: struct.SYSCON.html
+/// [`syscon::Handle`]: struct.Handle.html
 pub struct MTB(PhantomData<*const ()>);
 
 /// Random access memory
 ///
-/// Can be used to control the RAM using various [`SYSCON`] methods.
+/// Can be used to control the RAM using various methods on [`syscon::Handle`].
 ///
-/// [`SYSCON`]: struct.SYSCON.html
+/// [`syscon::Handle`]: struct.Handle.html
 #[allow(non_camel_case_types)]
 pub struct RAM0_1(PhantomData<*const ()>);
 
 /// Read-only memory
 ///
-/// Can be used to control the ROM using various [`SYSCON`] methods.
+/// Can be used to control the ROM using various methods on [`syscon::Handle`].
 ///
-/// [`SYSCON`]: struct.SYSCON.html
+/// [`syscon::Handle`]: struct.Handle.html
 pub struct ROM(PhantomData<*const ()>);
 
 /// System oscillator
 ///
-/// Can be used to control the system oscillator using various [`SYSCON`]
-/// methods.
+/// Can be used to control the system oscillator using various methods on
+/// [`syscon::Handle`].
 ///
-/// [`SYSCON`]: struct.SYSCON.html
+/// [`syscon::Handle`]: struct.Handle.html
 pub struct SYSOSC(PhantomData<*const ()>);
 
 /// PLL
 ///
-/// Can be used to control the PLL using various [`SYSCON`] methods.
+/// Can be used to control the PLL using various methods on [`syscon::Handle`].
 ///
-/// [`SYSCON`]: struct.SYSCON.html
+/// [`syscon::Handle`]: struct.Handle.html
 pub struct SYSPLL(PhantomData<*const ()>);
 
 /// UART Fractional Baud Rate Generator
 ///
-/// Controls the clock for all USART peripherals (U_PCLK).
+/// Controls the common clock for all UART peripherals (U_PCLK).
+///
+/// Can also be used to control the UART FRG using various methods on
+/// [`syscon::Handle`].
+///
+/// [`syscon::Handle`]: struct.Handle.html
 pub struct UARTFRG<'syscon> {
     uartclkdiv : &'syscon UARTCLKDIV,
     uartfrgdiv : &'syscon UARTFRGDIV,
@@ -255,17 +271,17 @@ impl<'syscon> UARTFRG<'syscon> {
 }
 
 
-/// Implemented for peripherals that have a clock that can be enabled
+/// Internal trait for controlling peripheral clocks
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any incompatible changes to this
-/// trait won't be considered breaking changes.
+/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// be considered breaking changes.
 ///
-/// Please refer to [`SYSCON::enable_clock`] and [`SYSCON::disable_clock`] for
-/// the public API that uses this trait.
+/// Please refer to [`syscon::Handle::enable_clock`] and
+/// [`syscon::Handle::disable_clock`] for the public API that uses this trait.
 ///
-/// [`SYSCON::enable_clock`]: struct.SYSCON.html#method.enable_clock
-/// [`SYSCON::disable_clock`]: struct.SYSCON.html#method.disable_clock
+/// [`syscon::Handle::enable_clock`]: struct.Handle.html#method.enable_clock
+/// [`syscon::Handle::disable_clock`]: struct.Handle.html#method.disable_clock
 pub trait ClockControl {
     /// Internal method to enable a peripheral clock
     fn enable_clock<'w>(&mut self, w: &'w mut sysahbclkctrl::W)
@@ -321,17 +337,17 @@ impl_clock_control!(MTB                  , mtb     );
 impl_clock_control!(&'a lpc82x::DMA      , dma     );
 
 
-/// Implemented for peripherals that can be reset
+/// Internal trait for controlling peripheral reset
 ///
 /// This trait is an internal implementation detail and should neither be
 /// implemented nor used outside of LPC82x HAL. Any incompatible changes to this
 /// trait won't be considered breaking changes.
 ///
-/// Please refer to [`SYSCON::assert_reset`] and [`SYSCON::clear_reset`] for the
-/// public API that uses this trait.
+/// Please refer to [`syscon::Handle::assert_reset`] and
+/// [`syscon::Handle::clear_reset`] for the public API that uses this trait.
 ///
-/// [`SYSCON::assert_reset`]: struct.SYSCON.html#method.assert_reset
-/// [`SYSCON::clear_reset`]: struct.SYSCON.html#method.clear_reset
+/// [`syscon::Handle::assert_reset`]: struct.Handle.html#method.assert_reset
+/// [`syscon::Handle::clear_reset`]: struct.Handle.html#method.clear_reset
 pub trait ResetControl {
     /// Internal method to assert peripheral reset
     fn assert_reset<'w>(&mut self, w: &'w mut presetctrl::W)
@@ -375,17 +391,17 @@ impl_reset_control!(&'a lpc82x::FLASHCTRL, flash_rst_n  );
 impl_reset_control!(&'a lpc82x::CMP      , acmp_rst_n   );
 
 
-/// Implemented for analog blocks whose power can be controlled
+/// Internal trait for powering analog blocks
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any incompatible changes to this
-/// trait won't be considered breaking changes.
+/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// be considered breaking changes.
 ///
-/// Please refer to [`SYSCON::power_up`] and [`SYSCON::power_down`] for the
-/// public API that uses this trait.
+/// Please refer to [`syscon::Handle::power_up`] and
+/// [`syscon::Handle::power_down`] for the public API that uses this trait.
 ///
-/// [`SYSCON::power_up`]: struct.SYSCON.html#method.power_up
-/// [`SYSCON::power_down`]: struct.SYSCON.html#method.power_down
+/// [`syscon::Handle::power_up`]: struct.Handle.html#method.power_up
+/// [`syscon::Handle::power_down`]: struct.Handle.html#method.power_down
 pub trait AnalogBlock {
     /// Internal method to power up an analog block
     fn power_up<'w>(&mut self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W;
@@ -423,9 +439,10 @@ impl_analog_block!(SYSPLL          , syspll_pd );
 impl_analog_block!(&'a lpc82x::CMP , acmp      );
 
 
-/// The 750 kHz IRC-derived clock that can run the WKT
+/// The 750 kHz IRC-derived clock
 ///
-/// See user manual, section 18.5.1.
+/// This is one of the clocks that can be used to run the self-wake-up timer
+/// (WKT). See user manual, section 18.5.1.
 pub struct IrcDerivedClock<State: ClockState = clock::state::Enabled> {
     _state: State,
 }
@@ -437,14 +454,20 @@ impl IrcDerivedClock<clock::state::Disabled> {
         }
     }
 
-    /// Enable the clock
+    /// Enable the IRC-derived clock
     ///
-    /// This method consumes this instance of `IrcDerivedClock` and returns an
-    /// instance that implements [`clock::Enabled`].
+    /// This method is only available if the IRC-derived clock is disabled. Code
+    /// attempting to call this method when this is not the case will not
+    /// compile.
     ///
-    /// This function consumes the handles to IRC and IRCOUT, to make it
-    /// impossible (outside of unsafe code) to break API guarantees by disabling
-    /// the IRC-derived clock again.
+    /// Consumes this instance of `IrcDerivedClock` and returns a new instance
+    /// whose state indicates that the clock is enabled. That new instance
+    /// implements [`clock::Enabled`], which might be required by APIs that need
+    /// an enabled clock.
+    ///
+    /// Also consumes the handles to IRC and IRCOUT, to make it impossible
+    /// (outside of unsafe code) to break API guarantees by disabling the
+    /// IRC-derived clock again.
     ///
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
     pub fn enable(self, syscon: &mut Handle, mut irc: IRC, mut ircout: IRCOUT)

@@ -15,14 +15,15 @@ pub struct Ticks<'clock, C: 'clock> {
 
     /// Reference to the clock
     ///
-    /// This reference exists to prevent any configuration of the clock that
-    /// would invalidate this struct, as configuration would require a mutable
-    /// reference to the clock, presumably.
+    /// For many clocks, it's possible to change their frequency. If this were
+    /// to be done after an instance of `Ticks` had been created, that would
+    /// invalidate the `Ticks` instance, as the same number of ticks would
+    /// suddenly represent a different duration of time.
     ///
-    /// The prime example of such invalidating configuration that this reference
-    /// would prevent is a change of the clock frequency. If, for example, an
-    /// instance of this struct is intended to represent a duration of 10ms,
-    /// this duration would change, if the clock frequency were to be changed.
+    /// This reference exists to prevent this. Any change to the configuration
+    /// of a clock would presumably require a mutable reference, which means as
+    /// long as this shared reference to the clock exists, the compiler will
+    /// prevent the clock frequency from being changed.
     pub clock: &'clock C,
 }
 
@@ -55,23 +56,42 @@ pub trait Frequency {
 }
 
 
-/// Marker trait that identifies a clock as currently enabled
+/// Marker trait that identifies a clock as currently being enabled
 ///
-/// A clock that is always enabled can implement this trait unconditionally.
-/// Clocks that can be disabled can use an additional type or type parameter to
-/// implement this trait, as shown in the following example:
+/// A clock that is always enabled can just implement this trait
+/// unconditionally. Clocks that can be disabled can use a different type or a
+/// type parameter to implement this trait conditionally.
+///
+/// HAL users will typically use this trait to ensure that a clock that is
+/// passed as a parameter is enabled.
+///
+/// # Examples
+///
+/// This is a function that takes a clock. The function uses this trait to
+/// ensure the passed clock is enabled.
+///
+/// ``` rust
+/// use lpc82x_hal::clock;
+///
+/// fn use_clock<C>(clock: C) where C: clock::Frequency + clock::Enabled {
+///     // do something with the clock
+/// }
+/// ```
+///
+/// The following example shows how to use a type parameter to track whether a
+/// clock is enabled, and implement the `Enabled` trait conditionally.
 ///
 /// ``` rust
 /// use lpc82x_hal::clock;
 ///
 ///
-/// struct MyClock<State = clock::state::Disabled> {
+/// struct MyClock<State> {
 ///     _state: State,
 /// }
 ///
-/// impl MyClock {
+/// impl MyClock<clock::state::Disabled> {
 ///     /// Consume the instance with disabled state, return one with enabled
-///     /// state
+///     /// state.
 ///     pub fn enable(self) -> MyClock<clock::state::Enabled> {
 ///         // Enable the clock
 ///         // ...
@@ -91,17 +111,19 @@ pub trait Enabled {}
 pub mod state {
     /// Implemented by types that indicate a clock state
     ///
-    /// This trait can be used as a trait bound for generic type parameters that
-    /// indicate a clock state. This can be done for documentation purposes, to
-    /// make it clear from a clock's reference documentation which states it
-    /// can have.
+    /// Clocks that can be enabled or disabled use this trait as a bound for
+    /// generic type parameters that indicate the clock state. This is done for
+    /// documentation purposes, to clearly show which states a clock can have.
+    ///
+    /// Other than that, this trait should not be relevant to users of LPC82x
+    /// HAL. You shouldn't implement it, nor should you need to use it directly.
     pub trait ClockState {}
 
-    /// Marks the clock as being disabled
+    /// Marks a clock as being disabled
     pub struct Disabled;
     impl ClockState for Disabled {}
 
-    /// Marks the clock as being enabled
+    /// Marks a clock as being enabled
     pub struct Enabled;
     impl ClockState for Enabled {}
 }

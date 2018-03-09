@@ -1,6 +1,65 @@
-//! APIs for General Purpose I/O (GPIO)
+//! API for General Purpose I/O (GPIO)
 //!
-//! See user manual, chapter 9.
+//! To use this API, you need to gain access to a [`GPIO`] instance via
+//! [`Peripherals`]. From [`GPIO`], you can get the [`gpio::Handle`], which you
+//! can use to initialize the GPIO peripheral, or you can get an instance of
+//! [`Pin`], which allows you to configure pins.
+//!
+//! This API expects to be the sole owner of the GPIO peripheral. Don't use
+//! [`lpc82x::GPIO_PORT`] directly, unless you know what you're doing.
+//!
+//! The GPIO peripheral is described in the user manual, chapter 9.
+//!
+//! # Examples
+//!
+//! Initialize a GPIO pin and set its output to HIGH:
+//!
+//! ``` no_run
+//! use lpc82x_hal::prelude::*;
+//! use lpc82x_hal::Peripherals;
+//!
+//! let peripherals = unsafe { Peripherals::new() };
+//!
+//! let mut syscon = peripherals.syscon.handle;
+//! let     gpio   = peripherals.gpio.handle.init(&mut syscon);
+//!
+//! let pio0_12 = unsafe {
+//!     peripherals.gpio.pins.pio0_12.affirm_default_state()
+//! };
+//! pio0_12
+//!     .as_gpio_pin(&gpio)
+//!     .as_output()
+//!     .set_high();
+//! ```
+//!
+//! Assign a pin to the switch matrix and enable a fixed function:
+//!
+//! ``` no_run
+//! use lpc82x_hal::prelude::*;
+//! use lpc82x_hal::Peripherals;
+//!
+//! let peripherals = unsafe { Peripherals::new() };
+//!
+//! let mut syscon = peripherals.syscon.handle;
+//! let mut swm    = peripherals.swm.handle.init(&mut syscon);
+//!
+//! let pio0_6 = unsafe {
+//!     peripherals.gpio.pins.pio0_6.affirm_default_state()
+//! };
+//! let vddcmp = unsafe {
+//!     peripherals.swm.fixed_functions.vddcmp.affirm_default_state()
+//! };
+//!
+//! pio0_6
+//!     .as_swm_pin()
+//!     .enable_input_function(vddcmp, &mut swm);
+//! ```
+//!
+//! [`GPIO`]: struct.GPIO.html
+//! [`Peripherals`]: ../struct.Peripherals.html
+//! [`gpio::Handle`]: struct.Handle.html
+//! [`Pin`]: struct.Pin.html
+//! [`lpc82x::GPIO_PORT`]: ../../lpc82x/struct.GPIO_PORT.html
 
 
 use embedded_hal::digital::OutputPin;
@@ -27,17 +86,22 @@ use self::direction::Direction;
 use self::pin_state::PinState;
 
 
-/// Interface to general-purpose I/O (GPIO)
+/// Entry point to the GPIO API
 ///
-/// This API expects to be the sole owner of the GPIO peripheral. Don't use
-/// [`lpc82x::GPIO_PORT`] directly, unless you know what you're doing.
+/// This struct provides access to all types that make up the GPIO API, namely
+/// [`gpio::Handle`], which can be used to initialize the GPIO peripheral, and
+/// [`Pins`], which provides access to all pins.
 ///
-/// [`lpc82x::GPIO_PORT`]: ../../lpc82x/struct.GPIO_PORT.html
+/// Please refer to the [module documentation] for more information.
+///
+/// [`gpio::Handle`]: struct.Handle.html
+/// [`Pins`]: struct.Pins.html
+/// [module documentation]: index.html
 pub struct GPIO<'gpio> {
-    /// Handle for the GPIO peripheral
+    /// The handle to the GPIO peripheral
     pub handle: Handle<'gpio, init_state::Unknown,>,
 
-    /// All pins that can be used for GPIO or other functions
+    /// The pins that can be used for GPIO or other functions
     pub pins: Pins,
 }
 
@@ -54,14 +118,36 @@ impl<'gpio> GPIO<'gpio> {
 }
 
 
-/// Handle for the GPIO peripheral
+/// The handle to the GPIO peripheral
+///
+/// This handle can be used to initialize the GPIO peripheral. It has a type
+/// parameter to track whether the peripheral has been initialized.
+///
+/// Please refer to the [module documentation] for more information.
+///
+/// [module documentation]: index.html
 pub struct Handle<'gpio, State: InitState = init_state::Enabled> {
     gpio  : &'gpio lpc82x::GPIO_PORT,
     _state: State,
 }
 
 impl<'gpio> Handle<'gpio, init_state::Unknown> {
-    /// Initialize GPIO
+    /// Initialize the GPIO peripheral
+    ///
+    /// Enables the clock and clears the peripheral reset for the GPIO
+    /// peripheral.
+    ///
+    /// This method is only available if the handle is in the [`Unknown`] state.
+    /// Attempting to call it after the GPIO peripheral has been initialized
+    /// will lead to a compiler error.
+    ///
+    /// This method consumes the instance of `Handle` and returns another
+    /// instance that has the `State` type parameter set to [`Enabled`]. This
+    /// new instance can then be passed to any functions that require the GPIO
+    /// peripheral to be enabled.
+    ///
+    /// [`Unknown`]: ../init_state/struct.Unknown.html
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn init(mut self, syscon: &mut syscon::Handle)
         -> Handle<'gpio, init_state::Enabled>
     {
@@ -78,14 +164,15 @@ impl<'gpio> Handle<'gpio, init_state::Unknown> {
 
 /// Represents a specific pin
 ///
-/// This trait is implemented by all types that represent a specific pin. HAL
-/// users shouldn't need to implement this trait themselves.
+/// This trait is implemented by all types that represent a specific pin.
+/// Instances of those types are not directly accessible by the user, but the
+/// types show up as a type parameter on [`Pin`].
 ///
-/// It also should not be necessary for HAL users to use the methods of this
-/// trait directly, unless compensating for missing pieces of HAL functionality.
-/// Ideally, there should be higher-level peripheral methods that take pins as
-/// parameters and use the methods of this trait to take care of the low-level
-/// details.
+/// HAL users shouldn't need to implement this trait themselves. Nor should they
+/// need to use it directly, unless compensating for missing functionality.
+/// Therefore any changes to this trait won't be considered breaking changes.
+///
+/// [`Pin`]: struct.Pin.html
 pub trait PinName {
     /// The default state of the pin after microcontroller initialization
     type DefaultState: PinState;
@@ -121,6 +208,18 @@ macro_rules! pins {
         $default_state_val:expr;
     )*) => {
         /// Provides access to all pins
+        ///
+        /// Has one field for each pin. Please refer to the documentation of
+        /// [`Pin`] to learn more about how to use them.
+        ///
+        /// # Limitations
+        ///
+        /// This struct currently provides access to all pins that can be
+        /// available on an LPC82x part. Please make sure that you are aware of
+        /// which pins are actually available on your specific part, and only
+        /// use those.
+        ///
+        /// [`Pin`]: struct.Pin.html
         #[allow(missing_docs)]
         pub struct Pins {
             $(pub $field: Pin<$type, pin_state::Unknown>,)*
@@ -141,7 +240,17 @@ macro_rules! pins {
 
 
         $(
-            /// Identifies the pin this struct is named after
+            /// Identifies a specific pin
+            ///
+            /// Users of this crate usually won't have direct access to this
+            /// struct, as it is owned by an instance of [`Pin`]. You can use it
+            /// in type signatures, to indicate that you need a [`Pin`] instance
+            /// representing a specific pin.
+            ///
+            /// Please refer to the documentation of [`Pin`] for more
+            /// information.
+            ///
+            /// [`Pin`]: struct.Pin.html
             #[allow(non_camel_case_types)]
             pub struct $type(());
 
@@ -190,7 +299,282 @@ pins!(
 );
 
 
-/// A pin that can be used for GPIO, fixed functions, or movable functions
+/// Provides access to pin functionality
+///
+/// `Pin` has two type parameters:
+/// - `T`, to indicate which specific pin this instance of `Pin` represents (so,
+///   [`PIO0_0`], [`PIO0_1`], and so on)
+/// - `S`, to indicate which state the represented pin is currently in
+///
+/// A pin instance can be in one of the following states:
+/// - [`pin_state::Unknown`], to indicate that the current state of the pin is
+///   not known
+/// - [`pin_state::Unused`], to indicate that the pin is currently not used
+/// - [`pin_state::Gpio`], to indicate that the pin is being used for
+///   general-purpose I/O
+/// - [`pin_state::Swm`], to indicate that the pin is available for switch
+///   matrix function assignment
+/// - [`pin_state::Adc`], to indicate that the pin is being used for analog
+///   input
+///
+/// # State Management
+///
+/// All pins start out in the [`pin_state::Unknown`] state, as LPC82x HAL can't
+/// know what happened to them before the API was initialized. To start using
+/// them, you need to promise the API that they are still in their default
+/// state, using [`affirm_default_state`].
+///
+/// ``` rust
+/// # use lpc82x_hal::Peripherals;
+/// #
+/// # let peripherals = unsafe { Peripherals::new() };
+/// #
+/// use lpc82x_hal::gpio::{
+///     PIO0_12,
+///     pin_state,
+///     Pin,
+/// };
+///
+/// // The pin starts out in the unknown state
+/// let pin: Pin<PIO0_12, pin_state::Unknown> =
+///     peripherals.gpio.pins.pio0_12;
+///
+/// // After we promise we didn't mess with the pin, the API knows it's unused
+/// let pin: Pin<PIO0_12, pin_state::Unused> =
+///     unsafe { pin.affirm_default_state() };
+/// ```
+///
+/// Once the API knows the pin's state, we can use its methods to configure it.
+/// To prevent us from making mistakes, only the methods that induce a valid
+/// state transition are available. Code that tries to call a method that would
+/// cause an invalid state transition will simply not compile.
+///
+/// ``` no_run
+/// # use lpc82x_hal::Peripherals;
+/// #
+/// # let peripherals = unsafe { Peripherals::new() };
+/// #
+/// # let mut syscon = peripherals.syscon.handle;
+/// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+/// #
+/// // Reassure the API that the pin is in its default state, i.e. unused.
+/// let pin = unsafe { peripherals.gpio.pins.pio0_12.affirm_default_state() };
+///
+/// // Assign a movable function to this pin
+/// let clkout = unsafe {
+///     peripherals.swm.movable_functions.clkout.affirm_default_state()
+/// };
+/// let (pin, _) = pin
+///     .as_swm_pin()
+///     .assign_output_function(clkout, &mut swm);
+///
+/// // As long as the movable function is assigned, we can't use the pin for
+/// // general-purpose I/O. Therefore the following method call would cause a
+/// // compile-time error.
+/// // pin.as_gpio_pin(&gpio);
+/// ```
+///
+/// To use the pin in the above example for GPIO, we first have to unassign the
+/// movable function and transition the pin to the unused state using
+/// [`as_unused_pin`].
+///
+/// # General Purpose I/O
+///
+/// All pins can be used for general-purpose I/O (GPIO), meaning they can be
+/// used for reading digital input signals and sending digital output signals.
+/// To set up a pin for GPIO use, you need to call [`as_gpio_pin`] when it is in
+/// its unused state.
+///
+/// ``` no_run
+/// # use lpc82x_hal::Peripherals;
+/// #
+/// # let peripherals = unsafe { Peripherals::new() };
+/// #
+/// # let mut syscon = peripherals.syscon.handle;
+/// #
+/// // To use general-purpose I/O, we need to enable the GPIO peripheral. The
+/// // call to `as_gpio_pin` below enforces this by requiring a reference to an
+/// // enabled GPIO handle.
+/// let gpio = peripherals.gpio.handle.init(&mut syscon);
+///
+/// // Affirm that pin is unused, then transition to the GPIO state
+/// let pin = unsafe { peripherals.gpio.pins.pio0_12.affirm_default_state() }
+///     .as_gpio_pin(&gpio);
+/// ```
+///
+/// Now `pin` is in the GPIO state. The GPIO state has the following sub-states:
+/// - [`direction::Unknown`], to indicate that the current GPIO configuration is
+///   not known
+/// - [`direction::Input`], to indicate that the pin is configured for digital
+///   input
+/// - [`direction::Output`], to indicate that the pin is configured for digital
+///   output
+///
+/// The same logic that applies to the overall pin state applies to the GPIO
+/// state, too: We can't know what happened to the pin configuration before the
+/// API was initialized, so we start out with [`direction::Unknown`].
+///
+/// To use a pin, that we previously configured for GPIO (see example above),
+/// for digital output, we need to set the pin direction using [`as_output`].
+///
+/// ``` no_run
+/// # use lpc82x_hal::Peripherals;
+/// #
+/// # let peripherals = unsafe { Peripherals::new() };
+/// #
+/// # let mut syscon = peripherals.syscon.handle;
+/// # let     gpio   = peripherals.gpio.handle.init(&mut syscon);
+/// #
+/// # let pin = unsafe { peripherals.gpio.pins.pio0_12.affirm_default_state() }
+/// #     .as_gpio_pin(&gpio);
+/// #
+/// use lpc82x_hal::prelude::*;
+///
+/// // Configure pin for digital output. This assumes that the pin is currently
+/// // in the GPIO state.
+/// let mut pin = pin.as_output();
+///
+/// // Now we can change the output signal as we like.
+/// pin.set_high();
+/// pin.set_low();
+/// ```
+///
+/// Using pins for digital input is currently not supported by the API. If you
+/// need this feature, [please speak up](https://github.com/braun-robotics/rust-lpc82x-hal/issues/50).
+///
+/// # Fixed and Movable Functions
+///
+/// Besides general-purpose I/O, pins can be used for a number of more
+/// specialized functions. Some of those can be used only on one specific pin
+/// (fixed functions), others can be assigned to any pin (movable functions).
+///
+/// Although this functionality belongs to a different peripheral, the switch
+/// matrix (see [`swm`] module and chapter 7 in the user manual), it is highly
+/// relevant to the functioning of other pin features, and is therefore part of
+/// this API.
+///
+/// Before you can assign any functions to a pin, you need to transition it from
+/// the unused state to the SWM state using [`as_swm_pin`].
+///
+/// ``` no_run
+/// # use lpc82x_hal::Peripherals;
+/// #
+/// # let peripherals = unsafe { Peripherals::new() };
+/// #
+/// // Affirm that the pin is unused, then transition to the SWM state
+/// let pin = unsafe { peripherals.gpio.pins.pio0_12.affirm_default_state() }
+///     .as_swm_pin();
+/// ```
+///
+/// As mentioned above, a function can be fixed or movable. But there is also
+/// another distinction: Functions can be input or output functions. Any number
+/// of input functions can be assigned to a pin at the same time, but at most
+/// one output function can be assigned to a pin at once (see user manual,
+/// section 7.4). These rules are enforced by the API at compile time.
+///
+/// **NOTE:** There is some uncertainty about whether those rules treat GPIO as
+/// just another kind of function, or if they don't apply to it. Currently, this
+/// API treats GPIO as something entirely different from the switch matrix
+/// functions, which may be too restrictive. If you have any insight on this
+/// topic, [please help us figure this out](https://github.com/braun-robotics/rust-lpc82x-hal/issues/44).
+///
+/// Once a pin is in the SWM state, you can use the various function-related
+/// methods to enable the pin's fixed function, or assign movable functions.
+/// Please refer to the documentation of the [`swm`] module to learn how to
+/// access the fixed and movable functions, and transition them into the right
+/// state.
+///
+/// ``` no_run
+/// # use lpc82x_hal::Peripherals;
+/// #
+/// # let peripherals = unsafe { Peripherals::new() };
+/// #
+/// # let mut syscon = peripherals.syscon.handle;
+/// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+/// #
+/// # let xtalout = unsafe {
+/// #     peripherals.swm.fixed_functions.xtalout.affirm_default_state()
+/// # };
+/// # let u0_rxd = unsafe {
+/// #     peripherals.swm.movable_functions.u0_rxd.affirm_default_state()
+/// # };
+/// # let u1_rxd = unsafe {
+/// #     peripherals.swm.movable_functions.u1_rxd.affirm_default_state()
+/// # };
+/// # let u0_txd = unsafe {
+/// #     peripherals.swm.movable_functions.u0_txd.affirm_default_state()
+/// # };
+/// #
+/// // Put PIO0_9 into the SWM state
+/// let pin = unsafe { peripherals.gpio.pins.pio0_9.affirm_default_state() }
+///     .as_swm_pin();
+///
+/// // Enable this pin's fixed function, which is an output function.
+/// let (pin, xtalout) = pin.enable_output_function(xtalout, &mut swm);
+///
+/// // Now we can assign various input functions in addition.
+/// let (pin, _) = pin.assign_input_function(u0_rxd, &mut swm);
+/// let (pin, _) = pin.assign_input_function(u1_rxd, &mut swm);
+///
+/// // We can't assign another output function. The following line wont compile.
+/// // let (pin, _) = pin.assign_output_function(u0_txd, &mut swm);
+///
+/// // Once we disabled the currently enabled output function, we can assign
+/// // another output function.
+/// let (pin, _) = pin.disable_output_function(xtalout, &mut swm);
+/// let (pin, _) = pin.assign_output_function(u0_txd, &mut swm);
+/// ```
+///
+/// # Analog Input
+///
+/// To use a pin for analog input, you need to transition it from the unused
+/// state to the ADC state. ADC channels are fixed pin functions, so you need
+/// the access the respective fixed function from the [`swm`] API.
+///
+/// ``` no_run
+/// # use lpc82x_hal::Peripherals;
+/// #
+/// # let peripherals = unsafe { Peripherals::new() };
+/// #
+/// # let mut syscon = peripherals.syscon.handle;
+/// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+/// #
+/// # let adc_2 = unsafe {
+/// #     peripherals.swm.fixed_functions.adc_2.affirm_default_state()
+/// # };
+/// #
+/// // Affirm that the pin is unused
+/// let pin = unsafe { peripherals.gpio.pins.pio0_14.affirm_default_state() };
+///
+/// // Transition pin into ADC state
+/// let (pin, _) = pin.as_adc_pin(adc_2, &mut swm);
+/// ```
+///
+/// Using the pin for analog input once it is in the ADC state is currently not
+/// supported by this API. If you need this feature, [please let us know](https://github.com/braun-robotics/rust-lpc82x-hal/issues/51)!
+///
+/// As a woraround, you can use the raw register mappings from the lpc82x crate,
+/// [`lpc82x::IOCON`] and [`lpc82x::ADC`], after you have put the pin into the
+/// ADC state.
+///
+/// [`PIO0_0`]: struct.PIO0_0.html
+/// [`PIO0_1`]: struct.PIO0_1.html
+/// [`pin_state::Unknown`]: pin_state/struct.Unknown.html
+/// [`pin_state::Unused`]: pin_state/struct.Unused.html
+/// [`pin_state::Adc`]: pin_state/struct.Adc.html
+/// [`pin_state::Gpio`]: pin_state/struct.Gpio.html
+/// [`pin_state::Swm`]: pin_state/struct.Swm.html
+/// [`affirm_default_state`]: #method.affirm_default_state
+/// [`as_unused_pin`]: #method.as_unused_pin
+/// [`as_gpio_pin`]: #method.as_gpio_pin
+/// [`direction::Unknown`]: direction/struct.Unknown.html
+/// [`direction::Input`]: direction/struct.Input.html
+/// [`direction::Output`]: direction/struct.Output.html
+/// [`as_output`]: #method.as_output
+/// [`swm`]: ../swm/index.html
+/// [`as_swm_pin`]: #method.as_swm_pin
+/// [`lpc82x::IOCON`]: ../../lpc82x/struct.IOCON.html
+/// [`lpc82x::ADC`]: ../../lpc82x/struct.ADC.html
 pub struct Pin<T: PinName, S: PinState> {
     ty   : T,
     state: S,
@@ -199,14 +583,62 @@ pub struct Pin<T: PinName, S: PinState> {
 impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// Affirm that the pin is in its default state
     ///
-    /// By calling this method, the user promises that the pin is in its default
-    /// states. For most pins, this means that the pin is unused, but some pins
-    /// are initially assigned to the switch matrix.
+    /// This method is only available, if the pin is in the unknown state. Code
+    /// that attempts to call this method while the pin is in any other state
+    /// will not compile.
     ///
-    /// Calling this method is safe, if the pin state has not been changed since
-    /// the microcontroller was initialized. If the pin state has been changed
-    /// since then, the user must change it back to the pin's initial state
-    /// before calling this function.
+    /// By calling this method, you promise that the pin's configuration has not
+    /// been changed from its default. For most pins, this means that the pin is
+    /// unused, but some pins are initially assigned to the switch matrix. This
+    /// method consumes the current pin instance and returns a new instance
+    /// whose state matches the pin's default configuration.
+    ///
+    /// Unless you have changed the pin's configuration before initializing the
+    /// HAL API, or have called some code that might have changed the
+    /// configuration, this method is safe to call.
+    ///
+    /// # Safety
+    ///
+    /// You MUST NOT call this method, if the pin configuration has been changed
+    /// from its default configuration. You can call this method again, after
+    /// you restore the pin to its default configuration.
+    ///
+    /// Calling this method while the pin's configuration deviates from the
+    /// default will create a `Pin` instance whose state doesn't match the
+    /// actual pin configuration. This can lead to any number of problems.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// # let mut syscon = peripherals.syscon.handle;
+    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// #
+    /// # let swclk = unsafe {
+    /// #     peripherals.swm.fixed_functions.swclk.affirm_default_state()
+    /// # };
+    /// #
+    /// // These pins are in the unknown state. As long as that's the case, we
+    /// // can't do anything useful with them.
+    /// let pio0_3  = peripherals.gpio.pins.pio0_3;
+    /// let pio0_12 = peripherals.gpio.pins.pio0_12;
+    ///
+    /// // Since we didn't change the pin configuration, nor called any code
+    /// // that did, we can safely affirm that the pins are in their default
+    /// // state.
+    /// let pio0_3  = unsafe { pio0_3.affirm_default_state()  };
+    /// let pio0_12 = unsafe { pio0_12.affirm_default_state() };
+    ///
+    /// // PIO0_12 happens to be unused by default, which means it is ready to
+    /// // be transitioned into another state now. However, PIO0_3 has its fixed
+    /// // function enabled by default. If we want to use it for something else,
+    /// // we need to transition it into the unused state before we can do so.
+    /// let (pio0_3, _) = pio0_3.disable_output_function(swclk, &mut swm);
+    /// let pio0_3      = pio0_3.as_unused_pin();
+    /// ```
     pub unsafe fn affirm_default_state(self) -> Pin<T, T::DefaultState> {
         Pin {
             ty   : self.ty,
@@ -216,32 +648,41 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
 }
 
 impl<T> Pin<T, pin_state::Unused> where T: PinName {
-    /// Makes the pin available for the ADC
+    /// Transition this pin instance to the GPIO state
     ///
-    /// This method enables the analog function for this pin via the switch
-    /// matrix, but as of now, there is no HAL API to actually control the ADC.
-    /// You can use this method to enable the analog function and make sure that
-    /// no conflicting functions can be enabled for the pin. After that, you
-    /// need to use the raw [`IOCON`] and [`ADC`] register mappings to actually
-    /// do anything with it.
+    /// This method is only available while the pin is in the unused state. Code
+    /// that attempts to call this method while the pin is in any other state
+    /// will not compile. See [State Management] for more information on
+    /// managing pin states.
     ///
-    /// [`IOCON`]: ../../lpc82x/constant.IOCON.html
-    /// [`ADC`]: ../../lpc82x/constant.ADC.html
-    pub fn as_adc_pin<F>(mut self, function: F, swm: &mut swm::Handle)
-        -> (Pin<T, pin_state::Adc>, F::Enabled)
-        where F: AdcFunction + FixedFunction<Pin=T> + fixed_function::Enable
-    {
-        let function = function.enable(&mut self.ty, swm);
-
-        let pin = Pin {
-            ty   : self.ty,
-            state: pin_state::Adc,
-        };
-
-        (pin, function)
-    }
-
-    /// Makes this pin available for GPIO
+    /// Consumes the pin instance and returns a new instance that is in the GPIO
+    /// state, allowing you to use the pin for general-purpose I/O. As long as
+    /// the pin is in the GPIO state, it needs the GPIO peripheral to be enabled
+    /// to function correctly. To statically guarantee that this is the case,
+    /// this method takes a shared reference to [`gpio::Handle`], which the pin
+    /// keeps around until it leaves the GPIO state.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// # let mut syscon = peripherals.syscon.handle;
+    /// #
+    /// let gpio = peripherals.gpio.handle.init(&mut syscon);
+    ///
+    /// let pin = unsafe {
+    ///     peripherals.gpio.pins.pio0_12.affirm_default_state()
+    /// };
+    /// let pin = pin.as_gpio_pin(&gpio);
+    ///
+    /// // `pin` is now available for general-purpose I/O
+    /// ```
+    ///
+    /// [State Management]: #state-management
+    /// [`gpio::Handle`]: struct.Handle.html
     pub fn as_gpio_pin<'gpio>(self, gpio: &'gpio Handle<'gpio>)
         -> Pin<T, pin_state::Gpio<'gpio, direction::Unknown>>
     {
@@ -258,12 +699,84 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
         }
     }
 
-    /// Makes this pin available for function assignment by the switch matrix
+    /// Transition this pin instance to to the SWM state
+    ///
+    /// This method is only available while the pin is in the unused state. Code
+    /// that attempts to call this method while the pin is in any other state
+    /// will not compile. See [State Management] for more information on
+    /// managing pin states.
+    ///
+    /// Consumes the pin instance and returns a new instance that is in the SWM
+    /// state, making this pin available for switch matrix function assignment.
+    /// 
+    /// Make this pin available for function assignment by the switch matrix.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// let pin = unsafe {
+    ///     peripherals.gpio.pins.pio0_12.affirm_default_state()
+    /// };
+    /// let pin = pin.as_swm_pin();
+    ///
+    /// // `pin` is now ready for function assignment
+    /// ```
+    ///
+    /// [State Management]: #state-management
     pub fn as_swm_pin(self) -> Pin<T, pin_state::Swm<(), ()>> {
         Pin {
             ty   : self.ty,
             state: pin_state::Swm::new(),
         }
+    }
+
+    /// Transitions this pin instance to the ADC state
+    ///
+    /// This method is only available while the pin is in the unused state. Code
+    /// that attempts to call this method while the pin is in any other state
+    /// will not compile. See [State Management] for more information on
+    /// managing pin states.
+    ///
+    /// Consumes the pin instance and the fixed function that represents the ADC
+    /// channel associated with this pin, and returns a tuple containing
+    /// - a new pin instance that is in the ADC state, and
+    /// - a new instance of the fixed function, in a state that indicates it is
+    ///   enabled. Please refer to the [`swm`] module to learn more about fixed
+    ///   function state.
+    ///
+    /// ADC channels are fixed functions, which means they are tied to one
+    /// specific pin. This method only accepts the fixed function that is
+    /// associated with this pin. Not all pins have an ADC channel associated
+    /// with them. Please refer to the user manual, section 21.4, table 278 for
+    /// a list of ADC channels and their associated pins.
+    ///
+    /// This method enables the analog function for this pin via the switch
+    /// matrix, but as of now, there is no HAL API to actually control the ADC.
+    /// You can use this method to enable the analog function and make sure that
+    /// no conflicting functions can be enabled for the pin. After that, you
+    /// need to use the raw [`IOCON`] and [`ADC`] register mappings to actually
+    /// do anything with it. If you are using the ADC, [please let us know](https://github.com/braun-robotics/rust-lpc82x-hal/issues/51)!
+    ///
+    /// [State Management]: #state-management
+    /// [`swm`]: ../swm/index.html
+    /// [`IOCON`]: ../../lpc82x/constant.IOCON.html
+    /// [`ADC`]: ../../lpc82x/constant.ADC.html
+    pub fn as_adc_pin<F>(mut self, function: F, swm: &mut swm::Handle)
+        -> (Pin<T, pin_state::Adc>, F::Enabled)
+        where F: AdcFunction + FixedFunction<Pin=T> + fixed_function::Enable
+    {
+        let function = function.enable(&mut self.ty, swm);
+
+        let pin = Pin {
+            ty   : self.ty,
+            state: pin_state::Adc,
+        };
+
+        (pin, function)
     }
 }
 
@@ -273,6 +786,43 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
         D: Direction + direction::NotOutput,
 {
     /// Sets pin direction to output
+    ///
+    /// This method is only available, if the pin is in the GPIO state and the
+    /// pin is not already in output mode, i.e. the pin direction is input or
+    /// unknown. You can enter the GPIO state using [`as_gpio_pin`].
+    ///
+    /// Consumes the pin instance and returns a new instance that is in output
+    /// mode, making the methods to set the output level available.
+    ///
+    /// **NOTE**: There are some doubts about whether this is the right API
+    /// design. [Please leave your feedback](https://github.com/braun-robotics/rust-lpc82x-hal/issues/53),
+    /// if you have anything to say about this.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// # let mut syscon = peripherals.syscon.handle;
+    /// # let     gpio   = peripherals.gpio.handle.init(&mut syscon);
+    /// #
+    /// # let pin = unsafe {
+    /// #     peripherals.gpio.pins.pio0_12.affirm_default_state()
+    /// # };
+    /// # let pin = pin.as_gpio_pin(&gpio);
+    /// use lpc82x_hal::prelude::*;
+    ///
+    /// // Assumes the pin is already in the GPIO state
+    /// let mut pin = pin.as_output();
+    ///
+    /// // Output level can now be set
+    /// pin.set_high();
+    /// pin.set_low();
+    /// ```
+    ///
+    /// [`as_gpio_pin`]: #method.as_gpio_pin
     pub fn as_output(self)
         -> Pin<T, pin_state::Gpio<'gpio, direction::Output>>
     {
@@ -298,22 +848,64 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
 impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
     where T: PinName
 {
+    /// Indicates whether the pin output is currently set to HIGH
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`as_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`as_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`as_gpio_pin`]: #method.as_gpio_pin
+    /// [`as_output`]: #method.as_output
     fn is_high(&self) -> bool {
         self.state.pin0.read().port().bits() & T::MASK == T::MASK
     }
 
+    /// Indicates whether the pin output is currently set to LOW
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`as_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`as_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`as_gpio_pin`]: #method.as_gpio_pin
+    /// [`as_output`]: #method.as_output
     fn is_low(&self) -> bool {
         !self.state.pin0.read().port().bits() & T::MASK == T::MASK
     }
 
-    /// Set pin output to HIGH
+    /// Set the pin output to HIGH
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`as_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`as_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`as_gpio_pin`]: #method.as_gpio_pin
+    /// [`as_output`]: #method.as_output
     fn set_high(&mut self) {
         self.state.set0.write(|w|
             unsafe { w.setp().bits(T::MASK) }
         )
     }
 
-    /// Set pin output to LOW
+    /// Set the pin output to LOW
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`as_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`as_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`as_gpio_pin`]: #method.as_gpio_pin
+    /// [`as_output`]: #method.as_output
     fn set_low(&mut self) {
         self.state.clr0.write(|w|
             unsafe { w.clrp().bits(T::MASK) }
@@ -322,7 +914,61 @@ impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
 }
 
 impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
-    /// Enable the fixed function on this pin
+    /// Enable the fixed output function on this pin
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the SWM state. Use [`as_swm_pin`] to achieve this.
+    /// - No output function, either fixed or movable, is enabled on or assigned
+    ///   to this pin. Please refer to [`swm::OutputFunction`] to learn which
+    ///   fixed and movable functions are output functions.
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// Consumes the pin instance and an instance of the fixed function that is
+    /// associated with this pin, and returns a tuple containing
+    /// - a new pin instance, its type state indicating that an output function
+    ///   is enabled; and
+    /// - a new instance of the fixed function, its state indicating that it is
+    ///   enabled. Please refer to the [`swm`] module to learn more about fixed
+    ///   function state.
+    ///
+    /// Only the fixed function that is associated with this pin is accepted as
+    /// an argument. Since not every pin has a fixed function associated with
+    /// it, and since not all fixed functions are output functions, this means
+    /// that this method is not callable for every pin.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// # let mut syscon = peripherals.syscon.handle;
+    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// #
+    /// // Get PIO0_9 ready for function assignment
+    /// let pio0_9 = unsafe {
+    ///     peripherals.gpio.pins.pio0_9.affirm_default_state()
+    /// };
+    /// let pio0_9 = pio0_9.as_swm_pin();
+    ///
+    /// // Get the fixed function on PIO0_9 ready to be enabled
+    /// let xtalout = unsafe {
+    ///     peripherals.swm.fixed_functions.xtalout.affirm_default_state()
+    /// };
+    ///
+    /// // Enable the fixed function
+    /// let (pio0_9, xtalout) = pio0_9.enable_output_function(
+    ///     xtalout,
+    ///     &mut swm,
+    /// );
+    /// ```
+    ///
+    /// [`as_swm_pin`]: #method.as_swm_pin
+    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
+    /// [`swm`]: ../swm/index.html
     pub fn enable_output_function<F>(mut self,
             function: F,
             swm     : &mut swm::Handle,
@@ -340,7 +986,53 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
         (pin, function)
     }
 
-    /// Assign a movable function to the pin
+    /// Assign a movable output function to this pin
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the SWM state. Use [`as_swm_pin`] to achieve this.
+    /// - No output function, either fixed or movable, is enabled on or assigned
+    ///   to this pin. Please refer to [`swm::OutputFunction`] to learn which
+    ///   fixed and movable functions are output functions.
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// Consumes the pin instance and an instance of the movable function, and
+    /// returns a tuple containing
+    /// - a new pin instance, its type state indicating that an output function
+    ///   is enabled; and
+    /// - a new instance of the movable function, its state indicating that it
+    ///   has been assigned to this pin. Please refer to the [`swm`] module to
+    ///   learn more about movable function state.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// # let mut syscon = peripherals.syscon.handle;
+    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// #
+    /// // Get pin ready for function assignment
+    /// let pio0_9 = unsafe {
+    ///     peripherals.gpio.pins.pio0_9.affirm_default_state()
+    /// };
+    /// let pio0_9 = pio0_9.as_swm_pin();
+    ///
+    /// // Get the movable function ready to be assigned
+    /// let u0_txd = unsafe {
+    ///     peripherals.swm.movable_functions.u0_txd.affirm_default_state()
+    /// };
+    ///
+    /// // Assign U0_TXD to PIO0_9
+    /// let (pio0_9, u0_txd) = pio0_9.assign_output_function(u0_txd, &mut swm);
+    /// ```
+    ///
+    /// [`as_swm_pin`]: #method.as_swm_pin
+    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
+    /// [`swm`]: ../swm/index.html
     pub fn assign_output_function<F>(mut self,
         function: F,
         swm     : &mut swm::Handle,
@@ -360,7 +1052,66 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
 }
 
 impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
-    /// Disable the fixed function on this pin
+    /// Disable the fixed output function on this pin
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the SWM state. Use [`as_swm_pin`] to achieve this.
+    /// - An output function, either fixed or movable, is enabled on or assigned
+    ///   to this pin. Please refer to [`swm::OutputFunction`] to learn which
+    ///   fixed and movable functions are output functions.
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// Consumes the pin instance and an instance of the fixed function that is
+    /// associated with this pin, and returns a tuple containing
+    /// - a new pin instance, its type state indicating that no output function
+    ///   is enabled; and
+    /// - a new instance of the fixed function, its state indicating that it is
+    ///   disabled. Please refer to the [`swm`] module to learn more about fixed
+    ///   function state.
+    ///
+    /// Only the fixed function that is associated with this pin is accepted as
+    /// an argument, and only if its state indicates that is enabled. This means
+    /// that, even though this method is available if any output function is
+    /// enabled on this pin, it can only be called if this pin's specific fixed
+    /// output function is enabled. Since not every pin has a fixed function
+    /// associated with it, and since not all fixed functions are output
+    /// functions, this also means that this method is not callable for every
+    /// pin.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// # let mut syscon = peripherals.syscon.handle;
+    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// #
+    /// // PIO0_3 has a fixed output function enabled by default. Its state will
+    /// // reflect that after the following method call.
+    /// let pio0_3 = unsafe {
+    ///     peripherals.gpio.pins.pio0_3.affirm_default_state()
+    /// };
+    ///
+    /// // SWCLK is the output function that is enabled on PIO0_3 by default.
+    /// // Here too will this be be reflected in its state after the following
+    /// // method call.
+    /// let swclk = unsafe {
+    ///     peripherals.swm.fixed_functions.swclk.affirm_default_state()
+    /// };
+    ///
+    /// // Disable the fixed function
+    /// let (pio0_3, swclk) = pio0_3.disable_output_function(swclk, &mut swm);
+    ///
+    /// // Now both PIO0_3 and SWCLK are available again
+    /// ```
+    ///
+    /// [`as_swm_pin`]: #method.as_swm_pin
+    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
+    /// [`swm`]: ../swm/index.html
     pub fn disable_output_function<F>(mut self,
         function: F,
         swm     : &mut swm::Handle,
@@ -378,7 +1129,67 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
         (pin, function)
     }
 
-    /// Unassign a movable function from the pin
+    /// Unassign a movable output function from this pin
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the SWM state. Use [`as_swm_pin`] to achieve this.
+    /// - An output function, either fixed or movable, is enabled on or assigned
+    ///   to this pin. Please refer to [`swm::OutputFunction`] to learn which
+    ///   fixed and movable functions are output functions.
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// Consumes the pin instance and an instance of the movable function, and
+    /// returns a tuple containing
+    /// - a new pin instance, its type state indicating that no output function
+    ///   is enabled; and
+    /// - a new instance of the movable function, its state indicating that it
+    ///   is not assigned to any pin. Please refer to the [`swm`] module to
+    ///   learn more about movable function state.
+    ///
+    /// Even though this method is available, if any output function is enabled
+    /// on this pin, it only accepts a movable function as a parameter, whose
+    /// state indicates that it is assigned to this specific pin. Code that
+    /// tries to unassign a movable function that isn't assigned to this pin
+    /// will not compile.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// # let mut syscon = peripherals.syscon.handle;
+    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// #
+    /// # let pio0_9 = unsafe {
+    /// #     peripherals.gpio.pins.pio0_9.affirm_default_state()
+    /// # };
+    /// # let pio0_9 = pio0_9.as_swm_pin();
+    /// #
+    /// # let u0_txd = unsafe {
+    /// #     peripherals.swm.movable_functions.u0_txd.affirm_default_state()
+    /// # };
+    /// #
+    /// # let (pio0_9, u0_txd) = pio0_9.assign_output_function(
+    /// #     u0_txd,
+    /// #     &mut swm,
+    /// # );
+    /// #
+    /// // Assumes that U0_TXD is assigned to PIO0_9
+    /// let (pio0_9, u0_txd) = pio0_9.unassign_output_function(
+    ///     u0_txd,
+    ///     &mut swm,
+    /// );
+    ///
+    /// // Both PIO0_9 and U0_TXD are now available again
+    /// ```
+    ///
+    /// [`as_swm_pin`]: #method.as_swm_pin
+    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
+    /// [`swm`]: ../swm/index.html
     pub fn unassign_output_function<F>(mut self,
         function: F,
         swm     : &mut swm::Handle,
@@ -400,7 +1211,56 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
 impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     where T: PinName
 {
-    /// Enable the fixed function on this pin
+    /// Enable the fixed input function on this pin
+    ///
+    /// This method is only available, if the pin is in the SWM state. Code
+    /// trying to call this method while this condition is not met, will not
+    /// compile. You can use [`as_swm_pin`] to put the pin into the SWM state.
+    ///
+    /// Consumes the pin instance and an instance of the fixed function that is
+    /// associated with this pin, and returns a tuple containing
+    /// - a new pin instance, its type state indicating that an additonal input
+    ///   function has been enabled; and
+    /// - a new instance of the fixed function, its state indicating that it is
+    ///   enabled. Please refer to the [`swm`] module to learn more about fixed
+    ///   function state.
+    ///
+    /// Only the fixed function that is associated with this pin is accepted as
+    /// an argument. Since not every pin has a fixed function associated with
+    /// it, and since not all fixed functions are input functions, this means
+    /// that this method is not callable for every pin.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// # let mut syscon = peripherals.syscon.handle;
+    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// #
+    /// // Get PIO0_8 ready for function assignment
+    /// let pio0_8 = unsafe {
+    ///     peripherals.gpio.pins.pio0_8.affirm_default_state()
+    /// };
+    /// let pio0_8 = pio0_8.as_swm_pin();
+    ///
+    /// // Get the fixed function on PIO0_8 ready to be enabled
+    /// let xtalin = unsafe {
+    ///     peripherals.swm.fixed_functions.xtalin.affirm_default_state()
+    /// };
+    ///
+    /// // Enable the fixed function
+    /// let (pio0_8, xtalin) = pio0_8.enable_input_function(
+    ///     xtalin,
+    ///     &mut swm,
+    /// );
+    /// ```
+    ///
+    /// [`as_swm_pin`]: #method.as_swm_pin
+    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
+    /// [`swm`]: ../swm/index.html
     pub fn enable_input_function<F>(mut self,
         function: F,
         swm     : &mut swm::Handle,
@@ -418,7 +1278,48 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
         (pin, function)
     }
 
-    /// Assign a movable function to the pin
+    /// Assign a movable input function to this pin
+    ///
+    /// This method is only available, if the pin is in the SWM state. Code
+    /// trying to call this method while this condition is not met, will not
+    /// compile. You can use [`as_swm_pin`] to put the pin into the SWM state.
+    ///
+    /// Consumes the pin instance and an instance of the movable function, and
+    /// returns a tuple containing
+    /// - a new pin instance, its type state indicating that an additonal input
+    ///   function has been enabled; and
+    /// - a new instance of the movable function, its state indicating that it
+    ///   has been assigned to this pin. Please refer to the [`swm`] module to
+    ///   learn more about movable function state.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// # let mut syscon = peripherals.syscon.handle;
+    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// #
+    /// // Get pin ready for function assignment
+    /// let pio0_8 = unsafe {
+    ///     peripherals.gpio.pins.pio0_8.affirm_default_state()
+    /// };
+    /// let pio0_8 = pio0_8.as_swm_pin();
+    ///
+    /// // Get the movable function ready to be assigned
+    /// let u0_rxd = unsafe {
+    ///     peripherals.swm.movable_functions.u0_rxd.affirm_default_state()
+    /// };
+    ///
+    /// // Assign U0_RXD to PIO0_8
+    /// let (pio0_8, u0_rxd) = pio0_8.assign_input_function(u0_rxd, &mut swm);
+    /// ```
+    ///
+    /// [`as_swm_pin`]: #method.as_swm_pin
+    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
+    /// [`swm`]: ../swm/index.html
     pub fn assign_input_function<F>(mut self,
         function: F,
         swm     : &mut swm::Handle,
@@ -440,7 +1341,66 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
 impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     where T: PinName
 {
-    /// Disable the fixed function on this pin
+    /// Disable the fixed input function on this pin
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the SWM state. Use [`as_swm_pin`] to achieve this.
+    /// - At least one input function, either fixed or movable, is enabled on or
+    ///   assigned to this pin. Please refer to [`swm::OutputFunction`] to learn
+    ///   which fixed and movable functions are output functions.
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// Consumes the pin instance and an instance of the fixed function that is
+    /// associated with this pin, and returns a tuple containing
+    /// - a new pin instance, its type state indicating that one less input
+    ///   function is enabled; and
+    /// - a new instance of the fixed function, its state indicating that it is
+    ///   disabled. Please refer to the [`swm`] module to learn more about fixed
+    ///   function state.
+    ///
+    /// Only the fixed function that is associated with this pin is accepted as
+    /// an argument, and only if its state indicates that is enabled. This means
+    /// that, even though this method is available if any input functions are
+    /// enabled on this pin, it can only be called if this pin's specific fixed
+    /// input function is enabled. Since not every pin has a fixed function
+    /// associated with it, and since not all fixed functions are input
+    /// functions, this also means that this method is not callable for every
+    /// pin.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// # let mut syscon = peripherals.syscon.handle;
+    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// #
+    /// // PIO0_5 has a fixed input function enabled by default. Its state will
+    /// // reflect that after the following method call.
+    /// let pio0_5 = unsafe {
+    ///     peripherals.gpio.pins.pio0_5.affirm_default_state()
+    /// };
+    ///
+    /// // RESETN is the input function that is enabled on PIO0_5 by default.
+    /// // Here too, will this be be reflected in its state after the following
+    /// // method call.
+    /// let resetn = unsafe {
+    ///     peripherals.swm.fixed_functions.resetn.affirm_default_state()
+    /// };
+    ///
+    /// // Disable the fixed function
+    /// let (pio0_5, resetn) = pio0_5.disable_input_function(resetn, &mut swm);
+    ///
+    /// // Now both PIO0_5 and RESETN are available again
+    /// ```
+    ///
+    /// [`as_swm_pin`]: #method.as_swm_pin
+    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
+    /// [`swm`]: ../swm/index.html
     pub fn disable_input_function<F>(mut self,
         function: F,
         swm     : &mut swm::Handle,
@@ -458,7 +1418,67 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
         (pin, function)
     }
 
-    /// Unassign a movable function from the pin
+    /// Unassign a movable input function from this pin
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the SWM state. Use [`as_swm_pin`] to achieve this.
+    /// - An input function, either fixed or movable, is enabled on or assigned
+    ///   to this pin. Please refer to [`swm::InputFunction`] to learn which
+    ///   fixed and movable functions are input functions.
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// Consumes the pin instance and an instance of the movable function, and
+    /// returns a tuple containing
+    /// - a new pin instance, its type state indicating that one less input
+    ///   function is enabled; and
+    /// - a new instance of the movable function, its state indicating that it
+    ///   is not assigned to any pin. Please refer to the [`swm`] module to
+    ///   learn more about movable function state.
+    ///
+    /// Even though this method is available, if any output function is enabled
+    /// on this pin, it only accepts a movable function as a parameter, whose
+    /// state indicates that it is assigned to this specific pin. Code that
+    /// tries to unassign a movable function that isn't assigned to this pin
+    /// will not compile.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// # use lpc82x_hal::Peripherals;
+    /// #
+    /// # let peripherals = unsafe { Peripherals::new() };
+    /// #
+    /// # let mut syscon = peripherals.syscon.handle;
+    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// #
+    /// # let pio0_8 = unsafe {
+    /// #     peripherals.gpio.pins.pio0_8.affirm_default_state()
+    /// # };
+    /// # let pio0_8 = pio0_8.as_swm_pin();
+    /// #
+    /// # let u0_rxd = unsafe {
+    /// #     peripherals.swm.movable_functions.u0_rxd.affirm_default_state()
+    /// # };
+    /// #
+    /// # let (pio0_8, u0_rxd) = pio0_8.assign_input_function(
+    /// #     u0_rxd,
+    /// #     &mut swm,
+    /// # );
+    /// #
+    /// // Assumes that U0_RXD is assigned to PIO0_8
+    /// let (pio0_8, u0_rxd) = pio0_8.unassign_input_function(
+    ///     u0_rxd,
+    ///     &mut swm,
+    /// );
+    ///
+    /// // Both PIO0_8 and U0_RXD are now available again
+    /// ```
+    ///
+    /// [`as_swm_pin`]: #method.as_swm_pin
+    /// [`swm::InputFunction`]: ../swm/trait.InputFunction.html
+    /// [`swm`]: ../swm/index.html
     pub fn unassign_input_function<F>(mut self,
         function: F,
         swm     : &mut swm::Handle,
@@ -478,7 +1498,22 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
 }
 
 impl<T> Pin<T, pin_state::Swm<(), ()>> where T: PinName {
-    /// Marks the pin as being unused
+    /// Transitions this pin instance from the SWM state to the unused state
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the SWM state.
+    /// - No input or output functions, fixed or movable, are assigned to this
+    ///   pin.
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// Consumes the pin instance and returns a new pin instance, its type state
+    /// indicating it is unused. This makes it possible to use the pin for
+    /// something else. See [State Management] for more information on managing
+    /// pin states.
+    ///
+    /// [State Management]: #state-management
     pub fn as_unused_pin(self) -> Pin<T, pin_state::Unused> {
         Pin {
             ty   : self.ty,
@@ -488,7 +1523,11 @@ impl<T> Pin<T, pin_state::Swm<(), ()>> where T: PinName {
 }
 
 
-/// Contains types that mark pin states
+/// Contains types to indicate pin states
+///
+/// Please refer to [`Pin`] for documentation on how these types are used.
+///
+/// [`Pin`]: ../struct.Pin.html
 pub mod pin_state {
     use core::marker::PhantomData;
 
@@ -504,34 +1543,53 @@ pub mod pin_state {
 
     /// Implemented by types that indicate pin state
     ///
-    /// This type is used as a trait bound for type parameters that indicate a
-    /// pin's state. HAL users should never need to implement this trait, nor
-    /// use it directly.
+    /// [`Pin`] uses this type as a trait bound for the type parameter that
+    /// indicates the pin's state. This is done for the purpose of
+    /// documentation, to show which states a pin can be in. Other than that,
+    /// this trait should not be relevant to users of this crate.
+    ///
+    /// [`Pin`]: ../struct.Pin.html
     pub trait PinState {}
 
 
     /// Marks a pin's state as being unknown
     ///
-    /// As we can't know what happened to the hardware before the HAL was
-    /// initializized, this is the initial state of all pins.
+    /// As the HAL API can't know what happened to the hardware before the HAL
+    /// was initializized, this is the initial state of all pins.
+    ///
+    /// Please refer to [`Pin`] to see how this type is used.
+    ///
+    /// [`Pin`]: ../struct.Pin.html
     pub struct Unknown;
 
     impl PinState for Unknown {}
 
 
     /// Marks the pin as being unused
+    ///
+    /// Please refer to [`Pin`] to see how this type is used.
+    ///
+    /// [`Pin`]: ../struct.Pin.html
     pub struct Unused;
 
     impl PinState for Unused {}
 
 
     /// Marks the pin as being assigned to the analog-to-digital converter
+    ///
+    /// Please refer to [`Pin`] to see how this type is used.
+    ///
+    /// [`Pin`]: ../struct.Pin.html
     pub struct Adc;
 
     impl PinState for Adc {}
 
 
     /// Marks a pin as being assigned to general-purpose I/O
+    ///
+    /// Please refer to [`Pin`] to see how this type is used.
+    ///
+    /// [`Pin`]: ../struct.Pin.html
     pub struct Gpio<'gpio, D: Direction> {
         pub(crate) dirset0: &'gpio DIRSET0,
         pub(crate) pin0   : &'gpio PIN0,
@@ -546,20 +1604,25 @@ pub mod pin_state {
 
     /// Marks a ping as being available for switch matrix function assigment
     ///
-    /// This type has type parameters that track whether output and input
+    /// The type parameters of this struct track whether output and input
     /// functions have been assigned to a pin:
     ///
-    /// - `Output` tracks whether an output function has been assigned. The only
-    ///   valid states are no output functions being assigned, or exactly one
-    ///   output function being assigned.
+    /// - `Output` tracks whether an output function has been assigned. Zero or
+    ///   one output functions can be assigned to a pin.
     /// - `Inputs` tracks the number of assigned input functions. Any number of
-    ///   input functions may be assigned at the same time.
+    ///   input functions can be assigned to a pin at the same time.
     ///
     /// Both type parameters use nested tuples to count the number of assigned
     /// functions. The empty tuple (`()`) represents zero assigned functions,
     /// the empty tuple nested in another tuple (`((),)`) represents one
-    /// function being assigned, and so forth. This is a bit of a hack, of
-    /// course, but it will do until const generics become available.
+    /// function being assigned, `(((),))` represents two assigned functions,
+    /// and so forth. This is a bit of a hack, of course, but it should do until
+    /// [const generics] become available.
+    ///
+    /// Please refer to [`Pin`] for more information on how this type is used.
+    ///
+    /// [const generics]: https://github.com/rust-lang/rust/issues/44580
+    /// [`Pin`]: ../struct.Pin.html
     pub struct Swm<Output, Inputs>(
         pub(crate) PhantomData<Output>,
         pub(crate) PhantomData<Inputs>,
@@ -575,31 +1638,66 @@ pub mod pin_state {
 }
 
 
-/// Contains types that mark the direction of GPIO pins
+/// Contains types to indicate the direction of GPIO pins
+///
+/// Please refer to [`Pin`] for documentation on how these types are used.
+///
+/// [`Pin`]: ../struct.Pin.html
 pub mod direction {
     /// Implemented by types that indicate GPIO pin direction
+    ///
+    /// The [`Gpio`] type uses this trait as a bound for its type parameter.
+    /// This is done for documentation purposes, to clearly show which types can
+    /// be used for this parameter. Other than that, this trait should not be
+    /// relevant to users of this crate.
+    ///
+    /// [`Gpio`]: ../pin_state/struct.Gpio.html
     pub trait Direction {}
 
-    /// Marks a pin's GPIO direction as being unknown
+    /// Marks a GPIO pin's direction as being unknown
+    ///
+    /// This type is used as a type parameter of [`Gpio`], which in turn is used
+    /// as a type parameter of [`Pin`]. Please refer to the documentation of
+    /// [`Pin`] to see how this type is used.
     ///
     /// As we can't know what happened to the hardware before the HAL was
-    /// initialized, this is the initial state.
+    /// initialized, this is the initial state of GPIO pins.
+    ///
+    /// [`Gpio`]: ../pin_state/struct.Gpio.html
+    /// [`Pin`]: ../struct.Pin.html
     pub struct Unknown;
     impl Direction for Unknown {}
 
     /// Marks a GPIO pin as being configured for input
+    ///
+    /// This type is used as a type parameter of [`Gpio`], which in turn is used
+    /// as a type parameter of [`Pin`]. Please refer to the documentation of
+    /// [`Pin`] to see how this type is used.
+    ///
+    /// [`Gpio`]: ../pin_state/struct.Gpio.html
+    /// [`Pin`]: ../struct.Pin.html
     pub struct Input;
     impl Direction for Input {}
 
     /// Marks a GPIO pin as being configured for output
+    ///
+    /// This type is used as a type parameter of [`Gpio`], which in turn is used
+    /// as a type parameter of [`Pin`]. Please refer to the documentation of
+    /// [`Pin`] to see how this type is used.
+    ///
+    /// [`Gpio`]: ../pin_state/struct.Gpio.html
+    /// [`Pin`]: ../struct.Pin.html
     pub struct Output;
     impl Direction for Output {}
 
 
-    /// Marks a direction as being unknown or input (i.e. not being output)
+    /// Marks a direction as not being output (i.e. being unknown or input)
     ///
-    /// This is a helper trait used to more precisely define `impl` blocks. It
-    /// is of no concern to users of this crate.
+    /// This is a helper trait used only to prevent some code duplication in
+    /// [`Pin`] by allowing `impl` blocks to be defined precisely. It should not
+    /// be relevant to users of this crate.
+    ///
+    /// [`Pin`]: ../struct.Pin.html
     pub trait NotOutput: Direction {}
 
     impl NotOutput for Unknown {}

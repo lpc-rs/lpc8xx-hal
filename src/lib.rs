@@ -22,16 +22,19 @@
 //! extern crate lpc82x_hal;
 //! ```
 //!
-//! That's it! Now you can just start using the APIs from LPC82x HAL. For
-//! libraries, it is recommended to just take (mutable) references to anything
-//! that's needed, and leave initialization to the user.
+//! That's it! Now you can just start using the LPC82x HAL APIs.
+//!
+//! Please note that LPC82x HAL is an implementation of [embedded-hal]. If your
+//! library is not specific to LPC82x, please consider depending on embedded-hal
+//! instead. Doing so means that your library will work on top of all
+//! implementations of embedded-hal.
 //!
 //! ## Using LPC82x HAL in an Application
 //!
 //! To use LPC82x HAL in your application, you need to go through a bit of
 //! additional trouble. This section tries to walk you through some of the
-//! basics, but it's not a complete tutorial. Please refer to a more complete
-//! example, like [cortex-m-quickstart], for additional details.
+//! basics, but it's not a complete tutorial. Please refer to
+//! [cortex-m-quickstart] for additional details.
 //!
 //! ### Runtime Support
 //!
@@ -69,7 +72,7 @@
 //! The build system needs to be set up to compile and link a binary for LPC82x.
 //! Cargo alone is not enough for this, as its support for embedded development
 //! is currently limited. [Xargo] exists to fill the gap in the meantime. You
-//! can install it via `cargo install`:
+//! can install it using Cargo:
 //!
 //! ``` ignore
 //! $ cargo install xargo
@@ -105,7 +108,7 @@
 //!
 //! This tells Cargo to use the arm-none-eabi-gcc toolchain for linking. You
 //! need to install this separately. How to do so is dependent on your platform
-//! and left as an exercise to the reader.
+//! and is left as an exercise to the reader.
 //!
 //! If everything is set up correctly, you can build your project with the
 //! following command:
@@ -134,8 +137,8 @@
 //!     Sleep,
 //! };
 //!
-//! // Initialize the peripherals. This is unsafe, because we're only allowed to
-//! // create one instance on `Peripherals`.
+//! // Create the struct we're going to use to access all the peripherals. This
+//! // is unsafe, because we're only allowed to create one instance.
 //! let mut peripherals = unsafe { Peripherals::new() };
 //!
 //! // Let's save some peripherals in local variables for convenience. This one
@@ -143,7 +146,7 @@
 //! let mut syscon = peripherals.syscon.handle;
 //!
 //! // Other peripherals need to be initialized. Trying to use the API before
-//! // initializing it will actually lead to compile-time errors.
+//! // initializing them will actually lead to compile-time errors.
 //! let mut gpio = peripherals.gpio.handle.init(&mut syscon);
 //! let mut swm  = peripherals.swm.handle.init(&mut syscon);
 //! let mut wkt  = peripherals.wkt.init(&mut syscon);
@@ -156,18 +159,19 @@
 //!     peripherals.syscon.ircout,
 //! );
 //!
-//! // We haven't done anything to enable or disable any fixed functions before
-//! // initializing the HAL. Therefore we can safely affirm that the fixed
-//! // function still is in its default state.
+//! // In the next step, we need to configure the pin PIO0_3 and its fixed
+//! // function SWCLK. The API tracks the state of both of those, to prevent any
+//! // mistakes on our side. However, since we could have changed the state of
+//! // the hardware before initializing the API, the API can't know what state
+//! // it is currently in.
+//! // Let's affirm that we haven't changed anything, and that PIO0_3 and SWCLK
+//! // are still in their initial states.
+//! let pio0_3 = unsafe {
+//!     peripherals.gpio.pins.pio0_3.affirm_default_state()
+//! };
 //! let swclk = unsafe {
 //!     peripherals.swm.fixed_functions.swclk.affirm_default_state()
 //! };
-//!
-//! // Affirm that PIO0_3 is in its initial state. This is safe to do, as we
-//! // haven't done anything with it since the microcontroller was initialized.
-//! // Calling this method makes sure the compiler knows the initial state of
-//! // this pin, allowing it to prevent any mistakes we could make in its use.
-//! let pio0_3 = unsafe { peripherals.gpio.pins.pio0_3.affirm_default_state() };
 //!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
 //! let (pio0_3, _) = pio0_3
@@ -205,6 +209,7 @@
 //! Various places in this crate's documentation reference the LPC82x User
 //! manual, which is [available from NXP].
 //!
+//! [embedded-hal]: https://crates.io/crates/embedded-hal
 //! [cortex-m-quickstart]: https://github.com/japaric/cortex-m-quickstart
 //! [cortex-m-rt]: https://crates.io/crates/cortex-m-rt
 //! [Xargo]: https://crates.io/crates/xargo
@@ -247,8 +252,8 @@ pub mod wkt;
 /// Re-exports various traits that are required to use lpc82x-hal
 ///
 /// The purpose of this module is to improve convenience, by not requiring the
-/// user to import traits separately. Just add the following glob import to your
-/// code, and you should be good:
+/// user to import traits separately. Just add the following to your code, and
+/// you should be good to go:
 ///
 /// ``` rust
 /// use lpc82x_hal::prelude::*;
@@ -295,6 +300,30 @@ pub use self::wkt::WKT;
 ///
 /// Only one instance of this struct must exist in your program.
 pub struct Peripherals<'system> {
+    /// General Purpose I/O (GPIO)
+    pub gpio: GPIO<'system>,
+
+    /// Power Management Unit (PMU)
+    pub pmu: PMU<'system>,
+
+    /// Switch matrix (SWM)
+    pub swm: SWM<'system>,
+
+    /// System configuration (SYSCON)
+    pub syscon: SYSCON<'system>,
+
+    /// USART0
+    pub usart0: USART<'system, lpc82x::USART0, init_state::Unknown>,
+
+    /// USART1
+    pub usart1: USART<'system, lpc82x::USART1, init_state::Unknown>,
+
+    /// USART2
+    pub usart2: USART<'system, lpc82x::USART2, init_state::Unknown>,
+
+    /// Self-wake-up timer (WKT)
+    pub wkt: WKT<'system, init_state::Unknown>,
+
     /// CPUID register
     ///
     /// This peripheral is available in all Cortex-M0+ microcontrollers and has
@@ -504,30 +533,6 @@ pub struct Peripherals<'system> {
     ///
     /// [lpc82x]: https://crates.io/crates/lpc82x
     pub wwdt: &'system lpc82x::WWDT,
-
-    /// General Purpose I/O (GPIO)
-    pub gpio: GPIO<'system>,
-
-    /// Power Management Unit (PMU)
-    pub pmu: PMU<'system>,
-
-    /// Switch matrix (SWM)
-    pub swm: SWM<'system>,
-
-    /// System configuration (SYSCON)
-    pub syscon: SYSCON<'system>,
-
-    /// USART0
-    pub usart0: USART<'system, lpc82x::USART0, init_state::Unknown>,
-
-    /// USART1
-    pub usart1: USART<'system, lpc82x::USART1, init_state::Unknown>,
-
-    /// USART2
-    pub usart2: USART<'system, lpc82x::USART2, init_state::Unknown>,
-
-    /// Self-wake-up timer (WKT)
-    pub wkt: WKT<'system, init_state::Unknown>,
 }
 
 impl<'system> Peripherals<'system> {
@@ -547,6 +552,15 @@ impl<'system> Peripherals<'system> {
         let peripherals = lpc82x::Peripherals::all();
 
         Peripherals {
+            gpio  : GPIO::new(peripherals.GPIO_PORT),
+            pmu   : PMU::new(peripherals.PMU),
+            swm   : SWM::new(peripherals.SWM),
+            syscon: SYSCON::new(peripherals.SYSCON),
+            usart0: USART::new(peripherals.USART0),
+            usart1: USART::new(peripherals.USART1),
+            usart2: USART::new(peripherals.USART2),
+            wkt   : WKT::new(peripherals.WKT),
+
             cpuid: peripherals.CPUID,
             dcb  : peripherals.DCB,
             dwt  : peripherals.DWT,
@@ -572,36 +586,36 @@ impl<'system> Peripherals<'system> {
             spi0      : peripherals.SPI0,
             spi1      : peripherals.SPI1,
             wwdt      : peripherals.WWDT,
-
-            gpio  : GPIO::new(peripherals.GPIO_PORT),
-            pmu   : PMU::new(peripherals.PMU),
-            swm   : SWM::new(peripherals.SWM),
-            syscon: SYSCON::new(peripherals.SYSCON),
-            usart0: USART::new(peripherals.USART0),
-            usart1: USART::new(peripherals.USART1),
-            usart2: USART::new(peripherals.USART2),
-            wkt   : WKT::new(peripherals.WKT),
         }
     }
 }
 
 
-/// Contains types that mark the state of peripheral initialization
+/// Contains types that encode the state hardware initialization
+///
+/// The types in this module are used by structs representing peripherals or
+/// other hardware components, to encode the initialization state of the
+/// underlying hardware as part of the type.
 pub mod init_state {
-    /// Implemented by types that indicate peripheral initialization state
+    /// Implemented by the types that represent the initialization states
     ///
-    /// This type is used as a trait bound for type paramters that indicate a
-    /// peripheral's initialization state. HAL users should never need to
-    /// implement this trait, nor use it directly.
+    /// This type is used as a trait bound for type paramters that represent
+    /// initialization states. This is done for the purpose of documentation.
+    /// HAL users should never need to implement this trait, nor use it
+    /// directly.
     pub trait InitState {}
 
-    /// Marks a peripheral's initialization state as being unknown
+    /// Indicates that the hardware's state is currently unknown
     ///
-    /// This is usually the initial state after system initialization.
+    /// This is usually the initial state after the HAL API has been
+    /// initialized, as we don't know what happened before that.
     pub struct Unknown;
     impl InitState for Unknown {}
 
-    /// Marks a peripheral as being initialized
+    /// Indicates that the hardware component is enabled
+    ///
+    /// This usually indicates that the hardware has been initialized and can be
+    /// used for its intended purpose.
     pub struct Enabled;
     impl InitState for Enabled {}
 }

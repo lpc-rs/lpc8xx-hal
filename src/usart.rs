@@ -1,6 +1,98 @@
-//! APIs for the USART peripherals
+//! API for the USART peripherals
 //!
-//! See user manual, chapter 13.
+//! Each instance of [`USART`] expects to have full ownership of its respective
+//! USART peripheral. Don't use [`lpc82x::USART0`], [`lpc82x::USART1`], or
+//! [`lpc82x::USART2`] directly, unless you know what you're doing.
+//!
+//! Currently, only some UART functionality is implemented.
+//!
+//! The USART peripherals are described in the user manual, chapter 13.
+//!
+//! # Examples
+//!
+//! ``` no_run
+//! use lpc82x_hal::prelude::*;
+//! use lpc82x_hal::Peripherals;
+//! use lpc82x_hal::usart::{
+//!     BaudRate,
+//!     USART,
+//! };
+//!
+//! let peripherals = unsafe { Peripherals::new() };
+//!
+//! let mut syscon  = peripherals.syscon.handle;
+//! let mut uartfrg = peripherals.syscon.uartfrg;
+//! let mut swm     = peripherals.swm.handle.init(&mut syscon);
+//!
+//! // Set baud rate to 115200 baud
+//! //
+//! // The common peripheral clock for all UART units, U_PCLK, needs to be set
+//! // to 16 times the desired baud rate. This results in a frequency of
+//! // 1843200 Hz for U_PLCK.
+//! //
+//! // We assume the main clock runs at 12 Mhz. To get close to the desired
+//! // frequency for U_PLCK, we divide that by 6 using UARTCLKDIV, resulting in
+//! // a frequency of 2 Mhz.
+//! //
+//! // To get to the desired 1843200 Hz, we need to further divide the frequency
+//! // using the fractional baud rate generator. The fractional baud rate
+//! // generator divides the frequency by `1 + MULT/DIV`.
+//! //
+//! // DIV must always be 256. To achieve this, we need to set the UARTFRGDIV to
+//! // 0xff. MULT can then be fine-tuned to get as close as possible to the
+//! // desired value. We choose the value 22, which we write into UARTFRGMULT.
+//! //
+//! // Finally, we can set an additional divider value for the UART unit by
+//! // passing it as an argument to `BaudRate::new` (this will set the BRG
+//! // register). As we are already close enough to the desired value, we pass
+//! // 0, resulting in no further division.
+//! //
+//! // All of this is somewhat explained in the user manual, section 13.3.1.
+//! uartfrg.set_clkdiv(6);
+//! uartfrg.set_frgmult(22);
+//! uartfrg.set_frgdiv(0xff);
+//! let baud_rate = BaudRate::new(&uartfrg, 0);
+//!
+//! // Prepare PIO0_0 and PIO0_4. The `init` method we call below needs pins to
+//! // assign the USART's movable function to. For that, the pins need to be
+//! // unused. Since PIO0_0 and PIO0_4 are unused by default, we just have to
+//! // promise the API that we didn't change the default state up till now.
+//! let pio0_0 = unsafe { peripherals.gpio.pins.pio0_0.affirm_default_state() };
+//! let pio0_4 = unsafe { peripherals.gpio.pins.pio0_4.affirm_default_state() };
+//!
+//! // We also need to provide USART0's movable functions. Those need to be
+//! // unassigned, and since they are unassigned by default, we just need to
+//! // promise the API that we didn't change them.
+//! let u0_rxd = unsafe {
+//!     peripherals.swm.movable_functions.u0_rxd.affirm_default_state()
+//! };
+//! let u0_txd = unsafe {
+//!     peripherals.swm.movable_functions.u0_txd.affirm_default_state()
+//! };
+//!
+//! // Initialize USART0. This should never fail, as the only reason `init`
+//! // returns a `Result::Err` is when the transmitter is busy, which it
+//! // shouldn't be right now.
+//! let mut serial = peripherals.usart0
+//!     .init(
+//!         &baud_rate,
+//!         &mut syscon,
+//!         pio0_0,
+//!         pio0_4,
+//!         u0_rxd,
+//!         u0_txd,
+//!         &mut swm,
+//!     )
+//!     .expect("UART initialization shouldn't fail");
+//!
+//! // Write a string, blocking until it has finished writing
+//! serial.bwrite_all(b"Hello, world!");
+//! ```
+//!
+//! [`USART`]: struct.USART.html
+//! [`lpc82x::USART0`]: ../../lpc82x/struct.USART0.html
+//! [`lpc82x::USART1`]: ../../lpc82x/struct.USART1.html
+//! [`lpc82x::USART2`]: ../../lpc82x/struct.USART2.html
 
 
 use core::ops::Deref;
@@ -38,15 +130,14 @@ use syscon::{
 };
 
 
-/// Interface to the USART peripherals
+/// Interface to a USART peripheral
 ///
-/// Each instance of `USART` expects to have full ownership of one USART
-/// peripheral. Don't use [`lpc82x::USART0`], [`lpc82x::USART1`], or
-/// [`lpc82x::USART2`] directly, unless you know what you're doing.
+/// You can get an instance of `USART` via [`Peripherals`].
 ///
-/// [`lpc82x::USART0`]: ../../lpc82x/struct.USART0.html
-/// [`lpc82x::USART1`]: ../../lpc82x/struct.USART1.html
-/// [`lpc82x::USART2`]: ../../lpc82x/struct.USART2.html
+/// Please refer to the [module documentation] for more information.
+///
+/// [`Peripherals`]: ../struct.Peripherals.html
+/// [module documentation]: index.html
 pub struct USART<
     'usart,
     UsartX: 'usart,
@@ -68,19 +159,31 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         }
     }
 
-    /// Initializes a USART peripheral
+    /// Initialize a USART peripheral
+    ///
+    /// This method is only available, if the `USART` instance is in the
+    /// [`Unknown`] state, which is the default. Attempting to call this method
+    /// after the USART peripheral has been initialized will lead to a compiler
+    /// error.
+    ///
+    /// Consumes the `USART` instance and returns another instance that has its
+    /// state set to [`Enabled`]. This makes other methods available, that
+    /// wouldn't be available otherwise.
     ///
     /// # Limitations
-    ///
-    /// When using multiple USARTs at the same time, you must take care that
-    /// their baud rate settings don't interfere with each other. Please refer
-    /// to the documentation of [`BaudRate`] for full details.
     ///
     /// For USART to function correctly, the UARTFRG reset must be cleared. This
     /// is the default case, so unless you have messed with those settings, you
     /// should be good.
     ///
+    /// # Examples
+    ///
+    /// Please refer to the [module documentation] for a full example.
+    ///
+    /// [`Unknown`]: ../init_state/struct.Unknown.html
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
+    /// [module documentation]: index.html
     pub fn init<Rx: PinName, Tx: PinName>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Handle,
@@ -171,37 +274,48 @@ impl<'usart, UsartX> USART<'usart, UsartX>
         UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
-    /// Enables the USART interrupts
+    /// Enable the USART interrupts
     ///
-    /// Enables the interrupts for this USART peripheral. This only enables
-    /// interrupts in general. It doesn't enable any specific interrupt. Other
-    /// methods must be used for this.
+    /// Enable the interrupts for this USART peripheral. This only enables the
+    /// interrupts via the NVIC. It doesn't enable any specific interrupt.
     pub fn enable_interrupts(&mut self, nvic: &NVIC) {
         nvic.enable(UsartX::INTERRUPT);
     }
 
-    /// Enable RXRDY interrupt
+    /// Enable the RXRDY interrupt
+    ///
+    /// The interrupt will not actually work unless the interrupts for this
+    /// peripheral have also been enabled via the NVIC. See
+    /// [`enable_interrupts`].
+    ///
+    /// [`enable_interrupts`]: #method.enable_interrupts
     pub fn enable_rxrdy_interrupt(&mut self) {
         self.usart.intenset.write(|w|
             w.rxrdyen().set_bit()
        );
     }
 
-    /// Disable RXRDY interrupt
+    /// Disable the RXRDY interrupt
     pub fn disable_rxrdy_interrupt(&mut self) {
         self.usart.intenclr.write(|w|
             w.rxrdyclr().set_bit()
         );
     }
 
-    /// Enable TXRDY interrupt
+    /// Enable the TXRDY interrupt
+    ///
+    /// The interrupt will not actually work unless the interrupts for this
+    /// peripheral have also been enabled via the NVIC. See
+    /// [`enable_interrupts`].
+    ///
+    /// [`enable_interrupts`]: #method.enable_interrupts
     pub fn enable_txrdy_interrupt(&mut self) {
         self.usart.intenset.write(|w|
             w.txrdyen().set_bit()
         );
     }
 
-    /// Disable TXRDY interrupt
+    /// Disable the TXRDY interrupt
     pub fn disable_txrdy_interrupt(&mut self) {
         self.usart.intenclr.write(|w|
             w.txrdyclr().set_bit()
@@ -289,17 +403,19 @@ impl<'usart, UsartX> BlockingWriteDefault<u8> for USART<'usart, UsartX>
 {}
 
 
-/// Implemented for all USART peripherals
+/// Internal trait for USART peripherals
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any incompatible changes to this
-/// trait won't be considered breaking changes.
+/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// be considered breaking changes.
 ///
 /// The trait definition comes with some complexity that is caused by the fact
-/// that the required `Deref` implementation is implemented for `Self`, while
+/// that the required [`Deref`] implementation is implemented for `Self`, while
 /// the other traits required are implemented for `&Self`. This should be
 /// resolved once we pick up some changes to upstream dependencies that are
 /// currently coming down the pipe.
+///
+/// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
 pub trait Peripheral:
     Deref<Target = lpc82x::usart0::RegisterBlock>
     where
@@ -359,7 +475,7 @@ impl<'frg> BaudRate<'frg> {
     /// Creates a `BaudRate` instance from two components: A reference to the
     /// [`UARTFRG`] and the BRGVAL.
     ///
-    /// The [`UARTFRG`] controls U_PCLK, the UART clock that is shared by all
+    /// The [`UARTFRG`] controls U_PCLK, the shared clock that is shared by all
     /// USART peripherals. Please configure it before attempting to create a
     /// `BaudRate`. By keeping a reference to it, `BaudRate` ensures that U_PCLK
     /// cannot be changes as long as the `BaudRate` instance exists.
@@ -367,8 +483,9 @@ impl<'frg> BaudRate<'frg> {
     /// BRGVAL is an additional divider value that divides the shared baud rate
     /// to allow individual USART peripherals to use different baud rates. A
     /// value of `0` means that U_PCLK is used directly, `1` means that U_PCLK
-    /// is divided by 2 before using it, `2` means it's divided by 3, and so
-    /// forth.
+    /// is divided by 2 before using it, `2` means it's divided by 3, and so on.
+    ///
+    /// Please refer to the user manual, section 13.3.1, for further details.
     ///
     /// [`UARTFRG`]: ../syscon/struct.UARTFRG.html
     pub fn new(uartfrg : &'frg UARTFRG<'frg>, brgval : u16) -> Self {
