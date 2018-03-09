@@ -298,7 +298,7 @@ movable_functions!(
     spi0_mosi    , SPI0_MOSI    , PINASSIGN4 , pinassign4 , spi0_mosi_io;
     spi0_miso    , SPI0_MISO    , PINASSIGN4 , pinassign4 , spi0_miso_io;
     spi0_ssel0   , SPI0_SSEL0   , PINASSIGN4 , pinassign4 , spi0_ssel0_io;
-    spi0_ssek1   , SPI0_SSEL1   , PINASSIGN4 , pinassign4 , spi0_ssel1_io;
+    spi0_ssel1   , SPI0_SSEL1   , PINASSIGN4 , pinassign4 , spi0_ssel1_io;
     spi0_ssel2   , SPI0_SSEL2   , PINASSIGN5 , pinassign5 , spi0_ssel2_io;
     spi0_ssel3   , SPI0_SSEL3   , PINASSIGN5 , pinassign5 , spi0_ssel3_io;
     spi1_sck     , SPI1_SCK     , PINASSIGN5 , pinassign5 , spi1_sck_io;
