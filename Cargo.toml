@@ -9,7 +9,7 @@ repository    = "https://github.com/braun-robotics/rust-lpc82x-hal"
 license       = "0BSD"
 readme        = "README.md"
 categories    = ["embedded", "hardware-support", "no-std"]
-keywords      = ["arm", "cortex-m", "nxp", "lpc", "embedded-hal"]
+keywords      = ["arm", "cortex-m", "nxp", "lpc", "embedded-hal-impl"]
 
 
 [badges]

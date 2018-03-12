@@ -90,9 +90,9 @@
 //! ```
 //!
 //! [`USART`]: struct.USART.html
-//! [`lpc82x::USART0`]: ../../lpc82x/struct.USART0.html
-//! [`lpc82x::USART1`]: ../../lpc82x/struct.USART1.html
-//! [`lpc82x::USART2`]: ../../lpc82x/struct.USART2.html
+//! [`lpc82x::USART0`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.USART0.html
+//! [`lpc82x::USART1`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.USART1.html
+//! [`lpc82x::USART2`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.USART2.html
 
 
 use core::ops::Deref;

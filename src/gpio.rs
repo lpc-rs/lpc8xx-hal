@@ -59,7 +59,7 @@
 //! [`Peripherals`]: ../struct.Peripherals.html
 //! [`gpio::Handle`]: struct.Handle.html
 //! [`Pin`]: struct.Pin.html
-//! [`lpc82x::GPIO_PORT`]: ../../lpc82x/struct.GPIO_PORT.html
+//! [`lpc82x::GPIO_PORT`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.GPIO_PORT.html
 
 
 use embedded_hal::digital::OutputPin;
@@ -573,8 +573,8 @@ pins!(
 /// [`as_output`]: #method.as_output
 /// [`swm`]: ../swm/index.html
 /// [`as_swm_pin`]: #method.as_swm_pin
-/// [`lpc82x::IOCON`]: ../../lpc82x/struct.IOCON.html
-/// [`lpc82x::ADC`]: ../../lpc82x/struct.ADC.html
+/// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.IOCON.html
+/// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.ADC.html
 pub struct Pin<T: PinName, S: PinState> {
     ty   : T,
     state: S,
@@ -763,8 +763,8 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     ///
     /// [State Management]: #state-management
     /// [`swm`]: ../swm/index.html
-    /// [`IOCON`]: ../../lpc82x/constant.IOCON.html
-    /// [`ADC`]: ../../lpc82x/constant.ADC.html
+    /// [`IOCON`]: https://docs.rs/lpc82x/0.2.*/lpc82x/constant.IOCON.html
+    /// [`ADC`]: https://docs.rs/lpc82x/0.2.*/lpc82x/constant.ADC.html
     pub fn as_adc_pin<F>(mut self, function: F, swm: &mut swm::Handle)
         -> (Pin<T, pin_state::Adc>, F::Enabled)
         where F: AdcFunction + FixedFunction<Pin=T> + fixed_function::Enable

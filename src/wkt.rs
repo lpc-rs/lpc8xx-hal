@@ -30,7 +30,7 @@
 //! # }
 //! ```
 //!
-//! [`lpc82x::WKT`]: ../../lpc82x/struct.WKT.html
+//! [`lpc82x::WKT`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.WKT.html
 
 
 use core::cell::RefCell;

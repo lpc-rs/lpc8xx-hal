@@ -5,7 +5,7 @@
 //!
 //! The SYSCON peripheral is described in the user manual, chapter 5.
 //!
-//! [`lpc82x::SYSCON`]: ../../lpc82x/struct.SYSCON.html
+//! [`lpc82x::SYSCON`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.SYSCON.html
 
 
 use core::marker::PhantomData;
@@ -389,6 +389,11 @@ impl_reset_control!(&'a lpc82x::WKT      , wkt_rst_n    );
 impl_reset_control!(&'a lpc82x::GPIO_PORT, gpio_rst_n   );
 impl_reset_control!(&'a lpc82x::FLASHCTRL, flash_rst_n  );
 impl_reset_control!(&'a lpc82x::CMP      , acmp_rst_n   );
+impl_reset_control!(&'a lpc82x::I2C1     , i2c1_rst_n   );
+impl_reset_control!(&'a lpc82x::I2C2     , i2c2_rst_n   );
+impl_reset_control!(&'a lpc82x::I2C3     , i2c3_rst_n   );
+impl_reset_control!(&'a lpc82x::ADC      , adc_rst_n    );
+impl_reset_control!(&'a lpc82x::DMA      , dma_rst_n    );
 
 
 /// Internal trait for powering analog blocks
