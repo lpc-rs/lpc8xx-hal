@@ -76,4 +76,4 @@ See [LICENSE] for full details.
 
 
 [open an issue]: https://github.com/braun-robotics/rust-lpc82x-hal/issues/new
-[API Reference]: https://braun-robotics.github.io/rust-lpc82x-hal/lpc82x_hal/index.html
+[API Reference]: https://docs.rs/lpc82x-hal
