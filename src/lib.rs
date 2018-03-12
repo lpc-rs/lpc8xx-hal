@@ -9,8 +9,8 @@
 //! is include it via Cargo, by adding the following to your `Cargo.toml`:
 //!
 //! ``` toml
-//! [dependencies.lpc82x-hal]
-//! git = "https://github.com/braun-robotics/rust-lpc82x-hal.git"
+//! [dependencies]
+//! lpc82x-hal = "0.1"
 //! ```
 //!
 //! With that in place, you can just reference the crate in your Rust code, like
@@ -44,7 +44,7 @@
 //!
 //! ``` toml
 //! [dependencies.lpc82x-hal]
-//! git      = "https://github.com/braun-robotics/rust-lpc82x-hal.git"
+//! version  = "0.1"
 //! features = ["rt"]
 //! ```
 //!
