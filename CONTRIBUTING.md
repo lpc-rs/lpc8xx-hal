@@ -53,6 +53,47 @@ The following rules apply to the message body:
 - The length limit for lines in the commit body is **72 characters**.
 - If any issues should be closed once the commit is merged, this can be done automatically by adding something like "Close #123456" to the commit. Be careful about doing this accidentally.
 
+## Release Procedure
+
+This section is intended for project maintainers only. It assumes that you can push to the repository (here called `upstream`, but primarily work on your own fork (`origin`),
+
+1. Check out feature branch for the release (replace x.y.z with actual version)
+```
+$ git checkout -b release-x.y.z
+```
+
+2. Push feature branch to your fork (required for the next steps to work)
+```
+$ git push -u origin release-x.y.z
+```
+
+3. Update changelog (make manual changes as required)
+```
+$ clog --from-latest-tag -o CHANGELOG.md --major|--minor|--patch
+```
+
+4. Update versions in README.md, if version bump is major or minor
+
+5. Do cargo-release dry run, review its actions
+```
+$ cargo release --level major|minor|patch --dry-run
+```
+
+6. Run cargo-release
+```
+$ cargo release --level major|minor|patch
+```
+
+7. Open pull request, review it, merge it
+
+8. Push the tag that cargo-release created to `upstream`
+```
+git checkout master
+git pull upstream master
+git push --tag upstream master
+```
+
+
 That's it! If anything about this document is unclear, feel free to open an issue. If you have questions regarding a pull request that you're working on, just open the pull request and ask your questions there.
 
 [GitHub repository]: https://github.com/braun-robotics/rust-lpc82x-hal
