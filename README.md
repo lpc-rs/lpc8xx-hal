@@ -1,4 +1,4 @@
-# LPC82x HAL [![Build Status](https://travis-ci.org/braun-robotics/rust-lpc82x-hal.svg?branch=master)](https://travis-ci.org/braun-robotics/rust-lpc82x-hal)
+# LPC82x HAL [![crates.io](https://img.shields.io/crates/v/lpc82x-hal.svg)](https://crates.io/crates/lpc82x-hal) [![Documentation](https://docs.rs/lpc82x-hal/badge.svg)](https://docs.rs/lpc82x-hal) [![Build Status](https://travis-ci.org/braun-robotics/rust-lpc82x-hal.svg?branch=master)](https://travis-ci.org/braun-robotics/rust-lpc82x-hal)
 
 ## Introduction
 
