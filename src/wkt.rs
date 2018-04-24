@@ -79,7 +79,14 @@ pub struct WKT<'wkt, State: InitState = init_state::Enabled> {
 }
 
 impl<'wkt> WKT<'wkt, init_state::Unknown> {
-    pub(crate) fn new(wkt: &'wkt lpc82x::WKT) -> Self {
+    /// Create an instance of `WKT`
+    ///
+    /// # Safety
+    ///
+    /// Only a single instance of `WKT` is allowed to exist at any given time.
+    /// If you use this method to create multiple instances of `WKT`, the
+    /// guarantees this API makes cannot be upheld.
+    pub unsafe fn new(wkt: &'wkt lpc82x::WKT) -> Self {
         WKT {
             wkt   : wkt,
             _state: init_state::Unknown,

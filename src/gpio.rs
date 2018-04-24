@@ -106,7 +106,14 @@ pub struct GPIO<'gpio> {
 }
 
 impl<'gpio> GPIO<'gpio> {
-    pub(crate) fn new(gpio: &'gpio lpc82x::GPIO_PORT) -> Self {
+    /// Create an instance of `GPIO`
+    ///
+    /// # Safety
+    ///
+    /// Only a single instance of `GPIO` is allowed to exist at any given time.
+    /// If you use this method to create multiple instances of `GPIO`, the
+    /// guarantees this API makes cannot be upheld.
+    pub unsafe fn new(gpio: &'gpio lpc82x::GPIO_PORT) -> Self {
         GPIO {
             handle: Handle {
                 gpio  : gpio,

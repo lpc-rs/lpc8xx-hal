@@ -69,7 +69,14 @@ pub struct PMU<'pmu> {
 }
 
 impl<'pmu> PMU<'pmu> {
-    pub(crate) fn new(pmu: &'pmu lpc82x::PMU) -> Self {
+    /// Create an instance of `PMU`
+    ///
+    /// # Safety
+    ///
+    /// Only a single instance of `PMU` is allowed to exist at any given time.
+    /// If you use this method to create multiple instances of `PMU`, the
+    /// guarantees this API makes cannot be upheld.
+    pub unsafe fn new(pmu: &'pmu lpc82x::PMU) -> Self {
         PMU {
             handle: Handle {
                 dpdctrl: &pmu.dpdctrl,

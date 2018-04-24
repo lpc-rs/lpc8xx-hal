@@ -152,7 +152,14 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
-    pub(crate) fn new(usart: &'usart UsartX) -> Self {
+    /// Create an instance of `USART`
+    ///
+    /// # Safety
+    ///
+    /// Only a single instance of `USART` is allowed to exist at any given time.
+    /// If you use this method to create multiple instances of `USART`, the
+    /// guarantees this API makes cannot be upheld.
+    pub unsafe fn new(usart: &'usart UsartX) -> Self {
         USART {
             usart : usart,
             _state: init_state::Unknown,

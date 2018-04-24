@@ -58,7 +58,14 @@ pub struct SWM<'swm> {
 }
 
 impl<'swm> SWM<'swm> {
-    pub(crate) fn new(swm: &'swm lpc82x::SWM) -> Self {
+    /// Create an instance of `SWM`
+    ///
+    /// # Safety
+    ///
+    /// Only a single instance of `SWM` is allowed to exist at any given time.
+    /// If you use this method to create multiple instances of `SWM`, the
+    /// guarantees this API makes cannot be upheld.
+    pub unsafe fn new(swm: &'swm lpc82x::SWM) -> Self {
         SWM {
             handle           : Handle::new(swm),
             movable_functions: MovableFunctions::new(),
