@@ -8,10 +8,9 @@
 //! # Examples
 //!
 //! ``` no_run
-//! # extern crate lpc82x_hal;
-//! # extern crate nb;
-//! #
-//! # fn main() {
+//! extern crate lpc82x_hal;
+//! extern crate nb;
+//!
 //! use lpc82x_hal::prelude::*;
 //! use lpc82x_hal::Peripherals;
 //!
@@ -27,7 +26,6 @@
 //! while let Err(nb::Error::WouldBlock) = timer.wait() {
 //!     // do stuff
 //! }
-//! # }
 //! ```
 //!
 //! [`lpc82x::WKT`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.WKT.html
