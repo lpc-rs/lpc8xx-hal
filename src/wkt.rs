@@ -8,16 +8,22 @@
 //! # Examples
 //!
 //! ``` no_run
+//! extern crate lpc82x;
 //! extern crate lpc82x_hal;
 //! extern crate nb;
 //!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::Peripherals;
+//! use lpc82x_hal::{
+//!     SYSCON,
+//!     WKT,
+//! };
 //!
-//! let peripherals = unsafe { Peripherals::new() };
+//! let peripherals = unsafe { lpc82x::Peripherals::all() };
 //!
-//! let mut syscon = peripherals.syscon.handle;
-//! let mut timer  = peripherals.wkt.init(&mut syscon);
+//! let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON) };
+//! let     timer  = unsafe { WKT::new(peripherals.WKT)       };
+//!
+//! let mut timer = timer.init(&mut syscon.handle);
 //!
 //! // Start the timer at 750000. Sine the IRC-derived clock runs at 750 kHz,
 //! // this translates to a one second wait.

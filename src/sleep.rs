@@ -53,22 +53,28 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// # Examples
 ///
 /// ``` no_run
+/// extern crate lpc82x;
+/// extern crate lpc82x_hal;
+///
 /// use lpc82x_hal::prelude::*;
 /// use lpc82x_hal::{
 ///     sleep,
-///     Peripherals,
+///     SYSCON,
+///     WKT,
 /// };
 /// use lpc82x_hal::clock::Ticks;
 ///
-/// let mut peripherals = unsafe { Peripherals::new() };
+/// let peripherals = unsafe { lpc82x::Peripherals::all() };
 ///
-/// let mut syscon = peripherals.syscon.handle;
-/// let mut wkt    = peripherals.wkt.init(&mut syscon);
+/// let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON) };
+/// let     wkt    = unsafe { WKT::new(peripherals.WKT)       };
 ///
-/// let clock = peripherals.syscon.irc_derived_clock.enable(
-///     &mut syscon,
-///     peripherals.syscon.irc,
-///     peripherals.syscon.ircout,
+/// let mut wkt = wkt.init(&mut syscon.handle);
+///
+/// let clock = syscon.irc_derived_clock.enable(
+///     &mut syscon.handle,
+///     syscon.irc,
+///     syscon.ircout,
 /// );
 ///
 /// let mut sleep = sleep::Busy::prepare(&mut wkt);
@@ -139,33 +145,36 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// # Examples
 ///
 /// ``` no_run
+/// extern crate lpc82x;
+/// extern crate lpc82x_hal;
+///
 /// use lpc82x_hal::prelude::*;
 /// use lpc82x_hal::{
 ///     sleep,
-///     Peripherals,
+///     PMU,
+///     SYSCON,
+///     WKT,
 /// };
 /// use lpc82x_hal::clock::Ticks;
 ///
-/// let mut peripherals = unsafe { Peripherals::new() };
+/// let peripherals = unsafe { lpc82x::Peripherals::all() };
 ///
-/// let nvic = peripherals.nvic;
-/// let scb  = peripherals.scb;
+/// let mut pmu    = unsafe { PMU::new(peripherals.PMU)       };
+/// let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON) };
+/// let     wkt    = unsafe { WKT::new(peripherals.WKT)       };
 ///
-/// let mut syscon = peripherals.syscon.handle;
-/// let mut pmu    = peripherals.pmu.handle;
+/// let mut wkt = wkt.init(&mut syscon.handle);
 ///
-/// let mut wkt    = peripherals.wkt.init(&mut syscon);
-///
-/// let clock = peripherals.syscon.irc_derived_clock.enable(
-///     &mut syscon,
-///     peripherals.syscon.irc,
-///     peripherals.syscon.ircout,
+/// let clock = syscon.irc_derived_clock.enable(
+///     &mut syscon.handle,
+///     syscon.irc,
+///     syscon.ircout,
 /// );
 ///
 /// let mut sleep = sleep::Regular::prepare(
-///     &nvic,
-///     &mut pmu,
-///     &scb,
+///     &peripherals.NVIC,
+///     &mut pmu.handle,
+///     &peripherals.SCB,
 ///     &mut wkt,
 /// );
 ///

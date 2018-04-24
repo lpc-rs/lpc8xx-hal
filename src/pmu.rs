@@ -14,16 +14,18 @@
 //! Use the PMU to enter sleep mode:
 //!
 //! ``` no_run
-//! use lpc82x_hal::Peripherals;
+//! extern crate lpc82x;
+//! extern crate lpc82x_hal;
 //!
-//! let peripherals = unsafe { Peripherals::new() };
+//! use lpc82x_hal::PMU;
 //!
-//! let mut pmu = peripherals.pmu.handle;
-//! let     scb = peripherals.scb;
+//! let peripherals = unsafe { lpc82x::Peripherals::all() };
+//!
+//! let mut pmu = unsafe { PMU::new(peripherals.PMU) };
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
-//! pmu.enter_sleep_mode(&scb);
+//! pmu.handle.enter_sleep_mode(&peripherals.SCB);
 //! ```
 //!
 //! [`PMU`]: struct.PMU.html

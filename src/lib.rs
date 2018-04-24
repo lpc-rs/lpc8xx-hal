@@ -128,8 +128,16 @@
 //! The following is an example of a simple application that blinks an LED.
 //!
 //! ``` no_run
+//! extern crate lpc82x;
+//! extern crate lpc82x_hal;
+//!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::Peripherals;
+//! use lpc82x_hal::{
+//!     GPIO,
+//!     SWM,
+//!     SYSCON,
+//!     WKT,
+//! };
 //! use lpc82x_hal::clock::Ticks;
 //! use lpc82x_hal::gpio::PIO0_3;
 //! use lpc82x_hal::sleep::{
@@ -139,24 +147,26 @@
 //!
 //! // Create the struct we're going to use to access all the peripherals. This
 //! // is unsafe, because we're only allowed to create one instance.
-//! let mut peripherals = unsafe { Peripherals::new() };
+//! let peripherals = unsafe { lpc82x::Peripherals::all() };
 //!
-//! // Let's save some peripherals in local variables for convenience. This one
-//! // here doesn't require initialization.
-//! let mut syscon = peripherals.syscon.handle;
+//! // Create the peripheral interfaces.
+//! let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+//! let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+//! let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+//! let     wkt    = unsafe { WKT::new(peripherals.WKT)        };
 //!
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing them will actually lead to compile-time errors.
-//! let mut gpio = peripherals.gpio.handle.init(&mut syscon);
-//! let mut swm  = peripherals.swm.handle.init(&mut syscon);
-//! let mut wkt  = peripherals.wkt.init(&mut syscon);
+//! let mut gpio_handle = gpio.handle.init(&mut syscon.handle);
+//! let mut swm_handle  = swm.handle.init(&mut syscon.handle);
+//! let mut wkt         = wkt.init(&mut syscon.handle);
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
 //! // that runs at 750 kHz.
-//! let clock = peripherals.syscon.irc_derived_clock.enable(
-//!     &mut syscon,
-//!     peripherals.syscon.irc,
-//!     peripherals.syscon.ircout,
+//! let clock = syscon.irc_derived_clock.enable(
+//!     &mut syscon.handle,
+//!     syscon.irc,
+//!     syscon.ircout,
 //! );
 //!
 //! // In the next step, we need to configure the pin PIO0_3 and its fixed
@@ -166,19 +176,15 @@
 //! // it is currently in.
 //! // Let's affirm that we haven't changed anything, and that PIO0_3 and SWCLK
 //! // are still in their initial states.
-//! let pio0_3 = unsafe {
-//!     peripherals.gpio.pins.pio0_3.affirm_default_state()
-//! };
-//! let swclk = unsafe {
-//!     peripherals.swm.fixed_functions.swclk.affirm_default_state()
-//! };
+//! let pio0_3 = unsafe { gpio.pins.pio0_3.affirm_default_state()          };
+//! let swclk  = unsafe { swm.fixed_functions.swclk.affirm_default_state() };
 //!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
 //! let (pio0_3, _) = pio0_3
-//!     .disable_output_function(swclk, &mut swm);
+//!     .disable_output_function(swclk, &mut swm_handle);
 //! let mut pio0_3 = pio0_3
 //!     .as_unused_pin()
-//!     .as_gpio_pin(&gpio)
+//!     .as_gpio_pin(&gpio_handle)
 //!     .as_output();
 //!
 //! // Let's already initialize the durations that we're going to sleep for

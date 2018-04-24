@@ -15,19 +15,27 @@
 //! Initialize a GPIO pin and set its output to HIGH:
 //!
 //! ``` no_run
+//! extern crate lpc82x;
+//! extern crate lpc82x_hal;
+//!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::Peripherals;
+//! use lpc82x_hal::{
+//!     GPIO,
+//!     SYSCON,
+//! };
 //!
-//! let peripherals = unsafe { Peripherals::new() };
+//! let peripherals = unsafe { lpc82x::Peripherals::all() };
 //!
-//! let mut syscon = peripherals.syscon.handle;
-//! let     gpio   = peripherals.gpio.handle.init(&mut syscon);
+//! let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+//! let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+//!
+//! let gpio_handle = gpio.handle.init(&mut syscon.handle);
 //!
 //! let pio0_12 = unsafe {
-//!     peripherals.gpio.pins.pio0_12.affirm_default_state()
+//!     gpio.pins.pio0_12.affirm_default_state()
 //! };
 //! pio0_12
-//!     .as_gpio_pin(&gpio)
+//!     .as_gpio_pin(&gpio_handle)
 //!     .as_output()
 //!     .set_high();
 //! ```
@@ -35,24 +43,34 @@
 //! Assign a pin to the switch matrix and enable a fixed function:
 //!
 //! ``` no_run
+//! extern crate lpc82x;
+//! extern crate lpc82x_hal;
+//!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::Peripherals;
+//! use lpc82x_hal::{
+//!     GPIO,
+//!     SWM,
+//!     SYSCON,
+//! };
 //!
-//! let peripherals = unsafe { Peripherals::new() };
+//! let peripherals = unsafe { lpc82x::Peripherals::all() };
 //!
-//! let mut syscon = peripherals.syscon.handle;
-//! let mut swm    = peripherals.swm.handle.init(&mut syscon);
+//! let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+//! let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+//! let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+//!
+//! let mut swm_handle = swm.handle.init(&mut syscon.handle);
 //!
 //! let pio0_6 = unsafe {
-//!     peripherals.gpio.pins.pio0_6.affirm_default_state()
+//!     gpio.pins.pio0_6.affirm_default_state()
 //! };
 //! let vddcmp = unsafe {
-//!     peripherals.swm.fixed_functions.vddcmp.affirm_default_state()
+//!     swm.fixed_functions.vddcmp.affirm_default_state()
 //! };
 //!
 //! pio0_6
 //!     .as_swm_pin()
-//!     .enable_input_function(vddcmp, &mut swm);
+//!     .enable_input_function(vddcmp, &mut swm_handle);
 //! ```
 //!
 //! [`GPIO`]: struct.GPIO.html
@@ -332,9 +350,14 @@ pins!(
 /// state, using [`affirm_default_state`].
 ///
 /// ``` rust
-/// # use lpc82x_hal::Peripherals;
+/// # extern crate lpc82x;
+/// # extern crate lpc82x_hal;
 /// #
-/// # let peripherals = unsafe { Peripherals::new() };
+/// # use lpc82x_hal::GPIO;
+/// #
+/// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+/// #
+/// # let gpio = unsafe { GPIO::new(peripherals.GPIO_PORT) };
 /// #
 /// use lpc82x_hal::gpio::{
 ///     PIO0_12,
@@ -343,8 +366,7 @@ pins!(
 /// };
 ///
 /// // The pin starts out in the unknown state
-/// let pin: Pin<PIO0_12, pin_state::Unknown> =
-///     peripherals.gpio.pins.pio0_12;
+/// let pin: Pin<PIO0_12, pin_state::Unknown> = gpio.pins.pio0_12;
 ///
 /// // After we promise we didn't mess with the pin, the API knows it's unused
 /// let pin: Pin<PIO0_12, pin_state::Unused> =
@@ -357,23 +379,33 @@ pins!(
 /// cause an invalid state transition will simply not compile.
 ///
 /// ``` no_run
-/// # use lpc82x_hal::Peripherals;
+/// # extern crate lpc82x;
+/// # extern crate lpc82x_hal;
 /// #
-/// # let peripherals = unsafe { Peripherals::new() };
+/// # use lpc82x_hal::{
+/// #     GPIO,
+/// #     SWM,
+/// #     SYSCON,
+/// # };
 /// #
-/// # let mut syscon = peripherals.syscon.handle;
-/// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+/// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+/// #
+/// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+/// # let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+/// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+/// #
+/// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
 /// #
 /// // Reassure the API that the pin is in its default state, i.e. unused.
-/// let pin = unsafe { peripherals.gpio.pins.pio0_12.affirm_default_state() };
+/// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() };
 ///
 /// // Assign a movable function to this pin
 /// let clkout = unsafe {
-///     peripherals.swm.movable_functions.clkout.affirm_default_state()
+///     swm.movable_functions.clkout.affirm_default_state()
 /// };
 /// let (pin, _) = pin
 ///     .as_swm_pin()
-///     .assign_output_function(clkout, &mut swm);
+///     .assign_output_function(clkout, &mut swm_handle);
 ///
 /// // As long as the movable function is assigned, we can't use the pin for
 /// // general-purpose I/O. Therefore the following method call would cause a
@@ -393,20 +425,28 @@ pins!(
 /// its unused state.
 ///
 /// ``` no_run
-/// # use lpc82x_hal::Peripherals;
+/// # extern crate lpc82x;
+/// # extern crate lpc82x_hal;
 /// #
-/// # let peripherals = unsafe { Peripherals::new() };
+/// # use lpc82x_hal::{
+/// #     GPIO,
+/// #     SWM,
+/// #     SYSCON,
+/// # };
 /// #
-/// # let mut syscon = peripherals.syscon.handle;
+/// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+/// #
+/// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+/// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
 /// #
 /// // To use general-purpose I/O, we need to enable the GPIO peripheral. The
 /// // call to `as_gpio_pin` below enforces this by requiring a reference to an
 /// // enabled GPIO handle.
-/// let gpio = peripherals.gpio.handle.init(&mut syscon);
+/// let gpio_handle = gpio.handle.init(&mut syscon.handle);
 ///
 /// // Affirm that pin is unused, then transition to the GPIO state
-/// let pin = unsafe { peripherals.gpio.pins.pio0_12.affirm_default_state() }
-///     .as_gpio_pin(&gpio);
+/// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+///     .as_gpio_pin(&gpio_handle);
 /// ```
 ///
 /// Now `pin` is in the GPIO state. The GPIO state has the following sub-states:
@@ -425,15 +465,23 @@ pins!(
 /// for digital output, we need to set the pin direction using [`as_output`].
 ///
 /// ``` no_run
-/// # use lpc82x_hal::Peripherals;
+/// # extern crate lpc82x;
+/// # extern crate lpc82x_hal;
 /// #
-/// # let peripherals = unsafe { Peripherals::new() };
+/// # use lpc82x_hal::{
+/// #     GPIO,
+/// #     SYSCON,
+/// # };
 /// #
-/// # let mut syscon = peripherals.syscon.handle;
-/// # let     gpio   = peripherals.gpio.handle.init(&mut syscon);
+/// # let peripherals = unsafe { lpc82x::Peripherals::all() };
 /// #
-/// # let pin = unsafe { peripherals.gpio.pins.pio0_12.affirm_default_state() }
-/// #     .as_gpio_pin(&gpio);
+/// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+/// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+/// #
+/// # let gpio_handle = gpio.handle.init(&mut syscon.handle);
+/// #
+/// # let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+/// #     .as_gpio_pin(&gpio_handle);
 /// #
 /// use lpc82x_hal::prelude::*;
 ///
@@ -464,12 +512,17 @@ pins!(
 /// the unused state to the SWM state using [`as_swm_pin`].
 ///
 /// ``` no_run
-/// # use lpc82x_hal::Peripherals;
+/// # extern crate lpc82x;
+/// # extern crate lpc82x_hal;
 /// #
-/// # let peripherals = unsafe { Peripherals::new() };
+/// # use lpc82x_hal::GPIO;
+/// #
+/// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+/// #
+/// # let gpio = unsafe { GPIO::new(peripherals.GPIO_PORT) };
 /// #
 /// // Affirm that the pin is unused, then transition to the SWM state
-/// let pin = unsafe { peripherals.gpio.pins.pio0_12.affirm_default_state() }
+/// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
 ///     .as_swm_pin();
 /// ```
 ///
@@ -492,44 +545,54 @@ pins!(
 /// state.
 ///
 /// ``` no_run
-/// # use lpc82x_hal::Peripherals;
+/// # extern crate lpc82x;
+/// # extern crate lpc82x_hal;
 /// #
-/// # let peripherals = unsafe { Peripherals::new() };
+/// # use lpc82x_hal::{
+/// #     GPIO,
+/// #     SWM,
+/// #     SYSCON,
+/// # };
 /// #
-/// # let mut syscon = peripherals.syscon.handle;
-/// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+/// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+/// #
+/// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+/// # let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+/// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+/// #
+/// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
 /// #
 /// # let xtalout = unsafe {
-/// #     peripherals.swm.fixed_functions.xtalout.affirm_default_state()
+/// #     swm.fixed_functions.xtalout.affirm_default_state()
 /// # };
 /// # let u0_rxd = unsafe {
-/// #     peripherals.swm.movable_functions.u0_rxd.affirm_default_state()
+/// #     swm.movable_functions.u0_rxd.affirm_default_state()
 /// # };
 /// # let u1_rxd = unsafe {
-/// #     peripherals.swm.movable_functions.u1_rxd.affirm_default_state()
+/// #     swm.movable_functions.u1_rxd.affirm_default_state()
 /// # };
 /// # let u0_txd = unsafe {
-/// #     peripherals.swm.movable_functions.u0_txd.affirm_default_state()
+/// #     swm.movable_functions.u0_txd.affirm_default_state()
 /// # };
 /// #
 /// // Put PIO0_9 into the SWM state
-/// let pin = unsafe { peripherals.gpio.pins.pio0_9.affirm_default_state() }
+/// let pin = unsafe { gpio.pins.pio0_9.affirm_default_state() }
 ///     .as_swm_pin();
 ///
 /// // Enable this pin's fixed function, which is an output function.
-/// let (pin, xtalout) = pin.enable_output_function(xtalout, &mut swm);
+/// let (pin, xtalout) = pin.enable_output_function(xtalout, &mut swm_handle);
 ///
 /// // Now we can assign various input functions in addition.
-/// let (pin, _) = pin.assign_input_function(u0_rxd, &mut swm);
-/// let (pin, _) = pin.assign_input_function(u1_rxd, &mut swm);
+/// let (pin, _) = pin.assign_input_function(u0_rxd, &mut swm_handle);
+/// let (pin, _) = pin.assign_input_function(u1_rxd, &mut swm_handle);
 ///
 /// // We can't assign another output function. The following line wont compile.
 /// // let (pin, _) = pin.assign_output_function(u0_txd, &mut swm);
 ///
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
-/// let (pin, _) = pin.disable_output_function(xtalout, &mut swm);
-/// let (pin, _) = pin.assign_output_function(u0_txd, &mut swm);
+/// let (pin, _) = pin.disable_output_function(xtalout, &mut swm_handle);
+/// let (pin, _) = pin.assign_output_function(u0_txd, &mut swm_handle);
 /// ```
 ///
 /// # Analog Input
@@ -539,22 +602,32 @@ pins!(
 /// the access the respective fixed function from the [`swm`] API.
 ///
 /// ``` no_run
-/// # use lpc82x_hal::Peripherals;
+/// # extern crate lpc82x;
+/// # extern crate lpc82x_hal;
 /// #
-/// # let peripherals = unsafe { Peripherals::new() };
+/// # use lpc82x_hal::{
+/// #     GPIO,
+/// #     SWM,
+/// #     SYSCON,
+/// # };
 /// #
-/// # let mut syscon = peripherals.syscon.handle;
-/// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+/// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+/// #
+/// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+/// # let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+/// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+/// #
+/// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
 /// #
 /// # let adc_2 = unsafe {
-/// #     peripherals.swm.fixed_functions.adc_2.affirm_default_state()
+/// #     swm.fixed_functions.adc_2.affirm_default_state()
 /// # };
 /// #
 /// // Affirm that the pin is unused
-/// let pin = unsafe { peripherals.gpio.pins.pio0_14.affirm_default_state() };
+/// let pin = unsafe { gpio.pins.pio0_14.affirm_default_state() };
 ///
 /// // Transition pin into ADC state
-/// let (pin, _) = pin.as_adc_pin(adc_2, &mut swm);
+/// let (pin, _) = pin.as_adc_pin(adc_2, &mut swm_handle);
 /// ```
 ///
 /// Using the pin for analog input once it is in the ADC state is currently not
@@ -617,21 +690,30 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
+    /// # use lpc82x_hal::{
+    /// #     GPIO,
+    /// #     SWM,
+    /// #     SYSCON,
+    /// # };
     /// #
-    /// # let mut syscon = peripherals.syscon.handle;
-    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+    /// #
+    /// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    /// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+    /// # let mut swm    = unsafe { SWM::new(peripherals.SWM)        };
     /// #
     /// # let swclk = unsafe {
-    /// #     peripherals.swm.fixed_functions.swclk.affirm_default_state()
+    /// #     swm.fixed_functions.swclk.affirm_default_state()
     /// # };
+    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
     /// #
     /// // These pins are in the unknown state. As long as that's the case, we
     /// // can't do anything useful with them.
-    /// let pio0_3  = peripherals.gpio.pins.pio0_3;
-    /// let pio0_12 = peripherals.gpio.pins.pio0_12;
+    /// let pio0_3  = gpio.pins.pio0_3;
+    /// let pio0_12 = gpio.pins.pio0_12;
     ///
     /// // Since we didn't change the pin configuration, nor called any code
     /// // that did, we can safely affirm that the pins are in their default
@@ -643,7 +725,10 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// // be transitioned into another state now. However, PIO0_3 has its fixed
     /// // function enabled by default. If we want to use it for something else,
     /// // we need to transition it into the unused state before we can do so.
-    /// let (pio0_3, _) = pio0_3.disable_output_function(swclk, &mut swm);
+    /// let (pio0_3, _) = pio0_3.disable_output_function(
+    ///     swclk,
+    ///     &mut swm_handle,
+    /// );
     /// let pio0_3      = pio0_3.as_unused_pin();
     /// ```
     pub unsafe fn affirm_default_state(self) -> Pin<T, T::DefaultState> {
@@ -672,18 +757,23 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
+    /// # use lpc82x_hal::{
+    /// #     GPIO,
+    /// #     SYSCON,
+    /// # };
     /// #
-    /// # let mut syscon = peripherals.syscon.handle;
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
     /// #
-    /// let gpio = peripherals.gpio.handle.init(&mut syscon);
+    /// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON) };
+    /// #
+    /// let gpio        = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    /// let gpio_handle = gpio.handle.init(&mut syscon.handle);
     ///
-    /// let pin = unsafe {
-    ///     peripherals.gpio.pins.pio0_12.affirm_default_state()
-    /// };
-    /// let pin = pin.as_gpio_pin(&gpio);
+    /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() };
+    /// let pin = pin.as_gpio_pin(&gpio_handle);
     ///
     /// // `pin` is now available for general-purpose I/O
     /// ```
@@ -721,13 +811,16 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
+    /// # use lpc82x_hal::GPIO;
     /// #
-    /// let pin = unsafe {
-    ///     peripherals.gpio.pins.pio0_12.affirm_default_state()
-    /// };
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+    /// #
+    /// let gpio = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    ///
+    /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() };
     /// let pin = pin.as_swm_pin();
     ///
     /// // `pin` is now ready for function assignment
@@ -808,17 +901,23 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
-    /// #
-    /// # let mut syscon = peripherals.syscon.handle;
-    /// # let     gpio   = peripherals.gpio.handle.init(&mut syscon);
-    /// #
-    /// # let pin = unsafe {
-    /// #     peripherals.gpio.pins.pio0_12.affirm_default_state()
+    /// # use lpc82x_hal::{
+    /// #     GPIO,
+    /// #     SYSCON,
     /// # };
-    /// # let pin = pin.as_gpio_pin(&gpio);
+    /// #
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+    /// #
+    /// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    /// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+    /// #
+    /// # let gpio_handle = gpio.handle.init(&mut syscon.handle);
+    /// #
+    /// # let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() };
+    /// # let pin = pin.as_gpio_pin(&gpio_handle);
     /// use lpc82x_hal::prelude::*;
     ///
     /// // Assumes the pin is already in the GPIO state
@@ -948,28 +1047,36 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
+    /// # use lpc82x_hal::{
+    /// #     GPIO,
+    /// #     SWM,
+    /// #     SYSCON,
+    /// # };
     /// #
-    /// # let mut syscon = peripherals.syscon.handle;
-    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+    /// #
+    /// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    /// # let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+    /// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+    /// #
+    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
     /// #
     /// // Get PIO0_9 ready for function assignment
-    /// let pio0_9 = unsafe {
-    ///     peripherals.gpio.pins.pio0_9.affirm_default_state()
-    /// };
+    /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() };
     /// let pio0_9 = pio0_9.as_swm_pin();
     ///
     /// // Get the fixed function on PIO0_9 ready to be enabled
     /// let xtalout = unsafe {
-    ///     peripherals.swm.fixed_functions.xtalout.affirm_default_state()
+    ///     swm.fixed_functions.xtalout.affirm_default_state()
     /// };
     ///
     /// // Enable the fixed function
     /// let (pio0_9, xtalout) = pio0_9.enable_output_function(
     ///     xtalout,
-    ///     &mut swm,
+    ///     &mut swm_handle,
     /// );
     /// ```
     ///
@@ -1015,26 +1122,37 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
+    /// # use lpc82x_hal::{
+    /// #     GPIO,
+    /// #     SWM,
+    /// #     SYSCON,
+    /// # };
     /// #
-    /// # let mut syscon = peripherals.syscon.handle;
-    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+    /// #
+    /// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    /// # let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+    /// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+    /// #
+    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
     /// #
     /// // Get pin ready for function assignment
-    /// let pio0_9 = unsafe {
-    ///     peripherals.gpio.pins.pio0_9.affirm_default_state()
-    /// };
+    /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() };
     /// let pio0_9 = pio0_9.as_swm_pin();
     ///
     /// // Get the movable function ready to be assigned
     /// let u0_txd = unsafe {
-    ///     peripherals.swm.movable_functions.u0_txd.affirm_default_state()
+    ///     swm.movable_functions.u0_txd.affirm_default_state()
     /// };
     ///
     /// // Assign U0_TXD to PIO0_9
-    /// let (pio0_9, u0_txd) = pio0_9.assign_output_function(u0_txd, &mut swm);
+    /// let (pio0_9, u0_txd) = pio0_9.assign_output_function(
+    ///     u0_txd,
+    ///     &mut swm_handle,
+    /// );
     /// ```
     ///
     /// [`as_swm_pin`]: #method.as_swm_pin
@@ -1090,28 +1208,41 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
+    /// # use lpc82x_hal::{
+    /// #     GPIO,
+    /// #     SWM,
+    /// #     SYSCON,
+    /// # };
     /// #
-    /// # let mut syscon = peripherals.syscon.handle;
-    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+    /// #
+    /// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    /// # let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+    /// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+    /// #
+    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
     /// #
     /// // PIO0_3 has a fixed output function enabled by default. Its state will
     /// // reflect that after the following method call.
     /// let pio0_3 = unsafe {
-    ///     peripherals.gpio.pins.pio0_3.affirm_default_state()
+    ///     gpio.pins.pio0_3.affirm_default_state()
     /// };
     ///
     /// // SWCLK is the output function that is enabled on PIO0_3 by default.
     /// // Here too will this be be reflected in its state after the following
     /// // method call.
     /// let swclk = unsafe {
-    ///     peripherals.swm.fixed_functions.swclk.affirm_default_state()
+    ///     swm.fixed_functions.swclk.affirm_default_state()
     /// };
     ///
     /// // Disable the fixed function
-    /// let (pio0_3, swclk) = pio0_3.disable_output_function(swclk, &mut swm);
+    /// let (pio0_3, swclk) = pio0_3.disable_output_function(
+    ///     swclk,
+    ///     &mut swm_handle,
+    /// );
     ///
     /// // Now both PIO0_3 and SWCLK are available again
     /// ```
@@ -1164,31 +1295,39 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
-    /// #
-    /// # let mut syscon = peripherals.syscon.handle;
-    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
-    /// #
-    /// # let pio0_9 = unsafe {
-    /// #     peripherals.gpio.pins.pio0_9.affirm_default_state()
+    /// # use lpc82x_hal::{
+    /// #     GPIO,
+    /// #     SWM,
+    /// #     SYSCON,
     /// # };
+    /// #
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+    /// #
+    /// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    /// # let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+    /// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+    /// #
+    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+    /// #
+    /// # let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() };
     /// # let pio0_9 = pio0_9.as_swm_pin();
     /// #
     /// # let u0_txd = unsafe {
-    /// #     peripherals.swm.movable_functions.u0_txd.affirm_default_state()
+    /// #     swm.movable_functions.u0_txd.affirm_default_state()
     /// # };
     /// #
     /// # let (pio0_9, u0_txd) = pio0_9.assign_output_function(
     /// #     u0_txd,
-    /// #     &mut swm,
+    /// #     &mut swm_handle,
     /// # );
     /// #
     /// // Assumes that U0_TXD is assigned to PIO0_9
     /// let (pio0_9, u0_txd) = pio0_9.unassign_output_function(
     ///     u0_txd,
-    ///     &mut swm,
+    ///     &mut swm_handle,
     /// );
     ///
     /// // Both PIO0_9 and U0_TXD are now available again
@@ -1240,28 +1379,36 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
+    /// # use lpc82x_hal::{
+    /// #     GPIO,
+    /// #     SWM,
+    /// #     SYSCON,
+    /// # };
     /// #
-    /// # let mut syscon = peripherals.syscon.handle;
-    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+    /// #
+    /// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    /// # let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+    /// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+    /// #
+    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
     /// #
     /// // Get PIO0_8 ready for function assignment
-    /// let pio0_8 = unsafe {
-    ///     peripherals.gpio.pins.pio0_8.affirm_default_state()
-    /// };
+    /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() };
     /// let pio0_8 = pio0_8.as_swm_pin();
     ///
     /// // Get the fixed function on PIO0_8 ready to be enabled
     /// let xtalin = unsafe {
-    ///     peripherals.swm.fixed_functions.xtalin.affirm_default_state()
+    ///     swm.fixed_functions.xtalin.affirm_default_state()
     /// };
     ///
     /// // Enable the fixed function
     /// let (pio0_8, xtalin) = pio0_8.enable_input_function(
     ///     xtalin,
-    ///     &mut swm,
+    ///     &mut swm_handle,
     /// );
     /// ```
     ///
@@ -1302,26 +1449,37 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
+    /// # use lpc82x_hal::{
+    /// #     GPIO,
+    /// #     SWM,
+    /// #     SYSCON,
+    /// # };
     /// #
-    /// # let mut syscon = peripherals.syscon.handle;
-    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+    /// #
+    /// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    /// # let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+    /// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+    /// #
+    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
     /// #
     /// // Get pin ready for function assignment
-    /// let pio0_8 = unsafe {
-    ///     peripherals.gpio.pins.pio0_8.affirm_default_state()
-    /// };
+    /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() };
     /// let pio0_8 = pio0_8.as_swm_pin();
     ///
     /// // Get the movable function ready to be assigned
     /// let u0_rxd = unsafe {
-    ///     peripherals.swm.movable_functions.u0_rxd.affirm_default_state()
+    ///     swm.movable_functions.u0_rxd.affirm_default_state()
     /// };
     ///
     /// // Assign U0_RXD to PIO0_8
-    /// let (pio0_8, u0_rxd) = pio0_8.assign_input_function(u0_rxd, &mut swm);
+    /// let (pio0_8, u0_rxd) = pio0_8.assign_input_function(
+    ///     u0_rxd,
+    ///     &mut swm_handle,
+    /// );
     /// ```
     ///
     /// [`as_swm_pin`]: #method.as_swm_pin
@@ -1379,28 +1537,41 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
+    /// # use lpc82x_hal::{
+    /// #     GPIO,
+    /// #     SWM,
+    /// #     SYSCON,
+    /// # };
     /// #
-    /// # let mut syscon = peripherals.syscon.handle;
-    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+    /// #
+    /// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    /// # let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+    /// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+    /// #
+    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
     /// #
     /// // PIO0_5 has a fixed input function enabled by default. Its state will
     /// // reflect that after the following method call.
     /// let pio0_5 = unsafe {
-    ///     peripherals.gpio.pins.pio0_5.affirm_default_state()
+    ///     gpio.pins.pio0_5.affirm_default_state()
     /// };
     ///
     /// // RESETN is the input function that is enabled on PIO0_5 by default.
     /// // Here too, will this be be reflected in its state after the following
     /// // method call.
     /// let resetn = unsafe {
-    ///     peripherals.swm.fixed_functions.resetn.affirm_default_state()
+    ///     swm.fixed_functions.resetn.affirm_default_state()
     /// };
     ///
     /// // Disable the fixed function
-    /// let (pio0_5, resetn) = pio0_5.disable_input_function(resetn, &mut swm);
+    /// let (pio0_5, resetn) = pio0_5.disable_input_function(
+    ///     resetn,
+    ///     &mut swm_handle,
+    /// );
     ///
     /// // Now both PIO0_5 and RESETN are available again
     /// ```
@@ -1453,31 +1624,39 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// # Example
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # extern crate lpc82x;
+    /// # extern crate lpc82x_hal;
     /// #
-    /// # let peripherals = unsafe { Peripherals::new() };
-    /// #
-    /// # let mut syscon = peripherals.syscon.handle;
-    /// # let mut swm    = peripherals.swm.handle.init(&mut syscon);
-    /// #
-    /// # let pio0_8 = unsafe {
-    /// #     peripherals.gpio.pins.pio0_8.affirm_default_state()
+    /// # use lpc82x_hal::{
+    /// #     GPIO,
+    /// #     SWM,
+    /// #     SYSCON,
     /// # };
+    /// #
+    /// # let peripherals = unsafe { lpc82x::Peripherals::all() };
+    /// #
+    /// # let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+    /// # let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+    /// # let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+    /// #
+    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+    /// #
+    /// # let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() };
     /// # let pio0_8 = pio0_8.as_swm_pin();
     /// #
     /// # let u0_rxd = unsafe {
-    /// #     peripherals.swm.movable_functions.u0_rxd.affirm_default_state()
+    /// #     swm.movable_functions.u0_rxd.affirm_default_state()
     /// # };
     /// #
     /// # let (pio0_8, u0_rxd) = pio0_8.assign_input_function(
     /// #     u0_rxd,
-    /// #     &mut swm,
+    /// #     &mut swm_handle,
     /// # );
     /// #
     /// // Assumes that U0_RXD is assigned to PIO0_8
     /// let (pio0_8, u0_rxd) = pio0_8.unassign_input_function(
     ///     u0_rxd,
-    ///     &mut swm,
+    ///     &mut swm_handle,
     /// );
     ///
     /// // Both PIO0_8 and U0_RXD are now available again
