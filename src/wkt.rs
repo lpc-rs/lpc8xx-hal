@@ -37,17 +37,8 @@
 //! [`lpc82x::WKT`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.WKT.html
 
 
-use core::cell::RefCell;
-
-use cortex_m::interrupt::{
-    self,
-    Mutex,
-};
 use embedded_hal::timer;
-use lpc82x::{
-    self,
-    Interrupt,
-};
+use lpc82x;
 use lpc82x::wkt::ctrl;
 use nb;
 
@@ -61,12 +52,6 @@ use init_state::{
     InitState,
 };
 use pmu::LowPowerClock;
-
-
-/// Indicates whether the timer has woken up
-///
-/// Used for communication between the interrupt handler and the main program.
-static HAS_WOKEN: Mutex<RefCell<bool>> = Mutex::new(RefCell::new(false));
 
 
 /// The API for the self-wake-up timer (WKT)
@@ -148,85 +133,12 @@ impl<'wkt> WKT<'wkt> {
             C::select(r, w)
         );
     }
-
-    /// Enable the WKT interrupt
-    ///
-    /// This method is only available if the WKT has been initialized. Code
-    /// attempting to call this method when this is not the case, will not
-    /// compile. Call [`init`] to initialize the WKT.
-    ///
-    /// If you enable the WKT interrupt by calling this method, you must handle
-    /// it for the WKT API to work correctly. Please refer to
-    /// [`handle_interrupt`] for details.
-    ///
-    /// [`init`]: #method.init
-    /// [`handle_interrupt`]: #method.handle_interrupt
-    pub fn enable_interrupt(&mut self, nvic: &lpc82x::NVIC) {
-        nvic.enable(Interrupt::WKT);
-    }
-
-    /// Handle the WKT interrupt
-    ///
-    /// If the WKT interrupt has been enabled, this function must be called from
-    /// the interrupt handler. If this function isn't called from the interrupt
-    /// handler, the WKT API will not work correctly.
-    ///
-    /// # Limitations
-    ///
-    /// If this function is called from any other context than the interrupt
-    /// handler, the WKT API will believe that an interrupt has occured, which
-    /// may confuse the API and lead to unwanted behavior.
-    ///
-    /// # Example
-    ///
-    ///
-    /// ``` rust
-    /// # // We need to fake the `interrupt!` macro here, as this crate doesn't
-    /// # // depend on the runtime feature of lpc82x, meaning the macro won't be
-    /// # // available.
-    /// # macro_rules! interrupt(($arg1:tt, $arg2:tt) => ());
-    /// #
-    /// #[macro_use]
-    /// extern crate lpc82x;
-    /// extern crate lpc82x_hal;
-    ///
-    /// use lpc82x_hal::WKT;
-    ///
-    /// interrupt!(WKT, handle_wkt);
-    ///
-    /// fn handle_wkt() {
-    ///     WKT::handle_interrupt();
-    /// }
-    /// #
-    /// # fn main() {}
-    /// ```
-    ///
-    /// [`enable_interrupt`]: #method.enable_interrupt
-    pub fn handle_interrupt() {
-        interrupt::free(|cs| {
-            let mut has_woken = HAS_WOKEN
-                .borrow(cs)
-                .borrow_mut();
-            *has_woken = true;
-
-            // Reset the alarm flag. Otherwise the interrupt will be triggered
-            // over and over.
-            lpc82x::WKT.borrow(cs).ctrl.modify(|_, w| w.alarmflag().set_bit());
-        });
-    }
 }
 
 impl<'wkt> timer::CountDown for WKT<'wkt> {
     type Time = u32;
 
     fn start<T>(&mut self, timeout: T) where T: Into<Self::Time> {
-        interrupt::free(|cs| {
-            let mut has_woken = HAS_WOKEN
-                .borrow(cs)
-                .borrow_mut();
-            *has_woken = false;
-        });
-
         // Either clearing the counter or writing a value to it resets the alarm
         // flag, so no reason to worry about that here.
 
@@ -240,26 +152,10 @@ impl<'wkt> timer::CountDown for WKT<'wkt> {
 
     fn wait(&mut self) -> nb::Result<(), !> {
         if self.wkt.ctrl.read().alarmflag().bit_is_set() {
-            // That the alarm flag is set here, means the interrupt must be
-            // disabled. If it weren't, it would be running right now.
             return Ok(());
         }
 
-        // That we reached this point means the interrupt might be enabled. We
-        // need to check its status using the static variable.
-        interrupt::free(|cs| {
-            let has_woken = HAS_WOKEN
-                .borrow(cs)
-                .borrow();
-
-            if *has_woken {
-                return Ok(());
-            }
-
-            // The flag is not set and the interrupt has not triggered. That
-            // means the wait is not over.
-            Err(nb::Error::WouldBlock)
-        })
+        Err(nb::Error::WouldBlock)
     }
 }
 
