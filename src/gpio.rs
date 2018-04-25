@@ -31,10 +31,7 @@
 //!
 //! let gpio_handle = gpio.handle.init(&mut syscon.handle);
 //!
-//! let pio0_12 = unsafe {
-//!     gpio.pins.pio0_12.affirm_default_state()
-//! };
-//! pio0_12
+//! let pio0_12 = unsafe { gpio.pins.pio0_12.affirm_default_state() }
 //!     .as_gpio_pin(&gpio_handle)
 //!     .as_output()
 //!     .set_high();
@@ -61,14 +58,10 @@
 //!
 //! let mut swm_handle = swm.handle.init(&mut syscon.handle);
 //!
-//! let pio0_6 = unsafe {
-//!     gpio.pins.pio0_6.affirm_default_state()
-//! };
 //! let vddcmp = unsafe {
 //!     swm.fixed_functions.vddcmp.affirm_default_state()
 //! };
-//!
-//! pio0_6
+//! let pio0_6 = unsafe { gpio.pins.pio0_6.affirm_default_state() }
 //!     .as_swm_pin()
 //!     .enable_input_function(vddcmp, &mut swm_handle);
 //! ```
@@ -725,11 +718,10 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// // be transitioned into another state now. However, PIO0_3 has its fixed
     /// // function enabled by default. If we want to use it for something else,
     /// // we need to transition it into the unused state before we can do so.
-    /// let (pio0_3, _) = pio0_3.disable_output_function(
-    ///     swclk,
-    ///     &mut swm_handle,
-    /// );
-    /// let pio0_3      = pio0_3.as_unused_pin();
+    /// let pio0_3 = pio0_3
+    ///     .disable_output_function(swclk, &mut swm_handle)
+    ///     .0 // also returns output function; we're only interested in pin
+    ///     .as_unused_pin();
     /// ```
     pub unsafe fn affirm_default_state(self) -> Pin<T, T::DefaultState> {
         Pin {
@@ -772,8 +764,8 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// let gpio        = unsafe { GPIO::new(peripherals.GPIO_PORT) };
     /// let gpio_handle = gpio.handle.init(&mut syscon.handle);
     ///
-    /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() };
-    /// let pin = pin.as_gpio_pin(&gpio_handle);
+    /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+    ///     .as_gpio_pin(&gpio_handle);
     ///
     /// // `pin` is now available for general-purpose I/O
     /// ```
@@ -820,8 +812,8 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// #
     /// let gpio = unsafe { GPIO::new(peripherals.GPIO_PORT) };
     ///
-    /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() };
-    /// let pin = pin.as_swm_pin();
+    /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+    ///     .as_swm_pin();
     ///
     /// // `pin` is now ready for function assignment
     /// ```
@@ -916,8 +908,9 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// #
     /// # let gpio_handle = gpio.handle.init(&mut syscon.handle);
     /// #
-    /// # let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() };
-    /// # let pin = pin.as_gpio_pin(&gpio_handle);
+    /// # let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+    /// #     .as_gpio_pin(&gpio_handle);
+    /// #
     /// use lpc82x_hal::prelude::*;
     ///
     /// // Assumes the pin is already in the GPIO state
