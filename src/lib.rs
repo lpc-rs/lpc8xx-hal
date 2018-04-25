@@ -280,14 +280,10 @@ pub use lpc82x::{
     CPUID,
     DCB,
     DWT,
-    FPB,
-    FPU,
-    ITM,
     MPU,
     NVIC,
     SCB,
     SYST,
-    TPIU,
     Interrupt,
 };
 
