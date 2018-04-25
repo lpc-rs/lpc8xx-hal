@@ -249,7 +249,6 @@ impl<'r, 'pmu, 'wkt, Clock> Sleep<Clock> for Regular<'r, 'pmu, 'wkt>
         }
 
         self.wkt.select_clock::<Clock>();
-        self.nvic.enable(Interrupt::WKT);
         self.wkt.start(ticks.value);
 
         // Within the this closure, interrupts are enabled, but interrupt
