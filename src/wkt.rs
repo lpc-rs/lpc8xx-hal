@@ -44,10 +44,7 @@ use cortex_m::interrupt::{
     Mutex,
 };
 use embedded_hal::timer;
-use lpc82x::{
-    self,
-    Interrupt,
-};
+use lpc82x;
 use lpc82x::wkt::ctrl;
 use nb;
 
@@ -147,22 +144,6 @@ impl<'wkt> WKT<'wkt> {
         self.wkt.ctrl.modify(|r, w|
             C::select(r, w)
         );
-    }
-
-    /// Enable the WKT interrupt
-    ///
-    /// This method is only available if the WKT has been initialized. Code
-    /// attempting to call this method when this is not the case, will not
-    /// compile. Call [`init`] to initialize the WKT.
-    ///
-    /// If you enable the WKT interrupt by calling this method, you must handle
-    /// it for the WKT API to work correctly. Please refer to
-    /// [`handle_interrupt`] for details.
-    ///
-    /// [`init`]: #method.init
-    /// [`handle_interrupt`]: #method.handle_interrupt
-    pub fn enable_interrupt(&mut self, nvic: &lpc82x::NVIC) {
-        nvic.enable(Interrupt::WKT);
     }
 
     /// Handle the WKT interrupt

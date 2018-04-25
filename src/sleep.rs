@@ -12,7 +12,10 @@
 
 use cortex_m::asm;
 use embedded_hal::prelude::*;
-use lpc82x;
+use lpc82x::{
+    self,
+    Interrupt,
+};
 use nb;
 
 use pmu;
@@ -243,7 +246,7 @@ impl<'r, 'pmu, 'wkt, Clock> Sleep<Clock> for Regular<'r, 'pmu, 'wkt>
         }
 
         self.wkt.select_clock::<Clock>();
-        self.wkt.enable_interrupt(self.nvic);
+        self.nvic.enable(Interrupt::WKT);
         self.wkt.start(ticks.value);
 
         while let Err(nb::Error::WouldBlock) = self.wkt.wait() {
