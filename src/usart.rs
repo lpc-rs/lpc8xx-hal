@@ -11,18 +11,28 @@
 //! # Examples
 //!
 //! ``` no_run
+//! extern crate lpc82x;
+//! extern crate lpc82x_hal;
+//!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::Peripherals;
+//! use lpc82x_hal::{
+//!     GPIO,
+//!     SYSCON,
+//!     SWM,
+//! };
 //! use lpc82x_hal::usart::{
 //!     BaudRate,
 //!     USART,
 //! };
 //!
-//! let peripherals = unsafe { Peripherals::new() };
+//! let peripherals = unsafe { lpc82x::Peripherals::all() };
 //!
-//! let mut syscon  = peripherals.syscon.handle;
-//! let mut uartfrg = peripherals.syscon.uartfrg;
-//! let mut swm     = peripherals.swm.handle.init(&mut syscon);
+//! let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+//! let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+//! let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+//! let     usart0 = unsafe { USART::new(peripherals.USART0)   };
+//!
+//! let mut swm_handle = swm.handle.init(&mut syscon.handle);
 //!
 //! // Set baud rate to 115200 baud
 //! //
@@ -48,40 +58,36 @@
 //! // 0, resulting in no further division.
 //! //
 //! // All of this is somewhat explained in the user manual, section 13.3.1.
-//! uartfrg.set_clkdiv(6);
-//! uartfrg.set_frgmult(22);
-//! uartfrg.set_frgdiv(0xff);
-//! let baud_rate = BaudRate::new(&uartfrg, 0);
+//! syscon.uartfrg.set_clkdiv(6);
+//! syscon.uartfrg.set_frgmult(22);
+//! syscon.uartfrg.set_frgdiv(0xff);
+//! let baud_rate = BaudRate::new(&syscon.uartfrg, 0);
 //!
 //! // Prepare PIO0_0 and PIO0_4. The `init` method we call below needs pins to
 //! // assign the USART's movable function to. For that, the pins need to be
 //! // unused. Since PIO0_0 and PIO0_4 are unused by default, we just have to
 //! // promise the API that we didn't change the default state up till now.
-//! let pio0_0 = unsafe { peripherals.gpio.pins.pio0_0.affirm_default_state() };
-//! let pio0_4 = unsafe { peripherals.gpio.pins.pio0_4.affirm_default_state() };
+//! let pio0_0 = unsafe { gpio.pins.pio0_0.affirm_default_state() };
+//! let pio0_4 = unsafe { gpio.pins.pio0_4.affirm_default_state() };
 //!
 //! // We also need to provide USART0's movable functions. Those need to be
 //! // unassigned, and since they are unassigned by default, we just need to
 //! // promise the API that we didn't change them.
-//! let u0_rxd = unsafe {
-//!     peripherals.swm.movable_functions.u0_rxd.affirm_default_state()
-//! };
-//! let u0_txd = unsafe {
-//!     peripherals.swm.movable_functions.u0_txd.affirm_default_state()
-//! };
+//! let u0_rxd = unsafe { swm.movable_functions.u0_rxd.affirm_default_state() };
+//! let u0_txd = unsafe { swm.movable_functions.u0_txd.affirm_default_state() };
 //!
 //! // Initialize USART0. This should never fail, as the only reason `init`
 //! // returns a `Result::Err` is when the transmitter is busy, which it
 //! // shouldn't be right now.
-//! let mut serial = peripherals.usart0
+//! let mut serial = usart0
 //!     .init(
 //!         &baud_rate,
-//!         &mut syscon,
+//!         &mut syscon.handle,
 //!         pio0_0,
 //!         pio0_4,
 //!         u0_rxd,
 //!         u0_txd,
-//!         &mut swm,
+//!         &mut swm_handle,
 //!     )
 //!     .expect("UART initialization shouldn't fail");
 //!
@@ -152,7 +158,14 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         UsartX            : Peripheral,
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
-    pub(crate) fn new(usart: &'usart UsartX) -> Self {
+    /// Create an instance of `USART`
+    ///
+    /// # Safety
+    ///
+    /// Only a single instance of `USART` is allowed to exist at any given time.
+    /// If you use this method to create multiple instances of `USART`, the
+    /// guarantees this API makes cannot be upheld.
+    pub unsafe fn new(usart: &'usart UsartX) -> Self {
         USART {
             usart : usart,
             _state: init_state::Unknown,

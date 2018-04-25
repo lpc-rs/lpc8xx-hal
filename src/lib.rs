@@ -128,8 +128,16 @@
 //! The following is an example of a simple application that blinks an LED.
 //!
 //! ``` no_run
+//! extern crate lpc82x;
+//! extern crate lpc82x_hal;
+//!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::Peripherals;
+//! use lpc82x_hal::{
+//!     GPIO,
+//!     SWM,
+//!     SYSCON,
+//!     WKT,
+//! };
 //! use lpc82x_hal::clock::Ticks;
 //! use lpc82x_hal::gpio::PIO0_3;
 //! use lpc82x_hal::sleep::{
@@ -139,24 +147,26 @@
 //!
 //! // Create the struct we're going to use to access all the peripherals. This
 //! // is unsafe, because we're only allowed to create one instance.
-//! let mut peripherals = unsafe { Peripherals::new() };
+//! let peripherals = unsafe { lpc82x::Peripherals::all() };
 //!
-//! // Let's save some peripherals in local variables for convenience. This one
-//! // here doesn't require initialization.
-//! let mut syscon = peripherals.syscon.handle;
+//! // Create the peripheral interfaces.
+//! let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
+//! let     swm    = unsafe { SWM::new(peripherals.SWM)        };
+//! let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
+//! let     wkt    = unsafe { WKT::new(peripherals.WKT)        };
 //!
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing them will actually lead to compile-time errors.
-//! let mut gpio = peripherals.gpio.handle.init(&mut syscon);
-//! let mut swm  = peripherals.swm.handle.init(&mut syscon);
-//! let mut wkt  = peripherals.wkt.init(&mut syscon);
+//! let mut gpio_handle = gpio.handle.init(&mut syscon.handle);
+//! let mut swm_handle  = swm.handle.init(&mut syscon.handle);
+//! let mut wkt         = wkt.init(&mut syscon.handle);
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
 //! // that runs at 750 kHz.
-//! let clock = peripherals.syscon.irc_derived_clock.enable(
-//!     &mut syscon,
-//!     peripherals.syscon.irc,
-//!     peripherals.syscon.ircout,
+//! let clock = syscon.irc_derived_clock.enable(
+//!     &mut syscon.handle,
+//!     syscon.irc,
+//!     syscon.ircout,
 //! );
 //!
 //! // In the next step, we need to configure the pin PIO0_3 and its fixed
@@ -166,19 +176,15 @@
 //! // it is currently in.
 //! // Let's affirm that we haven't changed anything, and that PIO0_3 and SWCLK
 //! // are still in their initial states.
-//! let pio0_3 = unsafe {
-//!     peripherals.gpio.pins.pio0_3.affirm_default_state()
-//! };
-//! let swclk = unsafe {
-//!     peripherals.swm.fixed_functions.swclk.affirm_default_state()
-//! };
+//! let pio0_3 = unsafe { gpio.pins.pio0_3.affirm_default_state()          };
+//! let swclk  = unsafe { swm.fixed_functions.swclk.affirm_default_state() };
 //!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
 //! let (pio0_3, _) = pio0_3
-//!     .disable_output_function(swclk, &mut swm);
+//!     .disable_output_function(swclk, &mut swm_handle);
 //! let mut pio0_3 = pio0_3
 //!     .as_unused_pin()
-//!     .as_gpio_pin(&gpio)
+//!     .as_gpio_pin(&gpio_handle)
 //!     .as_output();
 //!
 //! // Let's already initialize the durations that we're going to sleep for
@@ -291,304 +297,6 @@ pub use self::swm::SWM;
 pub use self::syscon::SYSCON;
 pub use self::usart::USART;
 pub use self::wkt::WKT;
-
-
-/// Entry point to the HAL API
-///
-/// This struct provides access to all peripherals and other system resources.
-/// It consists of multiple sub-structs for each category of system resource.
-///
-/// Only one instance of this struct must exist in your program.
-pub struct Peripherals<'system> {
-    /// General Purpose I/O (GPIO)
-    pub gpio: GPIO<'system>,
-
-    /// Power Management Unit (PMU)
-    pub pmu: PMU<'system>,
-
-    /// Switch matrix (SWM)
-    pub swm: SWM<'system>,
-
-    /// System configuration (SYSCON)
-    pub syscon: SYSCON<'system>,
-
-    /// USART0
-    pub usart0: USART<'system, lpc82x::USART0, init_state::Unknown>,
-
-    /// USART1
-    pub usart1: USART<'system, lpc82x::USART1, init_state::Unknown>,
-
-    /// USART2
-    pub usart2: USART<'system, lpc82x::USART2, init_state::Unknown>,
-
-    /// Self-wake-up timer (WKT)
-    pub wkt: WKT<'system, init_state::Unknown>,
-
-    /// CPUID register
-    ///
-    /// This peripheral is available in all Cortex-M0+ microcontrollers and has
-    /// been inherited from the [cortex-m] crate.
-    ///
-    /// [cortex-m]: https://crates.io/crates/cortex-m
-    pub cpuid: &'system lpc82x::CPUID,
-
-    /// Debug Control Block
-    ///
-    /// This peripheral is available in all Cortex-M0+ microcontrollers and has
-    /// been inherited from the [cortex-m] crate.
-    ///
-    /// [cortex-m]: https://crates.io/crates/cortex-m
-    pub dcb: &'system lpc82x::DCB,
-
-    /// Data Watchpoint and Trace
-    ///
-    /// This peripheral is available in all Cortex-M0+ microcontrollers and has
-    /// been inherited from the [cortex-m] crate.
-    ///
-    /// [cortex-m]: https://crates.io/crates/cortex-m
-    pub dwt: &'system lpc82x::DWT,
-
-    /// Nested Vectored Interrupt Controller
-    ///
-    /// This peripheral is available in all Cortex-M0+ microcontrollers and has
-    /// been inherited from the [cortex-m] crate.
-    ///
-    /// [cortex-m]: https://crates.io/crates/cortex-m
-    pub nvic: &'system lpc82x::NVIC,
-
-    /// System Control Block
-    ///
-    /// This peripheral is available in all Cortex-M0+ microcontrollers and has
-    /// been inherited from the [cortex-m] crate.
-    ///
-    /// [cortex-m]: https://crates.io/crates/cortex-m
-    pub scb: &'system lpc82x::SCB,
-
-    /// SysTick timer
-    ///
-    /// This peripheral is available in all Cortex-M0+ microcontrollers and has
-    /// been inherited from the [cortex-m] crate.
-    ///
-    /// [cortex-m]: https://crates.io/crates/cortex-m
-    pub syst: &'system lpc82x::SYST,
-
-    /// Analog-to-Digital Converter (ADC)
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub adc: &'system lpc82x::ADC,
-
-    /// Analog comparator
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub cmp: &'system lpc82x::CMP,
-
-    /// CRC engine
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub crc: &'system lpc82x::CRC,
-
-    /// DMA controller
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub dma: &'system lpc82x::DMA,
-
-    /// DMA trigger multiplexing (DMA TRIGMUX)
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub dmatrigmux: &'system lpc82x::DMATRIGMUX,
-
-    /// Flash controller
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub flashctrl: &'system lpc82x::FLASHCTRL,
-
-    /// I2C0
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub i2c0: &'system lpc82x::I2C0,
-
-    /// I2C1
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub i2c1: &'system lpc82x::I2C1,
-
-    /// I2C2
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub i2c2: &'system lpc82x::I2C2,
-
-    /// I2C3
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub i2c3: &'system lpc82x::I2C3,
-
-    /// Input multiplexing (INPUT MUX)
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub inputmux: &'system lpc82x::INPUTMUX,
-
-    /// I/O configuration (IOCON)
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub iocon: &'system lpc82x::IOCON,
-
-    /// Multi-Rate Timer (MRT)
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub mrt: &'system lpc82x::MRT,
-
-    /// Pin interrupts/pattern match engine
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub pin_int: &'system lpc82x::PIN_INT,
-
-    /// State Configurable Timer (SCT)
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub sct: &'system lpc82x::SCT,
-
-    /// SPI0
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub spi0: &'system lpc82x::SPI0,
-
-    /// SPI1
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub spi1: &'system lpc82x::SPI1,
-
-    /// Windowed Watchdog Timer (WWDT)
-    ///
-    /// A hardware abstraction layer has not yet been implemented for this
-    /// peripheral. This field provides access to the raw registers from the
-    /// [lpc82x] crate.
-    ///
-    /// [lpc82x]: https://crates.io/crates/lpc82x
-    pub wwdt: &'system lpc82x::WWDT,
-}
-
-impl<'system> Peripherals<'system> {
-    /// Creates an instance of `Peripherals`
-    ///
-    /// Only one instance of `Peripherals` must exist in your program. Use this
-    /// method at the start of your program, to create a single `Peripherals`
-    /// instance that will serve as an entry point to the HAL API.
-    ///
-    /// # Safety
-    ///
-    /// You must guarantee to only use this method to create a single instance
-    /// of `Peripherals`. Usually this means you call this method once, at the
-    /// beginning of your program. But technically, you can call it again to
-    /// create another instance, if the previous one has been dropped.
-    pub unsafe fn new() -> Self {
-        let peripherals = lpc82x::Peripherals::all();
-
-        Peripherals {
-            gpio  : GPIO::new(peripherals.GPIO_PORT),
-            pmu   : PMU::new(peripherals.PMU),
-            swm   : SWM::new(peripherals.SWM),
-            syscon: SYSCON::new(peripherals.SYSCON),
-            usart0: USART::new(peripherals.USART0),
-            usart1: USART::new(peripherals.USART1),
-            usart2: USART::new(peripherals.USART2),
-            wkt   : WKT::new(peripherals.WKT),
-
-            cpuid: peripherals.CPUID,
-            dcb  : peripherals.DCB,
-            dwt  : peripherals.DWT,
-            nvic : peripherals.NVIC,
-            scb  : peripherals.SCB,
-            syst : peripherals.SYST,
-
-            adc       : peripherals.ADC,
-            cmp       : peripherals.CMP,
-            crc       : peripherals.CRC,
-            dma       : peripherals.DMA,
-            dmatrigmux: peripherals.DMATRIGMUX,
-            flashctrl : peripherals.FLASHCTRL,
-            i2c0      : peripherals.I2C0,
-            i2c1      : peripherals.I2C1,
-            i2c2      : peripherals.I2C2,
-            i2c3      : peripherals.I2C3,
-            inputmux  : peripherals.INPUTMUX,
-            iocon     : peripherals.IOCON,
-            mrt       : peripherals.MRT,
-            pin_int   : peripherals.PIN_INT,
-            sct       : peripherals.SCT,
-            spi0      : peripherals.SPI0,
-            spi1      : peripherals.SPI1,
-            wwdt      : peripherals.WWDT,
-        }
-    }
-}
 
 
 /// Contains types that encode the state hardware initialization

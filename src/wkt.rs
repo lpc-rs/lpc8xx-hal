@@ -8,17 +8,22 @@
 //! # Examples
 //!
 //! ``` no_run
-//! # extern crate lpc82x_hal;
-//! # extern crate nb;
-//! #
-//! # fn main() {
+//! extern crate lpc82x;
+//! extern crate lpc82x_hal;
+//! extern crate nb;
+//!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::Peripherals;
+//! use lpc82x_hal::{
+//!     SYSCON,
+//!     WKT,
+//! };
 //!
-//! let peripherals = unsafe { Peripherals::new() };
+//! let peripherals = unsafe { lpc82x::Peripherals::all() };
 //!
-//! let mut syscon = peripherals.syscon.handle;
-//! let mut timer  = peripherals.wkt.init(&mut syscon);
+//! let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON) };
+//! let     timer  = unsafe { WKT::new(peripherals.WKT)       };
+//!
+//! let mut timer = timer.init(&mut syscon.handle);
 //!
 //! // Start the timer at 750000. Sine the IRC-derived clock runs at 750 kHz,
 //! // this translates to a one second wait.
@@ -27,7 +32,6 @@
 //! while let Err(nb::Error::WouldBlock) = timer.wait() {
 //!     // do stuff
 //! }
-//! # }
 //! ```
 //!
 //! [`lpc82x::WKT`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.WKT.html
@@ -79,7 +83,14 @@ pub struct WKT<'wkt, State: InitState = init_state::Enabled> {
 }
 
 impl<'wkt> WKT<'wkt, init_state::Unknown> {
-    pub(crate) fn new(wkt: &'wkt lpc82x::WKT) -> Self {
+    /// Create an instance of `WKT`
+    ///
+    /// # Safety
+    ///
+    /// Only a single instance of `WKT` is allowed to exist at any given time.
+    /// If you use this method to create multiple instances of `WKT`, the
+    /// guarantees this API makes cannot be upheld.
+    pub unsafe fn new(wkt: &'wkt lpc82x::WKT) -> Self {
         WKT {
             wkt   : wkt,
             _state: init_state::Unknown,
