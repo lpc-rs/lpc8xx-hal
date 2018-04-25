@@ -10,7 +10,10 @@
 //! [`sleep::Regular`]: struct.Regular.html
 
 
-use cortex_m::asm;
+use cortex_m::{
+    asm,
+    interrupt,
+};
 use embedded_hal::prelude::*;
 use lpc82x::{
     self,
@@ -249,8 +252,22 @@ impl<'r, 'pmu, 'wkt, Clock> Sleep<Clock> for Regular<'r, 'pmu, 'wkt>
         self.nvic.enable(Interrupt::WKT);
         self.wkt.start(ticks.value);
 
-        while let Err(nb::Error::WouldBlock) = self.wkt.wait() {
-            self.pmu.enter_sleep_mode(self.scb);
-        }
+        // Within the this closure, interrupts are enabled, but interrupt
+        // handlers won't run. This means that we'll exit sleep mode when the
+        // WKT interrupt is fired, but there won't be an interrupt handler that
+        // will require the WKT's alarm flag to be reset. This means the `wait`
+        // method can use the alarm flag, which would otherwise need to be reset
+        // to exit the interrupt handler.
+        interrupt::free(|_| {
+            self.nvic.enable(Interrupt::WKT);
+
+            while let Err(nb::Error::WouldBlock) = self.wkt.wait() {
+                self.pmu.enter_sleep_mode(self.scb);
+            }
+
+            // If we don't do this, the (possibly non-existing) interrupt
+            // handler will be called as soon as we exit this closure.
+            self.nvic.disable(Interrupt::WKT);
+        });
     }
 }
