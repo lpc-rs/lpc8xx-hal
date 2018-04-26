@@ -78,13 +78,7 @@ pub struct SYSCON<'syscon> {
 
 impl<'syscon> SYSCON<'syscon> {
     /// Create an instance of `SYSCON`
-    ///
-    /// # Safety
-    ///
-    /// Only a single instance of `SYSCON` is allowed to exist at any given
-    /// time. If you use this method to create multiple instances of `SYSCON`,
-    /// the guarantees this API makes cannot be upheld.
-    pub unsafe fn new(syscon: &'syscon lpc82x::SYSCON) -> Self {
+    pub fn new(syscon: &'syscon mut lpc82x::SYSCON) -> Self {
         SYSCON {
             handle: Handle {
                 pdruncfg     : &syscon.pdruncfg,

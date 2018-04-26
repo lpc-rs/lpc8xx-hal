@@ -25,12 +25,12 @@
 //!     USART,
 //! };
 //!
-//! let peripherals = unsafe { lpc82x::Peripherals::all() };
+//! let mut peripherals = lpc82x::Peripherals::take().unwrap();
 //!
-//! let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
-//! let     swm    = unsafe { SWM::new(peripherals.SWM)        };
-//! let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
-//! let     usart0 = unsafe { USART::new(peripherals.USART0)   };
+//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+//! let     swm    = SWM::new(&mut peripherals.SWM);
+//! let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+//! let     usart0 = USART::new(&mut peripherals.USART0);
 //!
 //! let mut swm_handle = swm.handle.init(&mut syscon.handle);
 //!
@@ -159,13 +159,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
         for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
 {
     /// Create an instance of `USART`
-    ///
-    /// # Safety
-    ///
-    /// Only a single instance of `USART` is allowed to exist at any given time.
-    /// If you use this method to create multiple instances of `USART`, the
-    /// guarantees this API makes cannot be upheld.
-    pub unsafe fn new(usart: &'usart UsartX) -> Self {
+    pub fn new(usart: &'usart mut UsartX) -> Self {
         USART {
             usart : usart,
             _state: init_state::Unknown,
@@ -291,7 +285,7 @@ impl<'usart, UsartX> USART<'usart, UsartX>
     ///
     /// Enable the interrupts for this USART peripheral. This only enables the
     /// interrupts via the NVIC. It doesn't enable any specific interrupt.
-    pub fn enable_interrupts(&mut self, nvic: &NVIC) {
+    pub fn enable_interrupts(&mut self, nvic: &mut NVIC) {
         nvic.enable(UsartX::INTERRUPT);
     }
 

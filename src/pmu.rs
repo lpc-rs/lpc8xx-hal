@@ -19,13 +19,14 @@
 //!
 //! use lpc82x_hal::PMU;
 //!
-//! let peripherals = unsafe { lpc82x::Peripherals::all() };
+//! let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
+//! let mut peripherals      = lpc82x::Peripherals::take().unwrap();
 //!
-//! let mut pmu = unsafe { PMU::new(peripherals.PMU) };
+//! let mut pmu = PMU::new(&mut peripherals.PMU);
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
-//! pmu.handle.enter_sleep_mode(&peripherals.SCB);
+//! pmu.handle.enter_sleep_mode(&mut core_peripherals.SCB);
 //! ```
 //!
 //! [`PMU`]: struct.PMU.html
@@ -72,13 +73,7 @@ pub struct PMU<'pmu> {
 
 impl<'pmu> PMU<'pmu> {
     /// Create an instance of `PMU`
-    ///
-    /// # Safety
-    ///
-    /// Only a single instance of `PMU` is allowed to exist at any given time.
-    /// If you use this method to create multiple instances of `PMU`, the
-    /// guarantees this API makes cannot be upheld.
-    pub unsafe fn new(pmu: &'pmu lpc82x::PMU) -> Self {
+    pub fn new(pmu: &'pmu mut lpc82x::PMU) -> Self {
         PMU {
             handle: Handle {
                 dpdctrl: &pmu.dpdctrl,
@@ -106,7 +101,7 @@ impl<'pmu> Handle<'pmu> {
     ///
     /// The microcontroller will wake up from sleep mode, if an NVIC-enabled
     /// interrupt occurs. See user manual, section 6.7.4.3.
-    pub fn enter_sleep_mode(&mut self, scb: &lpc82x::SCB) {
+    pub fn enter_sleep_mode(&mut self, scb: &mut lpc82x::SCB) {
         interrupt::free(|_| {
             // Default power mode indicates active or sleep mode.
             self.pcon.modify(|_, w|

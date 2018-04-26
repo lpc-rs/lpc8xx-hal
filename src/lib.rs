@@ -147,13 +147,13 @@
 //!
 //! // Create the struct we're going to use to access all the peripherals. This
 //! // is unsafe, because we're only allowed to create one instance.
-//! let peripherals = unsafe { lpc82x::Peripherals::all() };
+//! let mut peripherals = lpc82x::Peripherals::take().unwrap();
 //!
 //! // Create the peripheral interfaces.
-//! let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
-//! let     swm    = unsafe { SWM::new(peripherals.SWM)        };
-//! let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
-//! let     wkt    = unsafe { WKT::new(peripherals.WKT)        };
+//! let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+//! let     swm    = SWM::new(&mut peripherals.SWM);
+//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+//! let     wkt    = WKT::new(&mut peripherals.WKT);
 //!
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing them will actually lead to compile-time errors.
@@ -280,14 +280,10 @@ pub use lpc82x::{
     CPUID,
     DCB,
     DWT,
-    FPB,
-    FPU,
-    ITM,
     MPU,
     NVIC,
     SCB,
     SYST,
-    TPIU,
     Interrupt,
 };
 
