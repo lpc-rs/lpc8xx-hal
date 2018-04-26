@@ -25,12 +25,12 @@
 //!     USART,
 //! };
 //!
-//! let peripherals = unsafe { lpc82x::Peripherals::all() };
+//! let peripherals = lpc82x::Peripherals::take().unwrap();
 //!
-//! let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON)  };
-//! let     swm    = unsafe { SWM::new(peripherals.SWM)        };
-//! let     gpio   = unsafe { GPIO::new(peripherals.GPIO_PORT) };
-//! let     usart0 = unsafe { USART::new(peripherals.USART0)   };
+//! let mut syscon = unsafe { SYSCON::new(&peripherals.SYSCON)  };
+//! let     swm    = unsafe { SWM::new(&peripherals.SWM)        };
+//! let     gpio   = unsafe { GPIO::new(&peripherals.GPIO_PORT) };
+//! let     usart0 = unsafe { USART::new(&peripherals.USART0)   };
 //!
 //! let mut swm_handle = swm.handle.init(&mut syscon.handle);
 //!
@@ -291,7 +291,7 @@ impl<'usart, UsartX> USART<'usart, UsartX>
     ///
     /// Enable the interrupts for this USART peripheral. This only enables the
     /// interrupts via the NVIC. It doesn't enable any specific interrupt.
-    pub fn enable_interrupts(&mut self, nvic: &NVIC) {
+    pub fn enable_interrupts(&mut self, nvic: &mut NVIC) {
         nvic.enable(UsartX::INTERRUPT);
     }
 

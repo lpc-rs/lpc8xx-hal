@@ -70,10 +70,10 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// };
 /// use lpc82x_hal::clock::Ticks;
 ///
-/// let peripherals = unsafe { lpc82x::Peripherals::all() };
+/// let peripherals = lpc82x::Peripherals::take().unwrap();
 ///
-/// let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON) };
-/// let     wkt    = unsafe { WKT::new(peripherals.WKT)       };
+/// let mut syscon = unsafe { SYSCON::new(&peripherals.SYSCON) };
+/// let     wkt    = unsafe { WKT::new(&peripherals.WKT)       };
 ///
 /// let mut wkt = wkt.init(&mut syscon.handle);
 ///
@@ -163,11 +163,12 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// };
 /// use lpc82x_hal::clock::Ticks;
 ///
-/// let peripherals = unsafe { lpc82x::Peripherals::all() };
+/// let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
+/// let     peripherals      = lpc82x::Peripherals::take().unwrap();
 ///
-/// let mut pmu    = unsafe { PMU::new(peripherals.PMU)       };
-/// let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON) };
-/// let     wkt    = unsafe { WKT::new(peripherals.WKT)       };
+/// let mut pmu    = unsafe { PMU::new(&peripherals.PMU)       };
+/// let mut syscon = unsafe { SYSCON::new(&peripherals.SYSCON) };
+/// let     wkt    = unsafe { WKT::new(&peripherals.WKT)       };
 ///
 /// let mut wkt = wkt.init(&mut syscon.handle);
 ///
@@ -178,9 +179,9 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// );
 ///
 /// let mut sleep = sleep::Regular::prepare(
-///     &peripherals.NVIC,
+///     &mut core_peripherals.NVIC,
 ///     &mut pmu.handle,
-///     &peripherals.SCB,
+///     &mut core_peripherals.SCB,
 ///     &mut wkt,
 /// );
 ///
@@ -197,9 +198,9 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// [handle the WKT interrupt]: ../wkt/struct.WKT.html#method.handle_interrupt
 /// [`wkt::Clock`]: ../wkt/trait.Clock.html
 pub struct Regular<'r, 'pmu, 'wkt> {
-    nvic: &'r lpc82x::NVIC,
+    nvic: &'r mut lpc82x::NVIC,
     pmu : &'pmu mut pmu::Handle<'pmu>,
-    scb : &'r lpc82x::SCB,
+    scb : &'r mut lpc82x::SCB,
     wkt : &'wkt mut WKT<'wkt>,
 }
 
@@ -217,9 +218,9 @@ impl<'r, 'pmu, 'wkt> Regular<'r, 'pmu, 'wkt> {
     /// [`WKT`]: ../wkt/struct.WKT.html
     /// [`Sleep::sleep`]: trait.Sleep.html#tymethod.sleep
     pub fn prepare(
-        nvic: &'r lpc82x::NVIC,
+        nvic: &'r mut lpc82x::NVIC,
         pmu : &'pmu mut pmu::Handle<'pmu>,
-        scb : &'r lpc82x::SCB,
+        scb : &'r mut lpc82x::SCB,
         wkt : &'wkt mut WKT<'wkt>,
     )
         -> Self

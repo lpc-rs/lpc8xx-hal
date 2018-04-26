@@ -18,10 +18,10 @@
 //!     WKT,
 //! };
 //!
-//! let peripherals = unsafe { lpc82x::Peripherals::all() };
+//! let peripherals = lpc82x::Peripherals::take().unwrap();
 //!
-//! let mut syscon = unsafe { SYSCON::new(peripherals.SYSCON) };
-//! let     timer  = unsafe { WKT::new(peripherals.WKT)       };
+//! let mut syscon = unsafe { SYSCON::new(&peripherals.SYSCON) };
+//! let     timer  = unsafe { WKT::new(&peripherals.WKT)       };
 //!
 //! let mut timer = timer.init(&mut syscon.handle);
 //!

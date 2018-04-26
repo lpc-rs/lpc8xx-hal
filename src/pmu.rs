@@ -19,13 +19,14 @@
 //!
 //! use lpc82x_hal::PMU;
 //!
-//! let peripherals = unsafe { lpc82x::Peripherals::all() };
+//! let core_peripherals = lpc82x::CorePeripherals::take().unwrap();
+//! let peripherals      = lpc82x::Peripherals::take().unwrap();
 //!
-//! let mut pmu = unsafe { PMU::new(peripherals.PMU) };
+//! let mut pmu = unsafe { PMU::new(&peripherals.PMU) };
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
-//! pmu.handle.enter_sleep_mode(&peripherals.SCB);
+//! pmu.handle.enter_sleep_mode(&core_peripherals.SCB);
 //! ```
 //!
 //! [`PMU`]: struct.PMU.html
