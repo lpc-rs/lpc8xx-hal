@@ -45,7 +45,7 @@ use self::fixed_function::FixedFunction;
 /// This API expects to be the sole owner of the SWM peripheral. Don't use
 /// [`lpc82x::SWM`] directly, unless you know what you're doing.
 ///
-/// [`lpc82x::SWM`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.SWM.html
+/// [`lpc82x::SWM`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.SWM.html
 pub struct SWM<'swm> {
     /// Main SWM API
     pub handle: Handle<'swm, init_state::Unknown>,

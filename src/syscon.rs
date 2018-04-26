@@ -5,7 +5,7 @@
 //!
 //! The SYSCON peripheral is described in the user manual, chapter 5.
 //!
-//! [`lpc82x::SYSCON`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.SYSCON.html
+//! [`lpc82x::SYSCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.SYSCON.html
 
 
 use core::marker::PhantomData;

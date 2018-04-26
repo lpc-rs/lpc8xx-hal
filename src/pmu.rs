@@ -32,7 +32,7 @@
 //! [`PMU`]: struct.PMU.html
 //! [`Peripherals`]: ../struct.Peripherals.html
 //! [`pmu::Handle`]: struct.Handle.html
-//! [`lpc82x::PMU`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.PMU.html
+//! [`lpc82x::PMU`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.PMU.html
 
 
 use cortex_m::{
