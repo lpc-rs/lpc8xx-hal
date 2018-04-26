@@ -19,14 +19,14 @@
 //!
 //! use lpc82x_hal::PMU;
 //!
-//! let     core_peripherals = lpc82x::CorePeripherals::take().unwrap();
+//! let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
 //! let mut peripherals      = lpc82x::Peripherals::take().unwrap();
 //!
 //! let mut pmu = PMU::new(&mut peripherals.PMU);
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
-//! pmu.handle.enter_sleep_mode(&core_peripherals.SCB);
+//! pmu.handle.enter_sleep_mode(&mut core_peripherals.SCB);
 //! ```
 //!
 //! [`PMU`]: struct.PMU.html
@@ -101,7 +101,7 @@ impl<'pmu> Handle<'pmu> {
     ///
     /// The microcontroller will wake up from sleep mode, if an NVIC-enabled
     /// interrupt occurs. See user manual, section 6.7.4.3.
-    pub fn enter_sleep_mode(&mut self, scb: &lpc82x::SCB) {
+    pub fn enter_sleep_mode(&mut self, scb: &mut lpc82x::SCB) {
         interrupt::free(|_| {
             // Default power mode indicates active or sleep mode.
             self.pcon.modify(|_, w|
