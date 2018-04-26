@@ -18,10 +18,10 @@
 //!     WKT,
 //! };
 //!
-//! let peripherals = lpc82x::Peripherals::take().unwrap();
+//! let mut peripherals = lpc82x::Peripherals::take().unwrap();
 //!
-//! let mut syscon = unsafe { SYSCON::new(&peripherals.SYSCON) };
-//! let     timer  = unsafe { WKT::new(&peripherals.WKT)       };
+//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+//! let     timer  = WKT::new(&mut peripherals.WKT);
 //!
 //! let mut timer = timer.init(&mut syscon.handle);
 //!
@@ -69,13 +69,7 @@ pub struct WKT<'wkt, State: InitState = init_state::Enabled> {
 
 impl<'wkt> WKT<'wkt, init_state::Unknown> {
     /// Create an instance of `WKT`
-    ///
-    /// # Safety
-    ///
-    /// Only a single instance of `WKT` is allowed to exist at any given time.
-    /// If you use this method to create multiple instances of `WKT`, the
-    /// guarantees this API makes cannot be upheld.
-    pub unsafe fn new(wkt: &'wkt lpc82x::WKT) -> Self {
+    pub fn new(wkt: &'wkt mut lpc82x::WKT) -> Self {
         WKT {
             wkt   : wkt,
             _state: init_state::Unknown,

@@ -19,10 +19,10 @@
 //!
 //! use lpc82x_hal::PMU;
 //!
-//! let core_peripherals = lpc82x::CorePeripherals::take().unwrap();
-//! let peripherals      = lpc82x::Peripherals::take().unwrap();
+//! let     core_peripherals = lpc82x::CorePeripherals::take().unwrap();
+//! let mut peripherals      = lpc82x::Peripherals::take().unwrap();
 //!
-//! let mut pmu = unsafe { PMU::new(&peripherals.PMU) };
+//! let mut pmu = PMU::new(&mut peripherals.PMU);
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
@@ -73,13 +73,7 @@ pub struct PMU<'pmu> {
 
 impl<'pmu> PMU<'pmu> {
     /// Create an instance of `PMU`
-    ///
-    /// # Safety
-    ///
-    /// Only a single instance of `PMU` is allowed to exist at any given time.
-    /// If you use this method to create multiple instances of `PMU`, the
-    /// guarantees this API makes cannot be upheld.
-    pub unsafe fn new(pmu: &'pmu lpc82x::PMU) -> Self {
+    pub fn new(pmu: &'pmu mut lpc82x::PMU) -> Self {
         PMU {
             handle: Handle {
                 dpdctrl: &pmu.dpdctrl,

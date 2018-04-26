@@ -70,10 +70,10 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// };
 /// use lpc82x_hal::clock::Ticks;
 ///
-/// let peripherals = lpc82x::Peripherals::take().unwrap();
+/// let mut peripherals = lpc82x::Peripherals::take().unwrap();
 ///
-/// let mut syscon = unsafe { SYSCON::new(&peripherals.SYSCON) };
-/// let     wkt    = unsafe { WKT::new(&peripherals.WKT)       };
+/// let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// let     wkt    = WKT::new(&mut peripherals.WKT);
 ///
 /// let mut wkt = wkt.init(&mut syscon.handle);
 ///
@@ -164,11 +164,11 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// use lpc82x_hal::clock::Ticks;
 ///
 /// let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
-/// let     peripherals      = lpc82x::Peripherals::take().unwrap();
+/// let mut peripherals      = lpc82x::Peripherals::take().unwrap();
 ///
-/// let mut pmu    = unsafe { PMU::new(&peripherals.PMU)       };
-/// let mut syscon = unsafe { SYSCON::new(&peripherals.SYSCON) };
-/// let     wkt    = unsafe { WKT::new(&peripherals.WKT)       };
+/// let mut pmu    = PMU::new(&mut peripherals.PMU);
+/// let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// let     wkt    = WKT::new(&mut peripherals.WKT);
 ///
 /// let mut wkt = wkt.init(&mut syscon.handle);
 ///
