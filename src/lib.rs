@@ -6,14 +6,14 @@
 //! ## Using LPC82x HAL in a Library
 //!
 //! Writing a library on top of LPC82x HAL is pretty simple. All you need to do
-//! is include it via Cargo, by adding the following to you `Cargo.toml`:
+//! is include it via Cargo, by adding the following to your `Cargo.toml`:
 //!
 //! ``` toml
 //! [dependencies.lpc82x-hal]
 //! git = "https://github.com/braun-robotics/rust-lpc82x-hal.git"
 //! ```
 //!
-//! With that in place, you can just reference the crate in you Rust code, like
+//! With that in place, you can just reference the crate in your Rust code, like
 //! this:
 //!
 //! ```rust
@@ -22,12 +22,12 @@
 //! extern crate lpc82x_hal;
 //! ```
 //!
-//! That's it! Now you can just start using the LPC82x HAL APIs.
+//! That's it! Now you can start using the LPC82x HAL APIs.
 //!
 //! Please note that LPC82x HAL is an implementation of [embedded-hal]. If your
 //! library is not specific to LPC82x, please consider depending on embedded-hal
 //! instead. Doing so means that your library will work on top of all
-//! implementations of embedded-hal.
+//! embedded-hal implementations.
 //!
 //! ## Using LPC82x HAL in an Application
 //!

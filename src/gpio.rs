@@ -1,12 +1,8 @@
 //! API for General Purpose I/O (GPIO)
 //!
-//! To use this API, you need to gain access to a [`GPIO`] instance via
-//! [`Peripherals`]. From [`GPIO`], you can get the [`gpio::Handle`], which you
-//! can use to initialize the GPIO peripheral, or you can get an instance of
-//! [`Pin`], which allows you to configure pins.
-//!
-//! This API expects to be the sole owner of the GPIO peripheral. Don't use
-//! [`lpc82x::GPIO_PORT`] directly, unless you know what you're doing.
+//! The entry point for this API is [`GPIO`]. [`GPIO`] provides access to the
+//! [`gpio::Handle`], which you can use to initialize the GPIO peripheral, and
+//! to instances of [`Pin`], which allow you to configure pins.
 //!
 //! The GPIO peripheral is described in the user manual, chapter 9.
 //!
@@ -224,6 +220,8 @@ macro_rules! pins {
         /// Has one field for each pin. Please refer to the documentation of
         /// [`Pin`] to learn more about how to use them.
         ///
+        /// This struct is a part of [`GPIO`].
+        ///
         /// # Limitations
         ///
         /// This struct currently provides access to all pins that can be
@@ -232,6 +230,7 @@ macro_rules! pins {
         /// use those.
         ///
         /// [`Pin`]: struct.Pin.html
+        /// [`GPIO`]: struct.GPIO.html
         #[allow(missing_docs)]
         pub struct Pins {
             $(pub $field: Pin<$type, pin_state::Unknown>,)*
@@ -331,7 +330,7 @@ pins!(
 ///
 /// # State Management
 ///
-/// All pins start out in the [`pin_state::Unknown`] state, as LPC82x HAL can't
+/// All pins start out in the [`pin_state::Unknown`] state, as the HAL API can't
 /// know what happened to them before the API was initialized. To start using
 /// them, you need to promise the API that they are still in their default
 /// state, using [`affirm_default_state`].
@@ -407,7 +406,7 @@ pins!(
 /// # General Purpose I/O
 ///
 /// All pins can be used for general-purpose I/O (GPIO), meaning they can be
-/// used for reading digital input signals and sending digital output signals.
+/// used for reading digital input signals and writing digital output signals.
 /// To set up a pin for GPIO use, you need to call [`as_gpio_pin`] when it is in
 /// its unused state.
 ///
@@ -573,7 +572,7 @@ pins!(
 /// let (pin, _) = pin.assign_input_function(u0_rxd, &mut swm_handle);
 /// let (pin, _) = pin.assign_input_function(u1_rxd, &mut swm_handle);
 ///
-/// // We can't assign another output function. The following line wont compile.
+/// // We can't assign another output function. The next line won't compile.
 /// // let (pin, _) = pin.assign_output_function(u0_txd, &mut swm);
 ///
 /// // Once we disabled the currently enabled output function, we can assign
@@ -610,11 +609,9 @@ pins!(
 /// #     swm.fixed_functions.adc_2.affirm_default_state()
 /// # };
 /// #
-/// // Affirm that the pin is unused
-/// let pin = unsafe { gpio.pins.pio0_14.affirm_default_state() };
-///
 /// // Transition pin into ADC state
-/// let (pin, _) = pin.as_adc_pin(adc_2, &mut swm_handle);
+/// let pin = unsafe { gpio.pins.pio0_14.affirm_default_state() }
+///     .as_adc_pin(adc_2, &mut swm_handle);
 /// ```
 ///
 /// Using the pin for analog input once it is in the ADC state is currently not
@@ -832,7 +829,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// - a new pin instance that is in the ADC state, and
     /// - a new instance of the fixed function, in a state that indicates it is
     ///   enabled. Please refer to the [`swm`] module to learn more about fixed
-    ///   function state.
+    ///   function states.
     ///
     /// ADC channels are fixed functions, which means they are tied to one
     /// specific pin. This method only accepts the fixed function that is
@@ -844,13 +841,14 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// matrix, but as of now, there is no HAL API to actually control the ADC.
     /// You can use this method to enable the analog function and make sure that
     /// no conflicting functions can be enabled for the pin. After that, you
-    /// need to use the raw [`IOCON`] and [`ADC`] register mappings to actually
-    /// do anything with it. If you are using the ADC, [please let us know](https://github.com/braun-robotics/rust-lpc82x-hal/issues/51)!
+    /// need to use the raw [`lpc82x::IOCON`] and [`lpc82x::ADC`] register
+    /// mappings to actually do anything with it. If you are using the ADC,
+    /// [please let us know](https://github.com/braun-robotics/rust-lpc82x-hal/issues/51)!
     ///
     /// [State Management]: #state-management
     /// [`swm`]: ../swm/index.html
-    /// [`IOCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/constant.IOCON.html
-    /// [`ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/constant.ADC.html
+    /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.IOCON.html
+    /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.ADC.html
     pub fn as_adc_pin<F>(mut self, function: F, swm: &mut swm::Handle)
         -> (Pin<T, pin_state::Adc>, F::Enabled)
         where F: AdcFunction + FixedFunction<Pin=T> + fixed_function::Enable
@@ -1024,7 +1022,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     ///   is enabled; and
     /// - a new instance of the fixed function, its state indicating that it is
     ///   enabled. Please refer to the [`swm`] module to learn more about fixed
-    ///   function state.
+    ///   function states.
     ///
     /// Only the fixed function that is associated with this pin is accepted as
     /// an argument. Since not every pin has a fixed function associated with
@@ -1052,8 +1050,8 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
     /// #
     /// // Get PIO0_9 ready for function assignment
-    /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() };
-    /// let pio0_9 = pio0_9.as_swm_pin();
+    /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() }
+    ///     .as_swm_pin();
     ///
     /// // Get the fixed function on PIO0_9 ready to be enabled
     /// let xtalout = unsafe {
@@ -1104,7 +1102,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     ///   is enabled; and
     /// - a new instance of the movable function, its state indicating that it
     ///   has been assigned to this pin. Please refer to the [`swm`] module to
-    ///   learn more about movable function state.
+    ///   learn more about movable function states.
     ///
     /// # Example
     ///
@@ -1127,8 +1125,8 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
     /// #
     /// // Get pin ready for function assignment
-    /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() };
-    /// let pio0_9 = pio0_9.as_swm_pin();
+    /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() }
+    ///     .as_swm_pin();
     ///
     /// // Get the movable function ready to be assigned
     /// let u0_txd = unsafe {
@@ -1181,7 +1179,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     ///   is enabled; and
     /// - a new instance of the fixed function, its state indicating that it is
     ///   disabled. Please refer to the [`swm`] module to learn more about fixed
-    ///   function state.
+    ///   function states.
     ///
     /// Only the fixed function that is associated with this pin is accepted as
     /// an argument, and only if its state indicates that is enabled. This means
@@ -1271,7 +1269,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     ///   is enabled; and
     /// - a new instance of the movable function, its state indicating that it
     ///   is not assigned to any pin. Please refer to the [`swm`] module to
-    ///   learn more about movable function state.
+    ///   learn more about movable function states.
     ///
     /// Even though this method is available, if any output function is enabled
     /// on this pin, it only accepts a movable function as a parameter, whose
@@ -1356,7 +1354,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     ///   function has been enabled; and
     /// - a new instance of the fixed function, its state indicating that it is
     ///   enabled. Please refer to the [`swm`] module to learn more about fixed
-    ///   function state.
+    ///   function states.
     ///
     /// Only the fixed function that is associated with this pin is accepted as
     /// an argument. Since not every pin has a fixed function associated with
@@ -1384,8 +1382,8 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
     /// #
     /// // Get PIO0_8 ready for function assignment
-    /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() };
-    /// let pio0_8 = pio0_8.as_swm_pin();
+    /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() }
+    ///     .as_swm_pin();
     ///
     /// // Get the fixed function on PIO0_8 ready to be enabled
     /// let xtalin = unsafe {
@@ -1431,7 +1429,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     ///   function has been enabled; and
     /// - a new instance of the movable function, its state indicating that it
     ///   has been assigned to this pin. Please refer to the [`swm`] module to
-    ///   learn more about movable function state.
+    ///   learn more about movable function states.
     ///
     /// # Example
     ///
@@ -1454,8 +1452,8 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
     /// #
     /// // Get pin ready for function assignment
-    /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() };
-    /// let pio0_8 = pio0_8.as_swm_pin();
+    /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() }
+    ///     .as_swm_pin();
     ///
     /// // Get the movable function ready to be assigned
     /// let u0_rxd = unsafe {
@@ -1510,7 +1508,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     ///   function is enabled; and
     /// - a new instance of the fixed function, its state indicating that it is
     ///   disabled. Please refer to the [`swm`] module to learn more about fixed
-    ///   function state.
+    ///   function states.
     ///
     /// Only the fixed function that is associated with this pin is accepted as
     /// an argument, and only if its state indicates that is enabled. This means
@@ -1600,7 +1598,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     ///   function is enabled; and
     /// - a new instance of the movable function, its state indicating that it
     ///   is not assigned to any pin. Please refer to the [`swm`] module to
-    ///   learn more about movable function state.
+    ///   learn more about movable function states.
     ///
     /// Even though this method is available, if any output function is enabled
     /// on this pin, it only accepts a movable function as a parameter, whose

@@ -41,11 +41,6 @@ use self::fixed_function::FixedFunction;
 
 
 /// Interface to the switch matrix (SWM)
-///
-/// This API expects to be the sole owner of the SWM peripheral. Don't use
-/// [`lpc82x::SWM`] directly, unless you know what you're doing.
-///
-/// [`lpc82x::SWM`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.SWM.html
 pub struct SWM<'swm> {
     /// Main SWM API
     pub handle: Handle<'swm, init_state::Unknown>,
@@ -121,10 +116,12 @@ pub mod movable_function {
 
         /// Assigns the movable function to a pin
         ///
-        /// This method is intended for internal use. Please use
-        /// [`Pin::assign_function`] instead.
+        /// This method is intended for internal use only. Please use
+        /// [`Pin::assign_input_function`] and [`Pin::assign_output_function`]
+        /// instead.
         ///
-        /// [`Pin::assign_function`]: ../gpio/struct.Pin.html#method.assign_function
+        /// [`Pin::assign_input_function`]: ../../gpio/struct.Pin.html#method.assign_input_function
+        /// [`Pin::assign_output_function`]: ../../gpio/struct.Pin.html#method.assign_output_function
         fn assign(self, pin: &mut P, swm: &mut swm::Handle) -> Self::Assigned;
     }
 
@@ -142,10 +139,12 @@ pub mod movable_function {
 
         /// Unassign the movable function
         ///
-        /// This method is intended for internal use. Please use
-        /// [`Pin::unassign_function`] instead.
+        /// This method is intended for internal use only. Please use
+        /// [`Pin::unassign_input_function`] and
+        /// [`Pin::unassign_output_function`] instead.
         ///
-        /// [`Pin::unassign_function`]: ../gpio/struct.Pin.html#method.unassign_function
+        /// [`Pin::unassign_input_function`]: ../../gpio/struct.Pin.html#method.unassign_input_function
+        /// [`Pin::unassign_output_function`]: ../../gpio/struct.Pin.html#method.unassign_input_function
         fn unassign(self, pin: &mut P, swm: &mut swm::Handle)
             -> Self::Unassigned;
     }
@@ -198,6 +197,10 @@ macro_rules! movable_functions {
         )*
     ) => {
         /// Provides access to all movable functions
+        ///
+        /// This struct is part of [`SWM`].
+        ///
+        /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct MovableFunctions {
             $(pub $field: $type<movable_function::state::Unknown>,)*
@@ -370,10 +373,12 @@ pub mod fixed_function {
 
         /// Enable the fixed function
         ///
-        /// This method is intended for internal use. Please use
-        /// [`Pin::enable_function`] instead.
+        /// This method is intended for internal use only. Please use
+        /// [`Pin::enable_input_function`] and [`Pin::enable_output_function`]
+        /// instead.
         ///
-        /// [`Pin::enable_function`]: ../gpio/struct.Pin.html#method.enable_function
+        /// [`Pin::enable_input_function`]: ../../gpio/struct.Pin.html#method.enable_input_function
+        /// [`Pin::enable_output_function`]: ../../gpio/struct.Pin.html#method.enable_output_function
         fn enable(self, pin: &mut Self::Pin, swm: &mut swm::Handle)
             -> Self::Enabled;
     }
@@ -391,10 +396,12 @@ pub mod fixed_function {
 
         /// Disable the fixed function
         ///
-        /// This method is intended for internal use. Please use
-        /// [`Pin::disable_function`] instead.
+        /// This method is intended for internal use only. Please use
+        /// [`Pin::disable_input_function`] and [`Pin::disable_output_function`]
+        /// instead.
         ///
-        /// [`Pin::disable_function`]: ../gpio/struct.Pin.html#method.disable_function
+        /// [`Pin::disable_input_function`]: ../../gpio/struct.Pin.html#method.disable_input_function
+        /// [`Pin::disable_output_function`]: ../../gpio/struct.Pin.html#method.disable_output_function
         fn disable(self, pin: &mut Self::Pin, swm: &mut swm::Handle)
             -> Self::Disabled;
     }
@@ -430,6 +437,10 @@ pub mod fixed_function {
 macro_rules! fixed_functions {
     ($($type:ident, $field:ident, $pin:ty, $default_state:ident;)*) => {
         /// Provides access to all fixed functions
+        ///
+        /// This struct is part of [`SWM`].
+        ///
+        /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct FixedFunctions {
             $(pub $field: $type<fixed_function::state::Unknown>,)*

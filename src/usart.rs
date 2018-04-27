@@ -1,12 +1,8 @@
 //! API for the USART peripherals
 //!
-//! Each instance of [`USART`] expects to have full ownership of its respective
-//! USART peripheral. Don't use [`lpc82x::USART0`], [`lpc82x::USART1`], or
-//! [`lpc82x::USART2`] directly, unless you know what you're doing.
+//! The USART peripheral is described in the user manual, chapter 13.
 //!
 //! Currently, only some UART functionality is implemented.
-//!
-//! The USART peripherals are described in the user manual, chapter 13.
 //!
 //! # Examples
 //!
@@ -138,11 +134,8 @@ use syscon::{
 
 /// Interface to a USART peripheral
 ///
-/// You can get an instance of `USART` via [`Peripherals`].
-///
 /// Please refer to the [module documentation] for more information.
 ///
-/// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct USART<
     'usart,
@@ -482,8 +475,8 @@ impl<'frg> BaudRate<'frg> {
     /// Creates a `BaudRate` instance from two components: A reference to the
     /// [`UARTFRG`] and the BRGVAL.
     ///
-    /// The [`UARTFRG`] controls U_PCLK, the shared clock that is shared by all
-    /// USART peripherals. Please configure it before attempting to create a
+    /// The [`UARTFRG`] controls U_PCLK, the clock that is shared by all USART
+    /// peripherals. Please configure it before attempting to create a
     /// `BaudRate`. By keeping a reference to it, `BaudRate` ensures that U_PCLK
     /// cannot be changes as long as the `BaudRate` instance exists.
     ///
