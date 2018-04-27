@@ -1,6 +1,6 @@
 [package]
 name    = "lpc82x-hal"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["Hanno Braun <hanno@braun-robotics.com>"]
 
 description   = "Hardware Abstraction Layer (HAL) for the NXP LPC82x series of ARM Cortex-M0+ microcontroller"
