@@ -1,11 +1,8 @@
 //! API for system configuration (SYSCON)
 //!
-//! This API expects to be the sole owner of the SYSCON interface. Don't use
-//! [`lpc82x::SYSCON`] directly, unless you know what you're doing.
-//!
 //! The SYSCON peripheral is described in the user manual, chapter 5.
 //!
-//! [`lpc82x::SYSCON`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.SYSCON.html
+//! [`lpc82x::SYSCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.SYSCON.html
 
 
 use core::marker::PhantomData;

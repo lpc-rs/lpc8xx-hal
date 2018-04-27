@@ -142,11 +142,8 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// Regular sleep mode
 ///
 /// Provides a [`Sleep`] implementation for the regular sleep mode and uses the
-/// [WKT] to wake the microcontroller up again, at the right time.
-///
-/// The user must [handle the WKT interrupt], or the program won't wake up
-/// again. Only clocks that the WKT supports can be used. See [`wkt::Clock`]
-/// for more details.
+/// [WKT] to wake the microcontroller up again, at the right time. Only clocks
+/// that the WKT supports can be used. See [`wkt::Clock`] for more details.
 ///
 /// # Examples
 ///
@@ -187,9 +184,7 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 ///
 /// let delay = Ticks { value: 750_000, clock: &clock }; // 1000 ms
 ///
-/// // This will put the microcontroller into sleep mode. Unless we have set up
-/// // some code to handle the WKT interrupt, the microcontroller will never
-/// // wake up again.
+/// // This will put the microcontroller into sleep mode.
 /// sleep.sleep(delay);
 /// ```
 ///

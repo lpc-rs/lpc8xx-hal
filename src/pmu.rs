@@ -1,12 +1,5 @@
 //! API for the Power Management Unit (PMU)
 //!
-//! To use this API, you need to gain access to the [`PMU`] instance via
-//! [`Peripherals`]. From [`PMU`], you can get the [`pmu::Handle`] and other
-//! parts of the PMU API.
-//!
-//! This API expects to be the sole owner of the PMU. Don't use [`lpc82x::PMU`]
-//! directly, unless you know what you're doing.
-//!
 //! The PMU is described in the user manual, chapter 6.
 //!
 //! # Examples
@@ -32,7 +25,7 @@
 //! [`PMU`]: struct.PMU.html
 //! [`Peripherals`]: ../struct.Peripherals.html
 //! [`pmu::Handle`]: struct.Handle.html
-//! [`lpc82x::PMU`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.PMU.html
+//! [`lpc82x::PMU`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.PMU.html
 
 
 use cortex_m::{

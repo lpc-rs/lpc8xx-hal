@@ -1,8 +1,5 @@
 //! API for the self-wake-up timer (WKT)
 //!
-//! This API expects to be the sole owner of the WKT peripheral. Don't use
-//! [`lpc82x::WKT`] directly, unless you know what you're doing.
-//!
 //! The WKT peripheral is described in the user manual, chapter 9.
 //!
 //! # Examples
@@ -34,7 +31,7 @@
 //! }
 //! ```
 //!
-//! [`lpc82x::WKT`]: https://docs.rs/lpc82x/0.2.*/lpc82x/struct.WKT.html
+//! [`lpc82x::WKT`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.WKT.html
 
 
 use embedded_hal::timer;
