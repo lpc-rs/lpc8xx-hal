@@ -1,4 +1,4 @@
-# LPC82x HAL [![Build Status](https://travis-ci.org/braun-robotics/rust-lpc82x-hal.svg?branch=master)](https://travis-ci.org/braun-robotics/rust-lpc82x-hal)
+# LPC82x HAL [![crates.io](https://img.shields.io/crates/v/lpc82x-hal.svg)](https://crates.io/crates/lpc82x-hal) [![Documentation](https://docs.rs/lpc82x-hal/badge.svg)](https://docs.rs/lpc82x-hal) [![Build Status](https://travis-ci.org/braun-robotics/rust-lpc82x-hal.svg?branch=master)](https://travis-ci.org/braun-robotics/rust-lpc82x-hal)
 
 ## Introduction
 
@@ -43,7 +43,7 @@ To include LPC82x HAL in you project, add the following to your `Cargo.toml`:
 
 ``` toml
 [dependencies]
-lpc82x-hal = { git = "https://github.com/braun-robotics/rust-lpc82x-hal.git" }
+lpc82x-hal = "0.1"
 ```
 
 If you want to use LPC82x HAL in an application (as opposed to a library), there are additional things that need to be set up. Please refer to the [API Reference] for details.
@@ -76,4 +76,4 @@ See [LICENSE] for full details.
 
 
 [open an issue]: https://github.com/braun-robotics/rust-lpc82x-hal/issues/new
-[API Reference]: https://braun-robotics.github.io/rust-lpc82x-hal/lpc82x_hal/index.html
+[API Reference]: https://docs.rs/lpc82x-hal
