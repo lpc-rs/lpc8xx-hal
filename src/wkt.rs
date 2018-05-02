@@ -166,28 +166,17 @@ pub trait Clock {
 }
 
 impl<State> Clock for IrcDerivedClock<State> where State: ClockState {
-    fn select<'w>(r: &ctrl::R, w: &'w mut ctrl::W) -> &'w mut ctrl::W {
-        unsafe {
-            w
-                .bits(r.bits() & !SEL_EXTCLK)
-                .clksel().divided_irc_clock_t()
-        }
+    fn select<'w>(_: &ctrl::R, w: &'w mut ctrl::W) -> &'w mut ctrl::W {
+        w
+            .sel_extclk().internal()
+            .clksel().divided_irc_clock_t()
     }
 }
 
 impl<State> Clock for LowPowerClock<State> where State: ClockState {
-    fn select<'w>(r: &ctrl::R, w: &'w mut ctrl::W) -> &'w mut ctrl::W {
-        unsafe {
-            w
-                .bits(r.bits() & !SEL_EXTCLK)
-                .clksel().low_power_clock_thi()
-        }
+    fn select<'w>(_: &ctrl::R, w: &'w mut ctrl::W) -> &'w mut ctrl::W {
+        w
+            .sel_extclk().internal()
+            .clksel().low_power_clock_thi()
     }
 }
-
-
-/// The SEL_EXTCLK bit in WKT's CTRL register
-///
-/// This belongs in the lpc82x crate, but it's currently missing, due to a bug
-/// in the SVD file.
-const SEL_EXTCLK: u32 = 0x1 << 3;
