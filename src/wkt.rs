@@ -120,8 +120,8 @@ impl<'wkt> WKT<'wkt> {
     /// [`init`]: #method.init
     /// [`wkt::Clock`]: trait.Clock.html
     pub fn select_clock<C>(&mut self) where C: Clock {
-        self.wkt.ctrl.modify(|r, w|
-            C::select(r, w)
+        self.wkt.ctrl.modify(|_, w|
+            C::select(w)
         );
     }
 }
@@ -162,11 +162,11 @@ pub trait Clock {
     /// This is an internal method, to be called by the WKT API. Users generally
     /// shouldn't need to call this. This method is exempt from any guarantees
     /// of API stability.
-    fn select<'w>(r: &ctrl::R, w: &'w mut ctrl::W) -> &'w mut ctrl::W;
+    fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W;
 }
 
 impl<State> Clock for IrcDerivedClock<State> where State: ClockState {
-    fn select<'w>(_: &ctrl::R, w: &'w mut ctrl::W) -> &'w mut ctrl::W {
+    fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
         w
             .sel_extclk().internal()
             .clksel().divided_irc_clock_t()
@@ -174,7 +174,7 @@ impl<State> Clock for IrcDerivedClock<State> where State: ClockState {
 }
 
 impl<State> Clock for LowPowerClock<State> where State: ClockState {
-    fn select<'w>(_: &ctrl::R, w: &'w mut ctrl::W) -> &'w mut ctrl::W {
+    fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
         w
             .sel_extclk().internal()
             .clksel().low_power_clock_thi()
