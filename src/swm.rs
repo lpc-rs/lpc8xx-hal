@@ -548,6 +548,9 @@ fixed_functions!(
 
 
 /// Marker trait to mark all ADC functions
+///
+/// This is an internal trait. Any changes made to it won't be considered
+/// breaking changes.
 pub trait AdcFunction {}
 
 impl<State> AdcFunction for ADC_0<State>
@@ -580,6 +583,9 @@ impl<State> AdcFunction for ADC_11<State>
 ///
 /// This trait marks all functions that include output, which means
 /// bidirectional functions are also included.
+///
+/// This is an internal trait. Any changes made to it won't be considered
+/// breaking changes.
 pub trait OutputFunction {}
 
 // Which movable functions are output functions is documented in the user manual
@@ -678,6 +684,9 @@ impl<State> OutputFunction for I2C0_SCL<State>
 ///
 /// This trait marks only functions that are pure input functions, which means
 /// bidirectional functions are not included.
+///
+/// This is an internal trait. Any changes made to it won't be considered
+/// breaking changes.
 pub trait InputFunction {}
 
 // Which movable functions are input functions is documented in the user manual
