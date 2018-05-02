@@ -120,8 +120,8 @@ impl<'wkt> WKT<'wkt> {
     /// [`init`]: #method.init
     /// [`wkt::Clock`]: trait.Clock.html
     pub fn select_clock<C>(&mut self) where C: Clock {
-        self.wkt.ctrl.modify(|r, w|
-            C::select(r, w)
+        self.wkt.ctrl.modify(|_, w|
+            C::select(w)
         );
     }
 }
@@ -162,32 +162,21 @@ pub trait Clock {
     /// This is an internal method, to be called by the WKT API. Users generally
     /// shouldn't need to call this. This method is exempt from any guarantees
     /// of API stability.
-    fn select<'w>(r: &ctrl::R, w: &'w mut ctrl::W) -> &'w mut ctrl::W;
+    fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W;
 }
 
 impl<State> Clock for IrcDerivedClock<State> where State: ClockState {
-    fn select<'w>(r: &ctrl::R, w: &'w mut ctrl::W) -> &'w mut ctrl::W {
-        unsafe {
-            w
-                .bits(r.bits() & !SEL_EXTCLK)
-                .clksel().divided_irc_clock_t()
-        }
+    fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
+        w
+            .sel_extclk().internal()
+            .clksel().divided_irc_clock_t()
     }
 }
 
 impl<State> Clock for LowPowerClock<State> where State: ClockState {
-    fn select<'w>(r: &ctrl::R, w: &'w mut ctrl::W) -> &'w mut ctrl::W {
-        unsafe {
-            w
-                .bits(r.bits() & !SEL_EXTCLK)
-                .clksel().low_power_clock_thi()
-        }
+    fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
+        w
+            .sel_extclk().internal()
+            .clksel().low_power_clock_thi()
     }
 }
-
-
-/// The SEL_EXTCLK bit in WKT's CTRL register
-///
-/// This belongs in the lpc82x crate, but it's currently missing, due to a bug
-/// in the SVD file.
-const SEL_EXTCLK: u32 = 0x1 << 3;
