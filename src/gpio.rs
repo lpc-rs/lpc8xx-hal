@@ -79,7 +79,7 @@ use init_state::{
 use swm::{
     self,
     movable_function,
-    AdcFunction,
+    AdcChannel,
     InputFunction,
     OutputFunction,
 };
@@ -851,7 +851,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.ADC.html
     pub fn as_adc_pin<F>(mut self, function: F, swm: &mut swm::Handle)
         -> (Pin<T, pin_state::Adc>, F::Enabled)
-        where F: AdcFunction + FixedFunction<Pin=T> + fixed_function::Enable
+        where F: AdcChannel + FixedFunction<Pin=T> + fixed_function::Enable
     {
         let function = function.enable(&mut self.ty, swm);
 

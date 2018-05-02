@@ -547,32 +547,35 @@ fixed_functions!(
 );
 
 
-/// Marker trait to mark all ADC functions
-pub trait AdcFunction {}
+/// Marker trait for fixed functions representing ADC channels
+///
+/// This is an internal trait. Any changes made to it won't be considered
+/// breaking changes.
+pub trait AdcChannel {}
 
-impl<State> AdcFunction for ADC_0<State>
+impl<State> AdcChannel for ADC_0<State>
     where State: fixed_function::state::State {}
-impl<State> AdcFunction for ADC_1<State>
+impl<State> AdcChannel for ADC_1<State>
     where State: fixed_function::state::State {}
-impl<State> AdcFunction for ADC_2<State>
+impl<State> AdcChannel for ADC_2<State>
     where State: fixed_function::state::State {}
-impl<State> AdcFunction for ADC_3<State>
+impl<State> AdcChannel for ADC_3<State>
     where State: fixed_function::state::State {}
-impl<State> AdcFunction for ADC_4<State>
+impl<State> AdcChannel for ADC_4<State>
     where State: fixed_function::state::State {}
-impl<State> AdcFunction for ADC_5<State>
+impl<State> AdcChannel for ADC_5<State>
     where State: fixed_function::state::State {}
-impl<State> AdcFunction for ADC_6<State>
+impl<State> AdcChannel for ADC_6<State>
     where State: fixed_function::state::State {}
-impl<State> AdcFunction for ADC_7<State>
+impl<State> AdcChannel for ADC_7<State>
     where State: fixed_function::state::State {}
-impl<State> AdcFunction for ADC_8<State>
+impl<State> AdcChannel for ADC_8<State>
     where State: fixed_function::state::State {}
-impl<State> AdcFunction for ADC_9<State>
+impl<State> AdcChannel for ADC_9<State>
     where State: fixed_function::state::State {}
-impl<State> AdcFunction for ADC_10<State>
+impl<State> AdcChannel for ADC_10<State>
     where State: fixed_function::state::State {}
-impl<State> AdcFunction for ADC_11<State>
+impl<State> AdcChannel for ADC_11<State>
     where State: fixed_function::state::State {}
 
 
@@ -580,6 +583,9 @@ impl<State> AdcFunction for ADC_11<State>
 ///
 /// This trait marks all functions that include output, which means
 /// bidirectional functions are also included.
+///
+/// This is an internal trait. Any changes made to it won't be considered
+/// breaking changes.
 pub trait OutputFunction {}
 
 // Which movable functions are output functions is documented in the user manual
@@ -678,6 +684,9 @@ impl<State> OutputFunction for I2C0_SCL<State>
 ///
 /// This trait marks only functions that are pure input functions, which means
 /// bidirectional functions are not included.
+///
+/// This is an internal trait. Any changes made to it won't be considered
+/// breaking changes.
 pub trait InputFunction {}
 
 // Which movable functions are input functions is documented in the user manual
