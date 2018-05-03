@@ -147,8 +147,7 @@ pub struct USART<
 }
 
 impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
-    where
-        UsartX: Peripheral,
+    where UsartX: Peripheral,
 {
     /// Create an instance of `USART`
     pub fn new(usart: &'usart mut UsartX) -> Self {
@@ -269,8 +268,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
 }
 
 impl<'usart, UsartX> USART<'usart, UsartX>
-    where
-        UsartX: Peripheral,
+    where UsartX: Peripheral,
 {
     /// Enable the USART interrupts
     ///
@@ -322,8 +320,7 @@ impl<'usart, UsartX> USART<'usart, UsartX>
 }
 
 impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
-    where
-        UsartX: Peripheral,
+    where UsartX: Peripheral,
 {
     type Error = Error;
 
@@ -366,8 +363,7 @@ impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
 }
 
 impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
-    where
-        UsartX: Peripheral,
+    where UsartX: Peripheral,
 {
     type Error = !;
 
@@ -393,8 +389,7 @@ impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
 }
 
 impl<'usart, UsartX> BlockingWriteDefault<u8> for USART<'usart, UsartX>
-    where
-        UsartX: Peripheral,
+    where UsartX: Peripheral,
 {}
 
 
