@@ -82,7 +82,7 @@ impl<'swm> Handle<'swm, init_state::Unknown> {
     pub fn init(self, syscon: &mut syscon::Handle)
         -> Handle<'swm, init_state::Enabled>
     {
-        syscon.enable_clock(&mut &*self.swm);
+        syscon.enable_clock(self.swm);
 
         Handle {
             swm   : self.swm,

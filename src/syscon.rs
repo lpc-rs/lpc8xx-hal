@@ -292,7 +292,7 @@ pub trait ClockControl {
 
 macro_rules! impl_clock_control {
     ($clock_control:ty, $clock:ident) => {
-        impl<'a> ClockControl for $clock_control {
+        impl ClockControl for $clock_control {
             fn enable_clock<'w>(&mut self, w: &'w mut sysahbclkctrl::W)
                 -> &'w mut sysahbclkctrl::W
             {
@@ -308,31 +308,31 @@ macro_rules! impl_clock_control {
     }
 }
 
-impl_clock_control!(ROM                  , rom     );
-impl_clock_control!(RAM0_1               , ram0_1  );
-impl_clock_control!(&'a lpc82x::FLASHCTRL, flashreg);
-impl_clock_control!(FLASH                , flash   );
-impl_clock_control!(&'a lpc82x::I2C0     , i2c0    );
-impl_clock_control!(&'a lpc82x::GPIO_PORT, gpio    );
-impl_clock_control!(&'a lpc82x::SWM      , swm     );
-impl_clock_control!(&'a lpc82x::SCT      , sct     );
-impl_clock_control!(&'a lpc82x::WKT      , wkt     );
-impl_clock_control!(&'a lpc82x::MRT      , mrt     );
-impl_clock_control!(&'a lpc82x::SPI0     , spi0    );
-impl_clock_control!(&'a lpc82x::SPI1     , spi1    );
-impl_clock_control!(&'a lpc82x::CRC      , crc     );
-impl_clock_control!(&'a lpc82x::USART0   , uart0   );
-impl_clock_control!(&'a lpc82x::USART1   , uart1   );
-impl_clock_control!(&'a lpc82x::USART2   , uart2   );
-impl_clock_control!(&'a lpc82x::WWDT     , wwdt    );
-impl_clock_control!(&'a lpc82x::IOCON    , iocon   );
-impl_clock_control!(&'a lpc82x::CMP      , acmp    );
-impl_clock_control!(&'a lpc82x::I2C1     , i2c1    );
-impl_clock_control!(&'a lpc82x::I2C2     , i2c2    );
-impl_clock_control!(&'a lpc82x::I2C3     , i2c3    );
-impl_clock_control!(&'a lpc82x::ADC      , adc     );
-impl_clock_control!(MTB                  , mtb     );
-impl_clock_control!(&'a lpc82x::DMA      , dma     );
+impl_clock_control!(ROM              , rom     );
+impl_clock_control!(RAM0_1           , ram0_1  );
+impl_clock_control!(lpc82x::FLASHCTRL, flashreg);
+impl_clock_control!(FLASH            , flash   );
+impl_clock_control!(lpc82x::I2C0     , i2c0    );
+impl_clock_control!(lpc82x::GPIO_PORT, gpio    );
+impl_clock_control!(lpc82x::SWM      , swm     );
+impl_clock_control!(lpc82x::SCT      , sct     );
+impl_clock_control!(lpc82x::WKT      , wkt     );
+impl_clock_control!(lpc82x::MRT      , mrt     );
+impl_clock_control!(lpc82x::SPI0     , spi0    );
+impl_clock_control!(lpc82x::SPI1     , spi1    );
+impl_clock_control!(lpc82x::CRC      , crc     );
+impl_clock_control!(lpc82x::USART0   , uart0   );
+impl_clock_control!(lpc82x::USART1   , uart1   );
+impl_clock_control!(lpc82x::USART2   , uart2   );
+impl_clock_control!(lpc82x::WWDT     , wwdt    );
+impl_clock_control!(lpc82x::IOCON    , iocon   );
+impl_clock_control!(lpc82x::CMP      , acmp    );
+impl_clock_control!(lpc82x::I2C1     , i2c1    );
+impl_clock_control!(lpc82x::I2C2     , i2c2    );
+impl_clock_control!(lpc82x::I2C3     , i2c3    );
+impl_clock_control!(lpc82x::ADC      , adc     );
+impl_clock_control!(MTB              , mtb     );
+impl_clock_control!(lpc82x::DMA      , dma     );
 
 
 /// Internal trait for controlling peripheral reset

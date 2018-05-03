@@ -89,7 +89,7 @@ impl<'wkt> WKT<'wkt, init_state::Unknown> {
     pub fn init(self, syscon: &mut syscon::Handle)
         -> WKT<'wkt, init_state::Enabled>
     {
-        syscon.enable_clock(&mut &*self.wkt);
+        syscon.enable_clock(self.wkt);
         syscon.clear_reset(&mut &*self.wkt);
 
         WKT {

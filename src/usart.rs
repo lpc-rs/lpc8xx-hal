@@ -149,7 +149,7 @@ pub struct USART<
 impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     where
         UsartX            : Peripheral,
-        for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
+        for<'a> &'a UsartX: syscon::ResetControl,
 {
     /// Create an instance of `USART`
     pub fn new(usart: &'usart mut UsartX) -> Self {
@@ -198,7 +198,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
             UsartX::Rx: movable_function::Assign<Rx> + InputFunction,
             UsartX::Tx: movable_function::Assign<Tx> + OutputFunction,
     {
-        syscon.enable_clock(&mut &*self.usart);
+        syscon.enable_clock(self.usart);
         syscon.clear_reset(&mut &*self.usart);
 
         rx
@@ -272,7 +272,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
 impl<'usart, UsartX> USART<'usart, UsartX>
     where
         UsartX            : Peripheral,
-        for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
+        for<'a> &'a UsartX: syscon::ResetControl,
 {
     /// Enable the USART interrupts
     ///
@@ -326,7 +326,7 @@ impl<'usart, UsartX> USART<'usart, UsartX>
 impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
     where
         UsartX            : Peripheral,
-        for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
+        for<'a> &'a UsartX: syscon::ResetControl,
 {
     type Error = Error;
 
@@ -371,7 +371,7 @@ impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
 impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
     where
         UsartX            : Peripheral,
-        for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
+        for<'a> &'a UsartX: syscon::ResetControl,
 {
     type Error = !;
 
@@ -399,7 +399,7 @@ impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
 impl<'usart, UsartX> BlockingWriteDefault<u8> for USART<'usart, UsartX>
     where
         UsartX            : Peripheral,
-        for<'a> &'a UsartX: syscon::ClockControl + syscon::ResetControl,
+        for<'a> &'a UsartX: syscon::ResetControl,
 {}
 
 
@@ -418,8 +418,8 @@ impl<'usart, UsartX> BlockingWriteDefault<u8> for USART<'usart, UsartX>
 /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
 pub trait Peripheral:
     Deref<Target = lpc82x::usart0::RegisterBlock>
+    + syscon::ClockControl
     where
-        for<'a> &'a Self: syscon::ClockControl,
         for<'a> &'a Self: syscon::ResetControl,
 {
     /// The interrupt that is triggered for this USART peripheral
