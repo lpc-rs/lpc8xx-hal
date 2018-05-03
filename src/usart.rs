@@ -142,7 +142,7 @@ pub struct USART<
     UsartX: 'usart,
     State : InitState = init_state::Enabled,
 > {
-    usart : &'usart UsartX,
+    usart : &'usart mut UsartX,
     _state: State,
 }
 
@@ -184,7 +184,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn init<Rx: PinName, Tx: PinName>(mut self,
+    pub fn init<Rx: PinName, Tx: PinName>(self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Handle,
         rx       : Pin<Rx, pin_state::Unused>,
@@ -198,8 +198,8 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
             UsartX::Rx: movable_function::Assign<Rx> + InputFunction,
             UsartX::Tx: movable_function::Assign<Tx> + OutputFunction,
     {
-        syscon.enable_clock(&mut self.usart);
-        syscon.clear_reset(&mut self.usart);
+        syscon.enable_clock(&mut &*self.usart);
+        syscon.clear_reset(&mut &*self.usart);
 
         rx
             .as_swm_pin()
@@ -331,7 +331,7 @@ impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
     type Error = Error;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
-        let uart = self.usart;
+        let ref uart = self.usart;
 
         let stat = uart.stat.read();
 

@@ -60,7 +60,7 @@ use pmu::LowPowerClock;
 ///
 /// [module documentation]: index.html
 pub struct WKT<'wkt, State: InitState = init_state::Enabled> {
-    wkt   : &'wkt lpc82x::WKT,
+    wkt   : &'wkt mut lpc82x::WKT,
     _state: State,
 }
 
@@ -86,11 +86,11 @@ impl<'wkt> WKT<'wkt, init_state::Unknown> {
     ///
     /// [`Unknown`]: ../init_state/struct.Unknown.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn init(mut self, syscon: &mut syscon::Handle)
+    pub fn init(self, syscon: &mut syscon::Handle)
         -> WKT<'wkt, init_state::Enabled>
     {
-        syscon.enable_clock(&mut self.wkt);
-        syscon.clear_reset(&mut self.wkt);
+        syscon.enable_clock(&mut &*self.wkt);
+        syscon.clear_reset(&mut &*self.wkt);
 
         WKT {
             wkt   : self.wkt,

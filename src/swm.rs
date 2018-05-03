@@ -66,7 +66,7 @@ impl<'swm> SWM<'swm> {
 
 /// Main API of the SWM peripheral
 pub struct Handle<'swm, State: InitState = init_state::Enabled> {
-    swm   : &'swm lpc82x::SWM,
+    swm   : &'swm mut lpc82x::SWM,
     _state: State,
 }
 
@@ -79,10 +79,10 @@ impl<'swm> Handle<'swm, init_state::Unknown> {
     }
 
     /// Initialize the switch matrix
-    pub fn init(mut self, syscon: &mut syscon::Handle)
+    pub fn init(self, syscon: &mut syscon::Handle)
         -> Handle<'swm, init_state::Enabled>
     {
-        syscon.enable_clock(&mut self.swm);
+        syscon.enable_clock(&mut &*self.swm);
 
         Handle {
             swm   : self.swm,
