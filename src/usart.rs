@@ -148,8 +148,7 @@ pub struct USART<
 
 impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     where
-        UsartX            : Peripheral,
-        for<'a> &'a UsartX: syscon::ResetControl,
+        UsartX: Peripheral,
 {
     /// Create an instance of `USART`
     pub fn new(usart: &'usart mut UsartX) -> Self {
@@ -199,7 +198,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
             UsartX::Tx: movable_function::Assign<Tx> + OutputFunction,
     {
         syscon.enable_clock(self.usart);
-        syscon.clear_reset(&mut &*self.usart);
+        syscon.clear_reset(self.usart);
 
         rx
             .as_swm_pin()
@@ -271,8 +270,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
 
 impl<'usart, UsartX> USART<'usart, UsartX>
     where
-        UsartX            : Peripheral,
-        for<'a> &'a UsartX: syscon::ResetControl,
+        UsartX: Peripheral,
 {
     /// Enable the USART interrupts
     ///
@@ -325,8 +323,7 @@ impl<'usart, UsartX> USART<'usart, UsartX>
 
 impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
     where
-        UsartX            : Peripheral,
-        for<'a> &'a UsartX: syscon::ResetControl,
+        UsartX: Peripheral,
 {
     type Error = Error;
 
@@ -370,8 +367,7 @@ impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
 
 impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
     where
-        UsartX            : Peripheral,
-        for<'a> &'a UsartX: syscon::ResetControl,
+        UsartX: Peripheral,
 {
     type Error = !;
 
@@ -398,8 +394,7 @@ impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
 
 impl<'usart, UsartX> BlockingWriteDefault<u8> for USART<'usart, UsartX>
     where
-        UsartX            : Peripheral,
-        for<'a> &'a UsartX: syscon::ResetControl,
+        UsartX: Peripheral,
 {}
 
 
@@ -419,8 +414,7 @@ impl<'usart, UsartX> BlockingWriteDefault<u8> for USART<'usart, UsartX>
 pub trait Peripheral:
     Deref<Target = lpc82x::usart0::RegisterBlock>
     + syscon::ClockControl
-    where
-        for<'a> &'a Self: syscon::ResetControl,
+    + syscon::ResetControl
 {
     /// The interrupt that is triggered for this USART peripheral
     const INTERRUPT: Interrupt;

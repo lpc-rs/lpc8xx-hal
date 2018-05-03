@@ -374,24 +374,24 @@ macro_rules! impl_reset_control {
     }
 }
 
-impl_reset_control!(&'a lpc82x::SPI0     , spi0_rst_n   );
-impl_reset_control!(&'a lpc82x::SPI1     , spi1_rst_n   );
-impl_reset_control!(UARTFRG<'a>          , uartfrg_rst_n);
-impl_reset_control!(&'a lpc82x::USART0   , uart0_rst_n  );
-impl_reset_control!(&'a lpc82x::USART1   , uart1_rst_n  );
-impl_reset_control!(&'a lpc82x::USART2   , uart2_rst_n  );
-impl_reset_control!(&'a lpc82x::I2C0     , i2c0_rst_n   );
-impl_reset_control!(&'a lpc82x::MRT      , mrt_rst_n    );
-impl_reset_control!(&'a lpc82x::SCT      , sct_rst_n    );
-impl_reset_control!(&'a lpc82x::WKT      , wkt_rst_n    );
-impl_reset_control!(&'a lpc82x::GPIO_PORT, gpio_rst_n   );
-impl_reset_control!(&'a lpc82x::FLASHCTRL, flash_rst_n  );
-impl_reset_control!(&'a lpc82x::CMP      , acmp_rst_n   );
-impl_reset_control!(&'a lpc82x::I2C1     , i2c1_rst_n   );
-impl_reset_control!(&'a lpc82x::I2C2     , i2c2_rst_n   );
-impl_reset_control!(&'a lpc82x::I2C3     , i2c3_rst_n   );
-impl_reset_control!(&'a lpc82x::ADC      , adc_rst_n    );
-impl_reset_control!(&'a lpc82x::DMA      , dma_rst_n    );
+impl_reset_control!(lpc82x::SPI0     , spi0_rst_n   );
+impl_reset_control!(lpc82x::SPI1     , spi1_rst_n   );
+impl_reset_control!(UARTFRG<'a>      , uartfrg_rst_n);
+impl_reset_control!(lpc82x::USART0   , uart0_rst_n  );
+impl_reset_control!(lpc82x::USART1   , uart1_rst_n  );
+impl_reset_control!(lpc82x::USART2   , uart2_rst_n  );
+impl_reset_control!(lpc82x::I2C0     , i2c0_rst_n   );
+impl_reset_control!(lpc82x::MRT      , mrt_rst_n    );
+impl_reset_control!(lpc82x::SCT      , sct_rst_n    );
+impl_reset_control!(lpc82x::WKT      , wkt_rst_n    );
+impl_reset_control!(lpc82x::GPIO_PORT, gpio_rst_n   );
+impl_reset_control!(lpc82x::FLASHCTRL, flash_rst_n  );
+impl_reset_control!(lpc82x::CMP      , acmp_rst_n   );
+impl_reset_control!(lpc82x::I2C1     , i2c1_rst_n   );
+impl_reset_control!(lpc82x::I2C2     , i2c2_rst_n   );
+impl_reset_control!(lpc82x::I2C3     , i2c3_rst_n   );
+impl_reset_control!(lpc82x::ADC      , adc_rst_n    );
+impl_reset_control!(lpc82x::DMA      , dma_rst_n    );
 
 
 /// Internal trait for powering analog blocks

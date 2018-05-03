@@ -160,7 +160,7 @@ impl<'gpio> Handle<'gpio, init_state::Unknown> {
         -> Handle<'gpio, init_state::Enabled>
     {
         syscon.enable_clock(self.gpio);
-        syscon.clear_reset(&mut &*self.gpio);
+        syscon.clear_reset(self.gpio);
 
         Handle {
             gpio  : self.gpio,
