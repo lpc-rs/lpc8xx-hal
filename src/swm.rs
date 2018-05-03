@@ -71,7 +71,7 @@ pub struct Handle<'swm, State: InitState = init_state::Enabled> {
 }
 
 impl<'swm> Handle<'swm, init_state::Unknown> {
-    pub(crate) fn new(swm: &'swm lpc82x::SWM) -> Self {
+    pub(crate) fn new(swm: &'swm mut lpc82x::SWM) -> Self {
         Handle {
             swm   : swm,
             _state: init_state::Unknown,
