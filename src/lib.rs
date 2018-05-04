@@ -225,7 +225,7 @@
 
 #![feature(const_fn)]
 #![feature(const_refcell_new)]
-#![feature(macro_reexport)]
+#![feature(use_extern_macros)]
 #![feature(never_type)]
 
 #![deny(warnings)]
@@ -239,10 +239,15 @@ extern crate std;
 
 extern crate cortex_m;
 extern crate embedded_hal;
-#[cfg_attr(feature = "rt",
-    macro_reexport(default_handler, exception, interrupt))]
 extern crate lpc82x;
 extern crate nb;
+
+#[cfg(feature = "rt")]
+pub use lpc82x::{
+    default_handler,
+    exception,
+    interrupt,
+};
 
 
 pub mod clock;
