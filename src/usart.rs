@@ -270,7 +270,7 @@ impl<'usart, UsartX, State> USART<'usart, UsartX, State>
     }
 }
 
-impl<'usart, UsartX> USART<'usart, UsartX>
+impl<'usart, UsartX> USART<'usart, UsartX, init_state::Enabled>
     where UsartX: Peripheral,
 {
     /// Enable the USART interrupts

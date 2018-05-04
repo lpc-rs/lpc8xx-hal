@@ -98,7 +98,7 @@ impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotEnabled {
     }
 }
 
-impl<'wkt> WKT<'wkt> {
+impl<'wkt> WKT<'wkt, init_state::Enabled> {
     /// Select the clock to run the self-wake-up timer
     ///
     /// This method is only available if the WKT has been initialized. Code
