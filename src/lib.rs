@@ -239,8 +239,9 @@ extern crate std;
 
 extern crate cortex_m;
 extern crate embedded_hal;
-extern crate lpc82x as raw;
 extern crate nb;
+
+pub extern crate lpc82x as raw;
 
 #[cfg(feature = "rt")]
 pub use raw::{
