@@ -7,8 +7,10 @@
 
 use core::marker::PhantomData;
 
-use lpc82x;
-use lpc82x::syscon::{
+use clock;
+use clock::state::ClockState;
+use raw;
+use raw::syscon::{
     pdruncfg,
     presetctrl,
     sysahbclkctrl,
@@ -19,9 +21,6 @@ use lpc82x::syscon::{
     UARTFRGDIV,
     UARTFRGMULT,
 };
-
-use clock;
-use clock::state::ClockState;
 
 
 /// Entry point to the SYSCON API.
@@ -75,7 +74,7 @@ pub struct SYSCON<'syscon> {
 
 impl<'syscon> SYSCON<'syscon> {
     /// Create an instance of `SYSCON`
-    pub fn new(syscon: &'syscon mut lpc82x::SYSCON) -> Self {
+    pub fn new(syscon: &'syscon mut raw::SYSCON) -> Self {
         SYSCON {
             handle: Handle {
                 pdruncfg     : &syscon.pdruncfg,
@@ -308,31 +307,31 @@ macro_rules! impl_clock_control {
     }
 }
 
-impl_clock_control!(ROM              , rom     );
-impl_clock_control!(RAM0_1           , ram0_1  );
-impl_clock_control!(lpc82x::FLASHCTRL, flashreg);
-impl_clock_control!(FLASH            , flash   );
-impl_clock_control!(lpc82x::I2C0     , i2c0    );
-impl_clock_control!(lpc82x::GPIO_PORT, gpio    );
-impl_clock_control!(lpc82x::SWM      , swm     );
-impl_clock_control!(lpc82x::SCT      , sct     );
-impl_clock_control!(lpc82x::WKT      , wkt     );
-impl_clock_control!(lpc82x::MRT      , mrt     );
-impl_clock_control!(lpc82x::SPI0     , spi0    );
-impl_clock_control!(lpc82x::SPI1     , spi1    );
-impl_clock_control!(lpc82x::CRC      , crc     );
-impl_clock_control!(lpc82x::USART0   , uart0   );
-impl_clock_control!(lpc82x::USART1   , uart1   );
-impl_clock_control!(lpc82x::USART2   , uart2   );
-impl_clock_control!(lpc82x::WWDT     , wwdt    );
-impl_clock_control!(lpc82x::IOCON    , iocon   );
-impl_clock_control!(lpc82x::CMP      , acmp    );
-impl_clock_control!(lpc82x::I2C1     , i2c1    );
-impl_clock_control!(lpc82x::I2C2     , i2c2    );
-impl_clock_control!(lpc82x::I2C3     , i2c3    );
-impl_clock_control!(lpc82x::ADC      , adc     );
-impl_clock_control!(MTB              , mtb     );
-impl_clock_control!(lpc82x::DMA      , dma     );
+impl_clock_control!(ROM           , rom     );
+impl_clock_control!(RAM0_1        , ram0_1  );
+impl_clock_control!(raw::FLASHCTRL, flashreg);
+impl_clock_control!(FLASH         , flash   );
+impl_clock_control!(raw::I2C0     , i2c0    );
+impl_clock_control!(raw::GPIO_PORT, gpio    );
+impl_clock_control!(raw::SWM      , swm     );
+impl_clock_control!(raw::SCT      , sct     );
+impl_clock_control!(raw::WKT      , wkt     );
+impl_clock_control!(raw::MRT      , mrt     );
+impl_clock_control!(raw::SPI0     , spi0    );
+impl_clock_control!(raw::SPI1     , spi1    );
+impl_clock_control!(raw::CRC      , crc     );
+impl_clock_control!(raw::USART0   , uart0   );
+impl_clock_control!(raw::USART1   , uart1   );
+impl_clock_control!(raw::USART2   , uart2   );
+impl_clock_control!(raw::WWDT     , wwdt    );
+impl_clock_control!(raw::IOCON    , iocon   );
+impl_clock_control!(raw::CMP      , acmp    );
+impl_clock_control!(raw::I2C1     , i2c1    );
+impl_clock_control!(raw::I2C2     , i2c2    );
+impl_clock_control!(raw::I2C3     , i2c3    );
+impl_clock_control!(raw::ADC      , adc     );
+impl_clock_control!(MTB           , mtb     );
+impl_clock_control!(raw::DMA      , dma     );
 
 
 /// Internal trait for controlling peripheral reset
@@ -374,24 +373,24 @@ macro_rules! impl_reset_control {
     }
 }
 
-impl_reset_control!(lpc82x::SPI0     , spi0_rst_n   );
-impl_reset_control!(lpc82x::SPI1     , spi1_rst_n   );
-impl_reset_control!(UARTFRG<'a>      , uartfrg_rst_n);
-impl_reset_control!(lpc82x::USART0   , uart0_rst_n  );
-impl_reset_control!(lpc82x::USART1   , uart1_rst_n  );
-impl_reset_control!(lpc82x::USART2   , uart2_rst_n  );
-impl_reset_control!(lpc82x::I2C0     , i2c0_rst_n   );
-impl_reset_control!(lpc82x::MRT      , mrt_rst_n    );
-impl_reset_control!(lpc82x::SCT      , sct_rst_n    );
-impl_reset_control!(lpc82x::WKT      , wkt_rst_n    );
-impl_reset_control!(lpc82x::GPIO_PORT, gpio_rst_n   );
-impl_reset_control!(lpc82x::FLASHCTRL, flash_rst_n  );
-impl_reset_control!(lpc82x::CMP      , acmp_rst_n   );
-impl_reset_control!(lpc82x::I2C1     , i2c1_rst_n   );
-impl_reset_control!(lpc82x::I2C2     , i2c2_rst_n   );
-impl_reset_control!(lpc82x::I2C3     , i2c3_rst_n   );
-impl_reset_control!(lpc82x::ADC      , adc_rst_n    );
-impl_reset_control!(lpc82x::DMA      , dma_rst_n    );
+impl_reset_control!(raw::SPI0     , spi0_rst_n   );
+impl_reset_control!(raw::SPI1     , spi1_rst_n   );
+impl_reset_control!(UARTFRG<'a>   , uartfrg_rst_n);
+impl_reset_control!(raw::USART0   , uart0_rst_n  );
+impl_reset_control!(raw::USART1   , uart1_rst_n  );
+impl_reset_control!(raw::USART2   , uart2_rst_n  );
+impl_reset_control!(raw::I2C0     , i2c0_rst_n   );
+impl_reset_control!(raw::MRT      , mrt_rst_n    );
+impl_reset_control!(raw::SCT      , sct_rst_n    );
+impl_reset_control!(raw::WKT      , wkt_rst_n    );
+impl_reset_control!(raw::GPIO_PORT, gpio_rst_n   );
+impl_reset_control!(raw::FLASHCTRL, flash_rst_n  );
+impl_reset_control!(raw::CMP      , acmp_rst_n   );
+impl_reset_control!(raw::I2C1     , i2c1_rst_n   );
+impl_reset_control!(raw::I2C2     , i2c2_rst_n   );
+impl_reset_control!(raw::I2C3     , i2c3_rst_n   );
+impl_reset_control!(raw::ADC      , adc_rst_n    );
+impl_reset_control!(raw::DMA      , dma_rst_n    );
 
 
 /// Internal trait for powering analog blocks
@@ -431,15 +430,15 @@ macro_rules! impl_analog_block {
     }
 }
 
-impl_analog_block!(IRCOUT          , ircout_pd );
-impl_analog_block!(IRC             , irc_pd    );
-impl_analog_block!(FLASH           , flash_pd  );
-impl_analog_block!(BOD             , bod_pd    );
-impl_analog_block!(&'a lpc82x::ADC , adc_pd    );
-impl_analog_block!(SYSOSC          , sysosc_pd );
-impl_analog_block!(&'a lpc82x::WWDT, wdtosc_pd );
-impl_analog_block!(SYSPLL          , syspll_pd );
-impl_analog_block!(&'a lpc82x::CMP , acmp      );
+impl_analog_block!(IRCOUT       , ircout_pd );
+impl_analog_block!(IRC          , irc_pd    );
+impl_analog_block!(FLASH        , flash_pd  );
+impl_analog_block!(BOD          , bod_pd    );
+impl_analog_block!(&'a raw::ADC , adc_pd    );
+impl_analog_block!(SYSOSC       , sysosc_pd );
+impl_analog_block!(&'a raw::WWDT, wdtosc_pd );
+impl_analog_block!(SYSPLL       , syspll_pd );
+impl_analog_block!(&'a raw::CMP , acmp      );
 
 
 /// The 750 kHz IRC-derived clock

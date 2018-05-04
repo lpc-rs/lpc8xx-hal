@@ -70,12 +70,12 @@
 
 
 use embedded_hal::digital::OutputPin;
-use lpc82x;
 
 use init_state::{
     self,
     InitState,
 };
+use raw;
 use swm::{
     self,
     movable_function,
@@ -114,7 +114,7 @@ pub struct GPIO<'gpio> {
 
 impl<'gpio> GPIO<'gpio> {
     /// Create an instance of `GPIO`
-    pub fn new(gpio: &'gpio mut lpc82x::GPIO_PORT) -> Self {
+    pub fn new(gpio: &'gpio mut raw::GPIO_PORT) -> Self {
         GPIO {
             handle: Handle {
                 gpio  : gpio,
@@ -135,7 +135,7 @@ impl<'gpio> GPIO<'gpio> {
 ///
 /// [module documentation]: index.html
 pub struct Handle<'gpio, State: InitState = init_state::Enabled> {
-    gpio  : &'gpio mut lpc82x::GPIO_PORT,
+    gpio  : &'gpio mut raw::GPIO_PORT,
     _state: State,
 }
 
@@ -1702,7 +1702,7 @@ impl<T> Pin<T, pin_state::Swm<(), ()>> where T: PinName {
 pub mod pin_state {
     use core::marker::PhantomData;
 
-    use lpc82x::gpio_port::{
+    use raw::gpio_port::{
         CLR0,
         DIRSET0,
         PIN0,

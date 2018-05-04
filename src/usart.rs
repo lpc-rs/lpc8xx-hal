@@ -104,11 +104,6 @@ use embedded_hal::serial::{
     Read,
     Write,
 };
-use lpc82x::{
-    self,
-    Interrupt,
-    NVIC,
-};
 use nb;
 
 use gpio::{
@@ -119,6 +114,11 @@ use gpio::{
 use init_state::{
     self,
     InitState,
+};
+use raw::{
+    self,
+    Interrupt,
+    NVIC,
 };
 use swm::{
     self,
@@ -407,7 +407,7 @@ impl<'usart, UsartX> BlockingWriteDefault<u8> for USART<'usart, UsartX>
 ///
 /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
 pub trait Peripheral:
-    Deref<Target = lpc82x::usart0::RegisterBlock>
+    Deref<Target = raw::usart0::RegisterBlock>
     + syscon::ClockControl
     + syscon::ResetControl
 {
@@ -421,21 +421,21 @@ pub trait Peripheral:
     type Tx;
 }
 
-impl Peripheral for lpc82x::USART0 {
+impl Peripheral for raw::USART0 {
     const INTERRUPT: Interrupt = Interrupt::UART0;
 
     type Rx = swm::U0_RXD<movable_function::state::Unassigned>;
     type Tx = swm::U0_TXD<movable_function::state::Unassigned>;
 }
 
-impl Peripheral for lpc82x::USART1 {
+impl Peripheral for raw::USART1 {
     const INTERRUPT: Interrupt = Interrupt::UART1;
 
     type Rx = swm::U1_RXD<movable_function::state::Unassigned>;
     type Tx = swm::U1_TXD<movable_function::state::Unassigned>;
 }
 
-impl Peripheral for lpc82x::USART2 {
+impl Peripheral for raw::USART2 {
     const INTERRUPT: Interrupt = Interrupt::UART2;
 
     type Rx = swm::U2_RXD<movable_function::state::Unassigned>;

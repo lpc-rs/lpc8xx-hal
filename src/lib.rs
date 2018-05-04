@@ -239,11 +239,11 @@ extern crate std;
 
 extern crate cortex_m;
 extern crate embedded_hal;
-extern crate lpc82x;
+extern crate lpc82x as raw;
 extern crate nb;
 
 #[cfg(feature = "rt")]
-pub use lpc82x::{
+pub use raw::{
     default_handler,
     exception,
     interrupt,
@@ -281,7 +281,7 @@ pub mod prelude {
 }
 
 
-pub use lpc82x::{
+pub use raw::{
     CPUID,
     DCB,
     DWT,

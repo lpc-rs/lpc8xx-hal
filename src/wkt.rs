@@ -35,8 +35,6 @@
 
 
 use embedded_hal::timer;
-use lpc82x;
-use lpc82x::wkt::ctrl;
 use nb;
 
 use syscon::{
@@ -49,6 +47,8 @@ use init_state::{
     InitState,
 };
 use pmu::LowPowerClock;
+use raw;
+use raw::wkt::ctrl;
 
 
 /// The API for the self-wake-up timer (WKT)
@@ -60,13 +60,13 @@ use pmu::LowPowerClock;
 ///
 /// [module documentation]: index.html
 pub struct WKT<'wkt, State: InitState = init_state::Enabled> {
-    wkt   : &'wkt mut lpc82x::WKT,
+    wkt   : &'wkt mut raw::WKT,
     _state: State,
 }
 
 impl<'wkt> WKT<'wkt, init_state::Unknown> {
     /// Create an instance of `WKT`
-    pub fn new(wkt: &'wkt mut lpc82x::WKT) -> Self {
+    pub fn new(wkt: &'wkt mut raw::WKT) -> Self {
         WKT {
             wkt   : wkt,
             _state: init_state::Unknown,
