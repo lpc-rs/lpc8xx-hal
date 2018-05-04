@@ -225,8 +225,8 @@
 
 #![feature(const_fn)]
 #![feature(const_refcell_new)]
-#![feature(use_extern_macros)]
 #![feature(never_type)]
+#![cfg_attr(feature = "rt", feature(use_extern_macros))]
 
 #![deny(warnings)]
 #![deny(missing_docs)]
