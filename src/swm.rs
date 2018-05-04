@@ -5,8 +5,6 @@
 
 use core::marker::PhantomData;
 
-use lpc82x;
-
 use gpio::{
     PIO0_0,
     PIO0_1,
@@ -35,6 +33,7 @@ use init_state::{
     self,
     InitState,
 };
+use raw;
 use syscon;
 
 use self::fixed_function::FixedFunction;
@@ -54,7 +53,7 @@ pub struct SWM<'swm> {
 
 impl<'swm> SWM<'swm> {
     /// Create an instance of `SWM`
-    pub fn new(swm: &'swm mut lpc82x::SWM) -> Self {
+    pub fn new(swm: &'swm mut raw::SWM) -> Self {
         SWM {
             handle           : Handle::new(swm),
             movable_functions: MovableFunctions::new(),
@@ -66,12 +65,12 @@ impl<'swm> SWM<'swm> {
 
 /// Main API of the SWM peripheral
 pub struct Handle<'swm, State: InitState = init_state::Enabled> {
-    swm   : &'swm mut lpc82x::SWM,
+    swm   : &'swm mut raw::SWM,
     _state: State,
 }
 
 impl<'swm> Handle<'swm, init_state::Unknown> {
-    pub(crate) fn new(swm: &'swm mut lpc82x::SWM) -> Self {
+    pub(crate) fn new(swm: &'swm mut raw::SWM) -> Self {
         Handle {
             swm   : swm,
             _state: init_state::Unknown,

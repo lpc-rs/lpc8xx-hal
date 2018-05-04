@@ -15,16 +15,16 @@ use cortex_m::{
     interrupt,
 };
 use embedded_hal::prelude::*;
-use lpc82x::{
-    self,
-    Interrupt,
-};
 use nb;
 
 use pmu;
 use clock::{
     self,
     Ticks,
+};
+use raw::{
+    self,
+    Interrupt,
 };
 use wkt::{
     self,
@@ -193,9 +193,9 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// [handle the WKT interrupt]: ../wkt/struct.WKT.html#method.handle_interrupt
 /// [`wkt::Clock`]: ../wkt/trait.Clock.html
 pub struct Regular<'r, 'pmu, 'wkt> {
-    nvic: &'r mut lpc82x::NVIC,
+    nvic: &'r mut raw::NVIC,
     pmu : &'pmu mut pmu::Handle<'pmu>,
-    scb : &'r mut lpc82x::SCB,
+    scb : &'r mut raw::SCB,
     wkt : &'wkt mut WKT<'wkt>,
 }
 
@@ -213,9 +213,9 @@ impl<'r, 'pmu, 'wkt> Regular<'r, 'pmu, 'wkt> {
     /// [`WKT`]: ../wkt/struct.WKT.html
     /// [`Sleep::sleep`]: trait.Sleep.html#tymethod.sleep
     pub fn prepare(
-        nvic: &'r mut lpc82x::NVIC,
+        nvic: &'r mut raw::NVIC,
         pmu : &'pmu mut pmu::Handle<'pmu>,
-        scb : &'r mut lpc82x::SCB,
+        scb : &'r mut raw::SCB,
         wkt : &'wkt mut WKT<'wkt>,
     )
         -> Self

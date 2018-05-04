@@ -32,14 +32,14 @@ use cortex_m::{
     asm,
     interrupt,
 };
-use lpc82x;
-use lpc82x::pmu::{
-    DPDCTRL,
-    PCON,
-};
 
 use clock;
 use clock::state::ClockState;
+use raw;
+use raw::pmu::{
+    DPDCTRL,
+    PCON,
+};
 
 
 /// Entry point to the PMU API
@@ -66,7 +66,7 @@ pub struct PMU<'pmu> {
 
 impl<'pmu> PMU<'pmu> {
     /// Create an instance of `PMU`
-    pub fn new(pmu: &'pmu mut lpc82x::PMU) -> Self {
+    pub fn new(pmu: &'pmu mut raw::PMU) -> Self {
         PMU {
             handle: Handle {
                 dpdctrl: &pmu.dpdctrl,
@@ -94,7 +94,7 @@ impl<'pmu> Handle<'pmu> {
     ///
     /// The microcontroller will wake up from sleep mode, if an NVIC-enabled
     /// interrupt occurs. See user manual, section 6.7.4.3.
-    pub fn enter_sleep_mode(&mut self, scb: &mut lpc82x::SCB) {
+    pub fn enter_sleep_mode(&mut self, scb: &mut raw::SCB) {
         interrupt::free(|_| {
             // Default power mode indicates active or sleep mode.
             self.pcon.modify(|_, w|

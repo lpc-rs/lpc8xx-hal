@@ -239,15 +239,9 @@ extern crate std;
 
 extern crate cortex_m;
 extern crate embedded_hal;
-extern crate lpc82x;
 extern crate nb;
 
-#[cfg(feature = "rt")]
-pub use lpc82x::{
-    default_handler,
-    exception,
-    interrupt,
-};
+pub extern crate lpc82x as raw;
 
 
 pub mod clock;
@@ -258,6 +252,32 @@ pub mod swm;
 pub mod syscon;
 pub mod usart;
 pub mod wkt;
+
+
+pub use raw::{
+    CPUID,
+    DCB,
+    DWT,
+    MPU,
+    NVIC,
+    SCB,
+    SYST,
+    Interrupt,
+};
+
+#[cfg(feature = "rt")]
+pub use raw::{
+    default_handler,
+    exception,
+    interrupt,
+};
+
+pub use self::gpio::GPIO;
+pub use self::pmu::PMU;
+pub use self::swm::SWM;
+pub use self::syscon::SYSCON;
+pub use self::usart::USART;
+pub use self::wkt::WKT;
 
 
 /// Re-exports various traits that are required to use lpc82x-hal
@@ -279,25 +299,6 @@ pub mod prelude {
     pub use clock::Frequency as _lpc82x_hal_clock_Frequency;
     pub use sleep::Sleep as _lpc82x_hal_sleep_Sleep;
 }
-
-
-pub use lpc82x::{
-    CPUID,
-    DCB,
-    DWT,
-    MPU,
-    NVIC,
-    SCB,
-    SYST,
-    Interrupt,
-};
-
-pub use self::gpio::GPIO;
-pub use self::pmu::PMU;
-pub use self::swm::SWM;
-pub use self::syscon::SYSCON;
-pub use self::usart::USART;
-pub use self::wkt::WKT;
 
 
 /// Contains types that encode the state hardware initialization
