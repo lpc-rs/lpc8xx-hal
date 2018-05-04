@@ -315,17 +315,54 @@ pub mod init_state {
     /// directly.
     pub trait InitState {}
 
+
     /// Indicates that the hardware's state is currently unknown
     ///
     /// This is usually the initial state after the HAL API has been
     /// initialized, as we don't know what happened before that.
     pub struct Unknown;
+
     impl InitState for Unknown {}
+
 
     /// Indicates that the hardware component is enabled
     ///
     /// This usually indicates that the hardware has been initialized and can be
     /// used for its intended purpose.
     pub struct Enabled;
+
     impl InitState for Enabled {}
+
+
+    /// Indicates that the hardware component is disabled
+    pub struct Disabled;
+    impl InitState for Disabled {}
+
+
+    /// Marks a hardware component as not being enabled
+    ///
+    /// This is a helper trait that is implemented for all states, except
+    /// [`Enabled`]. It is used to create `impl` blocks that define methods that
+    /// should be available in all states, except when the hardware component is
+    /// enabled.
+    ///
+    /// [`Enabled`]: struct.Enabled.html
+    pub trait NotEnabled: InitState {}
+
+    impl NotEnabled for Unknown {}
+    impl NotEnabled for Disabled {}
+
+
+    /// Marks a hardware component as not being disabled
+    ///
+    /// This is a helper trait that is implemented for all states, except
+    /// [`Disabled`]. It is used to create `impl` blocks that define methods
+    /// that should be available in all states, except when the hardware
+    /// component is disabled.
+    ///
+    /// [`Disabled`]: struct.Disabled.html
+    pub trait NotDisabled: InitState {}
+
+    impl NotDisabled for Unknown {}
+    impl NotDisabled for Enabled {}
 }
