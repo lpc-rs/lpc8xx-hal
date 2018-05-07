@@ -139,22 +139,19 @@ pub struct Handle<'gpio, State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl<'gpio> Handle<'gpio, init_state::Unknown> {
-    /// Initialize the GPIO peripheral
+impl<'gpio, State> Handle<'gpio, State> where State: init_state::NotEnabled {
+    /// Enable the GPIO peripheral
     ///
     /// Enables the clock and clears the peripheral reset for the GPIO
     /// peripheral.
     ///
-    /// This method is only available if the handle is in the [`Unknown`] state.
-    /// Attempting to call it after the GPIO peripheral has been initialized
-    /// will lead to a compiler error.
+    /// This method is only available, if `gpio::Handle` is not already in the
+    /// [`Enabled`] state. Code that attempts to call this method when the GPIO
+    /// peripheral is already enabled will not compile.
     ///
-    /// This method consumes the instance of `Handle` and returns another
-    /// instance that has the `State` type parameter set to [`Enabled`]. This
-    /// new instance can then be passed to any functions that require the GPIO
-    /// peripheral to be enabled.
+    /// Consumes this instance of `gpio::Handle` and returns another instance
+    /// that has its `State` type parameter set to [`Enabled`].
     ///
-    /// [`Unknown`]: ../init_state/struct.Unknown.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn init(self, syscon: &mut syscon::Handle)
         -> Handle<'gpio, init_state::Enabled>

@@ -76,8 +76,19 @@ impl<'swm> Handle<'swm, init_state::Unknown> {
             _state: init_state::Unknown,
         }
     }
+}
 
-    /// Initialize the switch matrix
+impl<'swm, State> Handle<'swm, State> where State: init_state::NotEnabled {
+    /// Enable the switch matrix
+    ///
+    /// This method is only available, if `swm::Handle` is not already in the
+    /// [`Enabled`] state. Code that attempts to call this method when the
+    /// switch matrix is already enabled will not compile.
+    ///
+    /// Consumes this instance of `swm::Handle` and returns another instance
+    /// that has its `State` type parameter set to [`Enabled`].
+    ///
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn init(self, syscon: &mut syscon::Handle)
         -> Handle<'swm, init_state::Enabled>
     {

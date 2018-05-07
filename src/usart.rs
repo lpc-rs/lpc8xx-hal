@@ -156,17 +156,21 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
             _state: init_state::Unknown,
         }
     }
+}
 
-    /// Initialize a USART peripheral
+impl<'usart, UsartX, State> USART<'usart, UsartX, State>
+    where
+        UsartX: Peripheral,
+        State : init_state::NotEnabled
+{
+    /// Enable a USART peripheral
     ///
-    /// This method is only available, if the `USART` instance is in the
-    /// [`Unknown`] state, which is the default. Attempting to call this method
-    /// after the USART peripheral has been initialized will lead to a compiler
-    /// error.
+    /// This method is only available, if `USART` is not already in the
+    /// [`Enabled`] state. Code that attempts to call this method when the USART
+    /// is already enabled will not compile.
     ///
-    /// Consumes the `USART` instance and returns another instance that has its
-    /// state set to [`Enabled`]. This makes other methods available, that
-    /// wouldn't be available otherwise.
+    /// Consumes this instance of `USART` and returns another instance that has
+    /// its `State` type parameter set to [`Enabled`].
     ///
     /// # Limitations
     ///
@@ -178,7 +182,6 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     ///
     /// Please refer to the [module documentation] for a full example.
     ///
-    /// [`Unknown`]: ../init_state/struct.Unknown.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html

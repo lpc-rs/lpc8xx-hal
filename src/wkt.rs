@@ -72,19 +72,18 @@ impl<'wkt> WKT<'wkt, init_state::Unknown> {
             _state: init_state::Unknown,
         }
     }
+}
 
-    /// Initialize the self-wake-up timer
+impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotEnabled {
+    /// Enable the self-wake-up timer
     ///
-    /// This method is only available, if `WKT` is in the [`Unknown`] state.
-    /// This is the initial state after initializing the HAL API. Code that
-    /// attempts to call this method after the WKT has been initialized will not
-    /// compile.
+    /// This method is only available, if `WKT` is not already in the
+    /// [`Enabled`] state. Code that attempts to call this method when the WKT
+    /// is already enabled will not compile.
     ///
     /// Consumes this instance of `WKT` and returns another instance that has
-    /// its `State` type parameter set to [`Enabled`]. This makes available
-    /// those methods that can only work if the WKT is enabled.
+    /// its `State` type parameter set to [`Enabled`].
     ///
-    /// [`Unknown`]: ../init_state/struct.Unknown.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn init(self, syscon: &mut syscon::Handle)
         -> WKT<'wkt, init_state::Enabled>
