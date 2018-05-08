@@ -151,7 +151,7 @@
 //!
 //! // Create the peripheral interfaces.
 //! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-//! let     swm    = SWM::new(&mut peripherals.SWM);
+//! let     swm    = SWM::new(peripherals.SWM);
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //! let     wkt    = WKT::new(peripherals.WKT);
 //!

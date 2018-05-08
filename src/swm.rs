@@ -40,9 +40,9 @@ use self::fixed_function::FixedFunction;
 
 
 /// Interface to the switch matrix (SWM)
-pub struct SWM<'swm> {
+pub struct SWM {
     /// Main SWM API
-    pub handle: Handle<'swm, init_state::Unknown>,
+    pub handle: Handle<init_state::Unknown>,
 
     /// Movable functions
     pub movable_functions: MovableFunctions,
@@ -51,9 +51,9 @@ pub struct SWM<'swm> {
     pub fixed_functions: FixedFunctions,
 }
 
-impl<'swm> SWM<'swm> {
+impl SWM {
     /// Create an instance of `SWM`
-    pub fn new(swm: &'swm mut raw::SWM) -> Self {
+    pub fn new(swm: raw::SWM) -> Self {
         SWM {
             handle           : Handle::new(swm),
             movable_functions: MovableFunctions::new(),
@@ -64,13 +64,13 @@ impl<'swm> SWM<'swm> {
 
 
 /// Main API of the SWM peripheral
-pub struct Handle<'swm, State: InitState = init_state::Enabled> {
-    swm   : &'swm mut raw::SWM,
+pub struct Handle<State: InitState = init_state::Enabled> {
+    swm   : raw::SWM,
     _state: State,
 }
 
-impl<'swm> Handle<'swm, init_state::Unknown> {
-    pub(crate) fn new(swm: &'swm mut raw::SWM) -> Self {
+impl Handle<init_state::Unknown> {
+    pub(crate) fn new(swm: raw::SWM) -> Self {
         Handle {
             swm   : swm,
             _state: init_state::Unknown,
@@ -78,7 +78,7 @@ impl<'swm> Handle<'swm, init_state::Unknown> {
     }
 }
 
-impl<'swm, State> Handle<'swm, State> where State: init_state::NotEnabled {
+impl<State> Handle<State> where State: init_state::NotEnabled {
     /// Enable the switch matrix
     ///
     /// This method is only available, if `swm::Handle` is not already in the
@@ -89,10 +89,10 @@ impl<'swm, State> Handle<'swm, State> where State: init_state::NotEnabled {
     /// that has its `State` type parameter set to [`Enabled`].
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(self, syscon: &mut syscon::Handle)
-        -> Handle<'swm, init_state::Enabled>
+    pub fn enable(mut self, syscon: &mut syscon::Handle)
+        -> Handle<init_state::Enabled>
     {
-        syscon.enable_clock(self.swm);
+        syscon.enable_clock(&mut self.swm);
 
         Handle {
             swm   : self.swm,
@@ -101,7 +101,7 @@ impl<'swm, State> Handle<'swm, State> where State: init_state::NotEnabled {
     }
 }
 
-impl<'swm, State> Handle<'swm, State> where State: init_state::NotDisabled {
+impl<State> Handle<State> where State: init_state::NotDisabled {
     /// Disable the switch matrix
     ///
     /// This method is only available, if `swm::Handle` is not already in the
@@ -112,10 +112,10 @@ impl<'swm, State> Handle<'swm, State> where State: init_state::NotDisabled {
     /// that has its `State` type parameter set to [`Disabled`].
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(self, syscon: &mut syscon::Handle)
-        -> Handle<'swm, init_state::Disabled>
+    pub fn disable(mut self, syscon: &mut syscon::Handle)
+        -> Handle<init_state::Disabled>
     {
-        syscon.disable_clock(self.swm);
+        syscon.disable_clock(&mut self.swm);
 
         Handle {
             swm   : self.swm,
