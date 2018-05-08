@@ -425,15 +425,15 @@ macro_rules! impl_analog_block {
     }
 }
 
-impl_analog_block!(IRCOUT       , ircout_pd );
-impl_analog_block!(IRC          , irc_pd    );
-impl_analog_block!(FLASH        , flash_pd  );
-impl_analog_block!(BOD          , bod_pd    );
-impl_analog_block!(&'a raw::ADC , adc_pd    );
-impl_analog_block!(SYSOSC       , sysosc_pd );
-impl_analog_block!(&'a raw::WWDT, wdtosc_pd );
-impl_analog_block!(SYSPLL       , syspll_pd );
-impl_analog_block!(&'a raw::CMP , acmp      );
+impl_analog_block!(IRCOUT   , ircout_pd );
+impl_analog_block!(IRC      , irc_pd    );
+impl_analog_block!(FLASH    , flash_pd  );
+impl_analog_block!(BOD      , bod_pd    );
+impl_analog_block!(raw::ADC , adc_pd    );
+impl_analog_block!(SYSOSC   , sysosc_pd );
+impl_analog_block!(raw::WWDT, wdtosc_pd );
+impl_analog_block!(SYSPLL   , syspll_pd );
+impl_analog_block!(raw::CMP , acmp      );
 
 
 /// The 750 kHz IRC-derived clock
