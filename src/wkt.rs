@@ -147,7 +147,7 @@ impl WKT<init_state::Enabled> {
     }
 }
 
-impl timer::CountDown for WKT {
+impl timer::CountDown for WKT<init_state::Enabled> {
     type Time = u32;
 
     fn start<T>(&mut self, timeout: T) where T: Into<Self::Time> {
