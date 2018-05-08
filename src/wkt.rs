@@ -98,6 +98,29 @@ impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotEnabled {
     }
 }
 
+impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotDisabled {
+    /// Disable the self-wake-up timer
+    ///
+    /// This method is only available, if `WKT` is not already in the
+    /// [`Disabled`] state. Code that attempts to call this method when the WKT
+    /// is already disabled will not compile.
+    ///
+    /// Consumes this instance of `WKT` and returns another instance that has
+    /// its `State` type parameter set to [`Disabled`].
+    ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    pub fn disable(self, syscon: &mut syscon::Handle)
+        -> WKT<'wkt, init_state::Disabled>
+    {
+        syscon.disable_clock(self.wkt);
+
+        WKT {
+            wkt   : self.wkt,
+            _state: init_state::Disabled,
+        }
+    }
+}
+
 impl<'wkt> WKT<'wkt, init_state::Enabled> {
     /// Select the clock to run the self-wake-up timer
     ///

@@ -270,6 +270,33 @@ impl<'usart, UsartX, State> USART<'usart, UsartX, State>
     }
 }
 
+impl<'usart, UsartX, State> USART<'usart, UsartX, State>
+    where
+        UsartX: Peripheral,
+        State : init_state::NotDisabled
+{
+    /// Disable a USART peripheral
+    ///
+    /// This method is only available, if `USART` is not already in the
+    /// [`Disabled`] state. Code that attempts to call this method when the
+    /// USART is already disabled will not compile.
+    ///
+    /// Consumes this instance of `USART` and returns another instance that has
+    /// its `State` type parameter set to [`Disabled`].
+    ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    pub fn disable<Rx: PinName, Tx: PinName>(self, syscon: &mut syscon::Handle)
+        -> USART<'usart, UsartX, init_state::Disabled>
+    {
+        syscon.disable_clock(self.usart);
+
+        USART {
+            usart : self.usart,
+            _state: init_state::Disabled,
+        }
+    }
+}
+
 impl<'usart, UsartX> USART<'usart, UsartX, init_state::Enabled>
     where UsartX: Peripheral,
 {

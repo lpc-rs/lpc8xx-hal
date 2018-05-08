@@ -101,6 +101,29 @@ impl<'swm, State> Handle<'swm, State> where State: init_state::NotEnabled {
     }
 }
 
+impl<'swm, State> Handle<'swm, State> where State: init_state::NotDisabled {
+    /// Disable the switch matrix
+    ///
+    /// This method is only available, if `swm::Handle` is not already in the
+    /// [`Disabled`] state. Code that attempts to call this method when the
+    /// switch matrix is already disabled will not compile.
+    ///
+    /// Consumes this instance of `swm::Handle` and returns another instance
+    /// that has its `State` type parameter set to [`Disabled`].
+    ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    pub fn disable(self, syscon: &mut syscon::Handle)
+        -> Handle<'swm, init_state::Disabled>
+    {
+        syscon.disable_clock(self.swm);
+
+        Handle {
+            swm   : self.swm,
+            _state: init_state::Disabled,
+        }
+    }
+}
+
 
 /// Traits implemented by movable functions
 ///
