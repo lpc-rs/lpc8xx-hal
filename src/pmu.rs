@@ -132,12 +132,14 @@ impl LowPowerClock<init_state::Disabled> {
             _state: init_state::Disabled,
         }
     }
+}
 
+impl<State> LowPowerClock<State> where State: init_state::NotEnabled {
     /// Enable the low-power clock
     ///
-    /// This method is only available if the low-power clock is disabled. Code
-    /// attempting to call this method when this is not the case will not
-    /// compile.
+    /// This method is only available if the low-power clock is not already
+    /// enabled. Code attempting to call this method when this is not the case
+    /// will not compile.
     ///
     /// Consumes this instance of `LowPowerClock` and returns a new instance
     /// whose state indicates that the clock is enabled. That new instance
@@ -158,12 +160,12 @@ impl LowPowerClock<init_state::Disabled> {
     }
 }
 
-impl LowPowerClock<init_state::Enabled> {
+impl<State> LowPowerClock<State> where State: init_state::NotDisabled {
     /// Disable the low-power clock
     ///
-    /// This method is only available if the low-power clock is enabled. Code
-    /// attempting to call this method when this is not the case will not
-    /// compile.
+    /// This method is only available if the low-power clock is not already
+    /// disabled. Code attempting to call this method when this is not the case
+    /// will not compile.
     ///
     /// Consumes this instance of `LowPowerClock` and returns a new instance
     /// whose state indicates that the clock is disabled.
