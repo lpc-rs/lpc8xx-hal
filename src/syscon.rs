@@ -64,15 +64,7 @@ pub struct SYSCON<'syscon> {
     pub uartfrg: UARTFRG<'syscon>,
 
     /// The 750 kHz IRC-derived clock
-    ///
-    /// # Limitations
-    ///
-    /// This field currently assumes that the IRC-derived clock always starts
-    /// out being disabled, but since we don't know what happened before the HAL
-    /// API was initialized, this might not be the case. Please make sure you
-    /// haven't enabled the IRC-derived clock, or called any code that might
-    /// have, before using this field.
-    pub irc_derived_clock: IrcDerivedClock<init_state::Disabled>,
+    pub irc_derived_clock: IrcDerivedClock<init_state::Unknown>,
 }
 
 impl<'syscon> SYSCON<'syscon> {
@@ -452,10 +444,10 @@ pub struct IrcDerivedClock<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl IrcDerivedClock<init_state::Disabled> {
+impl IrcDerivedClock<init_state::Unknown> {
     pub(crate) fn new() -> Self {
         IrcDerivedClock {
-            _state: init_state::Disabled,
+            _state: init_state::Unknown,
         }
     }
 }
