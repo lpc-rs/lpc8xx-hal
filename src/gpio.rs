@@ -89,7 +89,6 @@ use swm::fixed_function::{
 };
 use syscon;
 
-use self::direction::Direction;
 use self::pin_state::PinState;
 
 
@@ -887,7 +886,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
 impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     where
         T: PinName,
-        D: Direction + direction::NotOutput,
+        D: direction::NotOutput,
 {
     /// Sets pin direction to output
     ///
