@@ -18,7 +18,7 @@
 //! let mut peripherals = lpc82x::Peripherals::take().unwrap();
 //!
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-//! let     timer  = WKT::new(&mut peripherals.WKT);
+//! let     timer  = WKT::new(peripherals.WKT);
 //!
 //! let mut timer = timer.enable(&mut syscon.handle);
 //!
@@ -58,14 +58,14 @@ use raw::wkt::ctrl;
 /// Please refer to the [module documentation] for more information.
 ///
 /// [module documentation]: index.html
-pub struct WKT<'wkt, State: InitState = init_state::Enabled> {
-    wkt   : &'wkt mut raw::WKT,
+pub struct WKT<State: InitState = init_state::Enabled> {
+    wkt   : raw::WKT,
     _state: State,
 }
 
-impl<'wkt> WKT<'wkt, init_state::Unknown> {
+impl WKT<init_state::Unknown> {
     /// Create an instance of `WKT`
-    pub fn new(wkt: &'wkt mut raw::WKT) -> Self {
+    pub fn new(wkt: raw::WKT) -> Self {
         WKT {
             wkt   : wkt,
             _state: init_state::Unknown,
@@ -73,7 +73,7 @@ impl<'wkt> WKT<'wkt, init_state::Unknown> {
     }
 }
 
-impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotEnabled {
+impl<State> WKT<State> where State: init_state::NotEnabled {
     /// Enable the self-wake-up timer
     ///
     /// This method is only available, if `WKT` is not already in the
@@ -84,11 +84,11 @@ impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotEnabled {
     /// its `State` type parameter set to [`Enabled`].
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(self, syscon: &mut syscon::Handle)
-        -> WKT<'wkt, init_state::Enabled>
+    pub fn enable(mut self, syscon: &mut syscon::Handle)
+        -> WKT<init_state::Enabled>
     {
-        syscon.enable_clock(self.wkt);
-        syscon.clear_reset(self.wkt);
+        syscon.enable_clock(&mut self.wkt);
+        syscon.clear_reset(&mut self.wkt);
 
         WKT {
             wkt   : self.wkt,
@@ -97,7 +97,7 @@ impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotEnabled {
     }
 }
 
-impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotDisabled {
+impl<State> WKT<State> where State: init_state::NotDisabled {
     /// Disable the self-wake-up timer
     ///
     /// This method is only available, if `WKT` is not already in the
@@ -108,10 +108,10 @@ impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotDisabled {
     /// its `State` type parameter set to [`Disabled`].
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(self, syscon: &mut syscon::Handle)
-        -> WKT<'wkt, init_state::Disabled>
+    pub fn disable(mut self, syscon: &mut syscon::Handle)
+        -> WKT<init_state::Disabled>
     {
-        syscon.disable_clock(self.wkt);
+        syscon.disable_clock(&mut self.wkt);
 
         WKT {
             wkt   : self.wkt,
@@ -120,7 +120,7 @@ impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotDisabled {
     }
 }
 
-impl<'wkt> WKT<'wkt, init_state::Enabled> {
+impl WKT<init_state::Enabled> {
     /// Select the clock to run the self-wake-up timer
     ///
     /// This method is only available if the WKT has been initialized. Code
@@ -147,7 +147,7 @@ impl<'wkt> WKT<'wkt, init_state::Enabled> {
     }
 }
 
-impl<'wkt> timer::CountDown for WKT<'wkt> {
+impl timer::CountDown for WKT {
     type Time = u32;
 
     fn start<T>(&mut self, timeout: T) where T: Into<Self::Time> {

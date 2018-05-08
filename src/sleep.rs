@@ -73,7 +73,7 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// let mut peripherals = lpc82x::Peripherals::take().unwrap();
 ///
 /// let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-/// let     wkt    = WKT::new(&mut peripherals.WKT);
+/// let     wkt    = WKT::new(peripherals.WKT);
 ///
 /// let mut wkt = wkt.enable(&mut syscon.handle);
 ///
@@ -93,7 +93,7 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// [WKT]: ../wkt/struct.WKT.html
 /// [`wkt::Clock`]: ../wkt/trait.Clock.html
 pub struct Busy<'wkt> {
-    wkt: &'wkt mut WKT<'wkt>,
+    wkt: &'wkt mut WKT,
 }
 
 impl<'wkt> Busy<'wkt> {
@@ -109,7 +109,7 @@ impl<'wkt> Busy<'wkt> {
     /// [`Sleep`]: trait.Sleep.html
     /// [`WKT`]: ../wkt/struct.WKT.html
     /// [`Sleep::sleep`]: trait.Sleep.html#tymethod.sleep
-    pub fn prepare(wkt: &'wkt mut WKT<'wkt>) -> Self {
+    pub fn prepare(wkt: &'wkt mut WKT) -> Self {
         Busy {
             wkt: wkt,
         }
@@ -165,7 +165,7 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 ///
 /// let mut pmu    = PMU::new(&mut peripherals.PMU);
 /// let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-/// let     wkt    = WKT::new(&mut peripherals.WKT);
+/// let     wkt    = WKT::new(peripherals.WKT);
 ///
 /// let mut wkt = wkt.enable(&mut syscon.handle);
 ///
@@ -196,7 +196,7 @@ pub struct Regular<'r, 'pmu, 'wkt> {
     nvic: &'r mut raw::NVIC,
     pmu : &'pmu mut pmu::Handle<'pmu>,
     scb : &'r mut raw::SCB,
-    wkt : &'wkt mut WKT<'wkt>,
+    wkt : &'wkt mut WKT,
 }
 
 impl<'r, 'pmu, 'wkt> Regular<'r, 'pmu, 'wkt> {
@@ -216,7 +216,7 @@ impl<'r, 'pmu, 'wkt> Regular<'r, 'pmu, 'wkt> {
         nvic: &'r mut raw::NVIC,
         pmu : &'pmu mut pmu::Handle<'pmu>,
         scb : &'r mut raw::SCB,
-        wkt : &'wkt mut WKT<'wkt>,
+        wkt : &'wkt mut WKT,
     )
         -> Self
     {
