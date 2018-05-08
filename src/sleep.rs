@@ -163,7 +163,7 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
 /// let mut peripherals      = lpc82x::Peripherals::take().unwrap();
 ///
-/// let mut pmu    = PMU::new(&mut peripherals.PMU);
+/// let mut pmu    = PMU::new(peripherals.PMU);
 /// let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// let     wkt    = WKT::new(peripherals.WKT);
 ///
@@ -194,7 +194,7 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// [`wkt::Clock`]: ../wkt/trait.Clock.html
 pub struct Regular<'r, 'pmu> {
     nvic: &'r mut raw::NVIC,
-    pmu : &'pmu mut pmu::Handle<'pmu>,
+    pmu : &'pmu mut pmu::Handle,
     scb : &'r mut raw::SCB,
     wkt : &'r mut WKT,
 }
@@ -214,7 +214,7 @@ impl<'r, 'pmu> Regular<'r, 'pmu> {
     /// [`Sleep::sleep`]: trait.Sleep.html#tymethod.sleep
     pub fn prepare(
         nvic: &'r mut raw::NVIC,
-        pmu : &'pmu mut pmu::Handle<'pmu>,
+        pmu : &'pmu mut pmu::Handle,
         scb : &'r mut raw::SCB,
         wkt : &'r mut WKT,
     )

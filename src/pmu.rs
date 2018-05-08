@@ -15,7 +15,7 @@
 //! let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
 //! let mut peripherals      = lpc82x::Peripherals::take().unwrap();
 //!
-//! let mut pmu = PMU::new(&mut peripherals.PMU);
+//! let mut pmu = PMU::new(peripherals.PMU);
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
@@ -47,17 +47,17 @@ use raw;
 /// [module documentation] for more information.
 ///
 /// [module documentation]: index.html
-pub struct PMU<'pmu> {
+pub struct PMU {
     /// The handle to the PMU peripheral
-    pub handle: Handle<'pmu>,
+    pub handle: Handle,
 
     /// The 10 kHz low-power clock
     pub low_power_clock: LowPowerClock<init_state::Unknown>,
 }
 
-impl<'pmu> PMU<'pmu> {
+impl PMU {
     /// Create an instance of `PMU`
-    pub fn new(pmu: &'pmu mut raw::PMU) -> Self {
+    pub fn new(pmu: raw::PMU) -> Self {
         PMU {
             handle: Handle {
                 pmu: pmu,
@@ -74,11 +74,11 @@ impl<'pmu> PMU<'pmu> {
 /// PMU.
 ///
 /// [module documentation]: index.html
-pub struct Handle<'pmu> {
-    pmu: &'pmu raw::PMU,
+pub struct Handle {
+    pmu: raw::PMU,
 }
 
-impl<'pmu> Handle<'pmu> {
+impl Handle {
     /// Enter sleep mode
     ///
     /// The microcontroller will wake up from sleep mode, if an NVIC-enabled
