@@ -35,6 +35,10 @@ rt = ["lpc82x/rt"]
 name              = "gpio"
 required-features = ["rt"]
 
+[[example]]
+name              = "usart"
+required-features = ["rt"]
+
 
 [package.metadata.release]
 pre-release-commit-message = "chore: Release version {{version}}"
