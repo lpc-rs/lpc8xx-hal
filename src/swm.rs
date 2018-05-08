@@ -89,7 +89,7 @@ impl<'swm, State> Handle<'swm, State> where State: init_state::NotEnabled {
     /// that has its `State` type parameter set to [`Enabled`].
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn init(self, syscon: &mut syscon::Handle)
+    pub fn enable(self, syscon: &mut syscon::Handle)
         -> Handle<'swm, init_state::Enabled>
     {
         syscon.enable_clock(self.swm);

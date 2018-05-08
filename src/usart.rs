@@ -28,7 +28,7 @@
 //! let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
 //! let     usart0 = USART::new(&mut peripherals.USART0);
 //!
-//! let mut swm_handle = swm.handle.init(&mut syscon.handle);
+//! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! // Set baud rate to 115200 baud
 //! //
@@ -76,7 +76,7 @@
 //! // returns a `Result::Err` is when the transmitter is busy, which it
 //! // shouldn't be right now.
 //! let mut serial = usart0
-//!     .init(
+//!     .enable(
 //!         &baud_rate,
 //!         &mut syscon.handle,
 //!         pio0_0,
@@ -185,7 +185,7 @@ impl<'usart, UsartX, State> USART<'usart, UsartX, State>
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn init<Rx: PinName, Tx: PinName>(self,
+    pub fn enable<Rx: PinName, Tx: PinName>(self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Handle,
         rx       : Pin<Rx, pin_state::Unused>,

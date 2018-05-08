@@ -25,7 +25,7 @@
 //! let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //!
-//! let gpio_handle = gpio.handle.init(&mut syscon.handle);
+//! let gpio_handle = gpio.handle.enable(&mut syscon.handle);
 //!
 //! let pio0_12 = unsafe { gpio.pins.pio0_12.affirm_default_state() }
 //!     .as_gpio_pin(&gpio_handle)
@@ -52,7 +52,7 @@
 //! let     swm    = SWM::new(&mut peripherals.SWM);
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //!
-//! let mut swm_handle = swm.handle.init(&mut syscon.handle);
+//! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! let vddcmp = unsafe {
 //!     swm.fixed_functions.vddcmp.affirm_default_state()
@@ -153,7 +153,7 @@ impl<'gpio, State> Handle<'gpio, State> where State: init_state::NotEnabled {
     /// that has its `State` type parameter set to [`Enabled`].
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn init(self, syscon: &mut syscon::Handle)
+    pub fn enable(self, syscon: &mut syscon::Handle)
         -> Handle<'gpio, init_state::Enabled>
     {
         syscon.enable_clock(self.gpio);
@@ -377,7 +377,7 @@ pins!(
 /// # let     swm    = SWM::new(&mut peripherals.SWM);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
-/// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+/// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
 /// // Reassure the API that the pin is in its default state, i.e. unused.
 /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() };
@@ -425,7 +425,7 @@ pins!(
 /// // To use general-purpose I/O, we need to enable the GPIO peripheral. The
 /// // call to `as_gpio_pin` below enforces this by requiring a reference to an
 /// // enabled GPIO handle.
-/// let gpio_handle = gpio.handle.init(&mut syscon.handle);
+/// let gpio_handle = gpio.handle.enable(&mut syscon.handle);
 ///
 /// // Affirm that pin is unused, then transition to the GPIO state
 /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
@@ -461,7 +461,7 @@ pins!(
 /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
-/// # let gpio_handle = gpio.handle.init(&mut syscon.handle);
+/// # let gpio_handle = gpio.handle.enable(&mut syscon.handle);
 /// #
 /// # let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
 /// #     .as_gpio_pin(&gpio_handle);
@@ -543,7 +543,7 @@ pins!(
 /// # let     swm    = SWM::new(&mut peripherals.SWM);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
-/// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+/// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
 /// # let xtalout = unsafe {
 /// #     swm.fixed_functions.xtalout.affirm_default_state()
@@ -600,7 +600,7 @@ pins!(
 /// # let     swm    = SWM::new(&mut peripherals.SWM);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
-/// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+/// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
 /// # let adc_2 = unsafe {
 /// #     swm.fixed_functions.adc_2.affirm_default_state()
@@ -689,7 +689,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// # let swclk = unsafe {
     /// #     swm.fixed_functions.swclk.affirm_default_state()
     /// # };
-    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
     /// // These pins are in the unknown state. As long as that's the case, we
     /// // can't do anything useful with them.
@@ -750,7 +750,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
     /// let gpio        = GPIO::new(&mut peripherals.GPIO_PORT);
-    /// let gpio_handle = gpio.handle.init(&mut syscon.handle);
+    /// let gpio_handle = gpio.handle.enable(&mut syscon.handle);
     ///
     /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
     ///     .as_gpio_pin(&gpio_handle);
@@ -895,7 +895,7 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// # let gpio_handle = gpio.handle.init(&mut syscon.handle);
+    /// # let gpio_handle = gpio.handle.enable(&mut syscon.handle);
     /// #
     /// # let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
     /// #     .as_gpio_pin(&gpio_handle);
@@ -1044,7 +1044,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
     /// // Get PIO0_9 ready for function assignment
     /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() }
@@ -1119,7 +1119,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
     /// // Get pin ready for function assignment
     /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() }
@@ -1205,7 +1205,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
     /// // PIO0_3 has a fixed output function enabled by default. Its state will
     /// // reflect that after the following method call.
@@ -1292,7 +1292,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
     /// # let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() };
     /// # let pio0_9 = pio0_9.as_swm_pin();
@@ -1376,7 +1376,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
     /// // Get PIO0_8 ready for function assignment
     /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() }
@@ -1446,7 +1446,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
     /// // Get pin ready for function assignment
     /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() }
@@ -1534,7 +1534,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
     /// // PIO0_5 has a fixed input function enabled by default. Its state will
     /// // reflect that after the following method call.
@@ -1621,7 +1621,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// # let mut swm_handle = swm.handle.init(&mut syscon.handle);
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
     /// # let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() };
     /// # let pio0_8 = pio0_8.as_swm_pin();

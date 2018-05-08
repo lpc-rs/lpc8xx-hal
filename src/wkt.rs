@@ -20,7 +20,7 @@
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //! let     timer  = WKT::new(&mut peripherals.WKT);
 //!
-//! let mut timer = timer.init(&mut syscon.handle);
+//! let mut timer = timer.enable(&mut syscon.handle);
 //!
 //! // Start the timer at 750000. Sine the IRC-derived clock runs at 750 kHz,
 //! // this translates to a one second wait.
@@ -85,7 +85,7 @@ impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotEnabled {
     /// its `State` type parameter set to [`Enabled`].
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn init(self, syscon: &mut syscon::Handle)
+    pub fn enable(self, syscon: &mut syscon::Handle)
         -> WKT<'wkt, init_state::Enabled>
     {
         syscon.enable_clock(self.wkt);
