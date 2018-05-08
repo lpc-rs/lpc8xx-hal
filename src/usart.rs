@@ -26,7 +26,7 @@
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //! let     swm    = SWM::new(&mut peripherals.SWM);
 //! let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
-//! let     usart0 = USART::new(&mut peripherals.USART0);
+//! let     usart0 = USART::new(peripherals.USART0);
 //!
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
@@ -134,20 +134,16 @@ use syscon::{
 /// Please refer to the [module documentation] for more information.
 ///
 /// [module documentation]: index.html
-pub struct USART<
-    'usart,
-    UsartX: 'usart,
-    State : InitState = init_state::Enabled,
-> {
-    usart : &'usart mut UsartX,
+pub struct USART<UsartX, State : InitState = init_state::Enabled> {
+    usart : UsartX,
     _state: State,
 }
 
-impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
+impl<UsartX> USART<UsartX, init_state::Unknown>
     where UsartX: Peripheral,
 {
     /// Create an instance of `USART`
-    pub fn new(usart: &'usart mut UsartX) -> Self {
+    pub fn new(usart: UsartX) -> Self {
         USART {
             usart : usart,
             _state: init_state::Unknown,
@@ -155,7 +151,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     }
 }
 
-impl<'usart, UsartX, State> USART<'usart, UsartX, State>
+impl<UsartX, State> USART<UsartX, State>
     where
         UsartX: Peripheral,
         State : init_state::NotEnabled
@@ -182,7 +178,7 @@ impl<'usart, UsartX, State> USART<'usart, UsartX, State>
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<Rx: PinName, Tx: PinName>(self,
+    pub fn enable<Rx: PinName, Tx: PinName>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Handle,
         rx       : Pin<Rx, pin_state::Unused>,
@@ -191,13 +187,13 @@ impl<'usart, UsartX, State> USART<'usart, UsartX, State>
         txd      : UsartX::Tx,
         swm      : &mut swm::Handle,
     )
-        -> nb::Result<USART<'usart, UsartX, init_state::Enabled>, !>
+        -> nb::Result<USART<UsartX, init_state::Enabled>, !>
         where
             UsartX::Rx: movable_function::Assign<Rx> + InputFunction,
             UsartX::Tx: movable_function::Assign<Tx> + OutputFunction,
     {
-        syscon.enable_clock(self.usart);
-        syscon.clear_reset(self.usart);
+        syscon.enable_clock(&mut self.usart);
+        syscon.clear_reset(&mut self.usart);
 
         rx
             .into_swm_pin()
@@ -267,7 +263,7 @@ impl<'usart, UsartX, State> USART<'usart, UsartX, State>
     }
 }
 
-impl<'usart, UsartX, State> USART<'usart, UsartX, State>
+impl<UsartX, State> USART<UsartX, State>
     where
         UsartX: Peripheral,
         State : init_state::NotDisabled
@@ -282,10 +278,12 @@ impl<'usart, UsartX, State> USART<'usart, UsartX, State>
     /// its `State` type parameter set to [`Disabled`].
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable<Rx: PinName, Tx: PinName>(self, syscon: &mut syscon::Handle)
-        -> USART<'usart, UsartX, init_state::Disabled>
+    pub fn disable<Rx: PinName, Tx: PinName>(mut self,
+        syscon: &mut syscon::Handle,
+    )
+        -> USART<UsartX, init_state::Disabled>
     {
-        syscon.disable_clock(self.usart);
+        syscon.disable_clock(&mut self.usart);
 
         USART {
             usart : self.usart,
@@ -294,7 +292,7 @@ impl<'usart, UsartX, State> USART<'usart, UsartX, State>
     }
 }
 
-impl<'usart, UsartX> USART<'usart, UsartX, init_state::Enabled>
+impl<UsartX> USART<UsartX, init_state::Enabled>
     where UsartX: Peripheral,
 {
     /// Enable the USART interrupts
@@ -346,7 +344,7 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Enabled>
     }
 }
 
-impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
+impl<UsartX> Read<u8> for USART<UsartX>
     where UsartX: Peripheral,
 {
     type Error = Error;
@@ -389,7 +387,7 @@ impl<'usart, UsartX> Read<u8> for USART<'usart, UsartX>
     }
 }
 
-impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
+impl<UsartX> Write<u8> for USART<UsartX>
     where UsartX: Peripheral,
 {
     type Error = !;
@@ -415,7 +413,7 @@ impl<'usart, UsartX> Write<u8> for USART<'usart, UsartX>
     }
 }
 
-impl<'usart, UsartX> BlockingWriteDefault<u8> for USART<'usart, UsartX>
+impl<UsartX> BlockingWriteDefault<u8> for USART<UsartX>
     where UsartX: Peripheral,
 {}
 

@@ -22,7 +22,7 @@ fn main() {
     let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     let     swm    = SWM::new(&mut peripherals.SWM);
     let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
-    let     usart0 = USART::new(&mut peripherals.USART0);
+    let     usart0 = USART::new(peripherals.USART0);
 
     let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 
