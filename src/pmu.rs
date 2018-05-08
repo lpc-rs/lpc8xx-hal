@@ -56,15 +56,7 @@ pub struct PMU<'pmu> {
     pub handle: Handle<'pmu>,
 
     /// The 10 kHz low-power clock
-    ///
-    /// # Limitations
-    ///
-    /// This field currently assumes that the low-power clock always starts out
-    /// being disabled, but since we don't know what happened before the HAL API
-    /// was initialized, this might not be the case. Please make sure you
-    /// haven't enabled the low-power clock, or called any code that might have,
-    /// before using this field.
-    pub low_power_clock: LowPowerClock<init_state::Disabled>,
+    pub low_power_clock: LowPowerClock<init_state::Unknown>,
 }
 
 impl<'pmu> PMU<'pmu> {
@@ -126,10 +118,10 @@ pub struct LowPowerClock<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl LowPowerClock<init_state::Disabled> {
+impl LowPowerClock<init_state::Unknown> {
     pub(crate) fn new() -> Self {
         LowPowerClock {
-            _state: init_state::Disabled,
+            _state: init_state::Unknown,
         }
     }
 }
