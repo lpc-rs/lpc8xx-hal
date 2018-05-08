@@ -82,48 +82,29 @@ pub trait Frequency {
 /// clock is enabled, and implement the `Enabled` trait conditionally.
 ///
 /// ``` rust
-/// use lpc82x_hal::clock;
+/// use lpc82x_hal::{
+///     clock,
+///     init_state,
+/// };
 ///
 ///
 /// struct MyClock<State> {
 ///     _state: State,
 /// }
 ///
-/// impl MyClock<clock::state::Disabled> {
+/// impl MyClock<init_state::Disabled> {
 ///     /// Consume the instance with disabled state, return one with enabled
 ///     /// state.
-///     pub fn enable(self) -> MyClock<clock::state::Enabled> {
+///     pub fn enable(self) -> MyClock<init_state::Enabled> {
 ///         // Enable the clock
 ///         // ...
 ///
 ///         MyClock {
-///             _state: clock::state::Enabled,
+///             _state: init_state::Enabled,
 ///         }
 ///     }
 /// }
 ///
-/// impl clock::Enabled for MyClock<clock::state::Enabled> {}
+/// impl clock::Enabled for MyClock<init_state::Enabled> {}
 /// ```
 pub trait Enabled {}
-
-
-/// Contains types that mark the state of a given clock instance
-pub mod state {
-    /// Implemented by types that indicate a clock state
-    ///
-    /// Clocks that can be enabled or disabled use this trait as a bound for
-    /// generic type parameters that indicate the clock state. This is done for
-    /// documentation purposes, to clearly show which states a clock can have.
-    ///
-    /// Other than that, this trait should not be relevant to users of LPC82x
-    /// HAL. You shouldn't implement it, nor should you need to use it directly.
-    pub trait ClockState {}
-
-    /// Marks a clock as being disabled
-    pub struct Disabled;
-    impl ClockState for Disabled {}
-
-    /// Marks a clock as being enabled
-    pub struct Enabled;
-    impl ClockState for Enabled {}
-}
