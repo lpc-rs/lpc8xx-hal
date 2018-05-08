@@ -195,7 +195,7 @@ impl<State> Clock for IrcDerivedClock<State> where State: ClockState {
     }
 }
 
-impl<State> Clock for LowPowerClock<State> where State: ClockState {
+impl<State> Clock for LowPowerClock<State> where State: InitState {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
         w
             .sel_extclk().internal()
