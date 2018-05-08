@@ -22,7 +22,7 @@
 //!
 //! let mut peripherals = lpc82x::Peripherals::take().unwrap();
 //!
-//! let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+//! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //!
 //! let gpio_handle = gpio.handle.enable(&mut syscon.handle);
@@ -48,7 +48,7 @@
 //!
 //! let mut peripherals = lpc82x::Peripherals::take().unwrap();
 //!
-//! let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+//! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 //! let     swm    = SWM::new(&mut peripherals.SWM);
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //!
@@ -103,17 +103,17 @@ use self::pin_state::PinState;
 /// [`gpio::Handle`]: struct.Handle.html
 /// [`Pins`]: struct.Pins.html
 /// [module documentation]: index.html
-pub struct GPIO<'gpio> {
+pub struct GPIO {
     /// The handle to the GPIO peripheral
-    pub handle: Handle<'gpio, init_state::Unknown,>,
+    pub handle: Handle<init_state::Unknown,>,
 
     /// The pins that can be used for GPIO or other functions
     pub pins: Pins,
 }
 
-impl<'gpio> GPIO<'gpio> {
+impl GPIO {
     /// Create an instance of `GPIO`
-    pub fn new(gpio: &'gpio mut raw::GPIO_PORT) -> Self {
+    pub fn new(gpio: raw::GPIO_PORT) -> Self {
         GPIO {
             handle: Handle {
                 gpio  : gpio,
@@ -133,12 +133,12 @@ impl<'gpio> GPIO<'gpio> {
 /// Please refer to the [module documentation] for more information.
 ///
 /// [module documentation]: index.html
-pub struct Handle<'gpio, State: InitState = init_state::Enabled> {
-    gpio  : &'gpio mut raw::GPIO_PORT,
+pub struct Handle<State: InitState = init_state::Enabled> {
+    gpio  : raw::GPIO_PORT,
     _state: State,
 }
 
-impl<'gpio, State> Handle<'gpio, State> where State: init_state::NotEnabled {
+impl<'gpio, State> Handle<State> where State: init_state::NotEnabled {
     /// Enable the GPIO peripheral
     ///
     /// Enables the clock and clears the peripheral reset for the GPIO
@@ -152,11 +152,11 @@ impl<'gpio, State> Handle<'gpio, State> where State: init_state::NotEnabled {
     /// that has its `State` type parameter set to [`Enabled`].
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(self, syscon: &mut syscon::Handle)
-        -> Handle<'gpio, init_state::Enabled>
+    pub fn enable(mut self, syscon: &mut syscon::Handle)
+        -> Handle<init_state::Enabled>
     {
-        syscon.enable_clock(self.gpio);
-        syscon.clear_reset(self.gpio);
+        syscon.enable_clock(&mut self.gpio);
+        syscon.clear_reset(&mut self.gpio);
 
         Handle {
             gpio  : self.gpio,
@@ -165,7 +165,7 @@ impl<'gpio, State> Handle<'gpio, State> where State: init_state::NotEnabled {
     }
 }
 
-impl<'gpio, State> Handle<'gpio, State> where State: init_state::NotDisabled {
+impl<State> Handle<State> where State: init_state::NotDisabled {
     /// Disable the GPIO peripheral
     ///
     /// This method is only available, if `gpio::Handle` is not already in the
@@ -176,10 +176,10 @@ impl<'gpio, State> Handle<'gpio, State> where State: init_state::NotDisabled {
     /// that has its `State` type parameter set to [`Disabled`].
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(self, syscon: &mut syscon::Handle)
-        -> Handle<'gpio, init_state::Disabled>
+    pub fn disable(mut self, syscon: &mut syscon::Handle)
+        -> Handle<init_state::Disabled>
     {
-        syscon.disable_clock(self.gpio);
+        syscon.disable_clock(&mut self.gpio);
 
         Handle {
             gpio  : self.gpio,
@@ -362,7 +362,7 @@ pins!(
 /// #
 /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
 /// #
-/// # let gpio = GPIO::new(&mut peripherals.GPIO_PORT);
+/// # let gpio = GPIO::new(peripherals.GPIO_PORT);
 /// #
 /// use lpc82x_hal::gpio::{
 ///     PIO0_12,
@@ -395,7 +395,7 @@ pins!(
 /// #
 /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
 /// #
-/// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+/// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 /// # let     swm    = SWM::new(&mut peripherals.SWM);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
@@ -441,7 +441,7 @@ pins!(
 /// #
 /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
 /// #
-/// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+/// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
 /// // To use general-purpose I/O, we need to enable the GPIO peripheral. The
@@ -480,7 +480,7 @@ pins!(
 /// #
 /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
 /// #
-/// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+/// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
 /// # let gpio_handle = gpio.handle.enable(&mut syscon.handle);
@@ -524,7 +524,7 @@ pins!(
 /// #
 /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
 /// #
-/// # let gpio = GPIO::new(&mut peripherals.GPIO_PORT);
+/// # let gpio = GPIO::new(peripherals.GPIO_PORT);
 /// #
 /// // Affirm that the pin is unused, then transition to the SWM state
 /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
@@ -561,7 +561,7 @@ pins!(
 /// #
 /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
 /// #
-/// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+/// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 /// # let     swm    = SWM::new(&mut peripherals.SWM);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
@@ -618,7 +618,7 @@ pins!(
 /// #
 /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
 /// #
-/// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+/// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 /// # let     swm    = SWM::new(&mut peripherals.SWM);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
@@ -704,7 +704,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// # let mut swm    = SWM::new(&mut peripherals.SWM);
     /// #
@@ -771,7 +771,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// #
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// let gpio        = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// let gpio        = GPIO::new(peripherals.GPIO_PORT);
     /// let gpio_handle = gpio.handle.enable(&mut syscon.handle);
     ///
     /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
@@ -782,8 +782,8 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     ///
     /// [State Management]: #state-management
     /// [`gpio::Handle`]: struct.Handle.html
-    pub fn into_gpio_pin<'gpio>(self, gpio: &'gpio Handle<'gpio>)
-        -> Pin<T, pin_state::Gpio<'gpio, direction::Unknown>>
+    pub fn into_gpio_pin(self, gpio: &Handle)
+        -> Pin<T, pin_state::Gpio<direction::Unknown>>
     {
         Pin {
             ty   : self.ty,
@@ -820,7 +820,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// let gpio = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// let gpio = GPIO::new(peripherals.GPIO_PORT);
     ///
     /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
     ///     .into_swm_pin();
@@ -914,7 +914,7 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
     /// # let gpio_handle = gpio.handle.enable(&mut syscon.handle);
@@ -1062,7 +1062,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
@@ -1137,7 +1137,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
@@ -1223,7 +1223,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
@@ -1310,7 +1310,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
@@ -1394,7 +1394,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
@@ -1464,7 +1464,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
@@ -1552,7 +1552,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
@@ -1639,7 +1639,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
+    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     /// # let     swm    = SWM::new(&mut peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
