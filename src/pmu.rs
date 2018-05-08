@@ -34,7 +34,10 @@ use cortex_m::{
 };
 
 use clock;
-use clock::state::ClockState;
+use init_state::{
+    self,
+    InitState,
+};
 use raw;
 use raw::pmu::{
     DPDCTRL,
@@ -53,15 +56,7 @@ pub struct PMU<'pmu> {
     pub handle: Handle<'pmu>,
 
     /// The 10 kHz low-power clock
-    ///
-    /// # Limitations
-    ///
-    /// This field currently assumes that the low-power clock always starts out
-    /// being disabled, but since we don't know what happened before the HAL API
-    /// was initialized, this might not be the case. Please make sure you
-    /// haven't enabled the low-power clock, or called any code that might have,
-    /// before using this field.
-    pub low_power_clock: LowPowerClock<clock::state::Disabled>,
+    pub low_power_clock: LowPowerClock<init_state::Unknown>,
 }
 
 impl<'pmu> PMU<'pmu> {
@@ -119,22 +114,24 @@ impl<'pmu> Handle<'pmu> {
 ///
 /// This is one of the clocks that can be used to run the self-wake-up timer
 /// (WKT). See user manual, section 18.5.1.
-pub struct LowPowerClock<State: ClockState = clock::state::Enabled> {
+pub struct LowPowerClock<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl LowPowerClock<clock::state::Disabled> {
+impl LowPowerClock<init_state::Unknown> {
     pub(crate) fn new() -> Self {
         LowPowerClock {
-            _state: clock::state::Disabled,
+            _state: init_state::Unknown,
         }
     }
+}
 
+impl<State> LowPowerClock<State> where State: init_state::NotEnabled {
     /// Enable the low-power clock
     ///
-    /// This method is only available if the low-power clock is disabled. Code
-    /// attempting to call this method when this is not the case will not
-    /// compile.
+    /// This method is only available if the low-power clock is not already
+    /// enabled. Code attempting to call this method when this is not the case
+    /// will not compile.
     ///
     /// Consumes this instance of `LowPowerClock` and returns a new instance
     /// whose state indicates that the clock is enabled. That new instance
@@ -143,45 +140,45 @@ impl LowPowerClock<clock::state::Disabled> {
     ///
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
     pub fn enable(self, pmu: &mut Handle)
-        -> LowPowerClock<clock::state::Enabled>
+        -> LowPowerClock<init_state::Enabled>
     {
         pmu.dpdctrl.modify(|_, w|
             w.lposcen().enabled()
         );
 
         LowPowerClock {
-            _state: clock::state::Enabled,
+            _state: init_state::Enabled,
         }
     }
 }
 
-impl LowPowerClock<clock::state::Enabled> {
+impl<State> LowPowerClock<State> where State: init_state::NotDisabled {
     /// Disable the low-power clock
     ///
-    /// This method is only available if the low-power clock is enabled. Code
-    /// attempting to call this method when this is not the case will not
-    /// compile.
+    /// This method is only available if the low-power clock is not already
+    /// disabled. Code attempting to call this method when this is not the case
+    /// will not compile.
     ///
     /// Consumes this instance of `LowPowerClock` and returns a new instance
     /// whose state indicates that the clock is disabled.
     pub fn disable(self, pmu: &mut Handle)
-        -> LowPowerClock<clock::state::Disabled>
+        -> LowPowerClock<init_state::Disabled>
     {
         pmu.dpdctrl.modify(|_, w|
             w.lposcen().disabled()
         );
 
         LowPowerClock {
-            _state: clock::state::Disabled,
+            _state: init_state::Disabled,
         }
     }
 }
 
-impl<State> clock::Frequency for LowPowerClock<State> where State: ClockState {
+impl<State> clock::Frequency for LowPowerClock<State> where State: InitState {
     fn hz(&self) -> u32 { 10_000 }
 }
 
-impl clock::Enabled for LowPowerClock<clock::state::Enabled> {}
+impl clock::Enabled for LowPowerClock<init_state::Enabled> {}
 
 
 /// The SLEEPDEEP bit from the SCB's SCR register

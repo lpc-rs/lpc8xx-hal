@@ -8,7 +8,10 @@
 use core::marker::PhantomData;
 
 use clock;
-use clock::state::ClockState;
+use init_state::{
+    self,
+    InitState,
+};
 use raw;
 use raw::syscon::{
     pdruncfg,
@@ -61,15 +64,7 @@ pub struct SYSCON<'syscon> {
     pub uartfrg: UARTFRG<'syscon>,
 
     /// The 750 kHz IRC-derived clock
-    ///
-    /// # Limitations
-    ///
-    /// This field currently assumes that the IRC-derived clock always starts
-    /// out being disabled, but since we don't know what happened before the HAL
-    /// API was initialized, this might not be the case. Please make sure you
-    /// haven't enabled the IRC-derived clock, or called any code that might
-    /// have, before using this field.
-    pub irc_derived_clock: IrcDerivedClock<clock::state::Disabled>,
+    pub irc_derived_clock: IrcDerivedClock<init_state::Unknown>,
 }
 
 impl<'syscon> SYSCON<'syscon> {
@@ -445,22 +440,24 @@ impl_analog_block!(&'a raw::CMP , acmp      );
 ///
 /// This is one of the clocks that can be used to run the self-wake-up timer
 /// (WKT). See user manual, section 18.5.1.
-pub struct IrcDerivedClock<State: ClockState = clock::state::Enabled> {
+pub struct IrcDerivedClock<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl IrcDerivedClock<clock::state::Disabled> {
+impl IrcDerivedClock<init_state::Unknown> {
     pub(crate) fn new() -> Self {
         IrcDerivedClock {
-            _state: clock::state::Disabled,
+            _state: init_state::Unknown,
         }
     }
+}
 
+impl<State> IrcDerivedClock<State> where State: init_state::NotEnabled {
     /// Enable the IRC-derived clock
     ///
-    /// This method is only available if the IRC-derived clock is disabled. Code
-    /// attempting to call this method when this is not the case will not
-    /// compile.
+    /// This method is only available if the IRC-derived clock is not already
+    /// enabled. Code attempting to call this method when this is not the case
+    /// will not compile.
     ///
     /// Consumes this instance of `IrcDerivedClock` and returns a new instance
     /// whose state indicates that the clock is enabled. That new instance
@@ -473,21 +470,21 @@ impl IrcDerivedClock<clock::state::Disabled> {
     ///
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
     pub fn enable(self, syscon: &mut Handle, mut irc: IRC, mut ircout: IRCOUT)
-        -> IrcDerivedClock<clock::state::Enabled>
+        -> IrcDerivedClock<init_state::Enabled>
     {
         syscon.power_up(&mut irc);
         syscon.power_up(&mut ircout);
 
         IrcDerivedClock {
-            _state: clock::state::Enabled,
+            _state: init_state::Enabled,
         }
     }
 }
 
 impl<State> clock::Frequency for IrcDerivedClock<State>
-    where State: ClockState
+    where State: InitState
 {
     fn hz(&self) -> u32 { 750_000 }
 }
 
-impl clock::Enabled for IrcDerivedClock<clock::state::Enabled> {}
+impl clock::Enabled for IrcDerivedClock<init_state::Enabled> {}
