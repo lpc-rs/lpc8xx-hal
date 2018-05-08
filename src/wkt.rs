@@ -41,7 +41,6 @@ use syscon::{
     self,
     IrcDerivedClock,
 };
-use clock::state::ClockState;
 use init_state::{
     self,
     InitState,
@@ -187,7 +186,7 @@ pub trait Clock {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W;
 }
 
-impl<State> Clock for IrcDerivedClock<State> where State: ClockState {
+impl<State> Clock for IrcDerivedClock<State> where State: InitState {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
         w
             .sel_extclk().internal()
