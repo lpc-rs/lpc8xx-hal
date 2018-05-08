@@ -20,7 +20,7 @@
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //! let     timer  = WKT::new(&mut peripherals.WKT);
 //!
-//! let mut timer = timer.init(&mut syscon.handle);
+//! let mut timer = timer.enable(&mut syscon.handle);
 //!
 //! // Start the timer at 750000. Sine the IRC-derived clock runs at 750 kHz,
 //! // this translates to a one second wait.
@@ -72,21 +72,20 @@ impl<'wkt> WKT<'wkt, init_state::Unknown> {
             _state: init_state::Unknown,
         }
     }
+}
 
-    /// Initialize the self-wake-up timer
+impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotEnabled {
+    /// Enable the self-wake-up timer
     ///
-    /// This method is only available, if `WKT` is in the [`Unknown`] state.
-    /// This is the initial state after initializing the HAL API. Code that
-    /// attempts to call this method after the WKT has been initialized will not
-    /// compile.
+    /// This method is only available, if `WKT` is not already in the
+    /// [`Enabled`] state. Code that attempts to call this method when the WKT
+    /// is already enabled will not compile.
     ///
     /// Consumes this instance of `WKT` and returns another instance that has
-    /// its `State` type parameter set to [`Enabled`]. This makes available
-    /// those methods that can only work if the WKT is enabled.
+    /// its `State` type parameter set to [`Enabled`].
     ///
-    /// [`Unknown`]: ../init_state/struct.Unknown.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn init(self, syscon: &mut syscon::Handle)
+    pub fn enable(self, syscon: &mut syscon::Handle)
         -> WKT<'wkt, init_state::Enabled>
     {
         syscon.enable_clock(self.wkt);
@@ -99,7 +98,30 @@ impl<'wkt> WKT<'wkt, init_state::Unknown> {
     }
 }
 
-impl<'wkt> WKT<'wkt> {
+impl<'wkt, State> WKT<'wkt, State> where State: init_state::NotDisabled {
+    /// Disable the self-wake-up timer
+    ///
+    /// This method is only available, if `WKT` is not already in the
+    /// [`Disabled`] state. Code that attempts to call this method when the WKT
+    /// is already disabled will not compile.
+    ///
+    /// Consumes this instance of `WKT` and returns another instance that has
+    /// its `State` type parameter set to [`Disabled`].
+    ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    pub fn disable(self, syscon: &mut syscon::Handle)
+        -> WKT<'wkt, init_state::Disabled>
+    {
+        syscon.disable_clock(self.wkt);
+
+        WKT {
+            wkt   : self.wkt,
+            _state: init_state::Disabled,
+        }
+    }
+}
+
+impl<'wkt> WKT<'wkt, init_state::Enabled> {
     /// Select the clock to run the self-wake-up timer
     ///
     /// This method is only available if the WKT has been initialized. Code

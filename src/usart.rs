@@ -28,7 +28,7 @@
 //! let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
 //! let     usart0 = USART::new(&mut peripherals.USART0);
 //!
-//! let mut swm_handle = swm.handle.init(&mut syscon.handle);
+//! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! // Set baud rate to 115200 baud
 //! //
@@ -76,7 +76,7 @@
 //! // returns a `Result::Err` is when the transmitter is busy, which it
 //! // shouldn't be right now.
 //! let mut serial = usart0
-//!     .init(
+//!     .enable(
 //!         &baud_rate,
 //!         &mut syscon.handle,
 //!         pio0_0,
@@ -156,17 +156,21 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
             _state: init_state::Unknown,
         }
     }
+}
 
-    /// Initialize a USART peripheral
+impl<'usart, UsartX, State> USART<'usart, UsartX, State>
+    where
+        UsartX: Peripheral,
+        State : init_state::NotEnabled
+{
+    /// Enable a USART peripheral
     ///
-    /// This method is only available, if the `USART` instance is in the
-    /// [`Unknown`] state, which is the default. Attempting to call this method
-    /// after the USART peripheral has been initialized will lead to a compiler
-    /// error.
+    /// This method is only available, if `USART` is not already in the
+    /// [`Enabled`] state. Code that attempts to call this method when the USART
+    /// is already enabled will not compile.
     ///
-    /// Consumes the `USART` instance and returns another instance that has its
-    /// state set to [`Enabled`]. This makes other methods available, that
-    /// wouldn't be available otherwise.
+    /// Consumes this instance of `USART` and returns another instance that has
+    /// its `State` type parameter set to [`Enabled`].
     ///
     /// # Limitations
     ///
@@ -178,11 +182,10 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     ///
     /// Please refer to the [module documentation] for a full example.
     ///
-    /// [`Unknown`]: ../init_state/struct.Unknown.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn init<Rx: PinName, Tx: PinName>(self,
+    pub fn enable<Rx: PinName, Tx: PinName>(self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Handle,
         rx       : Pin<Rx, pin_state::Unused>,
@@ -267,7 +270,34 @@ impl<'usart, UsartX> USART<'usart, UsartX, init_state::Unknown>
     }
 }
 
-impl<'usart, UsartX> USART<'usart, UsartX>
+impl<'usart, UsartX, State> USART<'usart, UsartX, State>
+    where
+        UsartX: Peripheral,
+        State : init_state::NotDisabled
+{
+    /// Disable a USART peripheral
+    ///
+    /// This method is only available, if `USART` is not already in the
+    /// [`Disabled`] state. Code that attempts to call this method when the
+    /// USART is already disabled will not compile.
+    ///
+    /// Consumes this instance of `USART` and returns another instance that has
+    /// its `State` type parameter set to [`Disabled`].
+    ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    pub fn disable<Rx: PinName, Tx: PinName>(self, syscon: &mut syscon::Handle)
+        -> USART<'usart, UsartX, init_state::Disabled>
+    {
+        syscon.disable_clock(self.usart);
+
+        USART {
+            usart : self.usart,
+            _state: init_state::Disabled,
+        }
+    }
+}
+
+impl<'usart, UsartX> USART<'usart, UsartX, init_state::Enabled>
     where UsartX: Peripheral,
 {
     /// Enable the USART interrupts
