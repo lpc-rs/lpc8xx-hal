@@ -32,7 +32,7 @@ rt = ["lpc82x/rt"]
 
 
 [[example]]
-name              = "blinker"
+name              = "gpio"
 required-features = ["rt"]
 
 
