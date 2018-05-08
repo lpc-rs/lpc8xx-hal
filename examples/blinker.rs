@@ -55,9 +55,9 @@ fn main() {
     let (pio0_3, _) = pio0_3
         .disable_output_function(swclk, &mut swm_handle);
     let mut pio0_3 = pio0_3
-        .as_unused_pin()
-        .as_gpio_pin(&gpio_handle)
-        .as_output();
+        .into_unused_pin()
+        .into_gpio_pin(&gpio_handle)
+        .into_output();
 
     // Let's already initialize the durations that we're going to sleep for
     // between changing the LED state. We do this by specifying the number of

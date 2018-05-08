@@ -203,10 +203,10 @@ impl<'usart, UsartX, State> USART<'usart, UsartX, State>
         syscon.clear_reset(self.usart);
 
         rx
-            .as_swm_pin()
+            .into_swm_pin()
             .assign_input_function(rxd, swm);
         tx
-            .as_swm_pin()
+            .into_swm_pin()
             .assign_output_function(txd, swm);
 
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
