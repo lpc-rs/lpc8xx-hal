@@ -39,10 +39,6 @@ use init_state::{
     InitState,
 };
 use raw;
-use raw::pmu::{
-    DPDCTRL,
-    PCON,
-};
 
 
 /// Entry point to the PMU API
@@ -64,8 +60,7 @@ impl<'pmu> PMU<'pmu> {
     pub fn new(pmu: &'pmu mut raw::PMU) -> Self {
         PMU {
             handle: Handle {
-                dpdctrl: &pmu.dpdctrl,
-                pcon   : &pmu.pcon,
+                pmu: pmu,
             },
             low_power_clock: LowPowerClock::new(),
         }
@@ -80,8 +75,7 @@ impl<'pmu> PMU<'pmu> {
 ///
 /// [module documentation]: index.html
 pub struct Handle<'pmu> {
-    dpdctrl: &'pmu DPDCTRL,
-    pcon   : &'pmu PCON,
+    pmu: &'pmu raw::PMU,
 }
 
 impl<'pmu> Handle<'pmu> {
@@ -92,7 +86,7 @@ impl<'pmu> Handle<'pmu> {
     pub fn enter_sleep_mode(&mut self, scb: &mut raw::SCB) {
         interrupt::free(|_| {
             // Default power mode indicates active or sleep mode.
-            self.pcon.modify(|_, w|
+            self.pmu.pcon.modify(|_, w|
                 w.pm().default()
             );
             // The SLEEPDEEP bit must not be set for entering regular sleep
@@ -142,7 +136,7 @@ impl<State> LowPowerClock<State> where State: init_state::NotEnabled {
     pub fn enable(self, pmu: &mut Handle)
         -> LowPowerClock<init_state::Enabled>
     {
-        pmu.dpdctrl.modify(|_, w|
+        pmu.pmu.dpdctrl.modify(|_, w|
             w.lposcen().enabled()
         );
 
@@ -164,7 +158,7 @@ impl<State> LowPowerClock<State> where State: init_state::NotDisabled {
     pub fn disable(self, pmu: &mut Handle)
         -> LowPowerClock<init_state::Disabled>
     {
-        pmu.dpdctrl.modify(|_, w|
+        pmu.pmu.dpdctrl.modify(|_, w|
             w.lposcen().disabled()
         );
 
