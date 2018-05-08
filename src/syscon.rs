@@ -458,12 +458,14 @@ impl IrcDerivedClock<init_state::Disabled> {
             _state: init_state::Disabled,
         }
     }
+}
 
+impl<State> IrcDerivedClock<State> where State: init_state::NotEnabled {
     /// Enable the IRC-derived clock
     ///
-    /// This method is only available if the IRC-derived clock is disabled. Code
-    /// attempting to call this method when this is not the case will not
-    /// compile.
+    /// This method is only available if the IRC-derived clock is not already
+    /// enabled. Code attempting to call this method when this is not the case
+    /// will not compile.
     ///
     /// Consumes this instance of `IrcDerivedClock` and returns a new instance
     /// whose state indicates that the clock is enabled. That new instance
