@@ -22,10 +22,10 @@ fn main() {
     let mut peripherals = raw::Peripherals::take().unwrap();
 
     // Create the peripheral interfaces.
-    let     gpio   = GPIO::new(&mut peripherals.GPIO_PORT);
-    let     swm    = SWM::new(&mut peripherals.SWM);
+    let     gpio   = GPIO::new(peripherals.GPIO_PORT);
+    let     swm    = SWM::new(peripherals.SWM);
     let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    let     wkt    = WKT::new(&mut peripherals.WKT);
+    let     wkt    = WKT::new(peripherals.WKT);
 
     // Other peripherals need to be initialized. Trying to use the API before
     // initializing them will actually lead to compile-time errors.

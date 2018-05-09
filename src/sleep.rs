@@ -73,7 +73,7 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// let mut peripherals = lpc82x::Peripherals::take().unwrap();
 ///
 /// let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-/// let     wkt    = WKT::new(&mut peripherals.WKT);
+/// let     wkt    = WKT::new(peripherals.WKT);
 ///
 /// let mut wkt = wkt.enable(&mut syscon.handle);
 ///
@@ -93,7 +93,7 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// [WKT]: ../wkt/struct.WKT.html
 /// [`wkt::Clock`]: ../wkt/trait.Clock.html
 pub struct Busy<'wkt> {
-    wkt: &'wkt mut WKT<'wkt>,
+    wkt: &'wkt mut WKT,
 }
 
 impl<'wkt> Busy<'wkt> {
@@ -109,7 +109,7 @@ impl<'wkt> Busy<'wkt> {
     /// [`Sleep`]: trait.Sleep.html
     /// [`WKT`]: ../wkt/struct.WKT.html
     /// [`Sleep::sleep`]: trait.Sleep.html#tymethod.sleep
-    pub fn prepare(wkt: &'wkt mut WKT<'wkt>) -> Self {
+    pub fn prepare(wkt: &'wkt mut WKT) -> Self {
         Busy {
             wkt: wkt,
         }
@@ -163,9 +163,9 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
 /// let mut peripherals      = lpc82x::Peripherals::take().unwrap();
 ///
-/// let mut pmu    = PMU::new(&mut peripherals.PMU);
+/// let mut pmu    = PMU::new(peripherals.PMU);
 /// let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-/// let     wkt    = WKT::new(&mut peripherals.WKT);
+/// let     wkt    = WKT::new(peripherals.WKT);
 ///
 /// let mut wkt = wkt.enable(&mut syscon.handle);
 ///
@@ -192,14 +192,14 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// [WKT]: ../wkt/struct.WKT.html
 /// [handle the WKT interrupt]: ../wkt/struct.WKT.html#method.handle_interrupt
 /// [`wkt::Clock`]: ../wkt/trait.Clock.html
-pub struct Regular<'r, 'pmu, 'wkt> {
+pub struct Regular<'r> {
     nvic: &'r mut raw::NVIC,
-    pmu : &'pmu mut pmu::Handle<'pmu>,
+    pmu : &'r mut pmu::Handle,
     scb : &'r mut raw::SCB,
-    wkt : &'wkt mut WKT<'wkt>,
+    wkt : &'r mut WKT,
 }
 
-impl<'r, 'pmu, 'wkt> Regular<'r, 'pmu, 'wkt> {
+impl<'r> Regular<'r> {
     /// Prepare regular sleep mode
     ///
     /// Returns an instance of `sleep::Regular`, which implements [`Sleep`] and
@@ -214,9 +214,9 @@ impl<'r, 'pmu, 'wkt> Regular<'r, 'pmu, 'wkt> {
     /// [`Sleep::sleep`]: trait.Sleep.html#tymethod.sleep
     pub fn prepare(
         nvic: &'r mut raw::NVIC,
-        pmu : &'pmu mut pmu::Handle<'pmu>,
+        pmu : &'r mut pmu::Handle,
         scb : &'r mut raw::SCB,
-        wkt : &'wkt mut WKT<'wkt>,
+        wkt : &'r mut WKT,
     )
         -> Self
     {
@@ -229,7 +229,7 @@ impl<'r, 'pmu, 'wkt> Regular<'r, 'pmu, 'wkt> {
     }
 }
 
-impl<'r, 'pmu, 'wkt, Clock> Sleep<Clock> for Regular<'r, 'pmu, 'wkt>
+impl<'r, Clock> Sleep<Clock> for Regular<'r>
     where Clock: clock::Enabled + wkt::Clock
 {
     fn sleep<'clock, T>(&mut self, ticks: T)
