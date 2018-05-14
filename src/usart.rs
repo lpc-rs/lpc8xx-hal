@@ -278,9 +278,7 @@ impl<UsartX, State> USART<UsartX, State>
     /// its `State` type parameter set to [`Disabled`].
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable<Rx: PinTrait, Tx: PinTrait>(mut self,
-        syscon: &mut syscon::Handle,
-    )
+    pub fn disable(mut self, syscon: &mut syscon::Handle)
         -> USART<UsartX, init_state::Disabled>
     {
         syscon.disable_clock(&mut self.usart);
