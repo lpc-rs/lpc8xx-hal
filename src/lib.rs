@@ -224,7 +224,6 @@
 
 
 #![feature(const_fn)]
-#![feature(const_refcell_new)]
 #![feature(never_type)]
 
 #![deny(warnings)]
