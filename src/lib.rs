@@ -224,9 +224,7 @@
 
 
 #![feature(const_fn)]
-#![feature(const_refcell_new)]
 #![feature(never_type)]
-#![cfg_attr(feature = "rt", feature(use_extern_macros))]
 
 #![deny(warnings)]
 #![deny(missing_docs)]
@@ -240,6 +238,7 @@ extern crate std;
 extern crate cortex_m;
 extern crate embedded_hal;
 extern crate nb;
+extern crate void;
 
 pub extern crate lpc82x as raw;
 
@@ -263,13 +262,6 @@ pub use raw::{
     SCB,
     SYST,
     Interrupt,
-};
-
-#[cfg(feature = "rt")]
-pub use raw::{
-    default_handler,
-    exception,
-    interrupt,
 };
 
 pub use self::gpio::GPIO;

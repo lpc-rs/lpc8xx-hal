@@ -69,7 +69,10 @@
 //! [`lpc82x::GPIO_PORT`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.GPIO_PORT.html
 
 
-use embedded_hal::digital::OutputPin;
+use embedded_hal::digital::{
+    OutputPin,
+    StatefulOutputPin,
+};
 
 use init_state::{
     self,
@@ -958,36 +961,6 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
 impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
     where T: PinName
 {
-    /// Indicates whether the pin output is currently set to HIGH
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
-    /// [`into_output`]: #method.into_output
-    fn is_high(&self) -> bool {
-        self.state.pin0.read().port().bits() & T::MASK == T::MASK
-    }
-
-    /// Indicates whether the pin output is currently set to LOW
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
-    /// [`into_output`]: #method.into_output
-    fn is_low(&self) -> bool {
-        !self.state.pin0.read().port().bits() & T::MASK == T::MASK
-    }
-
     /// Set the pin output to HIGH
     ///
     /// This method is only available, if two conditions are met:
@@ -1020,6 +993,41 @@ impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
         self.state.clr0.write(|w|
             unsafe { w.clrp().bits(T::MASK) }
         );
+    }
+}
+
+impl<'gpio, T> StatefulOutputPin
+    for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
+    where T: PinName
+{
+    /// Indicates whether the pin output is currently set to HIGH
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    fn is_set_high(&self) -> bool {
+        self.state.pin0.read().port().bits() & T::MASK == T::MASK
+    }
+
+    /// Indicates whether the pin output is currently set to LOW
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    fn is_set_low(&self) -> bool {
+        !self.state.pin0.read().port().bits() & T::MASK == T::MASK
     }
 }
 
