@@ -18,9 +18,9 @@ travis-ci   = { repository = "braun-robotics/rust-lpc82x-hal" }
 
 
 [dependencies]
-cortex-m     = "0.4"
+cortex-m     = "0.5"
 embedded-hal = { version = "0.2", features = ["unproven"] }
-lpc82x       = "0.3"
+lpc82x       = "0.4"
 nb           = "0.1.1"
 void         = { version = "1", default-features = false }
 
