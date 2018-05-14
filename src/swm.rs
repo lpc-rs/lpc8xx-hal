@@ -27,7 +27,7 @@ use gpio::{
     PIO0_21,
     PIO0_22,
     PIO0_23,
-    PinName,
+    PinTrait,
 };
 use init_state::{
     self,
@@ -132,12 +132,12 @@ impl<State> Handle<State> where State: init_state::NotDisabled {
 /// directly. Changes made to this module will not be considered breaking
 /// changes.
 pub mod movable_function {
-    use gpio::PinName;
+    use gpio::PinTrait;
     use swm;
 
 
     /// Internal trait for unassigned movable functions that can be assigned
-    pub trait Assign<P> where P: PinName {
+    pub trait Assign<P> where P: PinTrait {
         /// The type that is returned by [`assign`].
         ///
         /// Typically, this will be the same type that implements this trait,
@@ -160,7 +160,7 @@ pub mod movable_function {
 
 
     /// Internal trait for assigned movable functions that can be unassigned
-    pub trait Unassign<P> where P: PinName {
+    pub trait Unassign<P> where P: PinTrait {
         /// The type that is returned by [`unassign`].
         ///
         /// Typically, this will be the same type that implements this trait,
@@ -276,7 +276,7 @@ macro_rules! movable_functions {
 
             impl<P> movable_function::Assign<P>
                 for $type<movable_function::state::Unassigned>
-                where P: PinName
+                where P: PinTrait
             {
                 type Assigned = $type<movable_function::state::Assigned<P>>;
 
@@ -295,7 +295,7 @@ macro_rules! movable_functions {
 
             impl<P> movable_function::Unassign<P>
                 for $type<movable_function::state::Assigned<P>>
-                where P: PinName
+                where P: PinTrait
             {
                 type Unassigned = $type<movable_function::state::Unassigned>;
 
@@ -374,7 +374,7 @@ movable_functions!(
 /// directly. Changes made to this module will not be considered breaking
 /// changes.
 pub mod fixed_function {
-    use gpio::PinName;
+    use gpio::PinTrait;
     use swm;
 
     use self::state::State;
@@ -387,7 +387,7 @@ pub mod fixed_function {
     /// Any changes to this trait will not be considered breaking changes.
     pub trait FixedFunction {
         /// The pin that this fixed function can be enabled on
-        type Pin: PinName;
+        type Pin: PinTrait;
 
         /// The default state of this function
         type DefaultState: State;

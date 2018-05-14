@@ -106,7 +106,7 @@ use nb;
 use gpio::{
     pin_state,
     Pin,
-    PinName,
+    PinTrait,
 };
 use init_state::{
     self,
@@ -178,7 +178,7 @@ impl<UsartX, State> USART<UsartX, State>
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<Rx: PinName, Tx: PinName>(mut self,
+    pub fn enable<Rx: PinTrait, Tx: PinTrait>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Handle,
         rx       : Pin<Rx, pin_state::Unused>,
@@ -278,7 +278,7 @@ impl<UsartX, State> USART<UsartX, State>
     /// its `State` type parameter set to [`Disabled`].
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable<Rx: PinName, Tx: PinName>(mut self,
+    pub fn disable<Rx: PinTrait, Tx: PinTrait>(mut self,
         syscon: &mut syscon::Handle,
     )
         -> USART<UsartX, init_state::Disabled>
