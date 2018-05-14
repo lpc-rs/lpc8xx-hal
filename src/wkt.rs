@@ -36,6 +36,7 @@
 
 use embedded_hal::timer;
 use nb;
+use void::Void;
 
 use syscon::{
     self,
@@ -162,7 +163,7 @@ impl timer::CountDown for WKT<init_state::Enabled> {
         self.wkt.count.write(|w| unsafe { w.value().bits(timeout.into()) });
     }
 
-    fn wait(&mut self) -> nb::Result<(), !> {
+    fn wait(&mut self) -> nb::Result<(), Void> {
         if self.wkt.ctrl.read().alarmflag().bit_is_set() {
             return Ok(());
         }
