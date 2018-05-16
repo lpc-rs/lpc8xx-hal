@@ -203,30 +203,6 @@ impl<T, P> MovableFunction<T, movable_function_state::Assigned<P>> {
 }
 
 
-/// Implemented by all movable functions
-pub trait MovableFunctionTrait {
-    /// Assigns the movable function to a pin
-    ///
-    /// This method is intended for internal use only. Please use
-    /// [`Pin::assign_input_function`] and [`Pin::assign_output_function`]
-    /// instead.
-    ///
-    /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
-    /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
-    fn assign<P>(&mut self, pin: &mut P, swm: &mut Handle) where P: PinTrait;
-
-    /// Unassign the movable function
-    ///
-    /// This method is intended for internal use only. Please use
-    /// [`Pin::unassign_input_function`] and
-    /// [`Pin::unassign_output_function`] instead.
-    ///
-    /// [`Pin::unassign_input_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
-    /// [`Pin::unassign_output_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
-    fn unassign<P>(&mut self, pin: &mut P, swm: &mut Handle);
-}
-
-
 /// Contains types that indicate the state of a movable function
 pub mod movable_function_state {
     use core::marker::PhantomData;
@@ -260,6 +236,31 @@ pub mod movable_function_state {
 
     impl<Pin> State for Assigned<Pin> {}
 }
+
+
+/// Implemented by all movable functions
+pub trait MovableFunctionTrait {
+    /// Assigns the movable function to a pin
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::assign_input_function`] and [`Pin::assign_output_function`]
+    /// instead.
+    ///
+    /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
+    /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
+    fn assign<P>(&mut self, pin: &mut P, swm: &mut Handle) where P: PinTrait;
+
+    /// Unassign the movable function
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::unassign_input_function`] and
+    /// [`Pin::unassign_output_function`] instead.
+    ///
+    /// [`Pin::unassign_input_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
+    /// [`Pin::unassign_output_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
+    fn unassign<P>(&mut self, pin: &mut P, swm: &mut Handle);
+}
+
 
 macro_rules! movable_functions {
     (
