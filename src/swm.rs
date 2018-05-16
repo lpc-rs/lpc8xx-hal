@@ -176,6 +176,28 @@ impl<T> MovableFunction<T, movable_function::state::Unassigned> {
     }
 }
 
+impl<T, P> MovableFunction<T, movable_function::state::Assigned<P>> {
+    /// Unassign the movable function
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::unassign_input_function`] and
+    /// [`Pin::unassign_output_function`] instead.
+    ///
+    /// [`Pin::unassign_input_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
+    /// [`Pin::unassign_output_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
+    pub fn unassign(self, pin: &mut P, swm: &mut Handle)
+        -> MovableFunction<T::Unassigned, movable_function::state::Unassigned>
+        where
+            T: movable_function::Unassign<P>,
+            P: PinTrait,
+    {
+        MovableFunction {
+            ty    : self.ty.unassign(pin, swm),
+            _state: movable_function::state::Unassigned,
+        }
+    }
+}
+
 
 /// Implemented by all movable functions
 pub trait MovableFunctionTrait {
