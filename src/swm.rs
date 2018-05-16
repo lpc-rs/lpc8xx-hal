@@ -132,6 +132,28 @@ pub struct MovableFunction<T, State> {
     _state: State,
 }
 
+impl<T> MovableFunction<T, movable_function::state::Unknown> {
+    /// Affirm that the movable function is in its default state
+    ///
+    /// By calling this method, the user promises that the movable function is
+    /// in its default state. This is safe to do, if nothing has changed that
+    /// state before the HAL has been initialized.
+    ///
+    /// If the movable function's state has been changed by any other means than
+    /// the HAL API, then the user must use those means to return the movable
+    /// function to its default state, as specified in the user manual, before
+    /// calling this method.
+    pub unsafe fn affirm_default_state(self)
+        -> MovableFunction<T::Default, movable_function::state::Unassigned>
+        where T: MovableFunctionTrait
+    {
+        MovableFunction {
+            ty    : self.ty.affirm_default_state(),
+            _state: movable_function::state::Unassigned,
+        }
+    }
+}
+
 
 /// Implemented by all movable functions
 pub trait MovableFunctionTrait {
