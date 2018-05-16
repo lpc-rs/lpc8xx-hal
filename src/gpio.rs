@@ -1342,7 +1342,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// #
     /// // Assumes that U0_TXD is assigned to PIO0_9
     /// let (pio0_9, u0_txd) = pio0_9.unassign_output_function(
-    ///     u0_txd.ty,
+    ///     u0_txd,
     ///     &mut swm_handle,
     /// );
     ///
@@ -1353,7 +1353,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn unassign_output_function<F>(mut self,
-        function: F,
+        function: MovableFunction<F, movable_function::state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
         -> (Pin<T, pin_state::Swm<(), Inputs>>, F::Unassigned)
@@ -1366,7 +1366,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
             state: pin_state::Swm::new(),
         };
 
-        (pin, function)
+        (pin, function.ty)
     }
 }
 
@@ -1674,7 +1674,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// #
     /// // Assumes that U0_RXD is assigned to PIO0_8
     /// let (pio0_8, u0_rxd) = pio0_8.unassign_input_function(
-    ///     u0_rxd.ty,
+    ///     u0_rxd,
     ///     &mut swm_handle,
     /// );
     ///
@@ -1685,7 +1685,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// [`swm::InputFunction`]: ../swm/trait.InputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn unassign_input_function<F>(mut self,
-        function: F,
+        function: MovableFunction<F, movable_function::state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
         -> (Pin<T, pin_state::Swm<Output, Inputs>>, F::Unassigned)
@@ -1698,7 +1698,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
             state: pin_state::Swm::new(),
         };
 
-        (pin, function)
+        (pin, function.ty)
     }
 }
 
