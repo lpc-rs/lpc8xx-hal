@@ -154,6 +154,28 @@ impl<T> MovableFunction<T, movable_function::state::Unknown> {
     }
 }
 
+impl<T> MovableFunction<T, movable_function::state::Unassigned> {
+    /// Assign the movable function to a pin
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::assign_input_function`] and [`Pin::assign_output_function`]
+    /// instead.
+    ///
+    /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
+    /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
+    pub fn assign<P>(self, pin: &mut P, swm: &mut Handle)
+        -> MovableFunction<T::Assigned, movable_function::state::Assigned<P>>
+        where
+            T: movable_function::Assign<P>,
+            P: PinTrait,
+    {
+        MovableFunction {
+            ty    : self.ty.assign(pin, swm),
+            _state: movable_function::state::Assigned(PhantomData),
+        }
+    }
+}
+
 
 /// Implemented by all movable functions
 pub trait MovableFunctionTrait {
