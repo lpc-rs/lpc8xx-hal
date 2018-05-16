@@ -166,7 +166,7 @@ impl<T> MovableFunction<T, movable_function::state::Unassigned> {
     pub fn assign<P>(mut self, pin: &mut P, swm: &mut Handle)
         -> MovableFunction<T, movable_function::state::Assigned<P>>
         where
-            T: movable_function::Assign<P>,
+            T: MovableFunctionTrait,
             P: PinTrait,
     {
         self.ty.assign(pin, swm);
@@ -190,7 +190,7 @@ impl<T, P> MovableFunction<T, movable_function::state::Assigned<P>> {
     pub fn unassign(mut self, pin: &mut P, swm: &mut Handle)
         -> MovableFunction<T, movable_function::state::Unassigned>
         where
-            T: movable_function::Unassign<P>,
+            T: MovableFunctionTrait,
             P: PinTrait,
     {
         self.ty.unassign(pin, swm);
@@ -210,6 +210,26 @@ pub trait MovableFunctionTrait {
 
     /// Internal method for affirming the default state
     unsafe fn affirm_default_state(self) -> Self::Default;
+
+    /// Assigns the movable function to a pin
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::assign_input_function`] and [`Pin::assign_output_function`]
+    /// instead.
+    ///
+    /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
+    /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
+    fn assign<P>(&mut self, pin: &mut P, swm: &mut Handle) where P: PinTrait;
+
+    /// Unassign the movable function
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::unassign_input_function`] and
+    /// [`Pin::unassign_output_function`] instead.
+    ///
+    /// [`Pin::unassign_input_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
+    /// [`Pin::unassign_output_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
+    fn unassign<P>(&mut self, pin: &mut P, swm: &mut Handle);
 }
 
 
@@ -220,38 +240,6 @@ pub trait MovableFunctionTrait {
 /// directly. Changes made to this module will not be considered breaking
 /// changes.
 pub mod movable_function {
-    use gpio::PinTrait;
-    use swm;
-
-
-    /// Internal trait for unassigned movable functions that can be assigned
-    pub trait Assign<P> where P: PinTrait {
-        /// Assigns the movable function to a pin
-        ///
-        /// This method is intended for internal use only. Please use
-        /// [`Pin::assign_input_function`] and [`Pin::assign_output_function`]
-        /// instead.
-        ///
-        /// [`Pin::assign_input_function`]: ../../gpio/struct.Pin.html#method.assign_input_function
-        /// [`Pin::assign_output_function`]: ../../gpio/struct.Pin.html#method.assign_output_function
-        fn assign(&mut self, pin: &mut P, swm: &mut swm::Handle);
-    }
-
-
-    /// Internal trait for assigned movable functions that can be unassigned
-    pub trait Unassign<P> where P: PinTrait {
-        /// Unassign the movable function
-        ///
-        /// This method is intended for internal use only. Please use
-        /// [`Pin::unassign_input_function`] and
-        /// [`Pin::unassign_output_function`] instead.
-        ///
-        /// [`Pin::unassign_input_function`]: ../../gpio/struct.Pin.html#method.unassign_input_function
-        /// [`Pin::unassign_output_function`]: ../../gpio/struct.Pin.html#method.unassign_input_function
-        fn unassign(&mut self, pin: &mut P, swm: &mut swm::Handle);
-    }
-
-
     /// Contains types that indicate the state of a movable function
     pub mod state {
         use core::marker::PhantomData;
@@ -346,21 +334,18 @@ macro_rules! movable_functions {
                     $type(())
                 }
 
-            }
-
-            impl<P> movable_function::Assign<P> for $type where P: PinTrait {
-                fn assign(&mut self,
+                fn assign<P>(&mut self,
                     _pin: &mut P,
                     swm : &mut Handle,
-                ) {
+                )
+                    where P: PinTrait
+                {
                     swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(P::ID) }
                     );
                 }
-            }
 
-            impl<P> movable_function::Unassign<P> for $type where P: PinTrait {
-                fn unassign(&mut self,
+                fn unassign<P>(&mut self,
                     _pin: &mut P,
                     swm : &mut Handle,
                 ) {
