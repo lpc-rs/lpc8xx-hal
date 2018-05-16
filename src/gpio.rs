@@ -1175,7 +1175,10 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
         function: MovableFunction<F, movable_function::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
-        -> (Pin<T, pin_state::Swm<((),), Inputs>>, F::Assigned)
+        -> (
+            Pin<T, pin_state::Swm<((),), Inputs>>,
+            MovableFunction<F::Assigned, movable_function::state::Assigned<T>>,
+        )
         where F: OutputFunction + movable_function::Assign<T>
     {
         let function = function.assign(&mut self.ty, swm);
@@ -1185,7 +1188,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
             state: pin_state::Swm::new(),
         };
 
-        (pin, function.ty)
+        (pin, function)
     }
 }
 
@@ -1339,7 +1342,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// #
     /// // Assumes that U0_TXD is assigned to PIO0_9
     /// let (pio0_9, u0_txd) = pio0_9.unassign_output_function(
-    ///     u0_txd,
+    ///     u0_txd.ty,
     ///     &mut swm_handle,
     /// );
     ///
@@ -1502,7 +1505,10 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
         function: MovableFunction<F, movable_function::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
-        -> (Pin<T, pin_state::Swm<Output, (Inputs,)>>, F::Assigned)
+        -> (
+            Pin<T, pin_state::Swm<Output, (Inputs,)>>,
+            MovableFunction<F::Assigned, movable_function::state::Assigned<T>>,
+        )
         where F: InputFunction + movable_function::Assign<T>
     {
         let function = function.assign(&mut self.ty, swm);
@@ -1512,7 +1518,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
             state: pin_state::Swm::new(),
         };
 
-        (pin, function.ty)
+        (pin, function)
     }
 }
 
@@ -1668,7 +1674,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// #
     /// // Assumes that U0_RXD is assigned to PIO0_8
     /// let (pio0_8, u0_rxd) = pio0_8.unassign_input_function(
-    ///     u0_rxd,
+    ///     u0_rxd.ty,
     ///     &mut swm_handle,
     /// );
     ///
