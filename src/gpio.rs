@@ -1356,7 +1356,10 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
         function: MovableFunction<F, movable_function::state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
-        -> (Pin<T, pin_state::Swm<(), Inputs>>, F::Unassigned)
+        -> (
+            Pin<T, pin_state::Swm<(), Inputs>>,
+            MovableFunction<F::Unassigned, movable_function::state::Unassigned>,
+        )
         where F: OutputFunction + movable_function::Unassign<T>
     {
         let function = function.unassign(&mut self.ty, swm);
@@ -1366,7 +1369,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
             state: pin_state::Swm::new(),
         };
 
-        (pin, function.ty)
+        (pin, function)
     }
 }
 
@@ -1688,7 +1691,10 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
         function: MovableFunction<F, movable_function::state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
-        -> (Pin<T, pin_state::Swm<Output, Inputs>>, F::Unassigned)
+        -> (
+            Pin<T, pin_state::Swm<Output, Inputs>>,
+            MovableFunction<F::Unassigned, movable_function::state::Unassigned>,
+        )
         where F: InputFunction + movable_function::Unassign<T>
     {
         let function = function.unassign(&mut self.ty, swm);
@@ -1698,7 +1704,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
             state: pin_state::Swm::new(),
         };
 
-        (pin, function.ty)
+        (pin, function)
     }
 }
 
