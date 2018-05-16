@@ -253,7 +253,7 @@ pub mod movable_function {
 
 
         /// Indicates that the movable function is assigned to a pin
-        pub struct Assigned<Pin>(PhantomData<Pin>);
+        pub struct Assigned<Pin>(pub(crate) PhantomData<Pin>);
 
         impl<Pin> State for Assigned<Pin> {}
     }
