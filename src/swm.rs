@@ -321,7 +321,7 @@ macro_rules! movable_functions {
         #[allow(missing_docs)]
         pub struct MovableFunctions {
             $(pub $field: MovableFunction<
-                $type<movable_function::state::Unknown>,
+                $type,
                 movable_function::state::Unknown,
             >,)*
         }
@@ -330,7 +330,7 @@ macro_rules! movable_functions {
             fn new() -> Self {
                 MovableFunctions {
                     $($field: MovableFunction {
-                        ty    : $type(PhantomData),
+                        ty    : $type(()),
                         _state: movable_function::state::Unknown,
                     },)*
                 }
@@ -341,13 +341,10 @@ macro_rules! movable_functions {
         $(
             /// Represents a movable function
             #[allow(non_camel_case_types)]
-            pub struct $type<State>(PhantomData<State>)
-                where State: movable_function::state::State;
+            pub struct $type(());
 
-            impl MovableFunctionTrait
-                for $type<movable_function::state::Unknown>
-            {
-                type Default = $type<movable_function::state::Unassigned>;
+            impl MovableFunctionTrait for $type {
+                type Default = $type;
 
                 /// Affirm that the movable function is in its default state
                 ///
@@ -361,16 +358,13 @@ macro_rules! movable_functions {
                 /// means to return the movable function to its default state,
                 /// as specified in the user manual, before calling this method.
                 unsafe fn affirm_default_state(self) -> Self::Default {
-                    $type(PhantomData)
+                    $type(())
                 }
 
             }
 
-            impl<P> movable_function::Assign<P>
-                for $type<movable_function::state::Unassigned>
-                where P: PinTrait
-            {
-                type Assigned = $type<movable_function::state::Assigned<P>>;
+            impl<P> movable_function::Assign<P> for $type where P: PinTrait {
+                type Assigned = $type;
 
                 fn assign(self,
                     _pin: &mut P,
@@ -381,15 +375,12 @@ macro_rules! movable_functions {
                     swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(P::ID) }
                     );
-                    $type(PhantomData)
+                    $type(())
                 }
             }
 
-            impl<P> movable_function::Unassign<P>
-                for $type<movable_function::state::Assigned<P>>
-                where P: PinTrait
-            {
-                type Unassigned = $type<movable_function::state::Unassigned>;
+            impl<P> movable_function::Unassign<P> for $type where P: PinTrait {
+                type Unassigned = $type;
 
                 fn unassign(self,
                     _pin: &mut P,
@@ -400,7 +391,7 @@ macro_rules! movable_functions {
                     swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(0xff) }
                     );
-                    $type(PhantomData)
+                    $type(())
                 }
             }
         )*
@@ -715,78 +706,42 @@ pub trait OutputFunction {}
 
 // Which movable functions are output functions is documented in the user manual
 // in section 7.4.1, table 65.
-impl<State> OutputFunction for U0_TXD<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U0_RTS<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U0_SCLK<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U1_TXD<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U1_RTS<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U1_SCLK<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U2_TXD<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U2_RTS<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U2_SCLK<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_SCK<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_MOSI<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_MISO<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_SSEL0<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_SSEL1<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_SSEL2<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_SSEL3<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI1_SCK<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI1_MOSI<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI1_MISO<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI1_SSEL0<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI1_SSEL1<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT0<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT1<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT2<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT3<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT4<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT5<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C1_SDA<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C1_SCL<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C2_SDA<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C2_SCL<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C3_SDA<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C3_SCL<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for ACMP_O<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for CLKOUT<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for GPIO_INT_BMAT<State>
-    where State: movable_function::state::State {}
+impl OutputFunction for U0_TXD {}
+impl OutputFunction for U0_RTS {}
+impl OutputFunction for U0_SCLK {}
+impl OutputFunction for U1_TXD {}
+impl OutputFunction for U1_RTS {}
+impl OutputFunction for U1_SCLK {}
+impl OutputFunction for U2_TXD {}
+impl OutputFunction for U2_RTS {}
+impl OutputFunction for U2_SCLK {}
+impl OutputFunction for SPI0_SCK {}
+impl OutputFunction for SPI0_MOSI {}
+impl OutputFunction for SPI0_MISO {}
+impl OutputFunction for SPI0_SSEL0 {}
+impl OutputFunction for SPI0_SSEL1 {}
+impl OutputFunction for SPI0_SSEL2 {}
+impl OutputFunction for SPI0_SSEL3 {}
+impl OutputFunction for SPI1_SCK {}
+impl OutputFunction for SPI1_MOSI {}
+impl OutputFunction for SPI1_MISO {}
+impl OutputFunction for SPI1_SSEL0 {}
+impl OutputFunction for SPI1_SSEL1 {}
+impl OutputFunction for SCT_OUT0 {}
+impl OutputFunction for SCT_OUT1 {}
+impl OutputFunction for SCT_OUT2 {}
+impl OutputFunction for SCT_OUT3 {}
+impl OutputFunction for SCT_OUT4 {}
+impl OutputFunction for SCT_OUT5 {}
+impl OutputFunction for I2C1_SDA {}
+impl OutputFunction for I2C1_SCL {}
+impl OutputFunction for I2C2_SDA {}
+impl OutputFunction for I2C2_SCL {}
+impl OutputFunction for I2C3_SDA {}
+impl OutputFunction for I2C3_SCL {}
+impl OutputFunction for ACMP_O {}
+impl OutputFunction for CLKOUT {}
+impl OutputFunction for GPIO_INT_BMAT {}
 
 // See user manual, section 31.4, table 397
 impl<State> OutputFunction for SWCLK<State>
@@ -816,30 +771,18 @@ pub trait InputFunction {}
 
 // Which movable functions are input functions is documented in the user manual
 // in section 7.4.1, table 65.
-impl<State> InputFunction for U0_RXD<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for U0_CTS<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for U1_RXD<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for U1_CTS<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for U2_RXD<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for U2_CTS<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for SCT_PIN0<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for SCT_PIN1<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for SCT_PIN2<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for SCT_PIN3<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for ADC_PINTRIG0<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for ADC_PINTRIG1<State>
-    where State: movable_function::state::State {}
+impl InputFunction for U0_RXD {}
+impl InputFunction for U0_CTS {}
+impl InputFunction for U1_RXD {}
+impl InputFunction for U1_CTS {}
+impl InputFunction for U2_RXD {}
+impl InputFunction for U2_CTS {}
+impl InputFunction for SCT_PIN0 {}
+impl InputFunction for SCT_PIN1 {}
+impl InputFunction for SCT_PIN2 {}
+impl InputFunction for SCT_PIN3 {}
+impl InputFunction for ADC_PINTRIG0 {}
+impl InputFunction for ADC_PINTRIG1 {}
 
 // See user manual, section 22.4, table 294
 impl<State> InputFunction for ACMP_I1<State>
