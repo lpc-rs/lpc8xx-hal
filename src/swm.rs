@@ -302,10 +302,7 @@ macro_rules! movable_functions {
             pub struct $type(());
 
             impl MovableFunctionTrait for $type {
-                fn assign<P>(&mut self,
-                    _pin: &mut P,
-                    swm : &mut Handle,
-                )
+                fn assign<P>(&mut self, _pin: &mut P, swm : &mut Handle)
                     where P: PinTrait
                 {
                     swm.swm.$reg_name.modify(|_, w|
@@ -313,10 +310,7 @@ macro_rules! movable_functions {
                     );
                 }
 
-                fn unassign<P>(&mut self,
-                    _pin: &mut P,
-                    swm : &mut Handle,
-                ) {
+                fn unassign<P>(&mut self, _pin: &mut P, swm : &mut Handle) {
                     swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(0xff) }
                     );
