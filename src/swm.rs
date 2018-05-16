@@ -128,7 +128,7 @@ impl<State> Handle<State> where State: init_state::NotDisabled {
 /// A movable function that can be assigned to any pin
 pub struct MovableFunction<T, State> {
     /// The type of movable function
-    pub ty: T,
+    ty    : T,
     _state: State,
 }
 
