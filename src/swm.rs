@@ -381,9 +381,8 @@ movable_functions!(
 /// changes.
 pub mod fixed_function {
     use gpio::PinTrait;
+    use init_state::InitState;
     use swm;
-
-    use self::state::State;
 
 
     /// A fixed function
@@ -396,7 +395,7 @@ pub mod fixed_function {
         type Pin: PinTrait;
 
         /// The default state of this function
-        type DefaultState: State;
+        type DefaultState: InitState;
     }
 
     /// Internal trait for disabled fixed functions that can be enabled
@@ -444,33 +443,6 @@ pub mod fixed_function {
         fn disable(self, pin: &mut Self::Pin, swm: &mut swm::Handle)
             -> Self::Disabled;
     }
-
-
-    /// Contains types that indicate the state of a fixed function
-    pub mod state {
-        /// Implemented by types that indicate the state of a fixed function
-        ///
-        /// This trait is implemented by types that indicate the state of a
-        /// fixed function. It exists only to document which types those are.
-        /// The user should not need to implement this trait, nor use it
-        /// directly.
-        pub trait State {}
-
-        /// Indicates that the current state of the fixed function is unknown
-        ///
-        /// This is the case after the HAL is initialized, as we can't know what
-        /// happened before that.
-        pub struct Unknown;
-        impl State for Unknown {}
-
-        /// Indicates that the fixed function is disabled
-        pub struct Disabled;
-        impl State for Disabled {}
-
-        /// Indicates that the fixed function is enabled
-        pub struct Enabled;
-        impl State for Enabled {}
-    }
 }
 
 macro_rules! fixed_functions {
@@ -482,7 +454,7 @@ macro_rules! fixed_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct FixedFunctions {
-            $(pub $field: $type<fixed_function::state::Unknown>,)*
+            $(pub $field: $type<init_state::Unknown>,)*
         }
 
         impl FixedFunctions {
@@ -497,10 +469,9 @@ macro_rules! fixed_functions {
         $(
             /// Represents a fixed function
             #[allow(non_camel_case_types)]
-            pub struct $type<State>(PhantomData<State>)
-                where State: fixed_function::state::State;
+            pub struct $type<State>(PhantomData<State>) where State: InitState;
 
-            impl $type<fixed_function::state::Unknown> {
+            impl $type<init_state::Unknown> {
                 /// Affirm that the fixed function is in its default state
                 ///
                 /// By calling this method, the user promises that the fixed
@@ -520,18 +491,16 @@ macro_rules! fixed_functions {
 
             }
 
-            impl<State> FixedFunction for $type<State>
-                where State: fixed_function::state::State
-            {
+            impl<State> FixedFunction for $type<State> where State: InitState {
                 type Pin = $pin;
 
-                type DefaultState = fixed_function::state::$default_state;
+                type DefaultState = init_state::$default_state;
             }
 
             impl fixed_function::Enable for
-                $type<fixed_function::state::Disabled>
+                $type<init_state::Disabled>
             {
-                type Enabled = $type<fixed_function::state::Enabled>;
+                type Enabled = $type<init_state::Enabled>;
 
                 fn enable(self, _pin: &mut Self::Pin, swm: &mut Handle)
                     -> Self::Enabled
@@ -542,9 +511,9 @@ macro_rules! fixed_functions {
             }
 
             impl fixed_function::Disable for
-                $type<fixed_function::state::Enabled>
+                $type<init_state::Enabled>
             {
-                type Disabled = $type<fixed_function::state::Disabled>;
+                type Disabled = $type<init_state::Disabled>;
 
                 fn disable(self, _pin: &mut Self::Pin, swm: &mut Handle)
                     -> Self::Disabled
@@ -592,30 +561,18 @@ fixed_functions!(
 /// breaking changes.
 pub trait AdcChannel {}
 
-impl<State> AdcChannel for ADC_0<State>
-    where State: fixed_function::state::State {}
-impl<State> AdcChannel for ADC_1<State>
-    where State: fixed_function::state::State {}
-impl<State> AdcChannel for ADC_2<State>
-    where State: fixed_function::state::State {}
-impl<State> AdcChannel for ADC_3<State>
-    where State: fixed_function::state::State {}
-impl<State> AdcChannel for ADC_4<State>
-    where State: fixed_function::state::State {}
-impl<State> AdcChannel for ADC_5<State>
-    where State: fixed_function::state::State {}
-impl<State> AdcChannel for ADC_6<State>
-    where State: fixed_function::state::State {}
-impl<State> AdcChannel for ADC_7<State>
-    where State: fixed_function::state::State {}
-impl<State> AdcChannel for ADC_8<State>
-    where State: fixed_function::state::State {}
-impl<State> AdcChannel for ADC_9<State>
-    where State: fixed_function::state::State {}
-impl<State> AdcChannel for ADC_10<State>
-    where State: fixed_function::state::State {}
-impl<State> AdcChannel for ADC_11<State>
-    where State: fixed_function::state::State {}
+impl<State> AdcChannel for ADC_0<State>  where State: InitState {}
+impl<State> AdcChannel for ADC_1<State>  where State: InitState {}
+impl<State> AdcChannel for ADC_2<State>  where State: InitState {}
+impl<State> AdcChannel for ADC_3<State>  where State: InitState {}
+impl<State> AdcChannel for ADC_4<State>  where State: InitState {}
+impl<State> AdcChannel for ADC_5<State>  where State: InitState {}
+impl<State> AdcChannel for ADC_6<State>  where State: InitState {}
+impl<State> AdcChannel for ADC_7<State>  where State: InitState {}
+impl<State> AdcChannel for ADC_8<State>  where State: InitState {}
+impl<State> AdcChannel for ADC_9<State>  where State: InitState {}
+impl<State> AdcChannel for ADC_10<State> where State: InitState {}
+impl<State> AdcChannel for ADC_11<State> where State: InitState {}
 
 
 /// Marker trait for output functions
@@ -667,20 +624,15 @@ impl OutputFunction for CLKOUT {}
 impl OutputFunction for GPIO_INT_BMAT {}
 
 // See user manual, section 31.4, table 397
-impl<State> OutputFunction for SWCLK<State>
-    where State: fixed_function::state::State {}
-impl<State> OutputFunction for SWDIO<State>
-    where State: fixed_function::state::State {}
+impl<State> OutputFunction for SWCLK<State> where State: InitState {}
+impl<State> OutputFunction for SWDIO<State> where State: InitState {}
 
 // See user manual, section 5.4, table 20
-impl<State> OutputFunction for XTALOUT<State>
-    where State: fixed_function::state::State {}
+impl<State> OutputFunction for XTALOUT<State> where State: InitState {}
 
 // See user manual, section 15.4, table 202
-impl<State> OutputFunction for I2C0_SDA<State>
-    where State: fixed_function::state::State {}
-impl<State> OutputFunction for I2C0_SCL<State>
-    where State: fixed_function::state::State {}
+impl<State> OutputFunction for I2C0_SDA<State> where State: InitState {}
+impl<State> OutputFunction for I2C0_SCL<State> where State: InitState {}
 
 
 /// Marker trait for input functions
@@ -708,21 +660,13 @@ impl InputFunction for ADC_PINTRIG0 {}
 impl InputFunction for ADC_PINTRIG1 {}
 
 // See user manual, section 22.4, table 294
-impl<State> InputFunction for ACMP_I1<State>
-    where State: fixed_function::state::State {}
-impl<State> InputFunction for ACMP_I2<State>
-    where State: fixed_function::state::State {}
-impl<State> InputFunction for ACMP_I3<State>
-    where State: fixed_function::state::State {}
-impl<State> InputFunction for ACMP_I4<State>
-    where State: fixed_function::state::State {}
-impl<State> InputFunction for VDDCMP<State>
-    where State: fixed_function::state::State {}
+impl<State> InputFunction for ACMP_I1<State> where State: InitState {}
+impl<State> InputFunction for ACMP_I2<State> where State: InitState {}
+impl<State> InputFunction for ACMP_I3<State> where State: InitState {}
+impl<State> InputFunction for ACMP_I4<State> where State: InitState {}
+impl<State> InputFunction for VDDCMP<State>  where State: InitState {}
 
 // See user manual, section 5.4, table 20
-impl<State> InputFunction for XTALIN<State>
-    where State: fixed_function::state::State {}
-impl<State> InputFunction for RESETN<State>
-    where State: fixed_function::state::State {}
-impl<State> InputFunction for CLKIN<State>
-    where State: fixed_function::state::State {}
+impl<State> InputFunction for XTALIN<State> where State: InitState {}
+impl<State> InputFunction for RESETN<State> where State: InitState {}
+impl<State> InputFunction for CLKIN<State>  where State: InitState {}
