@@ -66,16 +66,14 @@
 //! let pio0_0 = unsafe { gpio.pins.pio0_0.affirm_default_state() };
 //! let pio0_4 = unsafe { gpio.pins.pio0_4.affirm_default_state() };
 //!
-//! use lpc82x_hal::swm::MovableFunctionTrait;
-//!
 //! // We also need to provide USART0's movable functions. Those need to be
 //! // unassigned, and since they are unassigned by default, we just need to
 //! // promise the API that we didn't change them.
 //! let u0_rxd = unsafe {
-//!     swm.movable_functions.u0_rxd.ty.affirm_default_state()
+//!     swm.movable_functions.u0_rxd.affirm_default_state()
 //! };
 //! let u0_txd = unsafe {
-//!     swm.movable_functions.u0_txd.ty.affirm_default_state()
+//!     swm.movable_functions.u0_txd.affirm_default_state()
 //! };
 //!
 //! // Initialize USART0. This should never fail, as the only reason `init`
@@ -87,8 +85,8 @@
 //!         &mut syscon.handle,
 //!         pio0_0,
 //!         pio0_4,
-//!         u0_rxd,
-//!         u0_txd,
+//!         u0_rxd.ty,
+//!         u0_txd.ty,
 //!         &mut swm_handle,
 //!     )
 //!     .expect("UART initialization shouldn't fail");

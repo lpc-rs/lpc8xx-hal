@@ -407,15 +407,13 @@ pins!(
 /// // Reassure the API that the pin is in its default state, i.e. unused.
 /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() };
 ///
-/// use lpc82x_hal::swm::MovableFunctionTrait;
-///
 /// // Assign a movable function to this pin
 /// let clkout = unsafe {
-///     swm.movable_functions.clkout.ty.affirm_default_state()
+///     swm.movable_functions.clkout.affirm_default_state()
 /// };
 /// let (pin, _) = pin
 ///     .into_swm_pin()
-///     .assign_output_function(clkout, &mut swm_handle);
+///     .assign_output_function(clkout.ty, &mut swm_handle);
 ///
 /// // As long as the movable function is assigned, we can't use the pin for
 /// // general-purpose I/O. Therefore the following method call would cause a
@@ -572,19 +570,17 @@ pins!(
 /// #
 /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
-/// # use lpc82x_hal::swm::MovableFunctionTrait;
-/// #
 /// # let xtalout = unsafe {
 /// #     swm.fixed_functions.xtalout.affirm_default_state()
 /// # };
 /// # let u0_rxd = unsafe {
-/// #     swm.movable_functions.u0_rxd.ty.affirm_default_state()
+/// #     swm.movable_functions.u0_rxd.affirm_default_state()
 /// # };
 /// # let u1_rxd = unsafe {
-/// #     swm.movable_functions.u1_rxd.ty.affirm_default_state()
+/// #     swm.movable_functions.u1_rxd.affirm_default_state()
 /// # };
 /// # let u0_txd = unsafe {
-/// #     swm.movable_functions.u0_txd.ty.affirm_default_state()
+/// #     swm.movable_functions.u0_txd.affirm_default_state()
 /// # };
 /// #
 /// // Put PIO0_9 into the SWM state
@@ -595,16 +591,16 @@ pins!(
 /// let (pin, xtalout) = pin.enable_output_function(xtalout, &mut swm_handle);
 ///
 /// // Now we can assign various input functions in addition.
-/// let (pin, _) = pin.assign_input_function(u0_rxd, &mut swm_handle);
-/// let (pin, _) = pin.assign_input_function(u1_rxd, &mut swm_handle);
+/// let (pin, _) = pin.assign_input_function(u0_rxd.ty, &mut swm_handle);
+/// let (pin, _) = pin.assign_input_function(u1_rxd.ty, &mut swm_handle);
 ///
 /// // We can't assign another output function. The next line won't compile.
-/// // let (pin, _) = pin.assign_output_function(u0_txd, &mut swm);
+/// // let (pin, _) = pin.assign_output_function(u0_txd.ty, &mut swm);
 ///
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
 /// let (pin, _) = pin.disable_output_function(xtalout, &mut swm_handle);
-/// let (pin, _) = pin.assign_output_function(u0_txd, &mut swm_handle);
+/// let (pin, _) = pin.assign_output_function(u0_txd.ty, &mut swm_handle);
 /// ```
 ///
 /// # Analog Input
@@ -1159,16 +1155,14 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() }
     ///     .into_swm_pin();
     ///
-    /// use lpc82x_hal::swm::MovableFunctionTrait;
-    ///
     /// // Get the movable function ready to be assigned
     /// let u0_txd = unsafe {
-    ///     swm.movable_functions.u0_txd.ty.affirm_default_state()
+    ///     swm.movable_functions.u0_txd.affirm_default_state()
     /// };
     ///
     /// // Assign U0_TXD to PIO0_9
     /// let (pio0_9, u0_txd) = pio0_9.assign_output_function(
-    ///     u0_txd,
+    ///     u0_txd.ty,
     ///     &mut swm_handle,
     /// );
     /// ```
@@ -1333,14 +1327,12 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// # let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() };
     /// # let pio0_9 = pio0_9.into_swm_pin();
     /// #
-    /// # use lpc82x_hal::swm::MovableFunctionTrait;
-    /// #
     /// # let u0_txd = unsafe {
-    /// #     swm.movable_functions.u0_txd.ty.affirm_default_state()
+    /// #     swm.movable_functions.u0_txd.affirm_default_state()
     /// # };
     /// #
     /// # let (pio0_9, u0_txd) = pio0_9.assign_output_function(
-    /// #     u0_txd,
+    /// #     u0_txd.ty,
     /// #     &mut swm_handle,
     /// # );
     /// #
@@ -1490,16 +1482,14 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() }
     ///     .into_swm_pin();
     ///
-    /// use lpc82x_hal::swm::MovableFunctionTrait;
-    ///
     /// // Get the movable function ready to be assigned
     /// let u0_rxd = unsafe {
-    ///     swm.movable_functions.u0_rxd.ty.affirm_default_state()
+    ///     swm.movable_functions.u0_rxd.affirm_default_state()
     /// };
     ///
     /// // Assign U0_RXD to PIO0_8
     /// let (pio0_8, u0_rxd) = pio0_8.assign_input_function(
-    ///     u0_rxd,
+    ///     u0_rxd.ty,
     ///     &mut swm_handle,
     /// );
     /// ```
@@ -1666,14 +1656,12 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// # let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() };
     /// # let pio0_8 = pio0_8.into_swm_pin();
     /// #
-    /// # use lpc82x_hal::swm::MovableFunctionTrait;
-    /// #
     /// # let u0_rxd = unsafe {
-    /// #     swm.movable_functions.u0_rxd.ty.affirm_default_state()
+    /// #     swm.movable_functions.u0_rxd.affirm_default_state()
     /// # };
     /// #
     /// # let (pio0_8, u0_rxd) = pio0_8.assign_input_function(
-    /// #     u0_rxd,
+    /// #     u0_rxd.ty,
     /// #     &mut swm_handle,
     /// # );
     /// #
