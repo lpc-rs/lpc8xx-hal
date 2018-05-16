@@ -144,11 +144,11 @@ impl<T> MovableFunction<T, movable_function::state::Unknown> {
     /// function to its default state, as specified in the user manual, before
     /// calling this method.
     pub unsafe fn affirm_default_state(self)
-        -> MovableFunction<T::Default, movable_function::state::Unassigned>
+        -> MovableFunction<T, movable_function::state::Unassigned>
         where T: MovableFunctionTrait
     {
         MovableFunction {
-            ty    : self.ty.affirm_default_state(),
+            ty    : self.ty,
             _state: movable_function::state::Unassigned,
         }
     }
@@ -205,12 +205,6 @@ impl<T, P> MovableFunction<T, movable_function::state::Assigned<P>> {
 
 /// Implemented by all movable functions
 pub trait MovableFunctionTrait {
-    /// The type of the movable function in its default state
-    type Default;
-
-    /// Internal method for affirming the default state
-    unsafe fn affirm_default_state(self) -> Self::Default;
-
     /// Assigns the movable function to a pin
     ///
     /// This method is intended for internal use only. Please use
@@ -317,23 +311,6 @@ macro_rules! movable_functions {
             pub struct $type(());
 
             impl MovableFunctionTrait for $type {
-                type Default = $type;
-
-                /// Affirm that the movable function is in its default state
-                ///
-                /// By calling this method, the user promises that the movable
-                /// function is in its default state. This is safe to do, if
-                /// nothing has changed that state before the HAL has been
-                /// initialized.
-                ///
-                /// If the movable function's state has been changed by any
-                /// other means than the HAL API, then the user must use those
-                /// means to return the movable function to its default state,
-                /// as specified in the user manual, before calling this method.
-                unsafe fn affirm_default_state(self) -> Self::Default {
-                    $type(())
-                }
-
                 fn assign<P>(&mut self,
                     _pin: &mut P,
                     swm : &mut Handle,
