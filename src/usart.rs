@@ -85,8 +85,8 @@
 //!         &mut syscon.handle,
 //!         pio0_0,
 //!         pio0_4,
-//!         u0_rxd.ty,
-//!         u0_txd.ty,
+//!         u0_rxd,
+//!         u0_txd,
 //!         &mut swm_handle,
 //!     )
 //!     .expect("UART initialization shouldn't fail");
@@ -125,6 +125,7 @@ use swm::{
     self,
     movable_function,
     InputFunction,
+    MovableFunction,
     OutputFunction,
 };
 use syscon::{
@@ -187,8 +188,8 @@ impl<UsartX, State> USART<UsartX, State>
         syscon   : &mut syscon::Handle,
         rx       : Pin<Rx, pin_state::Unused>,
         tx       : Pin<Tx, pin_state::Unused>,
-        rxd      : UsartX::Rx,
-        txd      : UsartX::Tx,
+        rxd      : MovableFunction<UsartX::Rx, movable_function::state::Unassigned>,
+        txd      : MovableFunction<UsartX::Tx, movable_function::state::Unassigned>,
         swm      : &mut swm::Handle,
     )
         -> nb::Result<USART<UsartX, init_state::Enabled>, !>
@@ -201,10 +202,10 @@ impl<UsartX, State> USART<UsartX, State>
 
         rx
             .into_swm_pin()
-            .assign_input_function(rxd, swm);
+            .assign_input_function(rxd.ty, swm);
         tx
             .into_swm_pin()
-            .assign_output_function(txd, swm);
+            .assign_output_function(txd.ty, swm);
 
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 
