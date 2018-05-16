@@ -126,9 +126,10 @@ impl<State> Handle<State> where State: init_state::NotDisabled {
 
 
 /// A movable function that can be assigned to any pin
-pub struct MovableFunction<T> {
+pub struct MovableFunction<T, State> {
     /// The type of movable function
     pub ty: T,
+    _state: State,
 }
 
 
@@ -244,7 +245,8 @@ macro_rules! movable_functions {
         #[allow(missing_docs)]
         pub struct MovableFunctions {
             $(pub $field: MovableFunction<
-                $type<movable_function::state::Unknown>
+                $type<movable_function::state::Unknown>,
+                movable_function::state::Unknown,
             >,)*
         }
 
@@ -252,7 +254,8 @@ macro_rules! movable_functions {
             fn new() -> Self {
                 MovableFunctions {
                     $($field: MovableFunction {
-                        ty: $type(PhantomData),
+                        ty    : $type(PhantomData),
+                        _state: movable_function::state::Unknown,
                     },)*
                 }
             }
