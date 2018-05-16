@@ -69,8 +69,12 @@
 //! // We also need to provide USART0's movable functions. Those need to be
 //! // unassigned, and since they are unassigned by default, we just need to
 //! // promise the API that we didn't change them.
-//! let u0_rxd = unsafe { swm.movable_functions.u0_rxd.affirm_default_state() };
-//! let u0_txd = unsafe { swm.movable_functions.u0_txd.affirm_default_state() };
+//! let u0_rxd = unsafe {
+//!     swm.movable_functions.u0_rxd.ty.affirm_default_state()
+//! };
+//! let u0_txd = unsafe {
+//!     swm.movable_functions.u0_txd.ty.affirm_default_state()
+//! };
 //!
 //! // Initialize USART0. This should never fail, as the only reason `init`
 //! // returns a `Result::Err` is when the transmitter is busy, which it

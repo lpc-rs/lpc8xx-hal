@@ -125,6 +125,13 @@ impl<State> Handle<State> where State: init_state::NotDisabled {
 }
 
 
+/// A movable function that can be assigned to any pin
+pub struct MovableFunction<T> {
+    /// The type of movable function
+    pub ty: T,
+}
+
+
 /// Traits implemented by movable functions
 ///
 /// These traits are implemented for all types that represent movable functions.
@@ -236,13 +243,17 @@ macro_rules! movable_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct MovableFunctions {
-            $(pub $field: $type<movable_function::state::Unknown>,)*
+            $(pub $field: MovableFunction<
+                $type<movable_function::state::Unknown>
+            >,)*
         }
 
         impl MovableFunctions {
             fn new() -> Self {
                 MovableFunctions {
-                    $($field: $type(PhantomData),)*
+                    $($field: MovableFunction {
+                        ty: $type(PhantomData),
+                    },)*
                 }
             }
         }

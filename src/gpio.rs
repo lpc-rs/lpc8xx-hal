@@ -409,7 +409,7 @@ pins!(
 ///
 /// // Assign a movable function to this pin
 /// let clkout = unsafe {
-///     swm.movable_functions.clkout.affirm_default_state()
+///     swm.movable_functions.clkout.ty.affirm_default_state()
 /// };
 /// let (pin, _) = pin
 ///     .into_swm_pin()
@@ -574,13 +574,13 @@ pins!(
 /// #     swm.fixed_functions.xtalout.affirm_default_state()
 /// # };
 /// # let u0_rxd = unsafe {
-/// #     swm.movable_functions.u0_rxd.affirm_default_state()
+/// #     swm.movable_functions.u0_rxd.ty.affirm_default_state()
 /// # };
 /// # let u1_rxd = unsafe {
-/// #     swm.movable_functions.u1_rxd.affirm_default_state()
+/// #     swm.movable_functions.u1_rxd.ty.affirm_default_state()
 /// # };
 /// # let u0_txd = unsafe {
-/// #     swm.movable_functions.u0_txd.affirm_default_state()
+/// #     swm.movable_functions.u0_txd.ty.affirm_default_state()
 /// # };
 /// #
 /// // Put PIO0_9 into the SWM state
@@ -1157,7 +1157,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     ///
     /// // Get the movable function ready to be assigned
     /// let u0_txd = unsafe {
-    ///     swm.movable_functions.u0_txd.affirm_default_state()
+    ///     swm.movable_functions.u0_txd.ty.affirm_default_state()
     /// };
     ///
     /// // Assign U0_TXD to PIO0_9
@@ -1328,7 +1328,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// # let pio0_9 = pio0_9.into_swm_pin();
     /// #
     /// # let u0_txd = unsafe {
-    /// #     swm.movable_functions.u0_txd.affirm_default_state()
+    /// #     swm.movable_functions.u0_txd.ty.affirm_default_state()
     /// # };
     /// #
     /// # let (pio0_9, u0_txd) = pio0_9.assign_output_function(
@@ -1484,7 +1484,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     ///
     /// // Get the movable function ready to be assigned
     /// let u0_rxd = unsafe {
-    ///     swm.movable_functions.u0_rxd.affirm_default_state()
+    ///     swm.movable_functions.u0_rxd.ty.affirm_default_state()
     /// };
     ///
     /// // Assign U0_RXD to PIO0_8
@@ -1657,7 +1657,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// # let pio0_8 = pio0_8.into_swm_pin();
     /// #
     /// # let u0_rxd = unsafe {
-    /// #     swm.movable_functions.u0_rxd.affirm_default_state()
+    /// #     swm.movable_functions.u0_rxd.ty.affirm_default_state()
     /// # };
     /// #
     /// # let (pio0_8, u0_rxd) = pio0_8.assign_input_function(
