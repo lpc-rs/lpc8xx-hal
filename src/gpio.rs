@@ -84,6 +84,7 @@ use swm::{
     movable_function,
     AdcChannel,
     InputFunction,
+    MovableFunction,
     OutputFunction,
 };
 use swm::fixed_function::{
@@ -413,7 +414,7 @@ pins!(
 /// };
 /// let (pin, _) = pin
 ///     .into_swm_pin()
-///     .assign_output_function(clkout.ty, &mut swm_handle);
+///     .assign_output_function(clkout, &mut swm_handle);
 ///
 /// // As long as the movable function is assigned, we can't use the pin for
 /// // general-purpose I/O. Therefore the following method call would cause a
@@ -591,8 +592,8 @@ pins!(
 /// let (pin, xtalout) = pin.enable_output_function(xtalout, &mut swm_handle);
 ///
 /// // Now we can assign various input functions in addition.
-/// let (pin, _) = pin.assign_input_function(u0_rxd.ty, &mut swm_handle);
-/// let (pin, _) = pin.assign_input_function(u1_rxd.ty, &mut swm_handle);
+/// let (pin, _) = pin.assign_input_function(u0_rxd, &mut swm_handle);
+/// let (pin, _) = pin.assign_input_function(u1_rxd, &mut swm_handle);
 ///
 /// // We can't assign another output function. The next line won't compile.
 /// // let (pin, _) = pin.assign_output_function(u0_txd.ty, &mut swm);
@@ -600,7 +601,7 @@ pins!(
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
 /// let (pin, _) = pin.disable_output_function(xtalout, &mut swm_handle);
-/// let (pin, _) = pin.assign_output_function(u0_txd.ty, &mut swm_handle);
+/// let (pin, _) = pin.assign_output_function(u0_txd, &mut swm_handle);
 /// ```
 ///
 /// # Analog Input
@@ -1162,7 +1163,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     ///
     /// // Assign U0_TXD to PIO0_9
     /// let (pio0_9, u0_txd) = pio0_9.assign_output_function(
-    ///     u0_txd.ty,
+    ///     u0_txd,
     ///     &mut swm_handle,
     /// );
     /// ```
@@ -1171,7 +1172,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn assign_output_function<F>(mut self,
-        function: F,
+        function: MovableFunction<F, movable_function::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (Pin<T, pin_state::Swm<((),), Inputs>>, F::Assigned)
@@ -1184,7 +1185,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
             state: pin_state::Swm::new(),
         };
 
-        (pin, function)
+        (pin, function.ty)
     }
 }
 
@@ -1332,7 +1333,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// # };
     /// #
     /// # let (pio0_9, u0_txd) = pio0_9.assign_output_function(
-    /// #     u0_txd.ty,
+    /// #     u0_txd,
     /// #     &mut swm_handle,
     /// # );
     /// #
@@ -1489,7 +1490,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     ///
     /// // Assign U0_RXD to PIO0_8
     /// let (pio0_8, u0_rxd) = pio0_8.assign_input_function(
-    ///     u0_rxd.ty,
+    ///     u0_rxd,
     ///     &mut swm_handle,
     /// );
     /// ```
@@ -1498,7 +1499,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn assign_input_function<F>(mut self,
-        function: F,
+        function: MovableFunction<F, movable_function::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (Pin<T, pin_state::Swm<Output, (Inputs,)>>, F::Assigned)
@@ -1511,7 +1512,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
             state: pin_state::Swm::new(),
         };
 
-        (pin, function)
+        (pin, function.ty)
     }
 }
 
@@ -1661,7 +1662,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// # };
     /// #
     /// # let (pio0_8, u0_rxd) = pio0_8.assign_input_function(
-    /// #     u0_rxd.ty,
+    /// #     u0_rxd,
     /// #     &mut swm_handle,
     /// # );
     /// #
