@@ -123,7 +123,7 @@ use raw::{
 };
 use swm::{
     self,
-    movable_function,
+    movable_function_state,
     InputFunction,
     MovableFunction,
     MovableFunctionTrait,
@@ -189,8 +189,8 @@ impl<UsartX, State> USART<UsartX, State>
         syscon   : &mut syscon::Handle,
         rx       : Pin<Rx, pin_state::Unused>,
         tx       : Pin<Tx, pin_state::Unused>,
-        rxd      : MovableFunction<UsartX::Rx, movable_function::state::Unassigned>,
-        txd      : MovableFunction<UsartX::Tx, movable_function::state::Unassigned>,
+        rxd      : MovableFunction<UsartX::Rx, movable_function_state::Unassigned>,
+        txd      : MovableFunction<UsartX::Tx, movable_function_state::Unassigned>,
         swm      : &mut swm::Handle,
     )
         -> nb::Result<USART<UsartX, init_state::Enabled>, !>

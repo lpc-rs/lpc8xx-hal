@@ -132,7 +132,7 @@ pub struct MovableFunction<T, State> {
     _state: State,
 }
 
-impl<T> MovableFunction<T, movable_function::state::Unknown> {
+impl<T> MovableFunction<T, movable_function_state::Unknown> {
     /// Affirm that the movable function is in its default state
     ///
     /// By calling this method, the user promises that the movable function is
@@ -144,17 +144,17 @@ impl<T> MovableFunction<T, movable_function::state::Unknown> {
     /// function to its default state, as specified in the user manual, before
     /// calling this method.
     pub unsafe fn affirm_default_state(self)
-        -> MovableFunction<T, movable_function::state::Unassigned>
+        -> MovableFunction<T, movable_function_state::Unassigned>
         where T: MovableFunctionTrait
     {
         MovableFunction {
             ty    : self.ty,
-            _state: movable_function::state::Unassigned,
+            _state: movable_function_state::Unassigned,
         }
     }
 }
 
-impl<T> MovableFunction<T, movable_function::state::Unassigned> {
+impl<T> MovableFunction<T, movable_function_state::Unassigned> {
     /// Assign the movable function to a pin
     ///
     /// This method is intended for internal use only. Please use
@@ -164,7 +164,7 @@ impl<T> MovableFunction<T, movable_function::state::Unassigned> {
     /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
     /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
     pub fn assign<P>(mut self, pin: &mut P, swm: &mut Handle)
-        -> MovableFunction<T, movable_function::state::Assigned<P>>
+        -> MovableFunction<T, movable_function_state::Assigned<P>>
         where
             T: MovableFunctionTrait,
             P: PinTrait,
@@ -173,12 +173,12 @@ impl<T> MovableFunction<T, movable_function::state::Unassigned> {
 
         MovableFunction {
             ty    : self.ty,
-            _state: movable_function::state::Assigned(PhantomData),
+            _state: movable_function_state::Assigned(PhantomData),
         }
     }
 }
 
-impl<T, P> MovableFunction<T, movable_function::state::Assigned<P>> {
+impl<T, P> MovableFunction<T, movable_function_state::Assigned<P>> {
     /// Unassign the movable function
     ///
     /// This method is intended for internal use only. Please use
@@ -188,7 +188,7 @@ impl<T, P> MovableFunction<T, movable_function::state::Assigned<P>> {
     /// [`Pin::unassign_input_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
     /// [`Pin::unassign_output_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
     pub fn unassign(mut self, pin: &mut P, swm: &mut Handle)
-        -> MovableFunction<T, movable_function::state::Unassigned>
+        -> MovableFunction<T, movable_function_state::Unassigned>
         where
             T: MovableFunctionTrait,
             P: PinTrait,
@@ -197,7 +197,7 @@ impl<T, P> MovableFunction<T, movable_function::state::Assigned<P>> {
 
         MovableFunction {
             ty    : self.ty,
-            _state: movable_function::state::Unassigned,
+            _state: movable_function_state::Unassigned,
         }
     }
 }
@@ -227,47 +227,38 @@ pub trait MovableFunctionTrait {
 }
 
 
-/// Traits implemented by movable functions
-///
-/// These traits are implemented for all types that represent movable functions.
-/// The user should not need to implement these traits, nor use their methods
-/// directly. Changes made to this module will not be considered breaking
-/// changes.
-pub mod movable_function {
-    /// Contains types that indicate the state of a movable function
-    pub mod state {
-        use core::marker::PhantomData;
+/// Contains types that indicate the state of a movable function
+pub mod movable_function_state {
+    use core::marker::PhantomData;
 
 
-        /// Implemented by types that indicate the state of a movable function
-        ///
-        /// This trait is implemented by types that indicate the state of a
-        /// movable function. It exists only to document which types those are.
-        /// The user should not need to implement this trait, nor use it
-        /// directly.
-        pub trait State {}
+    /// Implemented by types that indicate the state of a movable function
+    ///
+    /// This trait is implemented by types that indicate the state of a movable
+    /// function. It exists only to document which types those are. The user
+    /// should not need to implement this trait, nor use it directly.
+    pub trait State {}
 
 
-        /// Indicates that the current state of the movable function is unknown
-        ///
-        /// This is the case after the HAL is initialized, as we can't know what
-        /// happened before that.
-        pub struct Unknown;
+    /// Indicates that the current state of the movable function is unknown
+    ///
+    /// This is the case after the HAL is initialized, as we can't know what
+    /// happened before that.
+    pub struct Unknown;
 
-        impl State for Unknown {}
-
-
-        /// Indicates that the movable function is unassigned
-        pub struct Unassigned;
-
-        impl State for Unassigned {}
+    impl State for Unknown {}
 
 
-        /// Indicates that the movable function is assigned to a pin
-        pub struct Assigned<Pin>(pub(crate) PhantomData<Pin>);
+    /// Indicates that the movable function is unassigned
+    pub struct Unassigned;
 
-        impl<Pin> State for Assigned<Pin> {}
-    }
+    impl State for Unassigned {}
+
+
+    /// Indicates that the movable function is assigned to a pin
+    pub struct Assigned<Pin>(pub(crate) PhantomData<Pin>);
+
+    impl<Pin> State for Assigned<Pin> {}
 }
 
 macro_rules! movable_functions {
@@ -289,7 +280,7 @@ macro_rules! movable_functions {
         pub struct MovableFunctions {
             $(pub $field: MovableFunction<
                 $type,
-                movable_function::state::Unknown,
+                movable_function_state::Unknown,
             >,)*
         }
 
@@ -298,7 +289,7 @@ macro_rules! movable_functions {
                 MovableFunctions {
                     $($field: MovableFunction {
                         ty    : $type(()),
-                        _state: movable_function::state::Unknown,
+                        _state: movable_function_state::Unknown,
                     },)*
                 }
             }
