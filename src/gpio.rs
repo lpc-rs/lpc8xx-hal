@@ -1177,7 +1177,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     )
         -> (
             Pin<T, pin_state::Swm<((),), Inputs>>,
-            MovableFunction<F::Assigned, movable_function::state::Assigned<T>>,
+            MovableFunction<F, movable_function::state::Assigned<T>>,
         )
         where F: OutputFunction + movable_function::Assign<T>
     {
@@ -1510,7 +1510,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     )
         -> (
             Pin<T, pin_state::Swm<Output, (Inputs,)>>,
-            MovableFunction<F::Assigned, movable_function::state::Assigned<T>>,
+            MovableFunction<F, movable_function::state::Assigned<T>>,
         )
         where F: InputFunction + movable_function::Assign<T>
     {

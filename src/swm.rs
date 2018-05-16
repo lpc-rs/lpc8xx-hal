@@ -163,14 +163,16 @@ impl<T> MovableFunction<T, movable_function::state::Unassigned> {
     ///
     /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
     /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
-    pub fn assign<P>(self, pin: &mut P, swm: &mut Handle)
-        -> MovableFunction<T::Assigned, movable_function::state::Assigned<P>>
+    pub fn assign<P>(mut self, pin: &mut P, swm: &mut Handle)
+        -> MovableFunction<T, movable_function::state::Assigned<P>>
         where
             T: movable_function::Assign<P>,
             P: PinTrait,
     {
+        self.ty.assign(pin, swm);
+
         MovableFunction {
-            ty    : self.ty.assign(pin, swm),
+            ty    : self.ty,
             _state: movable_function::state::Assigned(PhantomData),
         }
     }
@@ -222,15 +224,6 @@ pub mod movable_function {
 
     /// Internal trait for unassigned movable functions that can be assigned
     pub trait Assign<P> where P: PinTrait {
-        /// The type that is returned by [`assign`].
-        ///
-        /// Typically, this will be the same type that implements this trait,
-        /// but with a type parameter changed to indicate that the function has
-        /// been assigned to a pin.
-        ///
-        /// [`assign`]: #tymethod.assign
-        type Assigned;
-
         /// Assigns the movable function to a pin
         ///
         /// This method is intended for internal use only. Please use
@@ -239,7 +232,7 @@ pub mod movable_function {
         ///
         /// [`Pin::assign_input_function`]: ../../gpio/struct.Pin.html#method.assign_input_function
         /// [`Pin::assign_output_function`]: ../../gpio/struct.Pin.html#method.assign_output_function
-        fn assign(self, pin: &mut P, swm: &mut swm::Handle) -> Self::Assigned;
+        fn assign(&mut self, pin: &mut P, swm: &mut swm::Handle);
     }
 
 
@@ -364,18 +357,13 @@ macro_rules! movable_functions {
             }
 
             impl<P> movable_function::Assign<P> for $type where P: PinTrait {
-                type Assigned = $type;
-
-                fn assign(self,
+                fn assign(&mut self,
                     _pin: &mut P,
                     swm : &mut Handle,
-                )
-                    -> Self::Assigned
-                {
+                ) {
                     swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(P::ID) }
                     );
-                    $type(())
                 }
             }
 
