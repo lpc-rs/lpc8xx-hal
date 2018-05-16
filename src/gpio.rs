@@ -81,9 +81,11 @@ use init_state::{
 use raw;
 use swm::{
     self,
-    movable_function,
+    movable_function_state,
     AdcChannel,
     InputFunction,
+    MovableFunction,
+    MovableFunctionTrait,
     OutputFunction,
 };
 use swm::fixed_function::{
@@ -203,7 +205,7 @@ impl<State> Handle<State> where State: init_state::NotDisabled {
 /// Therefore any changes to this trait won't be considered breaking changes.
 ///
 /// [`Pin`]: struct.Pin.html
-pub trait PinName {
+pub trait PinTrait {
     /// The default state of the pin after microcontroller initialization
     type DefaultState: PinState;
 
@@ -287,7 +289,7 @@ macro_rules! pins {
             #[allow(non_camel_case_types)]
             pub struct $type(());
 
-            impl PinName for $type {
+            impl PinTrait for $type {
                 type DefaultState = $default_state;
 
                 const ID  : u8  = $id;
@@ -595,7 +597,7 @@ pins!(
 /// let (pin, _) = pin.assign_input_function(u1_rxd, &mut swm_handle);
 ///
 /// // We can't assign another output function. The next line won't compile.
-/// // let (pin, _) = pin.assign_output_function(u0_txd, &mut swm);
+/// // let (pin, _) = pin.assign_output_function(u0_txd.ty, &mut swm);
 ///
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
@@ -661,12 +663,12 @@ pins!(
 /// [`into_swm_pin`]: #method.into_swm_pin
 /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.IOCON.html
 /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.ADC.html
-pub struct Pin<T: PinName, S: PinState> {
+pub struct Pin<T: PinTrait, S: PinState> {
     ty   : T,
     state: S,
 }
 
-impl<T> Pin<T, pin_state::Unknown> where T: PinName {
+impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// Affirm that the pin is in its default state
     ///
     /// This method is only available, if the pin is in the unknown state. Code
@@ -744,7 +746,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinName {
     }
 }
 
-impl<T> Pin<T, pin_state::Unused> where T: PinName {
+impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// Transition this pin instance to the GPIO state
     ///
     /// This method is only available while the pin is in the unused state. Code
@@ -888,7 +890,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinName {
 
 impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     where
-        T: PinName,
+        T: PinTrait,
         D: direction::NotOutput,
 {
     /// Sets pin direction to output
@@ -959,7 +961,7 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
 }
 
 impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
-    where T: PinName
+    where T: PinTrait
 {
     /// Set the pin output to HIGH
     ///
@@ -998,7 +1000,7 @@ impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
 
 impl<'gpio, T> StatefulOutputPin
     for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
-    where T: PinName
+    where T: PinTrait
 {
     /// Indicates whether the pin output is currently set to HIGH
     ///
@@ -1031,7 +1033,7 @@ impl<'gpio, T> StatefulOutputPin
     }
 }
 
-impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
+impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// Enable the fixed output function on this pin
     ///
     /// This method is only available, if two conditions are met:
@@ -1171,11 +1173,14 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn assign_output_function<F>(mut self,
-        function: F,
+        function: MovableFunction<F, movable_function_state::Unassigned>,
         swm     : &mut swm::Handle,
     )
-        -> (Pin<T, pin_state::Swm<((),), Inputs>>, F::Assigned)
-        where F: OutputFunction + movable_function::Assign<T>
+        -> (
+            Pin<T, pin_state::Swm<((),), Inputs>>,
+            MovableFunction<F, movable_function_state::Assigned<T>>,
+        )
+        where F: OutputFunction + MovableFunctionTrait
     {
         let function = function.assign(&mut self.ty, swm);
 
@@ -1188,7 +1193,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinName {
     }
 }
 
-impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
+impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// Disable the fixed output function on this pin
     ///
     /// This method is only available, if two conditions are met:
@@ -1349,11 +1354,14 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn unassign_output_function<F>(mut self,
-        function: F,
+        function: MovableFunction<F, movable_function_state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
-        -> (Pin<T, pin_state::Swm<(), Inputs>>, F::Unassigned)
-        where F: OutputFunction + movable_function::Unassign<T>
+        -> (
+            Pin<T, pin_state::Swm<(), Inputs>>,
+            MovableFunction<F, movable_function_state::Unassigned>,
+        )
+        where F: OutputFunction + MovableFunctionTrait
     {
         let function = function.unassign(&mut self.ty, swm);
 
@@ -1367,7 +1375,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinName {
 }
 
 impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
-    where T: PinName
+    where T: PinTrait
 {
     /// Enable the fixed input function on this pin
     ///
@@ -1498,11 +1506,14 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn assign_input_function<F>(mut self,
-        function: F,
+        function: MovableFunction<F, movable_function_state::Unassigned>,
         swm     : &mut swm::Handle,
     )
-        -> (Pin<T, pin_state::Swm<Output, (Inputs,)>>, F::Assigned)
-        where F: InputFunction + movable_function::Assign<T>
+        -> (
+            Pin<T, pin_state::Swm<Output, (Inputs,)>>,
+            MovableFunction<F, movable_function_state::Assigned<T>>,
+        )
+        where F: InputFunction + MovableFunctionTrait
     {
         let function = function.assign(&mut self.ty, swm);
 
@@ -1516,7 +1527,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
 }
 
 impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
-    where T: PinName
+    where T: PinTrait
 {
     /// Disable the fixed input function on this pin
     ///
@@ -1678,11 +1689,14 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// [`swm::InputFunction`]: ../swm/trait.InputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn unassign_input_function<F>(mut self,
-        function: F,
+        function: MovableFunction<F, movable_function_state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
-        -> (Pin<T, pin_state::Swm<Output, Inputs>>, F::Unassigned)
-        where F: InputFunction + movable_function::Unassign<T>
+        -> (
+            Pin<T, pin_state::Swm<Output, Inputs>>,
+            MovableFunction<F, movable_function_state::Unassigned>,
+        )
+        where F: InputFunction + MovableFunctionTrait
     {
         let function = function.unassign(&mut self.ty, swm);
 
@@ -1695,7 +1709,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     }
 }
 
-impl<T> Pin<T, pin_state::Swm<(), ()>> where T: PinName {
+impl<T> Pin<T, pin_state::Swm<(), ()>> where T: PinTrait {
     /// Transitions this pin instance from the SWM state to the unused state
     ///
     /// This method is only available, if two conditions are met:

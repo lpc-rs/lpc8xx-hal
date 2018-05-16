@@ -27,7 +27,7 @@ use gpio::{
     PIO0_21,
     PIO0_22,
     PIO0_23,
-    PinName,
+    PinTrait,
 };
 use init_state::{
     self,
@@ -125,98 +125,140 @@ impl<State> Handle<State> where State: init_state::NotDisabled {
 }
 
 
-/// Traits implemented by movable functions
-///
-/// These traits are implemented for all types that represent movable functions.
-/// The user should not need to implement these traits, nor use their methods
-/// directly. Changes made to this module will not be considered breaking
-/// changes.
-pub mod movable_function {
-    use gpio::PinName;
-    use swm;
+/// A movable function that can be assigned to any pin
+pub struct MovableFunction<T, State> {
+    /// The type of movable function
+    ty    : T,
+    _state: State,
+}
 
-
-    /// Internal trait for unassigned movable functions that can be assigned
-    pub trait Assign<P> where P: PinName {
-        /// The type that is returned by [`assign`].
-        ///
-        /// Typically, this will be the same type that implements this trait,
-        /// but with a type parameter changed to indicate that the function has
-        /// been assigned to a pin.
-        ///
-        /// [`assign`]: #tymethod.assign
-        type Assigned;
-
-        /// Assigns the movable function to a pin
-        ///
-        /// This method is intended for internal use only. Please use
-        /// [`Pin::assign_input_function`] and [`Pin::assign_output_function`]
-        /// instead.
-        ///
-        /// [`Pin::assign_input_function`]: ../../gpio/struct.Pin.html#method.assign_input_function
-        /// [`Pin::assign_output_function`]: ../../gpio/struct.Pin.html#method.assign_output_function
-        fn assign(self, pin: &mut P, swm: &mut swm::Handle) -> Self::Assigned;
+impl<T> MovableFunction<T, movable_function_state::Unknown> {
+    /// Affirm that the movable function is in its default state
+    ///
+    /// By calling this method, the user promises that the movable function is
+    /// in its default state. This is safe to do, if nothing has changed that
+    /// state before the HAL has been initialized.
+    ///
+    /// If the movable function's state has been changed by any other means than
+    /// the HAL API, then the user must use those means to return the movable
+    /// function to its default state, as specified in the user manual, before
+    /// calling this method.
+    pub unsafe fn affirm_default_state(self)
+        -> MovableFunction<T, movable_function_state::Unassigned>
+        where T: MovableFunctionTrait
+    {
+        MovableFunction {
+            ty    : self.ty,
+            _state: movable_function_state::Unassigned,
+        }
     }
+}
 
+impl<T> MovableFunction<T, movable_function_state::Unassigned> {
+    /// Assign the movable function to a pin
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::assign_input_function`] and [`Pin::assign_output_function`]
+    /// instead.
+    ///
+    /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
+    /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
+    pub fn assign<P>(mut self, pin: &mut P, swm: &mut Handle)
+        -> MovableFunction<T, movable_function_state::Assigned<P>>
+        where
+            T: MovableFunctionTrait,
+            P: PinTrait,
+    {
+        self.ty.assign(pin, swm);
 
-    /// Internal trait for assigned movable functions that can be unassigned
-    pub trait Unassign<P> where P: PinName {
-        /// The type that is returned by [`unassign`].
-        ///
-        /// Typically, this will be the same type that implements this trait,
-        /// but with a type parameter changed to indicate that the function is
-        /// no longer assigned to a pin.
-        ///
-        /// [`unassign`]: #tymethod.unassign
-        type Unassigned;
-
-        /// Unassign the movable function
-        ///
-        /// This method is intended for internal use only. Please use
-        /// [`Pin::unassign_input_function`] and
-        /// [`Pin::unassign_output_function`] instead.
-        ///
-        /// [`Pin::unassign_input_function`]: ../../gpio/struct.Pin.html#method.unassign_input_function
-        /// [`Pin::unassign_output_function`]: ../../gpio/struct.Pin.html#method.unassign_input_function
-        fn unassign(self, pin: &mut P, swm: &mut swm::Handle)
-            -> Self::Unassigned;
+        MovableFunction {
+            ty    : self.ty,
+            _state: movable_function_state::Assigned(PhantomData),
+        }
     }
+}
 
+impl<T, P> MovableFunction<T, movable_function_state::Assigned<P>> {
+    /// Unassign the movable function
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::unassign_input_function`] and
+    /// [`Pin::unassign_output_function`] instead.
+    ///
+    /// [`Pin::unassign_input_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
+    /// [`Pin::unassign_output_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
+    pub fn unassign(mut self, pin: &mut P, swm: &mut Handle)
+        -> MovableFunction<T, movable_function_state::Unassigned>
+        where
+            T: MovableFunctionTrait,
+            P: PinTrait,
+    {
+        self.ty.unassign(pin, swm);
 
-    /// Contains types that indicate the state of a movable function
-    pub mod state {
-        use core::marker::PhantomData;
-
-
-        /// Implemented by types that indicate the state of a movable function
-        ///
-        /// This trait is implemented by types that indicate the state of a
-        /// movable function. It exists only to document which types those are.
-        /// The user should not need to implement this trait, nor use it
-        /// directly.
-        pub trait State {}
-
-
-        /// Indicates that the current state of the movable function is unknown
-        ///
-        /// This is the case after the HAL is initialized, as we can't know what
-        /// happened before that.
-        pub struct Unknown;
-
-        impl State for Unknown {}
-
-
-        /// Indicates that the movable function is unassigned
-        pub struct Unassigned;
-
-        impl State for Unassigned {}
-
-
-        /// Indicates that the movable function is assigned to a pin
-        pub struct Assigned<Pin>(PhantomData<Pin>);
-
-        impl<Pin> State for Assigned<Pin> {}
+        MovableFunction {
+            ty    : self.ty,
+            _state: movable_function_state::Unassigned,
+        }
     }
+}
+
+
+/// Implemented by all movable functions
+pub trait MovableFunctionTrait {
+    /// Assigns the movable function to a pin
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::assign_input_function`] and [`Pin::assign_output_function`]
+    /// instead.
+    ///
+    /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
+    /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
+    fn assign<P>(&mut self, pin: &mut P, swm: &mut Handle) where P: PinTrait;
+
+    /// Unassign the movable function
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::unassign_input_function`] and
+    /// [`Pin::unassign_output_function`] instead.
+    ///
+    /// [`Pin::unassign_input_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
+    /// [`Pin::unassign_output_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
+    fn unassign<P>(&mut self, pin: &mut P, swm: &mut Handle);
+}
+
+
+/// Contains types that indicate the state of a movable function
+pub mod movable_function_state {
+    use core::marker::PhantomData;
+
+
+    /// Implemented by types that indicate the state of a movable function
+    ///
+    /// This trait is implemented by types that indicate the state of a movable
+    /// function. It exists only to document which types those are. The user
+    /// should not need to implement this trait, nor use it directly.
+    pub trait State {}
+
+
+    /// Indicates that the current state of the movable function is unknown
+    ///
+    /// This is the case after the HAL is initialized, as we can't know what
+    /// happened before that.
+    pub struct Unknown;
+
+    impl State for Unknown {}
+
+
+    /// Indicates that the movable function is unassigned
+    pub struct Unassigned;
+
+    impl State for Unassigned {}
+
+
+    /// Indicates that the movable function is assigned to a pin
+    pub struct Assigned<Pin>(pub(crate) PhantomData<Pin>);
+
+    impl<Pin> State for Assigned<Pin> {}
 }
 
 macro_rules! movable_functions {
@@ -236,13 +278,19 @@ macro_rules! movable_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct MovableFunctions {
-            $(pub $field: $type<movable_function::state::Unknown>,)*
+            $(pub $field: MovableFunction<
+                $type,
+                movable_function_state::Unknown,
+            >,)*
         }
 
         impl MovableFunctions {
             fn new() -> Self {
                 MovableFunctions {
-                    $($field: $type(PhantomData),)*
+                    $($field: MovableFunction {
+                        ty    : $type(()),
+                        _state: movable_function_state::Unknown,
+                    },)*
                 }
             }
         }
@@ -251,64 +299,21 @@ macro_rules! movable_functions {
         $(
             /// Represents a movable function
             #[allow(non_camel_case_types)]
-            pub struct $type<State>(PhantomData<State>)
-                where State: movable_function::state::State;
+            pub struct $type(());
 
-            impl $type<movable_function::state::Unknown> {
-                /// Affirm that the movable function is in its default state
-                ///
-                /// By calling this method, the user promises that the movable
-                /// function is in its default state. This is safe to do, if
-                /// nothing has changed that state before the HAL has been
-                /// initialized.
-                ///
-                /// If the movable function's state has been changed by any
-                /// other means than the HAL API, then the user must use those
-                /// means to return the movable function to its default state,
-                /// as specified in the user manual, before calling this method.
-                pub unsafe fn affirm_default_state(self)
-                    -> $type<movable_function::state::Unassigned>
-                {
-                    $type(PhantomData)
-                }
-
-            }
-
-            impl<P> movable_function::Assign<P>
-                for $type<movable_function::state::Unassigned>
-                where P: PinName
-            {
-                type Assigned = $type<movable_function::state::Assigned<P>>;
-
-                fn assign(self,
-                    _pin: &mut P,
-                    swm : &mut Handle,
-                )
-                    -> Self::Assigned
+            impl MovableFunctionTrait for $type {
+                fn assign<P>(&mut self, _pin: &mut P, swm : &mut Handle)
+                    where P: PinTrait
                 {
                     swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(P::ID) }
                     );
-                    $type(PhantomData)
                 }
-            }
 
-            impl<P> movable_function::Unassign<P>
-                for $type<movable_function::state::Assigned<P>>
-                where P: PinName
-            {
-                type Unassigned = $type<movable_function::state::Unassigned>;
-
-                fn unassign(self,
-                    _pin: &mut P,
-                    swm : &mut Handle,
-                )
-                    -> Self::Unassigned
-                {
+                fn unassign<P>(&mut self, _pin: &mut P, swm : &mut Handle) {
                     swm.swm.$reg_name.modify(|_, w|
                         unsafe { w.$reg_field().bits(0xff) }
                     );
-                    $type(PhantomData)
                 }
             }
         )*
@@ -374,7 +379,7 @@ movable_functions!(
 /// directly. Changes made to this module will not be considered breaking
 /// changes.
 pub mod fixed_function {
-    use gpio::PinName;
+    use gpio::PinTrait;
     use swm;
 
     use self::state::State;
@@ -387,7 +392,7 @@ pub mod fixed_function {
     /// Any changes to this trait will not be considered breaking changes.
     pub trait FixedFunction {
         /// The pin that this fixed function can be enabled on
-        type Pin: PinName;
+        type Pin: PinTrait;
 
         /// The default state of this function
         type DefaultState: State;
@@ -623,78 +628,42 @@ pub trait OutputFunction {}
 
 // Which movable functions are output functions is documented in the user manual
 // in section 7.4.1, table 65.
-impl<State> OutputFunction for U0_TXD<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U0_RTS<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U0_SCLK<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U1_TXD<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U1_RTS<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U1_SCLK<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U2_TXD<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U2_RTS<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for U2_SCLK<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_SCK<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_MOSI<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_MISO<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_SSEL0<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_SSEL1<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_SSEL2<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI0_SSEL3<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI1_SCK<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI1_MOSI<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI1_MISO<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI1_SSEL0<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SPI1_SSEL1<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT0<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT1<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT2<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT3<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT4<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for SCT_OUT5<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C1_SDA<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C1_SCL<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C2_SDA<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C2_SCL<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C3_SDA<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for I2C3_SCL<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for ACMP_O<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for CLKOUT<State>
-    where State: movable_function::state::State {}
-impl<State> OutputFunction for GPIO_INT_BMAT<State>
-    where State: movable_function::state::State {}
+impl OutputFunction for U0_TXD {}
+impl OutputFunction for U0_RTS {}
+impl OutputFunction for U0_SCLK {}
+impl OutputFunction for U1_TXD {}
+impl OutputFunction for U1_RTS {}
+impl OutputFunction for U1_SCLK {}
+impl OutputFunction for U2_TXD {}
+impl OutputFunction for U2_RTS {}
+impl OutputFunction for U2_SCLK {}
+impl OutputFunction for SPI0_SCK {}
+impl OutputFunction for SPI0_MOSI {}
+impl OutputFunction for SPI0_MISO {}
+impl OutputFunction for SPI0_SSEL0 {}
+impl OutputFunction for SPI0_SSEL1 {}
+impl OutputFunction for SPI0_SSEL2 {}
+impl OutputFunction for SPI0_SSEL3 {}
+impl OutputFunction for SPI1_SCK {}
+impl OutputFunction for SPI1_MOSI {}
+impl OutputFunction for SPI1_MISO {}
+impl OutputFunction for SPI1_SSEL0 {}
+impl OutputFunction for SPI1_SSEL1 {}
+impl OutputFunction for SCT_OUT0 {}
+impl OutputFunction for SCT_OUT1 {}
+impl OutputFunction for SCT_OUT2 {}
+impl OutputFunction for SCT_OUT3 {}
+impl OutputFunction for SCT_OUT4 {}
+impl OutputFunction for SCT_OUT5 {}
+impl OutputFunction for I2C1_SDA {}
+impl OutputFunction for I2C1_SCL {}
+impl OutputFunction for I2C2_SDA {}
+impl OutputFunction for I2C2_SCL {}
+impl OutputFunction for I2C3_SDA {}
+impl OutputFunction for I2C3_SCL {}
+impl OutputFunction for ACMP_O {}
+impl OutputFunction for CLKOUT {}
+impl OutputFunction for GPIO_INT_BMAT {}
 
 // See user manual, section 31.4, table 397
 impl<State> OutputFunction for SWCLK<State>
@@ -724,30 +693,18 @@ pub trait InputFunction {}
 
 // Which movable functions are input functions is documented in the user manual
 // in section 7.4.1, table 65.
-impl<State> InputFunction for U0_RXD<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for U0_CTS<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for U1_RXD<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for U1_CTS<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for U2_RXD<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for U2_CTS<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for SCT_PIN0<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for SCT_PIN1<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for SCT_PIN2<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for SCT_PIN3<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for ADC_PINTRIG0<State>
-    where State: movable_function::state::State {}
-impl<State> InputFunction for ADC_PINTRIG1<State>
-    where State: movable_function::state::State {}
+impl InputFunction for U0_RXD {}
+impl InputFunction for U0_CTS {}
+impl InputFunction for U1_RXD {}
+impl InputFunction for U1_CTS {}
+impl InputFunction for U2_RXD {}
+impl InputFunction for U2_CTS {}
+impl InputFunction for SCT_PIN0 {}
+impl InputFunction for SCT_PIN1 {}
+impl InputFunction for SCT_PIN2 {}
+impl InputFunction for SCT_PIN3 {}
+impl InputFunction for ADC_PINTRIG0 {}
+impl InputFunction for ADC_PINTRIG1 {}
 
 // See user manual, section 22.4, table 294
 impl<State> InputFunction for ACMP_I1<State>

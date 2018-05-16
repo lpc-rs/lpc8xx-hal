@@ -69,8 +69,12 @@
 //! // We also need to provide USART0's movable functions. Those need to be
 //! // unassigned, and since they are unassigned by default, we just need to
 //! // promise the API that we didn't change them.
-//! let u0_rxd = unsafe { swm.movable_functions.u0_rxd.affirm_default_state() };
-//! let u0_txd = unsafe { swm.movable_functions.u0_txd.affirm_default_state() };
+//! let u0_rxd = unsafe {
+//!     swm.movable_functions.u0_rxd.affirm_default_state()
+//! };
+//! let u0_txd = unsafe {
+//!     swm.movable_functions.u0_txd.affirm_default_state()
+//! };
 //!
 //! // Initialize USART0. This should never fail, as the only reason `init`
 //! // returns a `Result::Err` is when the transmitter is busy, which it
@@ -106,7 +110,7 @@ use nb;
 use gpio::{
     pin_state,
     Pin,
-    PinName,
+    PinTrait,
 };
 use init_state::{
     self,
@@ -119,8 +123,10 @@ use raw::{
 };
 use swm::{
     self,
-    movable_function,
+    movable_function_state,
     InputFunction,
+    MovableFunction,
+    MovableFunctionTrait,
     OutputFunction,
 };
 use syscon::{
@@ -178,19 +184,19 @@ impl<UsartX, State> USART<UsartX, State>
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<Rx: PinName, Tx: PinName>(mut self,
+    pub fn enable<Rx: PinTrait, Tx: PinTrait>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Handle,
         rx       : Pin<Rx, pin_state::Unused>,
         tx       : Pin<Tx, pin_state::Unused>,
-        rxd      : UsartX::Rx,
-        txd      : UsartX::Tx,
+        rxd      : MovableFunction<UsartX::Rx, movable_function_state::Unassigned>,
+        txd      : MovableFunction<UsartX::Tx, movable_function_state::Unassigned>,
         swm      : &mut swm::Handle,
     )
         -> nb::Result<USART<UsartX, init_state::Enabled>, !>
         where
-            UsartX::Rx: movable_function::Assign<Rx> + InputFunction,
-            UsartX::Tx: movable_function::Assign<Tx> + OutputFunction,
+            UsartX::Rx: MovableFunctionTrait + InputFunction,
+            UsartX::Tx: MovableFunctionTrait + OutputFunction,
     {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
@@ -278,9 +284,7 @@ impl<UsartX, State> USART<UsartX, State>
     /// its `State` type parameter set to [`Disabled`].
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable<Rx: PinName, Tx: PinName>(mut self,
-        syscon: &mut syscon::Handle,
-    )
+    pub fn disable(mut self, syscon: &mut syscon::Handle)
         -> USART<UsartX, init_state::Disabled>
     {
         syscon.disable_clock(&mut self.usart);
@@ -449,22 +453,22 @@ pub trait Peripheral:
 impl Peripheral for raw::USART0 {
     const INTERRUPT: Interrupt = Interrupt::UART0;
 
-    type Rx = swm::U0_RXD<movable_function::state::Unassigned>;
-    type Tx = swm::U0_TXD<movable_function::state::Unassigned>;
+    type Rx = swm::U0_RXD;
+    type Tx = swm::U0_TXD;
 }
 
 impl Peripheral for raw::USART1 {
     const INTERRUPT: Interrupt = Interrupt::UART1;
 
-    type Rx = swm::U1_RXD<movable_function::state::Unassigned>;
-    type Tx = swm::U1_TXD<movable_function::state::Unassigned>;
+    type Rx = swm::U1_RXD;
+    type Tx = swm::U1_TXD;
 }
 
 impl Peripheral for raw::USART2 {
     const INTERRUPT: Interrupt = Interrupt::UART2;
 
-    type Rx = swm::U2_RXD<movable_function::state::Unassigned>;
-    type Tx = swm::U2_TXD<movable_function::state::Unassigned>;
+    type Rx = swm::U2_RXD;
+    type Tx = swm::U2_TXD;
 }
 
 
