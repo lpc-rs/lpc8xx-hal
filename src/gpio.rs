@@ -407,6 +407,8 @@ pins!(
 /// // Reassure the API that the pin is in its default state, i.e. unused.
 /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() };
 ///
+/// use lpc82x_hal::swm::MovableFunctionTrait;
+///
 /// // Assign a movable function to this pin
 /// let clkout = unsafe {
 ///     swm.movable_functions.clkout.ty.affirm_default_state()
@@ -569,6 +571,8 @@ pins!(
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
 /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+/// #
+/// # use lpc82x_hal::swm::MovableFunctionTrait;
 /// #
 /// # let xtalout = unsafe {
 /// #     swm.fixed_functions.xtalout.affirm_default_state()
@@ -1155,6 +1159,8 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() }
     ///     .into_swm_pin();
     ///
+    /// use lpc82x_hal::swm::MovableFunctionTrait;
+    ///
     /// // Get the movable function ready to be assigned
     /// let u0_txd = unsafe {
     ///     swm.movable_functions.u0_txd.ty.affirm_default_state()
@@ -1327,6 +1333,8 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// # let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() };
     /// # let pio0_9 = pio0_9.into_swm_pin();
     /// #
+    /// # use lpc82x_hal::swm::MovableFunctionTrait;
+    /// #
     /// # let u0_txd = unsafe {
     /// #     swm.movable_functions.u0_txd.ty.affirm_default_state()
     /// # };
@@ -1481,6 +1489,8 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// // Get pin ready for function assignment
     /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() }
     ///     .into_swm_pin();
+    ///
+    /// use lpc82x_hal::swm::MovableFunctionTrait;
     ///
     /// // Get the movable function ready to be assigned
     /// let u0_rxd = unsafe {
@@ -1655,6 +1665,8 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// #
     /// # let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() };
     /// # let pio0_8 = pio0_8.into_swm_pin();
+    /// #
+    /// # use lpc82x_hal::swm::MovableFunctionTrait;
     /// #
     /// # let u0_rxd = unsafe {
     /// #     swm.movable_functions.u0_rxd.ty.affirm_default_state()

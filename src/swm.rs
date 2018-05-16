@@ -133,6 +133,16 @@ pub struct MovableFunction<T, State> {
 }
 
 
+/// Implemented by all movable functions
+pub trait MovableFunctionTrait {
+    /// The type of the movable function in its default state
+    type Default;
+
+    /// Internal method for affirming the default state
+    unsafe fn affirm_default_state(self) -> Self::Default;
+}
+
+
 /// Traits implemented by movable functions
 ///
 /// These traits are implemented for all types that represent movable functions.
@@ -268,7 +278,11 @@ macro_rules! movable_functions {
             pub struct $type<State>(PhantomData<State>)
                 where State: movable_function::state::State;
 
-            impl $type<movable_function::state::Unknown> {
+            impl MovableFunctionTrait
+                for $type<movable_function::state::Unknown>
+            {
+                type Default = $type<movable_function::state::Unassigned>;
+
                 /// Affirm that the movable function is in its default state
                 ///
                 /// By calling this method, the user promises that the movable
@@ -280,9 +294,7 @@ macro_rules! movable_functions {
                 /// other means than the HAL API, then the user must use those
                 /// means to return the movable function to its default state,
                 /// as specified in the user manual, before calling this method.
-                pub unsafe fn affirm_default_state(self)
-                    -> $type<movable_function::state::Unassigned>
-                {
+                unsafe fn affirm_default_state(self) -> Self::Default {
                     $type(PhantomData)
                 }
 

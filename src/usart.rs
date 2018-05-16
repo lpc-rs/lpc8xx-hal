@@ -66,6 +66,8 @@
 //! let pio0_0 = unsafe { gpio.pins.pio0_0.affirm_default_state() };
 //! let pio0_4 = unsafe { gpio.pins.pio0_4.affirm_default_state() };
 //!
+//! use lpc82x_hal::swm::MovableFunctionTrait;
+//!
 //! // We also need to provide USART0's movable functions. Those need to be
 //! // unassigned, and since they are unassigned by default, we just need to
 //! // promise the API that we didn't change them.
