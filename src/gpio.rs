@@ -59,7 +59,7 @@
 //! };
 //! let pio0_6 = unsafe { gpio.pins.pio0_6.affirm_default_state() }
 //!     .into_swm_pin()
-//!     .enable_input_function(vddcmp.ty, &mut swm_handle);
+//!     .enable_input_function(vddcmp, &mut swm_handle);
 //! ```
 //!
 //! [`GPIO`]: struct.GPIO.html
@@ -83,6 +83,7 @@ use swm::{
     self,
     movable_function_state,
     AdcChannel,
+    FixedFunction,
     FixedFunctionTrait,
     InputFunction,
     MovableFunction,
@@ -588,7 +589,7 @@ pins!(
 ///     .into_swm_pin();
 ///
 /// // Enable this pin's fixed function, which is an output function.
-/// let (pin, xtalout) = pin.enable_output_function(xtalout.ty, &mut swm_handle);
+/// let (pin, xtalout) = pin.enable_output_function(xtalout, &mut swm_handle);
 ///
 /// // Now we can assign various input functions in addition.
 /// let (pin, _) = pin.assign_input_function(u0_rxd, &mut swm_handle);
@@ -599,7 +600,7 @@ pins!(
 ///
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
-/// let (pin, _) = pin.disable_output_function(xtalout, &mut swm_handle);
+/// let (pin, _) = pin.disable_output_function(xtalout.ty, &mut swm_handle);
 /// let (pin, _) = pin.assign_output_function(u0_txd, &mut swm_handle);
 /// ```
 ///
@@ -1090,7 +1091,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     ///
     /// // Enable the fixed function
     /// let (pio0_9, xtalout) = pio0_9.enable_output_function(
-    ///     xtalout.ty,
+    ///     xtalout,
     ///     &mut swm_handle,
     /// );
     /// ```
@@ -1099,10 +1100,13 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn enable_output_function<F>(mut self,
-            function: F,
+            function: FixedFunction<F, init_state::Disabled>,
             swm     : &mut swm::Handle,
         )
-        -> (Pin<T, pin_state::Swm<((),), Inputs>>, F::Enabled)
+        -> (
+            Pin<T, pin_state::Swm<((),), Inputs>>,
+            FixedFunction<F::Enabled, init_state::Enabled>,
+        )
         where
             F: OutputFunction
                 + FixedFunctionTrait<Pin=T>
@@ -1434,7 +1438,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     ///
     /// // Enable the fixed function
     /// let (pio0_8, xtalin) = pio0_8.enable_input_function(
-    ///     xtalin.ty,
+    ///     xtalin,
     ///     &mut swm_handle,
     /// );
     /// ```
@@ -1443,10 +1447,13 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn enable_input_function<F>(mut self,
-        function: F,
+        function: FixedFunction<F, init_state::Disabled>,
         swm     : &mut swm::Handle,
     )
-        -> (Pin<T, pin_state::Swm<Output, (Inputs,)>>, F::Enabled)
+        -> (
+            Pin<T, pin_state::Swm<Output, (Inputs,)>>,
+            FixedFunction<F::Enabled, init_state::Enabled>,
+        )
         where
             F: InputFunction
                 + FixedFunctionTrait<Pin=T>
