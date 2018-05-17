@@ -376,6 +376,26 @@ pub struct FixedFunction<T> {
     pub ty: T,
 }
 
+impl<T> FixedFunction<T> {
+    /// Affirm that the fixed function is in its default state
+    ///
+    /// By calling this method, the user promises that the fixed function is in
+    /// its default state. This is safe to do, if nothing has changed that state
+    /// before the HAL has been initialized.
+    ///
+    /// If the fixed function's state has been changed by any other means than
+    /// the HAL API, then the user must use those means to return the fixed
+    /// function to its default state, as specified in the user manual, before
+    /// calling this method.
+    pub unsafe fn affirm_default_state(self) -> FixedFunction<T::Default>
+        where T: FixedFunctionTrait
+    {
+        FixedFunction {
+            ty: self.ty.affirm_default_state(),
+        }
+    }
+}
+
 
 /// A fixed function
 ///
