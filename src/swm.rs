@@ -409,7 +409,7 @@ impl<T> FixedFunction<T, init_state::Disabled> {
     /// [`Pin::enable_output_function`]: ../gpio/struct.Pin.html#method.enable_output_function
     pub fn enable(mut self, pin: &mut T::Pin, swm: &mut Handle)
         -> FixedFunction<T, init_state::Enabled>
-        where T: FixedFunctionTrait + fixed_function::Enable,
+        where T: FixedFunctionTrait
     {
         self.ty.enable(pin, swm);
 
@@ -431,7 +431,7 @@ impl<T> FixedFunction<T, init_state::Enabled> {
     /// [`Pin::disable_output_function`]: ../gpio/struct.Pin.html#method.disable_output_function
     pub fn disable(mut self, pin: &mut T::Pin, swm: &mut Handle)
         -> FixedFunction<T, init_state::Disabled>
-        where T: FixedFunctionTrait + fixed_function::Disable
+        where T: FixedFunctionTrait
     {
         self.ty.disable(pin, swm);
 
@@ -470,47 +470,28 @@ pub trait FixedFunctionTrait {
     /// function to its default state, as specified in the user manual, before
     /// calling this method.
     unsafe fn affirm_default_state(self) -> Self::Default;
+
+    /// Enable the fixed function
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::enable_input_function`] and [`Pin::enable_output_function`]
+    /// instead.
+    ///
+    /// [`Pin::enable_input_function`]: ../gpio/struct.Pin.html#method.enable_input_function
+    /// [`Pin::enable_output_function`]: ../gpio/struct.Pin.html#method.enable_output_function
+    fn enable(&mut self, pin: &mut Self::Pin, swm: &mut Handle);
+
+    /// Disable the fixed function
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::disable_input_function`] and [`Pin::disable_output_function`]
+    /// instead.
+    ///
+    /// [`Pin::disable_input_function`]: ../gpio/struct.Pin.html#method.disable_input_function
+    /// [`Pin::disable_output_function`]: ../gpio/struct.Pin.html#method.disable_output_function
+    fn disable(&mut self, pin: &mut Self::Pin, swm: &mut Handle);
 }
 
-
-/// Traits implemented by fixed functions
-///
-/// These traits are implemented for all types that represent fixed functions.
-/// The user should not need to implement these traits, nor use their methods
-/// directly. Changes made to this module will not be considered breaking
-/// changes.
-pub mod fixed_function {
-    use swm;
-
-    use super::FixedFunctionTrait;
-
-
-    /// Internal trait for disabled fixed functions that can be enabled
-    pub trait Enable: FixedFunctionTrait {
-        /// Enable the fixed function
-        ///
-        /// This method is intended for internal use only. Please use
-        /// [`Pin::enable_input_function`] and [`Pin::enable_output_function`]
-        /// instead.
-        ///
-        /// [`Pin::enable_input_function`]: ../../gpio/struct.Pin.html#method.enable_input_function
-        /// [`Pin::enable_output_function`]: ../../gpio/struct.Pin.html#method.enable_output_function
-        fn enable(&mut self, pin: &mut Self::Pin, swm: &mut swm::Handle);
-    }
-
-    /// Internal trait for enabled fixed functions that can be disabled
-    pub trait Disable: FixedFunctionTrait {
-        /// Disable the fixed function
-        ///
-        /// This method is intended for internal use only. Please use
-        /// [`Pin::disable_input_function`] and [`Pin::disable_output_function`]
-        /// instead.
-        ///
-        /// [`Pin::disable_input_function`]: ../../gpio/struct.Pin.html#method.disable_input_function
-        /// [`Pin::disable_output_function`]: ../../gpio/struct.Pin.html#method.disable_output_function
-        fn disable(&mut self, pin: &mut Self::Pin, swm: &mut swm::Handle);
-    }
-}
 
 macro_rules! fixed_functions {
     ($($type:ident, $field:ident, $pin:ty, $default_state:ident;)*) => {
@@ -552,15 +533,11 @@ macro_rules! fixed_functions {
                 unsafe fn affirm_default_state(self) -> Self::Default {
                     $type(())
                 }
-            }
 
-            impl fixed_function::Enable for $type {
                 fn enable(&mut self, _pin: &mut Self::Pin, swm: &mut Handle) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
                 }
-            }
 
-            impl fixed_function::Disable for $type {
                 fn disable(&mut self, _pin: &mut Self::Pin, swm: &mut Handle) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
                 }
