@@ -399,6 +399,26 @@ impl<T> FixedFunction<T, init_state::Unknown> {
     }
 }
 
+impl<T> FixedFunction<T, init_state::Disabled> {
+    /// Enable the fixed function
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::enable_input_function`] and [`Pin::enable_output_function`]
+    /// instead.
+    ///
+    /// [`Pin::enable_input_function`]: ../gpio/struct.Pin.html#method.enable_input_function
+    /// [`Pin::enable_output_function`]: ../gpio/struct.Pin.html#method.enable_output_function
+    pub fn enable(self, pin: &mut T::Pin, swm: &mut Handle)
+        -> FixedFunction<T::Enabled, init_state::Enabled>
+        where T: FixedFunctionTrait + fixed_function::Enable,
+    {
+        FixedFunction {
+            ty    : self.ty.enable(pin, swm),
+            _state: init_state::Enabled,
+        }
+    }
+}
+
 
 /// A fixed function
 ///
