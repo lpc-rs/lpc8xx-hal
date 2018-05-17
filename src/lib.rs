@@ -169,8 +169,6 @@
 //!     syscon.ircout,
 //! );
 //!
-//! use lpc82x_hal::swm::FixedFunctionTrait;
-//!
 //! // In the next step, we need to configure the pin PIO0_3 and its fixed
 //! // function SWCLK. The API tracks the state of both of those, to prevent any
 //! // mistakes on our side. However, since we could have changed the state of
@@ -179,11 +177,11 @@
 //! // Let's affirm that we haven't changed anything, and that PIO0_3 and SWCLK
 //! // are still in their initial states.
 //! let pio0_3 = unsafe { gpio.pins.pio0_3.affirm_default_state()          };
-//! let swclk  = unsafe { swm.fixed_functions.swclk.ty.affirm_default_state() };
+//! let swclk  = unsafe { swm.fixed_functions.swclk.affirm_default_state() };
 //!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
 //! let (pio0_3, _) = pio0_3
-//!     .disable_output_function(swclk, &mut swm_handle);
+//!     .disable_output_function(swclk.ty, &mut swm_handle);
 //! let mut pio0_3 = pio0_3
 //!     .into_unused_pin()
 //!     .into_gpio_pin(&gpio_handle)

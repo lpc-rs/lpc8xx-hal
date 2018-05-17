@@ -54,14 +54,12 @@
 //!
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
-//! use lpc82x_hal::swm::FixedFunctionTrait;
-//!
 //! let vddcmp = unsafe {
-//!     swm.fixed_functions.vddcmp.ty.affirm_default_state()
+//!     swm.fixed_functions.vddcmp.affirm_default_state()
 //! };
 //! let pio0_6 = unsafe { gpio.pins.pio0_6.affirm_default_state() }
 //!     .into_swm_pin()
-//!     .enable_input_function(vddcmp, &mut swm_handle);
+//!     .enable_input_function(vddcmp.ty, &mut swm_handle);
 //! ```
 //!
 //! [`GPIO`]: struct.GPIO.html
@@ -572,10 +570,8 @@ pins!(
 /// #
 /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
-/// # use lpc82x_hal::swm::FixedFunctionTrait;
-/// #
 /// # let xtalout = unsafe {
-/// #     swm.fixed_functions.xtalout.ty.affirm_default_state()
+/// #     swm.fixed_functions.xtalout.affirm_default_state()
 /// # };
 /// # let u0_rxd = unsafe {
 /// #     swm.movable_functions.u0_rxd.affirm_default_state()
@@ -592,7 +588,7 @@ pins!(
 ///     .into_swm_pin();
 ///
 /// // Enable this pin's fixed function, which is an output function.
-/// let (pin, xtalout) = pin.enable_output_function(xtalout, &mut swm_handle);
+/// let (pin, xtalout) = pin.enable_output_function(xtalout.ty, &mut swm_handle);
 ///
 /// // Now we can assign various input functions in addition.
 /// let (pin, _) = pin.assign_input_function(u0_rxd, &mut swm_handle);
@@ -631,15 +627,13 @@ pins!(
 /// #
 /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
-/// # use lpc82x_hal::swm::FixedFunctionTrait;
-/// #
 /// # let adc_2 = unsafe {
-/// #     swm.fixed_functions.adc_2.ty.affirm_default_state()
+/// #     swm.fixed_functions.adc_2.affirm_default_state()
 /// # };
 /// #
 /// // Transition pin into ADC state
 /// let pin = unsafe { gpio.pins.pio0_14.affirm_default_state() }
-///     .into_adc_pin(adc_2, &mut swm_handle);
+///     .into_adc_pin(adc_2.ty, &mut swm_handle);
 /// ```
 ///
 /// Using the pin for analog input once it is in the ADC state is currently not
@@ -717,10 +711,8 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// # let mut swm    = SWM::new(peripherals.SWM);
     /// #
-    /// # use lpc82x_hal::swm::FixedFunctionTrait;
-    /// #
     /// # let swclk = unsafe {
-    /// #     swm.fixed_functions.swclk.ty.affirm_default_state()
+    /// #     swm.fixed_functions.swclk.affirm_default_state()
     /// # };
     /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
@@ -740,7 +732,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// // function enabled by default. If we want to use it for something else,
     /// // we need to transition it into the unused state before we can do so.
     /// let pio0_3 = pio0_3
-    ///     .disable_output_function(swclk, &mut swm_handle)
+    ///     .disable_output_function(swclk.ty, &mut swm_handle)
     ///     .0 // also returns output function; we're only interested in pin
     ///     .into_unused_pin();
     /// ```
@@ -1091,16 +1083,14 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() }
     ///     .into_swm_pin();
     ///
-    /// use lpc82x_hal::swm::FixedFunctionTrait;
-    ///
     /// // Get the fixed function on PIO0_9 ready to be enabled
     /// let xtalout = unsafe {
-    ///     swm.fixed_functions.xtalout.ty.affirm_default_state()
+    ///     swm.fixed_functions.xtalout.affirm_default_state()
     /// };
     ///
     /// // Enable the fixed function
     /// let (pio0_9, xtalout) = pio0_9.enable_output_function(
-    ///     xtalout,
+    ///     xtalout.ty,
     ///     &mut swm_handle,
     /// );
     /// ```
@@ -1262,18 +1252,16 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     ///     gpio.pins.pio0_3.affirm_default_state()
     /// };
     ///
-    /// use lpc82x_hal::swm::FixedFunctionTrait;
-    ///
     /// // SWCLK is the output function that is enabled on PIO0_3 by default.
     /// // Here too will this be be reflected in its state after the following
     /// // method call.
     /// let swclk = unsafe {
-    ///     swm.fixed_functions.swclk.ty.affirm_default_state()
+    ///     swm.fixed_functions.swclk.affirm_default_state()
     /// };
     ///
     /// // Disable the fixed function
     /// let (pio0_3, swclk) = pio0_3.disable_output_function(
-    ///     swclk,
+    ///     swclk.ty,
     ///     &mut swm_handle,
     /// );
     ///
@@ -1439,16 +1427,14 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() }
     ///     .into_swm_pin();
     ///
-    /// use lpc82x_hal::swm::FixedFunctionTrait;
-    ///
     /// // Get the fixed function on PIO0_8 ready to be enabled
     /// let xtalin = unsafe {
-    ///     swm.fixed_functions.xtalin.ty.affirm_default_state()
+    ///     swm.fixed_functions.xtalin.affirm_default_state()
     /// };
     ///
     /// // Enable the fixed function
     /// let (pio0_8, xtalin) = pio0_8.enable_input_function(
-    ///     xtalin,
+    ///     xtalin.ty,
     ///     &mut swm_handle,
     /// );
     /// ```
@@ -1607,18 +1593,16 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     ///     gpio.pins.pio0_5.affirm_default_state()
     /// };
     ///
-    /// use lpc82x_hal::swm::FixedFunctionTrait;
-    ///
     /// // RESETN is the input function that is enabled on PIO0_5 by default.
     /// // Here too, will this be be reflected in its state after the following
     /// // method call.
     /// let resetn = unsafe {
-    ///     swm.fixed_functions.resetn.ty.affirm_default_state()
+    ///     swm.fixed_functions.resetn.affirm_default_state()
     /// };
     ///
     /// // Disable the fixed function
     /// let (pio0_5, resetn) = pio0_5.disable_input_function(
-    ///     resetn,
+    ///     resetn.ty,
     ///     &mut swm_handle,
     /// );
     ///
