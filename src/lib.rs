@@ -169,6 +169,8 @@
 //!     syscon.ircout,
 //! );
 //!
+//! use lpc82x_hal::swm::FixedFunctionTrait;
+//!
 //! // In the next step, we need to configure the pin PIO0_3 and its fixed
 //! // function SWCLK. The API tracks the state of both of those, to prevent any
 //! // mistakes on our side. However, since we could have changed the state of

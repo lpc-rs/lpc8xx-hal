@@ -388,6 +388,22 @@ pub trait FixedFunctionTrait {
 
     /// The default state of this function
     type DefaultState: InitState;
+
+    /// The return value of `affirm_default_state`
+    type Default;
+
+
+    /// Affirm that the fixed function is in its default state
+    ///
+    /// By calling this method, the user promises that the fixed function is in
+    /// its default state. This is safe to do, if nothing has changed that state
+    /// before the HAL has been initialized.
+    ///
+    /// If the fixed function's state has been changed by any other means than
+    /// the HAL API, then the user must use those means to return the fixed
+    /// function to its default state, as specified in the user manual, before
+    /// calling this method.
+    unsafe fn affirm_default_state(self) -> Self::Default;
 }
 
 
@@ -476,32 +492,20 @@ macro_rules! fixed_functions {
             #[allow(non_camel_case_types)]
             pub struct $type<State>(PhantomData<State>) where State: InitState;
 
-            impl $type<init_state::Unknown> {
-                /// Affirm that the fixed function is in its default state
-                ///
-                /// By calling this method, the user promises that the fixed
-                /// function is in its default state. This is safe to do, if
-                /// nothing has changed that state before the HAL has been
-                /// initialized.
-                ///
-                /// If the fixed function's state has been changed by any other
-                /// means than the HAL API, then the user must use those means
-                /// to return the fixed function to its default state, as
-                /// specified in the user manual, before calling this method.
-                pub unsafe fn affirm_default_state(self)
-                    -> $type<<Self as FixedFunctionTrait>::DefaultState>
-                {
-                    $type(PhantomData)
-                }
-
-            }
-
             impl<State> FixedFunctionTrait for $type<State>
                 where State: InitState
             {
                 type Pin = $pin;
 
                 type DefaultState = init_state::$default_state;
+
+                type Default =
+                    $type<<Self as FixedFunctionTrait>::DefaultState>;
+
+
+                unsafe fn affirm_default_state(self) -> Self::Default {
+                    $type(PhantomData)
+                }
             }
 
             impl fixed_function::Enable for
