@@ -878,7 +878,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     )
         -> (
             Pin<T, pin_state::Adc>,
-            FixedFunction<F::Enabled, init_state::Enabled>,
+            FixedFunction<F, init_state::Enabled>,
         )
         where
             F: AdcChannel
@@ -1111,7 +1111,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
         )
         -> (
             Pin<T, pin_state::Swm<((),), Inputs>>,
-            FixedFunction<F::Enabled, init_state::Enabled>,
+            FixedFunction<F, init_state::Enabled>,
         )
         where
             F: OutputFunction
@@ -1287,7 +1287,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     )
         -> (
             Pin<T, pin_state::Swm<(), Inputs>>,
-            FixedFunction<F::Disabled, init_state::Disabled>,
+            FixedFunction<F, init_state::Disabled>,
         )
         where
             F: OutputFunction
@@ -1461,7 +1461,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     )
         -> (
             Pin<T, pin_state::Swm<Output, (Inputs,)>>,
-            FixedFunction<F::Enabled, init_state::Enabled>,
+            FixedFunction<F, init_state::Enabled>,
         )
         where
             F: InputFunction
@@ -1634,7 +1634,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     )
         -> (
             Pin<T, pin_state::Swm<Output, Inputs>>,
-            FixedFunction<F::Disabled, init_state::Disabled>,
+            FixedFunction<F, init_state::Disabled>,
         )
         where
             F: InputFunction

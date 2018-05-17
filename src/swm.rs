@@ -407,12 +407,14 @@ impl<T> FixedFunction<T, init_state::Disabled> {
     ///
     /// [`Pin::enable_input_function`]: ../gpio/struct.Pin.html#method.enable_input_function
     /// [`Pin::enable_output_function`]: ../gpio/struct.Pin.html#method.enable_output_function
-    pub fn enable(self, pin: &mut T::Pin, swm: &mut Handle)
-        -> FixedFunction<T::Enabled, init_state::Enabled>
+    pub fn enable(mut self, pin: &mut T::Pin, swm: &mut Handle)
+        -> FixedFunction<T, init_state::Enabled>
         where T: FixedFunctionTrait + fixed_function::Enable,
     {
+        self.ty.enable(pin, swm);
+
         FixedFunction {
-            ty    : self.ty.enable(pin, swm),
+            ty    : self.ty,
             _state: init_state::Enabled,
         }
     }
@@ -427,12 +429,14 @@ impl<T> FixedFunction<T, init_state::Enabled> {
     ///
     /// [`Pin::disable_input_function`]: ../gpio/struct.Pin.html#method.disable_input_function
     /// [`Pin::disable_output_function`]: ../gpio/struct.Pin.html#method.disable_output_function
-    pub fn disable(self, pin: &mut T::Pin, swm: &mut Handle)
-        -> FixedFunction<T::Disabled, init_state::Disabled>
+    pub fn disable(mut self, pin: &mut T::Pin, swm: &mut Handle)
+        -> FixedFunction<T, init_state::Disabled>
         where T: FixedFunctionTrait + fixed_function::Disable
     {
+        self.ty.disable(pin, swm);
+
         FixedFunction {
-            ty    : self.ty.disable(pin, swm),
+            ty    : self.ty,
             _state: init_state::Disabled,
         }
     }
@@ -483,15 +487,6 @@ pub mod fixed_function {
 
     /// Internal trait for disabled fixed functions that can be enabled
     pub trait Enable: FixedFunctionTrait {
-        /// The type that is returned by [`enable`].
-        ///
-        /// Typically, this will be the same type that implements this trait,
-        /// but with a type parameter changed to indicate that the function has
-        /// been enabled.
-        ///
-        /// [`enable`]: #tymethod.enable
-        type Enabled;
-
         /// Enable the fixed function
         ///
         /// This method is intended for internal use only. Please use
@@ -500,21 +495,11 @@ pub mod fixed_function {
         ///
         /// [`Pin::enable_input_function`]: ../../gpio/struct.Pin.html#method.enable_input_function
         /// [`Pin::enable_output_function`]: ../../gpio/struct.Pin.html#method.enable_output_function
-        fn enable(self, pin: &mut Self::Pin, swm: &mut swm::Handle)
-            -> Self::Enabled;
+        fn enable(&mut self, pin: &mut Self::Pin, swm: &mut swm::Handle);
     }
 
     /// Internal trait for enabled fixed functions that can be disabled
     pub trait Disable: FixedFunctionTrait {
-        /// The type that is returned by [`disable`].
-        ///
-        /// Typically, this will be the same type that implements this trait,
-        /// but with a type parameter changed to indicate that the function has
-        /// been enabled.
-        ///
-        /// [`disable`]: #tymethod.disable
-        type Disabled;
-
         /// Disable the fixed function
         ///
         /// This method is intended for internal use only. Please use
@@ -523,8 +508,7 @@ pub mod fixed_function {
         ///
         /// [`Pin::disable_input_function`]: ../../gpio/struct.Pin.html#method.disable_input_function
         /// [`Pin::disable_output_function`]: ../../gpio/struct.Pin.html#method.disable_output_function
-        fn disable(self, pin: &mut Self::Pin, swm: &mut swm::Handle)
-            -> Self::Disabled;
+        fn disable(&mut self, pin: &mut Self::Pin, swm: &mut swm::Handle);
     }
 }
 
@@ -571,24 +555,14 @@ macro_rules! fixed_functions {
             }
 
             impl fixed_function::Enable for $type {
-                type Enabled = $type;
-
-                fn enable(self, _pin: &mut Self::Pin, swm: &mut Handle)
-                    -> Self::Enabled
-                {
+                fn enable(&mut self, _pin: &mut Self::Pin, swm: &mut Handle) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
-                    $type(())
                 }
             }
 
             impl fixed_function::Disable for $type {
-                type Disabled = $type;
-
-                fn disable(self, _pin: &mut Self::Pin, swm: &mut Handle)
-                    -> Self::Disabled
-                {
+                fn disable(&mut self, _pin: &mut Self::Pin, swm: &mut Handle) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
-                    $type(())
                 }
             }
         )*
