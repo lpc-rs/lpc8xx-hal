@@ -1,8 +1,14 @@
+#![no_main]
 #![no_std]
 
 
+#[macro_use]
+extern crate cortex_m_rt;
 extern crate lpc82x_hal;
 extern crate panic_abort;
+
+
+use cortex_m_rt::ExceptionFrame;
 
 use lpc82x_hal::prelude::*;
 use lpc82x_hal::{
@@ -16,7 +22,10 @@ use lpc82x_hal::usart::{
     USART,
 };
 
-fn main() {
+
+entry!(main);
+
+fn main() -> ! {
     let mut peripherals = raw::Peripherals::take().unwrap();
 
     let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
@@ -68,6 +77,13 @@ fn main() {
     let u0_rxd = unsafe { swm.movable_functions.u0_rxd.affirm_default_state() };
     let u0_txd = unsafe { swm.movable_functions.u0_txd.affirm_default_state() };
 
+    let (_, u0_rxd) = pio0_0
+        .into_swm_pin()
+        .assign_input_function(u0_rxd, &mut swm_handle);
+    let (_, u0_txd) = pio0_4
+        .into_swm_pin()
+        .assign_output_function(u0_txd, &mut swm_handle);
+
     // Initialize USART0. This should never fail, as the only reason `init`
     // returns a `Result::Err` is when the transmitter is busy, which it
     // shouldn't be right now.
@@ -75,15 +91,26 @@ fn main() {
         .enable(
             &baud_rate,
             &mut syscon.handle,
-            pio0_0,
-            pio0_4,
             u0_rxd,
             u0_txd,
-            &mut swm_handle,
         )
         .expect("UART initialization shouldn't fail");
 
     // Write a string, blocking until it has finished writing
     serial.bwrite_all(b"Hello, world!\n")
         .expect("UART write shouldn't fail");
+
+    loop {}
+}
+
+
+exception!(*, default_handler);
+exception!(HardFault, handle_hard_fault);
+
+fn default_handler(irqn: i16) {
+    panic!("Unhandled exception or interrupt: {}", irqn);
+}
+
+fn handle_hard_fault(ef: &ExceptionFrame) -> ! {
+    panic!("{:#?}", ef);
 }
