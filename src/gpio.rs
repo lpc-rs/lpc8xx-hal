@@ -83,15 +83,13 @@ use swm::{
     self,
     movable_function_state,
     AdcChannel,
+    FixedFunctionTrait,
     InputFunction,
     MovableFunction,
     MovableFunctionTrait,
     OutputFunction,
 };
-use swm::fixed_function::{
-    self,
-    FixedFunctionTrait,
-};
+use swm::fixed_function;
 use syscon;
 
 use self::pin_state::PinState;

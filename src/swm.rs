@@ -36,8 +36,6 @@ use init_state::{
 use raw;
 use syscon;
 
-use self::fixed_function::FixedFunctionTrait;
-
 
 /// Interface to the switch matrix (SWM)
 pub struct SWM {
@@ -373,6 +371,20 @@ movable_functions!(
 );
 
 
+/// A fixed function
+///
+/// This trait is implemented for all types that represent fixed functions.
+/// The user should not need to implement this trait, nor use it directly.
+/// Any changes to this trait will not be considered breaking changes.
+pub trait FixedFunctionTrait {
+    /// The pin that this fixed function can be enabled on
+    type Pin: PinTrait;
+
+    /// The default state of this function
+    type DefaultState: InitState;
+}
+
+
 /// Traits implemented by fixed functions
 ///
 /// These traits are implemented for all types that represent fixed functions.
@@ -380,23 +392,10 @@ movable_functions!(
 /// directly. Changes made to this module will not be considered breaking
 /// changes.
 pub mod fixed_function {
-    use gpio::PinTrait;
-    use init_state::InitState;
     use swm;
 
+    use super::FixedFunctionTrait;
 
-    /// A fixed function
-    ///
-    /// This trait is implemented for all types that represent fixed functions.
-    /// The user should not need to implement this trait, nor use it directly.
-    /// Any changes to this trait will not be considered breaking changes.
-    pub trait FixedFunctionTrait {
-        /// The pin that this fixed function can be enabled on
-        type Pin: PinTrait;
-
-        /// The default state of this function
-        type DefaultState: InitState;
-    }
 
     /// Internal trait for disabled fixed functions that can be enabled
     pub trait Enable: FixedFunctionTrait {
