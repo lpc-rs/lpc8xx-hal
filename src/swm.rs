@@ -36,7 +36,7 @@ use init_state::{
 use raw;
 use syscon;
 
-use self::fixed_function::FixedFunction;
+use self::fixed_function::FixedFunctionTrait;
 
 
 /// Interface to the switch matrix (SWM)
@@ -390,7 +390,7 @@ pub mod fixed_function {
     /// This trait is implemented for all types that represent fixed functions.
     /// The user should not need to implement this trait, nor use it directly.
     /// Any changes to this trait will not be considered breaking changes.
-    pub trait FixedFunction {
+    pub trait FixedFunctionTrait {
         /// The pin that this fixed function can be enabled on
         type Pin: PinTrait;
 
@@ -399,7 +399,7 @@ pub mod fixed_function {
     }
 
     /// Internal trait for disabled fixed functions that can be enabled
-    pub trait Enable: FixedFunction {
+    pub trait Enable: FixedFunctionTrait {
         /// The type that is returned by [`enable`].
         ///
         /// Typically, this will be the same type that implements this trait,
@@ -422,7 +422,7 @@ pub mod fixed_function {
     }
 
     /// Internal trait for enabled fixed functions that can be disabled
-    pub trait Disable: FixedFunction {
+    pub trait Disable: FixedFunctionTrait {
         /// The type that is returned by [`disable`].
         ///
         /// Typically, this will be the same type that implements this trait,
@@ -484,14 +484,16 @@ macro_rules! fixed_functions {
                 /// to return the fixed function to its default state, as
                 /// specified in the user manual, before calling this method.
                 pub unsafe fn affirm_default_state(self)
-                    -> $type<<Self as FixedFunction>::DefaultState>
+                    -> $type<<Self as FixedFunctionTrait>::DefaultState>
                 {
                     $type(PhantomData)
                 }
 
             }
 
-            impl<State> FixedFunction for $type<State> where State: InitState {
+            impl<State> FixedFunctionTrait for $type<State>
+                where State: InitState
+            {
                 type Pin = $pin;
 
                 type DefaultState = init_state::$default_state;

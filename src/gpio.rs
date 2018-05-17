@@ -90,7 +90,7 @@ use swm::{
 };
 use swm::fixed_function::{
     self,
-    FixedFunction,
+    FixedFunctionTrait,
 };
 use syscon;
 
@@ -875,7 +875,10 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.ADC.html
     pub fn into_adc_pin<F>(mut self, function: F, swm: &mut swm::Handle)
         -> (Pin<T, pin_state::Adc>, F::Enabled)
-        where F: AdcChannel + FixedFunction<Pin=T> + fixed_function::Enable
+        where
+            F: AdcChannel
+                + FixedFunctionTrait<Pin=T>
+                + fixed_function::Enable
     {
         let function = function.enable(&mut self.ty, swm);
 
@@ -1102,7 +1105,10 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
             swm     : &mut swm::Handle,
         )
         -> (Pin<T, pin_state::Swm<((),), Inputs>>, F::Enabled)
-        where F: OutputFunction + FixedFunction<Pin=T> + fixed_function::Enable
+        where
+            F: OutputFunction
+                + FixedFunctionTrait<Pin=T>
+                + fixed_function::Enable
     {
         let function = function.enable(&mut self.ty, swm);
 
@@ -1272,7 +1278,10 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
         swm     : &mut swm::Handle,
     )
         -> (Pin<T, pin_state::Swm<(), Inputs>>, F::Disabled)
-        where F: OutputFunction + FixedFunction<Pin=T> + fixed_function::Disable
+        where
+            F: OutputFunction
+                + FixedFunctionTrait<Pin=T>
+                + fixed_function::Disable
     {
         let function = function.disable(&mut self.ty, swm);
 
@@ -1440,7 +1449,10 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
         swm     : &mut swm::Handle,
     )
         -> (Pin<T, pin_state::Swm<Output, (Inputs,)>>, F::Enabled)
-        where F: InputFunction + FixedFunction<Pin=T> + fixed_function::Enable
+        where
+            F: InputFunction
+                + FixedFunctionTrait<Pin=T>
+                + fixed_function::Enable
     {
         let function = function.enable(&mut self.ty, swm);
 
@@ -1607,7 +1619,10 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
         swm     : &mut swm::Handle,
     )
         -> (Pin<T, pin_state::Swm<Output, Inputs>>, F::Disabled)
-        where F: InputFunction + FixedFunction<Pin=T> + fixed_function::Disable
+        where
+            F: InputFunction
+                + FixedFunctionTrait<Pin=T>
+                + fixed_function::Disable
     {
         let function = function.disable(&mut self.ty, swm);
 
