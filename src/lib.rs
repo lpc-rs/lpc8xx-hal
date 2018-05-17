@@ -305,7 +305,13 @@ pub mod init_state {
     /// initialization states. This is done for the purpose of documentation.
     /// HAL users should never need to implement this trait, nor use it
     /// directly.
-    pub trait InitState {}
+    pub trait InitState {
+        /// Returns an instances of the init state
+        ///
+        /// This method is intended for internal use. Any changes to this method
+        /// won't be considered breaking changes.
+        fn new() -> Self;
+    }
 
 
     /// Indicates that the hardware's state is currently unknown
@@ -314,7 +320,9 @@ pub mod init_state {
     /// initialized, as we don't know what happened before that.
     pub struct Unknown;
 
-    impl InitState for Unknown {}
+    impl InitState for Unknown {
+        fn new() -> Self { Unknown }
+    }
 
 
     /// Indicates that the hardware component is enabled
@@ -323,12 +331,17 @@ pub mod init_state {
     /// used for its intended purpose.
     pub struct Enabled;
 
-    impl InitState for Enabled {}
+    impl InitState for Enabled {
+        fn new() -> Self { Enabled }
+    }
 
 
     /// Indicates that the hardware component is disabled
     pub struct Disabled;
-    impl InitState for Disabled {}
+
+    impl InitState for Disabled {
+        fn new() -> Self { Disabled }
+    }
 
 
     /// Marks a hardware component as not being enabled
