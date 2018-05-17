@@ -76,6 +76,13 @@
 //!     swm.movable_functions.u0_txd.affirm_default_state()
 //! };
 //!
+//! let (_, u0_rxd) = pio0_0
+//!     .into_swm_pin()
+//!     .assign_input_function(u0_rxd, &mut swm_handle);
+//! let (_, u0_txd) = pio0_4
+//!     .into_swm_pin()
+//!     .assign_output_function(u0_txd, &mut swm_handle);
+//!
 //! // Initialize USART0. This should never fail, as the only reason `init`
 //! // returns a `Result::Err` is when the transmitter is busy, which it
 //! // shouldn't be right now.
@@ -83,11 +90,8 @@
 //!     .enable(
 //!         &baud_rate,
 //!         &mut syscon.handle,
-//!         pio0_0,
-//!         pio0_4,
 //!         u0_rxd,
 //!         u0_txd,
-//!         &mut swm_handle,
 //!     )
 //!     .expect("UART initialization shouldn't fail");
 //!
@@ -107,11 +111,7 @@ use embedded_hal::serial::{
 };
 use nb;
 
-use gpio::{
-    pin_state,
-    Pin,
-    PinTrait,
-};
+use gpio::PinTrait;
 use init_state::{
     self,
     InitState,
@@ -123,12 +123,12 @@ use raw::{
 };
 use swm::{
     self,
-    movable_function_state,
     InputFunction,
     MovableFunction,
     MovableFunctionTrait,
     OutputFunction,
 };
+use swm::movable_function_state::Assigned;
 use syscon::{
     self,
     UARTFRG,
@@ -187,11 +187,8 @@ impl<UsartX, State> USART<UsartX, State>
     pub fn enable<Rx: PinTrait, Tx: PinTrait>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Handle,
-        rx       : Pin<Rx, pin_state::Unused>,
-        tx       : Pin<Tx, pin_state::Unused>,
-        rxd      : MovableFunction<UsartX::Rx, movable_function_state::Unassigned>,
-        txd      : MovableFunction<UsartX::Tx, movable_function_state::Unassigned>,
-        swm      : &mut swm::Handle,
+        _        : MovableFunction<UsartX::Rx, Assigned<Rx>>,
+        _        : MovableFunction<UsartX::Tx, Assigned<Tx>>,
     )
         -> nb::Result<USART<UsartX, init_state::Enabled>, !>
         where
@@ -200,13 +197,6 @@ impl<UsartX, State> USART<UsartX, State>
     {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
-
-        rx
-            .into_swm_pin()
-            .assign_input_function(rxd, swm);
-        tx
-            .into_swm_pin()
-            .assign_output_function(txd, swm);
 
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 
