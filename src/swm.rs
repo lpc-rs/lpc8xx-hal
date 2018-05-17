@@ -372,8 +372,7 @@ movable_functions!(
 
 /// A fixed function that can be enabled on a specific pin
 pub struct FixedFunction<T, State> {
-    /// The type of the fixed function
-    pub ty: T,
+    ty    : T,
     _state: State,
 }
 
