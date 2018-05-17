@@ -371,12 +371,13 @@ movable_functions!(
 
 
 /// A fixed function that can be enabled on a specific pin
-pub struct FixedFunction<T> {
+pub struct FixedFunction<T, State> {
     /// The type of the fixed function
     pub ty: T,
+    _state: State,
 }
 
-impl<T> FixedFunction<T> {
+impl<T> FixedFunction<T, init_state::Unknown> {
     /// Affirm that the fixed function is in its default state
     ///
     /// By calling this method, the user promises that the fixed function is in
@@ -387,11 +388,13 @@ impl<T> FixedFunction<T> {
     /// the HAL API, then the user must use those means to return the fixed
     /// function to its default state, as specified in the user manual, before
     /// calling this method.
-    pub unsafe fn affirm_default_state(self) -> FixedFunction<T::Default>
+    pub unsafe fn affirm_default_state(self)
+        -> FixedFunction<T::Default, T::DefaultState>
         where T: FixedFunctionTrait
     {
         FixedFunction {
-            ty: self.ty.affirm_default_state(),
+            ty    : self.ty.affirm_default_state(),
+            _state: InitState::new(),
         }
     }
 }
@@ -495,13 +498,16 @@ macro_rules! fixed_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct FixedFunctions {
-            $(pub $field: FixedFunction<$type<init_state::Unknown>>,)*
+            $(pub $field: FixedFunction<$type<init_state::Unknown>, init_state::Unknown>,)*
         }
 
         impl FixedFunctions {
             fn new() -> Self {
                 FixedFunctions {
-                    $($field: FixedFunction { ty: $type(PhantomData), },)*
+                    $($field: FixedFunction {
+                        ty    : $type(PhantomData),
+                        _state: init_state::Unknown,
+                    },)*
                 }
             }
         }
