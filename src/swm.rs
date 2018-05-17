@@ -537,14 +537,14 @@ macro_rules! fixed_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct FixedFunctions {
-            $(pub $field: FixedFunction<$type<init_state::Unknown>, init_state::Unknown>,)*
+            $(pub $field: FixedFunction<$type, init_state::Unknown>,)*
         }
 
         impl FixedFunctions {
             fn new() -> Self {
                 FixedFunctions {
                     $($field: FixedFunction {
-                        ty    : $type(PhantomData),
+                        ty    : $type(()),
                         _state: init_state::Unknown,
                     },)*
                 }
@@ -555,47 +555,40 @@ macro_rules! fixed_functions {
         $(
             /// Represents a fixed function
             #[allow(non_camel_case_types)]
-            pub struct $type<State>(PhantomData<State>) where State: InitState;
+            pub struct $type(());
 
-            impl<State> FixedFunctionTrait for $type<State>
-                where State: InitState
-            {
+            impl FixedFunctionTrait for $type {
                 type Pin = $pin;
 
                 type DefaultState = init_state::$default_state;
 
-                type Default =
-                    $type<<Self as FixedFunctionTrait>::DefaultState>;
+                type Default = $type;
 
 
                 unsafe fn affirm_default_state(self) -> Self::Default {
-                    $type(PhantomData)
+                    $type(())
                 }
             }
 
-            impl fixed_function::Enable for
-                $type<init_state::Disabled>
-            {
-                type Enabled = $type<init_state::Enabled>;
+            impl fixed_function::Enable for $type {
+                type Enabled = $type;
 
                 fn enable(self, _pin: &mut Self::Pin, swm: &mut Handle)
                     -> Self::Enabled
                 {
                     swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
-                    $type(PhantomData)
+                    $type(())
                 }
             }
 
-            impl fixed_function::Disable for
-                $type<init_state::Enabled>
-            {
-                type Disabled = $type<init_state::Disabled>;
+            impl fixed_function::Disable for $type {
+                type Disabled = $type;
 
                 fn disable(self, _pin: &mut Self::Pin, swm: &mut Handle)
                     -> Self::Disabled
                 {
                     swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
-                    $type(PhantomData)
+                    $type(())
                 }
             }
         )*
@@ -637,18 +630,18 @@ fixed_functions!(
 /// breaking changes.
 pub trait AdcChannel {}
 
-impl<State> AdcChannel for ADC_0<State>  where State: InitState {}
-impl<State> AdcChannel for ADC_1<State>  where State: InitState {}
-impl<State> AdcChannel for ADC_2<State>  where State: InitState {}
-impl<State> AdcChannel for ADC_3<State>  where State: InitState {}
-impl<State> AdcChannel for ADC_4<State>  where State: InitState {}
-impl<State> AdcChannel for ADC_5<State>  where State: InitState {}
-impl<State> AdcChannel for ADC_6<State>  where State: InitState {}
-impl<State> AdcChannel for ADC_7<State>  where State: InitState {}
-impl<State> AdcChannel for ADC_8<State>  where State: InitState {}
-impl<State> AdcChannel for ADC_9<State>  where State: InitState {}
-impl<State> AdcChannel for ADC_10<State> where State: InitState {}
-impl<State> AdcChannel for ADC_11<State> where State: InitState {}
+impl AdcChannel for ADC_0 {}
+impl AdcChannel for ADC_1 {}
+impl AdcChannel for ADC_2 {}
+impl AdcChannel for ADC_3 {}
+impl AdcChannel for ADC_4 {}
+impl AdcChannel for ADC_5 {}
+impl AdcChannel for ADC_6 {}
+impl AdcChannel for ADC_7 {}
+impl AdcChannel for ADC_8 {}
+impl AdcChannel for ADC_9 {}
+impl AdcChannel for ADC_10 {}
+impl AdcChannel for ADC_11 {}
 
 
 /// Marker trait for output functions
@@ -700,15 +693,15 @@ impl OutputFunction for CLKOUT {}
 impl OutputFunction for GPIO_INT_BMAT {}
 
 // See user manual, section 31.4, table 397
-impl<State> OutputFunction for SWCLK<State> where State: InitState {}
-impl<State> OutputFunction for SWDIO<State> where State: InitState {}
+impl OutputFunction for SWCLK {}
+impl OutputFunction for SWDIO {}
 
 // See user manual, section 5.4, table 20
-impl<State> OutputFunction for XTALOUT<State> where State: InitState {}
+impl OutputFunction for XTALOUT {}
 
 // See user manual, section 15.4, table 202
-impl<State> OutputFunction for I2C0_SDA<State> where State: InitState {}
-impl<State> OutputFunction for I2C0_SCL<State> where State: InitState {}
+impl OutputFunction for I2C0_SDA {}
+impl OutputFunction for I2C0_SCL {}
 
 
 /// Marker trait for input functions
@@ -736,13 +729,13 @@ impl InputFunction for ADC_PINTRIG0 {}
 impl InputFunction for ADC_PINTRIG1 {}
 
 // See user manual, section 22.4, table 294
-impl<State> InputFunction for ACMP_I1<State> where State: InitState {}
-impl<State> InputFunction for ACMP_I2<State> where State: InitState {}
-impl<State> InputFunction for ACMP_I3<State> where State: InitState {}
-impl<State> InputFunction for ACMP_I4<State> where State: InitState {}
-impl<State> InputFunction for VDDCMP<State>  where State: InitState {}
+impl InputFunction for ACMP_I1 {}
+impl InputFunction for ACMP_I2 {}
+impl InputFunction for ACMP_I3 {}
+impl InputFunction for ACMP_I4 {}
+impl InputFunction for VDDCMP {}
 
 // See user manual, section 5.4, table 20
-impl<State> InputFunction for XTALIN<State> where State: InitState {}
-impl<State> InputFunction for RESETN<State> where State: InitState {}
-impl<State> InputFunction for CLKIN<State>  where State: InitState {}
+impl InputFunction for XTALIN {}
+impl InputFunction for RESETN {}
+impl InputFunction for CLKIN {}
