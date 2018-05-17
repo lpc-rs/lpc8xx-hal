@@ -419,6 +419,26 @@ impl<T> FixedFunction<T, init_state::Disabled> {
     }
 }
 
+impl<T> FixedFunction<T, init_state::Enabled> {
+    /// Disable the fixed function
+    ///
+    /// This method is intended for internal use only. Please use
+    /// [`Pin::disable_input_function`] and [`Pin::disable_output_function`]
+    /// instead.
+    ///
+    /// [`Pin::disable_input_function`]: ../gpio/struct.Pin.html#method.disable_input_function
+    /// [`Pin::disable_output_function`]: ../gpio/struct.Pin.html#method.disable_output_function
+    pub fn disable(self, pin: &mut T::Pin, swm: &mut Handle)
+        -> FixedFunction<T::Disabled, init_state::Disabled>
+        where T: FixedFunctionTrait + fixed_function::Disable
+    {
+        FixedFunction {
+            ty    : self.ty.disable(pin, swm),
+            _state: init_state::Disabled,
+        }
+    }
+}
+
 
 /// A fixed function
 ///
