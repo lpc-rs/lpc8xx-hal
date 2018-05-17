@@ -600,7 +600,7 @@ pins!(
 ///
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
-/// let (pin, _) = pin.disable_output_function(xtalout.ty, &mut swm_handle);
+/// let (pin, _) = pin.disable_output_function(xtalout, &mut swm_handle);
 /// let (pin, _) = pin.assign_output_function(u0_txd, &mut swm_handle);
 /// ```
 ///
@@ -733,7 +733,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// // function enabled by default. If we want to use it for something else,
     /// // we need to transition it into the unused state before we can do so.
     /// let pio0_3 = pio0_3
-    ///     .disable_output_function(swclk.ty, &mut swm_handle)
+    ///     .disable_output_function(swclk, &mut swm_handle)
     ///     .0 // also returns output function; we're only interested in pin
     ///     .into_unused_pin();
     /// ```
@@ -1265,7 +1265,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     ///
     /// // Disable the fixed function
     /// let (pio0_3, swclk) = pio0_3.disable_output_function(
-    ///     swclk.ty,
+    ///     swclk,
     ///     &mut swm_handle,
     /// );
     ///
@@ -1276,10 +1276,13 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn disable_output_function<F>(mut self,
-        function: F,
+        function: FixedFunction<F, init_state::Enabled>,
         swm     : &mut swm::Handle,
     )
-        -> (Pin<T, pin_state::Swm<(), Inputs>>, F::Disabled)
+        -> (
+            Pin<T, pin_state::Swm<(), Inputs>>,
+            FixedFunction<F::Disabled, init_state::Disabled>,
+        )
         where
             F: OutputFunction
                 + FixedFunctionTrait<Pin=T>
@@ -1609,7 +1612,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     ///
     /// // Disable the fixed function
     /// let (pio0_5, resetn) = pio0_5.disable_input_function(
-    ///     resetn.ty,
+    ///     resetn,
     ///     &mut swm_handle,
     /// );
     ///
@@ -1620,10 +1623,13 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn disable_input_function<F>(mut self,
-        function: F,
+        function: FixedFunction<F, init_state::Enabled>,
         swm     : &mut swm::Handle,
     )
-        -> (Pin<T, pin_state::Swm<Output, Inputs>>, F::Disabled)
+        -> (
+            Pin<T, pin_state::Swm<Output, Inputs>>,
+            FixedFunction<F::Disabled, init_state::Disabled>,
+        )
         where
             F: InputFunction
                 + FixedFunctionTrait<Pin=T>
