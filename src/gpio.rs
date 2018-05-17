@@ -634,7 +634,7 @@ pins!(
 /// #
 /// // Transition pin into ADC state
 /// let pin = unsafe { gpio.pins.pio0_14.affirm_default_state() }
-///     .into_adc_pin(adc_2.ty, &mut swm_handle);
+///     .into_adc_pin(adc_2, &mut swm_handle);
 /// ```
 ///
 /// Using the pin for analog input once it is in the ADC state is currently not
@@ -872,8 +872,14 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// [`swm`]: ../swm/index.html
     /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.IOCON.html
     /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.ADC.html
-    pub fn into_adc_pin<F>(mut self, function: F, swm: &mut swm::Handle)
-        -> (Pin<T, pin_state::Adc>, F::Enabled)
+    pub fn into_adc_pin<F>(mut self,
+        function: FixedFunction<F, init_state::Disabled>,
+        swm     : &mut swm::Handle,
+    )
+        -> (
+            Pin<T, pin_state::Adc>,
+            FixedFunction<F::Enabled, init_state::Enabled>,
+        )
         where
             F: AdcChannel
                 + FixedFunctionTrait<Pin=T>
