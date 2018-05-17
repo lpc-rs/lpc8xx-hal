@@ -55,7 +55,7 @@
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! let vddcmp = unsafe {
-//!     swm.fixed_functions.vddcmp.affirm_default_state()
+//!     swm.fixed_functions.vddcmp.ty.affirm_default_state()
 //! };
 //! let pio0_6 = unsafe { gpio.pins.pio0_6.affirm_default_state() }
 //!     .into_swm_pin()
@@ -571,7 +571,7 @@ pins!(
 /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
 /// # let xtalout = unsafe {
-/// #     swm.fixed_functions.xtalout.affirm_default_state()
+/// #     swm.fixed_functions.xtalout.ty.affirm_default_state()
 /// # };
 /// # let u0_rxd = unsafe {
 /// #     swm.movable_functions.u0_rxd.affirm_default_state()
@@ -628,7 +628,7 @@ pins!(
 /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
 /// # let adc_2 = unsafe {
-/// #     swm.fixed_functions.adc_2.affirm_default_state()
+/// #     swm.fixed_functions.adc_2.ty.affirm_default_state()
 /// # };
 /// #
 /// // Transition pin into ADC state
@@ -712,7 +712,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// # let mut swm    = SWM::new(peripherals.SWM);
     /// #
     /// # let swclk = unsafe {
-    /// #     swm.fixed_functions.swclk.affirm_default_state()
+    /// #     swm.fixed_functions.swclk.ty.affirm_default_state()
     /// # };
     /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
@@ -1085,7 +1085,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     ///
     /// // Get the fixed function on PIO0_9 ready to be enabled
     /// let xtalout = unsafe {
-    ///     swm.fixed_functions.xtalout.affirm_default_state()
+    ///     swm.fixed_functions.xtalout.ty.affirm_default_state()
     /// };
     ///
     /// // Enable the fixed function
@@ -1256,7 +1256,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// // Here too will this be be reflected in its state after the following
     /// // method call.
     /// let swclk = unsafe {
-    ///     swm.fixed_functions.swclk.affirm_default_state()
+    ///     swm.fixed_functions.swclk.ty.affirm_default_state()
     /// };
     ///
     /// // Disable the fixed function
@@ -1429,7 +1429,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     ///
     /// // Get the fixed function on PIO0_8 ready to be enabled
     /// let xtalin = unsafe {
-    ///     swm.fixed_functions.xtalin.affirm_default_state()
+    ///     swm.fixed_functions.xtalin.ty.affirm_default_state()
     /// };
     ///
     /// // Enable the fixed function
@@ -1597,7 +1597,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// // Here too, will this be be reflected in its state after the following
     /// // method call.
     /// let resetn = unsafe {
-    ///     swm.fixed_functions.resetn.affirm_default_state()
+    ///     swm.fixed_functions.resetn.ty.affirm_default_state()
     /// };
     ///
     /// // Disable the fixed function

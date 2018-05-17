@@ -370,6 +370,13 @@ movable_functions!(
 );
 
 
+/// A fixed function that can be enabled on a specific pin
+pub struct FixedFunction<T> {
+    /// The type of the fixed function
+    pub ty: T,
+}
+
+
 /// A fixed function
 ///
 /// This trait is implemented for all types that represent fixed functions.
@@ -452,13 +459,13 @@ macro_rules! fixed_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct FixedFunctions {
-            $(pub $field: $type<init_state::Unknown>,)*
+            $(pub $field: FixedFunction<$type<init_state::Unknown>>,)*
         }
 
         impl FixedFunctions {
             fn new() -> Self {
                 FixedFunctions {
-                    $($field: $type(PhantomData),)*
+                    $($field: FixedFunction { ty: $type(PhantomData), },)*
                 }
             }
         }
