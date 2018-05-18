@@ -87,7 +87,6 @@ use swm::{
     FixedFunctionTrait,
     FunctionTrait,
     InputFunction,
-    MovableFunction,
     OutputFunction,
 };
 use syscon;
@@ -1180,12 +1179,12 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn assign_output_function<F>(mut self,
-        function: MovableFunction<F, movable_function_state::Unassigned>,
+        function: swm::Function<F, movable_function_state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<((),), Inputs>>,
-            MovableFunction<F, movable_function_state::Assigned<T>>,
+            swm::Function<F, movable_function_state::Assigned<T>>,
         )
         where F: OutputFunction + FunctionTrait<T>
     {
@@ -1364,12 +1363,12 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn unassign_output_function<F>(mut self,
-        function: MovableFunction<F, movable_function_state::Assigned<T>>,
+        function: swm::Function<F, movable_function_state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<(), Inputs>>,
-            MovableFunction<F, movable_function_state::Unassigned>,
+            swm::Function<F, movable_function_state::Unassigned>,
         )
         where F: OutputFunction + FunctionTrait<T>
     {
@@ -1519,12 +1518,12 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn assign_input_function<F>(mut self,
-        function: MovableFunction<F, movable_function_state::Unassigned>,
+        function: swm::Function<F, movable_function_state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<Output, (Inputs,)>>,
-            MovableFunction<F, movable_function_state::Assigned<T>>,
+            swm::Function<F, movable_function_state::Assigned<T>>,
         )
         where F: InputFunction + FunctionTrait<T>
     {
@@ -1705,12 +1704,12 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// [`swm::InputFunction`]: ../swm/trait.InputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn unassign_input_function<F>(mut self,
-        function: MovableFunction<F, movable_function_state::Assigned<T>>,
+        function: swm::Function<F, movable_function_state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<Output, Inputs>>,
-            MovableFunction<F, movable_function_state::Unassigned>,
+            swm::Function<F, movable_function_state::Unassigned>,
         )
         where F: InputFunction + FunctionTrait<T>
     {
