@@ -366,7 +366,7 @@ pub struct FixedFunction<T, State> {
     _state: State,
 }
 
-impl<T> FixedFunction<T, init_state::Unknown> where T: FixedFunctionTrait {
+impl<T> FixedFunction<T, state::Unknown> where T: FixedFunctionTrait {
     /// Affirm that the fixed function is in its default state
     ///
     /// By calling this method, the user promises that the fixed function is in
@@ -382,12 +382,12 @@ impl<T> FixedFunction<T, init_state::Unknown> where T: FixedFunctionTrait {
     {
         FixedFunction {
             ty    : self.ty,
-            _state: InitState::new(),
+            _state: state::State::new(),
         }
     }
 }
 
-impl<T> FixedFunction<T, init_state::Disabled> where T: FixedFunctionTrait {
+impl<T> FixedFunction<T, state::Unassigned> where T: FixedFunctionTrait {
     /// Enable the fixed function
     ///
     /// This method is intended for internal use only. Please use
@@ -397,18 +397,18 @@ impl<T> FixedFunction<T, init_state::Disabled> where T: FixedFunctionTrait {
     /// [`Pin::enable_input_function`]: ../gpio/struct.Pin.html#method.enable_input_function
     /// [`Pin::enable_output_function`]: ../gpio/struct.Pin.html#method.enable_output_function
     pub fn enable(mut self, pin: &mut T::Pin, swm: &mut Handle)
-        -> FixedFunction<T, init_state::Enabled>
+        -> FixedFunction<T, state::Assigned<T::Pin>>
     {
         self.ty.enable(pin, swm);
 
         FixedFunction {
             ty    : self.ty,
-            _state: init_state::Enabled,
+            _state: state::State::new(),
         }
     }
 }
 
-impl<T> FixedFunction<T, init_state::Enabled> where T: FixedFunctionTrait {
+impl<T> FixedFunction<T, state::Assigned<T::Pin>> where T: FixedFunctionTrait {
     /// Disable the fixed function
     ///
     /// This method is intended for internal use only. Please use
@@ -418,13 +418,13 @@ impl<T> FixedFunction<T, init_state::Enabled> where T: FixedFunctionTrait {
     /// [`Pin::disable_input_function`]: ../gpio/struct.Pin.html#method.disable_input_function
     /// [`Pin::disable_output_function`]: ../gpio/struct.Pin.html#method.disable_output_function
     pub fn disable(mut self, pin: &mut T::Pin, swm: &mut Handle)
-        -> FixedFunction<T, init_state::Disabled>
+        -> FixedFunction<T, state::Unassigned>
     {
         self.ty.disable(pin, swm);
 
         FixedFunction {
             ty    : self.ty,
-            _state: init_state::Disabled,
+            _state: state::State::new(),
         }
     }
 }
@@ -440,7 +440,7 @@ pub trait FixedFunctionTrait {
     type Pin: PinTrait;
 
     /// The default state of this function
-    type DefaultState: InitState;
+    type DefaultState: state::State;
 
 
     /// Enable the fixed function
@@ -466,7 +466,7 @@ pub trait FixedFunctionTrait {
 
 
 macro_rules! fixed_functions {
-    ($($type:ident, $field:ident, $pin:ident, $default_state:ident;)*) => {
+    ($($type:ident, $field:ident, $pin:ident, $default_state:ty;)*) => {
         /// Provides access to all fixed functions
         ///
         /// This struct is part of [`SWM`].
@@ -474,7 +474,7 @@ macro_rules! fixed_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct FixedFunctions {
-            $(pub $field: FixedFunction<$type, init_state::Unknown>,)*
+            $(pub $field: FixedFunction<$type, state::Unknown>,)*
         }
 
         impl FixedFunctions {
@@ -482,7 +482,7 @@ macro_rules! fixed_functions {
                 FixedFunctions {
                     $($field: FixedFunction {
                         ty    : $type(()),
-                        _state: init_state::Unknown,
+                        _state: state::State::new(),
                     },)*
                 }
             }
@@ -508,7 +508,7 @@ macro_rules! fixed_functions {
             impl FixedFunctionTrait for $type {
                 type Pin = $pin;
 
-                type DefaultState = init_state::$default_state;
+                type DefaultState = $default_state;
 
 
                 fn enable(&mut self, _pin: &mut Self::Pin, swm: &mut Handle) {
@@ -524,31 +524,31 @@ macro_rules! fixed_functions {
 }
 
 fixed_functions!(
-    ACMP_I1 , acmp_i1 , PIO0_0 , Disabled;
-    ACMP_I2 , acmp_i2 , PIO0_1 , Disabled;
-    ACMP_I3 , acmp_i3 , PIO0_14, Disabled;
-    ACMP_I4 , acmp_i4 , PIO0_23, Disabled;
-    SWCLK   , swclk   , PIO0_3 , Enabled;
-    SWDIO   , swdio   , PIO0_2 , Enabled;
-    XTALIN  , xtalin  , PIO0_8 , Disabled;
-    XTALOUT , xtalout , PIO0_9 , Disabled;
-    RESETN  , resetn  , PIO0_5 , Enabled;
-    CLKIN   , clkin   , PIO0_1 , Disabled;
-    VDDCMP  , vddcmp  , PIO0_6 , Disabled;
-    I2C0_SDA, i2c0_sda, PIO0_11, Disabled;
-    I2C0_SCL, i2c0_scl, PIO0_10, Disabled;
-    ADC_0   , adc_0   , PIO0_7 , Disabled;
-    ADC_1   , adc_1   , PIO0_6 , Disabled;
-    ADC_2   , adc_2   , PIO0_14, Disabled;
-    ADC_3   , adc_3   , PIO0_23, Disabled;
-    ADC_4   , adc_4   , PIO0_22, Disabled;
-    ADC_5   , adc_5   , PIO0_21, Disabled;
-    ADC_6   , adc_6   , PIO0_20, Disabled;
-    ADC_7   , adc_7   , PIO0_19, Disabled;
-    ADC_8   , adc_8   , PIO0_18, Disabled;
-    ADC_9   , adc_9   , PIO0_17, Disabled;
-    ADC_10  , adc_10  , PIO0_13, Disabled;
-    ADC_11  , adc_11  , PIO0_4 , Disabled;
+    ACMP_I1 , acmp_i1 , PIO0_0 , state::Unassigned;
+    ACMP_I2 , acmp_i2 , PIO0_1 , state::Unassigned;
+    ACMP_I3 , acmp_i3 , PIO0_14, state::Unassigned;
+    ACMP_I4 , acmp_i4 , PIO0_23, state::Unassigned;
+    SWCLK   , swclk   , PIO0_3 , state::Assigned<PIO0_3>;
+    SWDIO   , swdio   , PIO0_2 , state::Assigned<PIO0_2>;
+    XTALIN  , xtalin  , PIO0_8 , state::Unassigned;
+    XTALOUT , xtalout , PIO0_9 , state::Unassigned;
+    RESETN  , resetn  , PIO0_5 , state::Assigned<PIO0_5>;
+    CLKIN   , clkin   , PIO0_1 , state::Unassigned;
+    VDDCMP  , vddcmp  , PIO0_6 , state::Unassigned;
+    I2C0_SDA, i2c0_sda, PIO0_11, state::Unassigned;
+    I2C0_SCL, i2c0_scl, PIO0_10, state::Unassigned;
+    ADC_0   , adc_0   , PIO0_7 , state::Unassigned;
+    ADC_1   , adc_1   , PIO0_6 , state::Unassigned;
+    ADC_2   , adc_2   , PIO0_14, state::Unassigned;
+    ADC_3   , adc_3   , PIO0_23, state::Unassigned;
+    ADC_4   , adc_4   , PIO0_22, state::Unassigned;
+    ADC_5   , adc_5   , PIO0_21, state::Unassigned;
+    ADC_6   , adc_6   , PIO0_20, state::Unassigned;
+    ADC_7   , adc_7   , PIO0_19, state::Unassigned;
+    ADC_8   , adc_8   , PIO0_18, state::Unassigned;
+    ADC_9   , adc_9   , PIO0_17, state::Unassigned;
+    ADC_10  , adc_10  , PIO0_13, state::Unassigned;
+    ADC_11  , adc_11  , PIO0_4 , state::Unassigned;
 );
 
 

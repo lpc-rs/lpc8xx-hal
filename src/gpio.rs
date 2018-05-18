@@ -870,12 +870,12 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.IOCON.html
     /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.ADC.html
     pub fn into_adc_pin<F>(mut self,
-        function: FixedFunction<F, init_state::Disabled>,
+        function: FixedFunction<F, swm::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Adc>,
-            FixedFunction<F, init_state::Enabled>,
+            FixedFunction<F, swm::state::Assigned<T>>,
         )
         where F: AdcChannel + FixedFunctionTrait<Pin=T>
     {
@@ -1100,12 +1100,12 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn enable_output_function<F>(mut self,
-            function: FixedFunction<F, init_state::Disabled>,
+            function: FixedFunction<F, swm::state::Unassigned>,
             swm     : &mut swm::Handle,
         )
         -> (
             Pin<T, pin_state::Swm<((),), Inputs>>,
-            FixedFunction<F, init_state::Enabled>,
+            FixedFunction<F, swm::state::Assigned<T>>,
         )
         where F: OutputFunction + FixedFunctionTrait<Pin=T>
     {
@@ -1273,12 +1273,12 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn disable_output_function<F>(mut self,
-        function: FixedFunction<F, init_state::Enabled>,
+        function: FixedFunction<F, swm::state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<(), Inputs>>,
-            FixedFunction<F, init_state::Disabled>,
+            FixedFunction<F, swm::state::Unassigned>,
         )
         where F: OutputFunction + FixedFunctionTrait<Pin=T>
     {
@@ -1444,12 +1444,12 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn enable_input_function<F>(mut self,
-        function: FixedFunction<F, init_state::Disabled>,
+        function: FixedFunction<F, swm::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<Output, (Inputs,)>>,
-            FixedFunction<F, init_state::Enabled>,
+            FixedFunction<F, swm::state::Assigned<T>>,
         )
         where F: InputFunction + FixedFunctionTrait<Pin=T>
     {
@@ -1614,12 +1614,12 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn disable_input_function<F>(mut self,
-        function: FixedFunction<F, init_state::Enabled>,
+        function: FixedFunction<F, swm::state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<Output, Inputs>>,
-            FixedFunction<F, init_state::Disabled>,
+            FixedFunction<F, swm::state::Unassigned>,
         )
         where F: InputFunction + FixedFunctionTrait<Pin=T>
     {
