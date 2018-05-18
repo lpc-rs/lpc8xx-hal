@@ -82,9 +82,6 @@ use raw;
 use swm::{
     self,
     AdcChannel,
-    FixedFunction,
-    FixedFunctionTrait,
-    FunctionTrait,
     InputFunction,
     OutputFunction,
 };
@@ -870,16 +867,16 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.IOCON.html
     /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.ADC.html
     pub fn into_adc_pin<F>(mut self,
-        function: FixedFunction<F, swm::state::Unassigned>,
+        function: swm::Function<F, swm::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Adc>,
-            FixedFunction<F, swm::state::Assigned<T>>,
+            swm::Function<F, swm::state::Assigned<T>>,
         )
-        where F: AdcChannel + FixedFunctionTrait<Pin=T>
+        where F: AdcChannel + swm::FunctionTrait<T>
     {
-        let function = function.enable(&mut self.ty, swm);
+        let function = function.assign(&mut self.ty, swm);
 
         let pin = Pin {
             ty   : self.ty,
@@ -1100,16 +1097,16 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn enable_output_function<F>(mut self,
-            function: FixedFunction<F, swm::state::Unassigned>,
+            function: swm::Function<F, swm::state::Unassigned>,
             swm     : &mut swm::Handle,
         )
         -> (
             Pin<T, pin_state::Swm<((),), Inputs>>,
-            FixedFunction<F, swm::state::Assigned<T>>,
+            swm::Function<F, swm::state::Assigned<T>>,
         )
-        where F: OutputFunction + FixedFunctionTrait<Pin=T>
+        where F: OutputFunction + swm::FunctionTrait<T>
     {
-        let function = function.enable(&mut self.ty, swm);
+        let function = function.assign(&mut self.ty, swm);
 
         let pin = Pin {
             ty   : self.ty,
@@ -1185,7 +1182,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
             Pin<T, pin_state::Swm<((),), Inputs>>,
             swm::Function<F, swm::state::Assigned<T>>,
         )
-        where F: OutputFunction + FunctionTrait<T>
+        where F: OutputFunction + swm::FunctionTrait<T>
     {
         let function = function.assign(&mut self.ty, swm);
 
@@ -1273,16 +1270,16 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn disable_output_function<F>(mut self,
-        function: FixedFunction<F, swm::state::Assigned<T>>,
+        function: swm::Function<F, swm::state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<(), Inputs>>,
-            FixedFunction<F, swm::state::Unassigned>,
+            swm::Function<F, swm::state::Unassigned>,
         )
-        where F: OutputFunction + FixedFunctionTrait<Pin=T>
+        where F: OutputFunction + swm::FunctionTrait<T>
     {
-        let function = function.disable(&mut self.ty, swm);
+        let function = function.unassign(&mut self.ty, swm);
 
         let pin = Pin {
             ty   : self.ty,
@@ -1369,7 +1366,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
             Pin<T, pin_state::Swm<(), Inputs>>,
             swm::Function<F, swm::state::Unassigned>,
         )
-        where F: OutputFunction + FunctionTrait<T>
+        where F: OutputFunction + swm::FunctionTrait<T>
     {
         let function = function.unassign(&mut self.ty, swm);
 
@@ -1444,16 +1441,16 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn enable_input_function<F>(mut self,
-        function: FixedFunction<F, swm::state::Unassigned>,
+        function: swm::Function<F, swm::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<Output, (Inputs,)>>,
-            FixedFunction<F, swm::state::Assigned<T>>,
+            swm::Function<F, swm::state::Assigned<T>>,
         )
-        where F: InputFunction + FixedFunctionTrait<Pin=T>
+        where F: InputFunction + swm::FunctionTrait<T>
     {
-        let function = function.enable(&mut self.ty, swm);
+        let function = function.assign(&mut self.ty, swm);
 
         let pin = Pin {
             ty   : self.ty,
@@ -1524,7 +1521,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
             Pin<T, pin_state::Swm<Output, (Inputs,)>>,
             swm::Function<F, swm::state::Assigned<T>>,
         )
-        where F: InputFunction + FunctionTrait<T>
+        where F: InputFunction + swm::FunctionTrait<T>
     {
         let function = function.assign(&mut self.ty, swm);
 
@@ -1614,16 +1611,16 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn disable_input_function<F>(mut self,
-        function: FixedFunction<F, swm::state::Assigned<T>>,
+        function: swm::Function<F, swm::state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<Output, Inputs>>,
-            FixedFunction<F, swm::state::Unassigned>,
+            swm::Function<F, swm::state::Unassigned>,
         )
-        where F: InputFunction + FixedFunctionTrait<Pin=T>
+        where F: InputFunction + swm::FunctionTrait<T>
     {
-        let function = function.disable(&mut self.ty, swm);
+        let function = function.unassign(&mut self.ty, swm);
 
         let pin = Pin {
             ty   : self.ty,
@@ -1710,7 +1707,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
             Pin<T, pin_state::Swm<Output, Inputs>>,
             swm::Function<F, swm::state::Unassigned>,
         )
-        where F: InputFunction + FunctionTrait<T>
+        where F: InputFunction + swm::FunctionTrait<T>
     {
         let function = function.unassign(&mut self.ty, swm);
 

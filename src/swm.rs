@@ -6,27 +6,9 @@
 use core::marker::PhantomData;
 
 use gpio::{
-    PIO0_0,
-    PIO0_1,
     PIO0_2,
     PIO0_3,
-    PIO0_4,
     PIO0_5,
-    PIO0_6,
-    PIO0_7,
-    PIO0_8,
-    PIO0_9,
-    PIO0_10,
-    PIO0_11,
-    PIO0_13,
-    PIO0_14,
-    PIO0_17,
-    PIO0_18,
-    PIO0_19,
-    PIO0_20,
-    PIO0_21,
-    PIO0_22,
-    PIO0_23,
     PinTrait,
 };
 use init_state::{
@@ -371,108 +353,6 @@ movable_functions!(
 );
 
 
-/// A fixed function that can be enabled on a specific pin
-pub struct FixedFunction<T, State> {
-    ty    : T,
-    _state: State,
-}
-
-impl<T> FixedFunction<T, state::Unknown> where T: DefaultState {
-    /// Affirm that the fixed function is in its default state
-    ///
-    /// By calling this method, the user promises that the fixed function is in
-    /// its default state. This is safe to do, if nothing has changed that state
-    /// before the HAL has been initialized.
-    ///
-    /// If the fixed function's state has been changed by any other means than
-    /// the HAL API, then the user must use those means to return the fixed
-    /// function to its default state, as specified in the user manual, before
-    /// calling this method.
-    pub unsafe fn affirm_default_state(self)
-        -> FixedFunction<T, T::DefaultState>
-    {
-        FixedFunction {
-            ty    : self.ty,
-            _state: state::State::new(),
-        }
-    }
-}
-
-impl<T> FixedFunction<T, state::Unassigned> where T: FixedFunctionTrait {
-    /// Enable the fixed function
-    ///
-    /// This method is intended for internal use only. Please use
-    /// [`Pin::enable_input_function`] and [`Pin::enable_output_function`]
-    /// instead.
-    ///
-    /// [`Pin::enable_input_function`]: ../gpio/struct.Pin.html#method.enable_input_function
-    /// [`Pin::enable_output_function`]: ../gpio/struct.Pin.html#method.enable_output_function
-    pub fn enable(mut self, pin: &mut T::Pin, swm: &mut Handle)
-        -> FixedFunction<T, state::Assigned<T::Pin>>
-    {
-        self.ty.enable(pin, swm);
-
-        FixedFunction {
-            ty    : self.ty,
-            _state: state::State::new(),
-        }
-    }
-}
-
-impl<T> FixedFunction<T, state::Assigned<T::Pin>> where T: FixedFunctionTrait {
-    /// Disable the fixed function
-    ///
-    /// This method is intended for internal use only. Please use
-    /// [`Pin::disable_input_function`] and [`Pin::disable_output_function`]
-    /// instead.
-    ///
-    /// [`Pin::disable_input_function`]: ../gpio/struct.Pin.html#method.disable_input_function
-    /// [`Pin::disable_output_function`]: ../gpio/struct.Pin.html#method.disable_output_function
-    pub fn disable(mut self, pin: &mut T::Pin, swm: &mut Handle)
-        -> FixedFunction<T, state::Unassigned>
-    {
-        self.ty.disable(pin, swm);
-
-        FixedFunction {
-            ty    : self.ty,
-            _state: state::State::new(),
-        }
-    }
-}
-
-
-/// A fixed function
-///
-/// This trait is implemented for all types that represent fixed functions.
-/// The user should not need to implement this trait, nor use it directly.
-/// Any changes to this trait will not be considered breaking changes.
-pub trait FixedFunctionTrait {
-    /// The pin that this fixed function can be enabled on
-    type Pin: PinTrait;
-
-
-    /// Enable the fixed function
-    ///
-    /// This method is intended for internal use only. Please use
-    /// [`Pin::enable_input_function`] and [`Pin::enable_output_function`]
-    /// instead.
-    ///
-    /// [`Pin::enable_input_function`]: ../gpio/struct.Pin.html#method.enable_input_function
-    /// [`Pin::enable_output_function`]: ../gpio/struct.Pin.html#method.enable_output_function
-    fn enable(&mut self, pin: &mut Self::Pin, swm: &mut Handle);
-
-    /// Disable the fixed function
-    ///
-    /// This method is intended for internal use only. Please use
-    /// [`Pin::disable_input_function`] and [`Pin::disable_output_function`]
-    /// instead.
-    ///
-    /// [`Pin::disable_input_function`]: ../gpio/struct.Pin.html#method.disable_input_function
-    /// [`Pin::disable_output_function`]: ../gpio/struct.Pin.html#method.disable_output_function
-    fn disable(&mut self, pin: &mut Self::Pin, swm: &mut Handle);
-}
-
-
 macro_rules! fixed_functions {
     ($($type:ident, $field:ident, $pin:ident, $default_state:ty;)*) => {
         /// Provides access to all fixed functions
@@ -482,13 +362,13 @@ macro_rules! fixed_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct FixedFunctions {
-            $(pub $field: FixedFunction<$type, state::Unknown>,)*
+            $(pub $field: Function<$type, state::Unknown>,)*
         }
 
         impl FixedFunctions {
             fn new() -> Self {
                 FixedFunctions {
-                    $($field: FixedFunction {
+                    $($field: Function {
                         ty    : $type(()),
                         _state: state::State::new(),
                     },)*
@@ -513,19 +393,6 @@ macro_rules! fixed_functions {
 
                 fn unassign(&mut self, _: &mut ::gpio::$pin, swm : &mut Handle)
                 {
-                    swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
-                }
-            }
-
-            impl FixedFunctionTrait for $type {
-                type Pin = $pin;
-
-
-                fn enable(&mut self, _pin: &mut Self::Pin, swm: &mut Handle) {
-                    swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
-                }
-
-                fn disable(&mut self, _pin: &mut Self::Pin, swm: &mut Handle) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
                 }
             }
