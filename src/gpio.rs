@@ -85,9 +85,9 @@ use swm::{
     AdcChannel,
     FixedFunction,
     FixedFunctionTrait,
+    FunctionTrait,
     InputFunction,
     MovableFunction,
-    MovableFunctionTrait,
     OutputFunction,
 };
 use syscon;
@@ -1187,7 +1187,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
             Pin<T, pin_state::Swm<((),), Inputs>>,
             MovableFunction<F, movable_function_state::Assigned<T>>,
         )
-        where F: OutputFunction + MovableFunctionTrait<T>
+        where F: OutputFunction + FunctionTrait<T>
     {
         let function = function.assign(&mut self.ty, swm);
 
@@ -1371,7 +1371,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
             Pin<T, pin_state::Swm<(), Inputs>>,
             MovableFunction<F, movable_function_state::Unassigned>,
         )
-        where F: OutputFunction + MovableFunctionTrait<T>
+        where F: OutputFunction + FunctionTrait<T>
     {
         let function = function.unassign(&mut self.ty, swm);
 
@@ -1526,7 +1526,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
             Pin<T, pin_state::Swm<Output, (Inputs,)>>,
             MovableFunction<F, movable_function_state::Assigned<T>>,
         )
-        where F: InputFunction + MovableFunctionTrait<T>
+        where F: InputFunction + FunctionTrait<T>
     {
         let function = function.assign(&mut self.ty, swm);
 
@@ -1712,7 +1712,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
             Pin<T, pin_state::Swm<Output, Inputs>>,
             MovableFunction<F, movable_function_state::Unassigned>,
         )
-        where F: InputFunction + MovableFunctionTrait<T>
+        where F: InputFunction + FunctionTrait<T>
     {
         let function = function.unassign(&mut self.ty, swm);
 

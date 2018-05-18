@@ -123,9 +123,9 @@ use raw::{
 };
 use swm::{
     self,
+    FunctionTrait,
     InputFunction,
     MovableFunction,
-    MovableFunctionTrait,
     OutputFunction,
 };
 use swm::movable_function_state::Assigned;
@@ -192,8 +192,8 @@ impl<UsartX, State> USART<UsartX, State>
     )
         -> nb::Result<USART<UsartX, init_state::Enabled>, !>
         where
-            UsartX::Rx: MovableFunctionTrait<Rx> + InputFunction,
-            UsartX::Tx: MovableFunctionTrait<Tx> + OutputFunction,
+            UsartX::Rx: FunctionTrait<Rx> + InputFunction,
+            UsartX::Tx: FunctionTrait<Tx> + OutputFunction,
     {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);

@@ -162,7 +162,7 @@ impl<T> MovableFunction<T, movable_function_state::Unassigned> {
     pub fn assign<P>(mut self, pin: &mut P, swm: &mut Handle)
         -> MovableFunction<T, movable_function_state::Assigned<P>>
         where
-            T: MovableFunctionTrait<P>,
+            T: FunctionTrait<P>,
             P: PinTrait,
     {
         self.ty.assign(pin, swm);
@@ -186,7 +186,7 @@ impl<T, P> MovableFunction<T, movable_function_state::Assigned<P>> {
     pub fn unassign(mut self, pin: &mut P, swm: &mut Handle)
         -> MovableFunction<T, movable_function_state::Unassigned>
         where
-            T: MovableFunctionTrait<P>,
+            T: FunctionTrait<P>,
             P: PinTrait,
     {
         self.ty.unassign(pin, swm);
@@ -235,7 +235,7 @@ pub mod movable_function_state {
 
 
 /// Implemented by all movable functions
-pub trait MovableFunctionTrait<P: PinTrait> {
+pub trait FunctionTrait<P: PinTrait> {
     /// Assigns the movable function to a pin
     ///
     /// This method is intended for internal use only. Please use
@@ -332,7 +332,7 @@ macro_rules! movable_functions {
 
 macro_rules! impl_function {
     ($type:ident, $reg_name:ident, $reg_field:ident, $pin:ident) => {
-        impl MovableFunctionTrait<::gpio::$pin> for $type {
+        impl FunctionTrait<::gpio::$pin> for $type {
             fn assign(&mut self, _pin: &mut ::gpio::$pin, swm : &mut Handle) {
                 swm.swm.$reg_name.modify(|_, w|
                     unsafe { w.$reg_field().bits(::gpio::$pin::ID) }
