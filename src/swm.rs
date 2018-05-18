@@ -537,6 +537,17 @@ macro_rules! fixed_functions {
             #[allow(non_camel_case_types)]
             pub struct $type(());
 
+            impl FunctionTrait<::gpio::$pin> for $type {
+                fn assign(&mut self, _: &mut ::gpio::$pin, swm : &mut Handle) {
+                    swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
+                }
+
+                fn unassign(&mut self, _: &mut ::gpio::$pin, swm : &mut Handle)
+                {
+                    swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
+                }
+            }
+
             impl FixedFunctionTrait for $type {
                 type Pin = $pin;
 
