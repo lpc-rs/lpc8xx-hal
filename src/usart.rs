@@ -127,7 +127,6 @@ use swm::{
     InputFunction,
     OutputFunction,
 };
-use swm::movable_function_state::Assigned;
 use syscon::{
     self,
     UARTFRG,
@@ -186,8 +185,8 @@ impl<UsartX, State> USART<UsartX, State>
     pub fn enable<Rx: PinTrait, Tx: PinTrait>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Handle,
-        _        : swm::Function<UsartX::Rx, Assigned<Rx>>,
-        _        : swm::Function<UsartX::Tx, Assigned<Tx>>,
+        _        : swm::Function<UsartX::Rx, swm::state::Assigned<Rx>>,
+        _        : swm::Function<UsartX::Tx, swm::state::Assigned<Tx>>,
     )
         -> nb::Result<USART<UsartX, init_state::Enabled>, !>
         where

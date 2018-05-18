@@ -129,7 +129,7 @@ pub struct Function<T, State> {
     _state: State,
 }
 
-impl<T> Function<T, movable_function_state::Unknown> {
+impl<T> Function<T, state::Unknown> {
     /// Affirm that the movable function is in its default state
     ///
     /// By calling this method, the user promises that the movable function is
@@ -140,17 +140,15 @@ impl<T> Function<T, movable_function_state::Unknown> {
     /// the HAL API, then the user must use those means to return the movable
     /// function to its default state, as specified in the user manual, before
     /// calling this method.
-    pub unsafe fn affirm_default_state(self)
-        -> Function<T, movable_function_state::Unassigned>
-    {
+    pub unsafe fn affirm_default_state(self) -> Function<T, state::Unassigned> {
         Function {
             ty    : self.ty,
-            _state: movable_function_state::Unassigned,
+            _state: state::Unassigned,
         }
     }
 }
 
-impl<T> Function<T, movable_function_state::Unassigned> {
+impl<T> Function<T, state::Unassigned> {
     /// Assign the movable function to a pin
     ///
     /// This method is intended for internal use only. Please use
@@ -160,7 +158,7 @@ impl<T> Function<T, movable_function_state::Unassigned> {
     /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
     /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
     pub fn assign<P>(mut self, pin: &mut P, swm: &mut Handle)
-        -> Function<T, movable_function_state::Assigned<P>>
+        -> Function<T, state::Assigned<P>>
         where
             T: FunctionTrait<P>,
             P: PinTrait,
@@ -169,12 +167,12 @@ impl<T> Function<T, movable_function_state::Unassigned> {
 
         Function {
             ty    : self.ty,
-            _state: movable_function_state::Assigned(PhantomData),
+            _state: state::Assigned(PhantomData),
         }
     }
 }
 
-impl<T, P> Function<T, movable_function_state::Assigned<P>> {
+impl<T, P> Function<T, state::Assigned<P>> {
     /// Unassign the movable function
     ///
     /// This method is intended for internal use only. Please use
@@ -184,7 +182,7 @@ impl<T, P> Function<T, movable_function_state::Assigned<P>> {
     /// [`Pin::unassign_input_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
     /// [`Pin::unassign_output_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
     pub fn unassign(mut self, pin: &mut P, swm: &mut Handle)
-        -> Function<T, movable_function_state::Unassigned>
+        -> Function<T, state::Unassigned>
         where
             T: FunctionTrait<P>,
             P: PinTrait,
@@ -193,14 +191,14 @@ impl<T, P> Function<T, movable_function_state::Assigned<P>> {
 
         Function {
             ty    : self.ty,
-            _state: movable_function_state::Unassigned,
+            _state: state::Unassigned,
         }
     }
 }
 
 
 /// Contains types that indicate the state of a movable function
-pub mod movable_function_state {
+pub mod state {
     use core::marker::PhantomData;
 
 
@@ -274,10 +272,7 @@ macro_rules! movable_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct MovableFunctions {
-            $(pub $field: Function<
-                $type,
-                movable_function_state::Unknown,
-            >,)*
+            $(pub $field: Function<$type, state::Unknown>,)*
         }
 
         impl MovableFunctions {
@@ -285,7 +280,7 @@ macro_rules! movable_functions {
                 MovableFunctions {
                     $($field: Function {
                         ty    : $type(()),
-                        _state: movable_function_state::Unknown,
+                        _state: state::Unknown,
                     },)*
                 }
             }
