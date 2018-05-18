@@ -181,7 +181,7 @@
 //!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
 //! let (pio0_3, _) = pio0_3
-//!     .disable_output_function(swclk, &mut swm_handle);
+//!     .unassign_output_function(swclk, &mut swm_handle);
 //! let mut pio0_3 = pio0_3
 //!     .into_unused_pin()
 //!     .into_gpio_pin(&gpio_handle)
@@ -305,13 +305,7 @@ pub mod init_state {
     /// initialization states. This is done for the purpose of documentation.
     /// HAL users should never need to implement this trait, nor use it
     /// directly.
-    pub trait InitState {
-        /// Returns an instances of the init state
-        ///
-        /// This method is intended for internal use. Any changes to this method
-        /// won't be considered breaking changes.
-        fn new() -> Self;
-    }
+    pub trait InitState {}
 
 
     /// Indicates that the hardware's state is currently unknown
@@ -320,9 +314,7 @@ pub mod init_state {
     /// initialized, as we don't know what happened before that.
     pub struct Unknown;
 
-    impl InitState for Unknown {
-        fn new() -> Self { Unknown }
-    }
+    impl InitState for Unknown {}
 
 
     /// Indicates that the hardware component is enabled
@@ -331,17 +323,13 @@ pub mod init_state {
     /// used for its intended purpose.
     pub struct Enabled;
 
-    impl InitState for Enabled {
-        fn new() -> Self { Enabled }
-    }
+    impl InitState for Enabled {}
 
 
     /// Indicates that the hardware component is disabled
     pub struct Disabled;
 
-    impl InitState for Disabled {
-        fn new() -> Self { Disabled }
-    }
+    impl InitState for Disabled {}
 
 
     /// Marks a hardware component as not being enabled

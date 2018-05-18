@@ -59,7 +59,7 @@
 //! };
 //! let pio0_6 = unsafe { gpio.pins.pio0_6.affirm_default_state() }
 //!     .into_swm_pin()
-//!     .enable_input_function(vddcmp, &mut swm_handle);
+//!     .assign_input_function(vddcmp, &mut swm_handle);
 //! ```
 //!
 //! [`GPIO`]: struct.GPIO.html
@@ -81,13 +81,8 @@ use init_state::{
 use raw;
 use swm::{
     self,
-    movable_function_state,
     AdcChannel,
-    FixedFunction,
-    FixedFunctionTrait,
     InputFunction,
-    MovableFunction,
-    MovableFunctionTrait,
     OutputFunction,
 };
 use syscon;
@@ -588,7 +583,7 @@ pins!(
 ///     .into_swm_pin();
 ///
 /// // Enable this pin's fixed function, which is an output function.
-/// let (pin, xtalout) = pin.enable_output_function(xtalout, &mut swm_handle);
+/// let (pin, xtalout) = pin.assign_output_function(xtalout, &mut swm_handle);
 ///
 /// // Now we can assign various input functions in addition.
 /// let (pin, _) = pin.assign_input_function(u0_rxd, &mut swm_handle);
@@ -599,7 +594,7 @@ pins!(
 ///
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
-/// let (pin, _) = pin.disable_output_function(xtalout, &mut swm_handle);
+/// let (pin, _) = pin.unassign_output_function(xtalout, &mut swm_handle);
 /// let (pin, _) = pin.assign_output_function(u0_txd, &mut swm_handle);
 /// ```
 ///
@@ -732,7 +727,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// // function enabled by default. If we want to use it for something else,
     /// // we need to transition it into the unused state before we can do so.
     /// let pio0_3 = pio0_3
-    ///     .disable_output_function(swclk, &mut swm_handle)
+    ///     .unassign_output_function(swclk, &mut swm_handle)
     ///     .0 // also returns output function; we're only interested in pin
     ///     .into_unused_pin();
     /// ```
@@ -872,16 +867,16 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.IOCON.html
     /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.ADC.html
     pub fn into_adc_pin<F>(mut self,
-        function: FixedFunction<F, init_state::Disabled>,
+        function: swm::Function<F, swm::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Adc>,
-            FixedFunction<F, init_state::Enabled>,
+            swm::Function<F, swm::state::Assigned<T>>,
         )
-        where F: AdcChannel + FixedFunctionTrait<Pin=T>
+        where F: AdcChannel + swm::FunctionTrait<T>
     {
-        let function = function.enable(&mut self.ty, swm);
+        let function = function.assign(&mut self.ty, swm);
 
         let pin = Pin {
             ty   : self.ty,
@@ -1038,89 +1033,6 @@ impl<'gpio, T> StatefulOutputPin
 }
 
 impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
-    /// Enable the fixed output function on this pin
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the SWM state. Use [`into_swm_pin`] to achieve this.
-    /// - No output function, either fixed or movable, is enabled on or assigned
-    ///   to this pin. Please refer to [`swm::OutputFunction`] to learn which
-    ///   fixed and movable functions are output functions.
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// Consumes the pin instance and an instance of the fixed function that is
-    /// associated with this pin, and returns a tuple containing
-    /// - a new pin instance, its type state indicating that an output function
-    ///   is enabled; and
-    /// - a new instance of the fixed function, its state indicating that it is
-    ///   enabled. Please refer to the [`swm`] module to learn more about fixed
-    ///   function states.
-    ///
-    /// Only the fixed function that is associated with this pin is accepted as
-    /// an argument. Since not every pin has a fixed function associated with
-    /// it, and since not all fixed functions are output functions, this means
-    /// that this method is not callable for every pin.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// # extern crate lpc82x;
-    /// # extern crate lpc82x_hal;
-    /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
-    /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
-    /// #
-    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let     swm    = SWM::new(peripherals.SWM);
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    /// #
-    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-    /// #
-    /// // Get PIO0_9 ready for function assignment
-    /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() }
-    ///     .into_swm_pin();
-    ///
-    /// // Get the fixed function on PIO0_9 ready to be enabled
-    /// let xtalout = unsafe {
-    ///     swm.fixed_functions.xtalout.affirm_default_state()
-    /// };
-    ///
-    /// // Enable the fixed function
-    /// let (pio0_9, xtalout) = pio0_9.enable_output_function(
-    ///     xtalout,
-    ///     &mut swm_handle,
-    /// );
-    /// ```
-    ///
-    /// [`into_swm_pin`]: #method.into_swm_pin
-    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
-    /// [`swm`]: ../swm/index.html
-    pub fn enable_output_function<F>(mut self,
-            function: FixedFunction<F, init_state::Disabled>,
-            swm     : &mut swm::Handle,
-        )
-        -> (
-            Pin<T, pin_state::Swm<((),), Inputs>>,
-            FixedFunction<F, init_state::Enabled>,
-        )
-        where F: OutputFunction + FixedFunctionTrait<Pin=T>
-    {
-        let function = function.enable(&mut self.ty, swm);
-
-        let pin = Pin {
-            ty   : self.ty,
-            state: pin_state::Swm::new(),
-        };
-
-        (pin, function)
-    }
-
     /// Assign a movable output function to this pin
     ///
     /// This method is only available, if two conditions are met:
@@ -1180,14 +1092,14 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn assign_output_function<F>(mut self,
-        function: MovableFunction<F, movable_function_state::Unassigned>,
+        function: swm::Function<F, swm::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<((),), Inputs>>,
-            MovableFunction<F, movable_function_state::Assigned<T>>,
+            swm::Function<F, swm::state::Assigned<T>>,
         )
-        where F: OutputFunction + MovableFunctionTrait
+        where F: OutputFunction + swm::FunctionTrait<T>
     {
         let function = function.assign(&mut self.ty, swm);
 
@@ -1201,99 +1113,6 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
 }
 
 impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
-    /// Disable the fixed output function on this pin
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the SWM state. Use [`into_swm_pin`] to achieve this.
-    /// - An output function, either fixed or movable, is enabled on or assigned
-    ///   to this pin. Please refer to [`swm::OutputFunction`] to learn which
-    ///   fixed and movable functions are output functions.
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// Consumes the pin instance and an instance of the fixed function that is
-    /// associated with this pin, and returns a tuple containing
-    /// - a new pin instance, its type state indicating that no output function
-    ///   is enabled; and
-    /// - a new instance of the fixed function, its state indicating that it is
-    ///   disabled. Please refer to the [`swm`] module to learn more about fixed
-    ///   function states.
-    ///
-    /// Only the fixed function that is associated with this pin is accepted as
-    /// an argument, and only if its state indicates that is enabled. This means
-    /// that, even though this method is available if any output function is
-    /// enabled on this pin, it can only be called if this pin's specific fixed
-    /// output function is enabled. Since not every pin has a fixed function
-    /// associated with it, and since not all fixed functions are output
-    /// functions, this also means that this method is not callable for every
-    /// pin.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// # extern crate lpc82x;
-    /// # extern crate lpc82x_hal;
-    /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
-    /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
-    /// #
-    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let     swm    = SWM::new(peripherals.SWM);
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    /// #
-    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-    /// #
-    /// // PIO0_3 has a fixed output function enabled by default. Its state will
-    /// // reflect that after the following method call.
-    /// let pio0_3 = unsafe {
-    ///     gpio.pins.pio0_3.affirm_default_state()
-    /// };
-    ///
-    /// // SWCLK is the output function that is enabled on PIO0_3 by default.
-    /// // Here too will this be be reflected in its state after the following
-    /// // method call.
-    /// let swclk = unsafe {
-    ///     swm.fixed_functions.swclk.affirm_default_state()
-    /// };
-    ///
-    /// // Disable the fixed function
-    /// let (pio0_3, swclk) = pio0_3.disable_output_function(
-    ///     swclk,
-    ///     &mut swm_handle,
-    /// );
-    ///
-    /// // Now both PIO0_3 and SWCLK are available again
-    /// ```
-    ///
-    /// [`into_swm_pin`]: #method.into_swm_pin
-    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
-    /// [`swm`]: ../swm/index.html
-    pub fn disable_output_function<F>(mut self,
-        function: FixedFunction<F, init_state::Enabled>,
-        swm     : &mut swm::Handle,
-    )
-        -> (
-            Pin<T, pin_state::Swm<(), Inputs>>,
-            FixedFunction<F, init_state::Disabled>,
-        )
-        where F: OutputFunction + FixedFunctionTrait<Pin=T>
-    {
-        let function = function.disable(&mut self.ty, swm);
-
-        let pin = Pin {
-            ty   : self.ty,
-            state: pin_state::Swm::new(),
-        };
-
-        (pin, function)
-    }
-
     /// Unassign a movable output function from this pin
     ///
     /// This method is only available, if two conditions are met:
@@ -1364,14 +1183,14 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn unassign_output_function<F>(mut self,
-        function: MovableFunction<F, movable_function_state::Assigned<T>>,
+        function: swm::Function<F, swm::state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<(), Inputs>>,
-            MovableFunction<F, movable_function_state::Unassigned>,
+            swm::Function<F, swm::state::Unassigned>,
         )
-        where F: OutputFunction + MovableFunctionTrait
+        where F: OutputFunction + swm::FunctionTrait<T>
     {
         let function = function.unassign(&mut self.ty, swm);
 
@@ -1387,84 +1206,6 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
 impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     where T: PinTrait
 {
-    /// Enable the fixed input function on this pin
-    ///
-    /// This method is only available, if the pin is in the SWM state. Code
-    /// trying to call this method while this condition is not met, will not
-    /// compile. You can use [`into_swm_pin`] to put the pin into the SWM state.
-    ///
-    /// Consumes the pin instance and an instance of the fixed function that is
-    /// associated with this pin, and returns a tuple containing
-    /// - a new pin instance, its type state indicating that an additonal input
-    ///   function has been enabled; and
-    /// - a new instance of the fixed function, its state indicating that it is
-    ///   enabled. Please refer to the [`swm`] module to learn more about fixed
-    ///   function states.
-    ///
-    /// Only the fixed function that is associated with this pin is accepted as
-    /// an argument. Since not every pin has a fixed function associated with
-    /// it, and since not all fixed functions are input functions, this means
-    /// that this method is not callable for every pin.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// # extern crate lpc82x;
-    /// # extern crate lpc82x_hal;
-    /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
-    /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
-    /// #
-    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let     swm    = SWM::new(peripherals.SWM);
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    /// #
-    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-    /// #
-    /// // Get PIO0_8 ready for function assignment
-    /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() }
-    ///     .into_swm_pin();
-    ///
-    /// // Get the fixed function on PIO0_8 ready to be enabled
-    /// let xtalin = unsafe {
-    ///     swm.fixed_functions.xtalin.affirm_default_state()
-    /// };
-    ///
-    /// // Enable the fixed function
-    /// let (pio0_8, xtalin) = pio0_8.enable_input_function(
-    ///     xtalin,
-    ///     &mut swm_handle,
-    /// );
-    /// ```
-    ///
-    /// [`into_swm_pin`]: #method.into_swm_pin
-    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
-    /// [`swm`]: ../swm/index.html
-    pub fn enable_input_function<F>(mut self,
-        function: FixedFunction<F, init_state::Disabled>,
-        swm     : &mut swm::Handle,
-    )
-        -> (
-            Pin<T, pin_state::Swm<Output, (Inputs,)>>,
-            FixedFunction<F, init_state::Enabled>,
-        )
-        where F: InputFunction + FixedFunctionTrait<Pin=T>
-    {
-        let function = function.enable(&mut self.ty, swm);
-
-        let pin = Pin {
-            ty   : self.ty,
-            state: pin_state::Swm::new(),
-        };
-
-        (pin, function)
-    }
-
     /// Assign a movable input function to this pin
     ///
     /// This method is only available, if the pin is in the SWM state. Code
@@ -1519,14 +1260,14 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn assign_input_function<F>(mut self,
-        function: MovableFunction<F, movable_function_state::Unassigned>,
+        function: swm::Function<F, swm::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<Output, (Inputs,)>>,
-            MovableFunction<F, movable_function_state::Assigned<T>>,
+            swm::Function<F, swm::state::Assigned<T>>,
         )
-        where F: InputFunction + MovableFunctionTrait
+        where F: InputFunction + swm::FunctionTrait<T>
     {
         let function = function.assign(&mut self.ty, swm);
 
@@ -1542,99 +1283,6 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
 impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     where T: PinTrait
 {
-    /// Disable the fixed input function on this pin
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the SWM state. Use [`into_swm_pin`] to achieve this.
-    /// - At least one input function, either fixed or movable, is enabled on or
-    ///   assigned to this pin. Please refer to [`swm::OutputFunction`] to learn
-    ///   which fixed and movable functions are output functions.
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// Consumes the pin instance and an instance of the fixed function that is
-    /// associated with this pin, and returns a tuple containing
-    /// - a new pin instance, its type state indicating that one less input
-    ///   function is enabled; and
-    /// - a new instance of the fixed function, its state indicating that it is
-    ///   disabled. Please refer to the [`swm`] module to learn more about fixed
-    ///   function states.
-    ///
-    /// Only the fixed function that is associated with this pin is accepted as
-    /// an argument, and only if its state indicates that is enabled. This means
-    /// that, even though this method is available if any input functions are
-    /// enabled on this pin, it can only be called if this pin's specific fixed
-    /// input function is enabled. Since not every pin has a fixed function
-    /// associated with it, and since not all fixed functions are input
-    /// functions, this also means that this method is not callable for every
-    /// pin.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// # extern crate lpc82x;
-    /// # extern crate lpc82x_hal;
-    /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
-    /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
-    /// #
-    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let     swm    = SWM::new(peripherals.SWM);
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    /// #
-    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-    /// #
-    /// // PIO0_5 has a fixed input function enabled by default. Its state will
-    /// // reflect that after the following method call.
-    /// let pio0_5 = unsafe {
-    ///     gpio.pins.pio0_5.affirm_default_state()
-    /// };
-    ///
-    /// // RESETN is the input function that is enabled on PIO0_5 by default.
-    /// // Here too, will this be be reflected in its state after the following
-    /// // method call.
-    /// let resetn = unsafe {
-    ///     swm.fixed_functions.resetn.affirm_default_state()
-    /// };
-    ///
-    /// // Disable the fixed function
-    /// let (pio0_5, resetn) = pio0_5.disable_input_function(
-    ///     resetn,
-    ///     &mut swm_handle,
-    /// );
-    ///
-    /// // Now both PIO0_5 and RESETN are available again
-    /// ```
-    ///
-    /// [`into_swm_pin`]: #method.into_swm_pin
-    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
-    /// [`swm`]: ../swm/index.html
-    pub fn disable_input_function<F>(mut self,
-        function: FixedFunction<F, init_state::Enabled>,
-        swm     : &mut swm::Handle,
-    )
-        -> (
-            Pin<T, pin_state::Swm<Output, Inputs>>,
-            FixedFunction<F, init_state::Disabled>,
-        )
-        where F: InputFunction + FixedFunctionTrait<Pin=T>
-    {
-        let function = function.disable(&mut self.ty, swm);
-
-        let pin = Pin {
-            ty   : self.ty,
-            state: pin_state::Swm::new(),
-        };
-
-        (pin, function)
-    }
-
     /// Unassign a movable input function from this pin
     ///
     /// This method is only available, if two conditions are met:
@@ -1705,14 +1353,14 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// [`swm::InputFunction`]: ../swm/trait.InputFunction.html
     /// [`swm`]: ../swm/index.html
     pub fn unassign_input_function<F>(mut self,
-        function: MovableFunction<F, movable_function_state::Assigned<T>>,
+        function: swm::Function<F, swm::state::Assigned<T>>,
         swm     : &mut swm::Handle,
     )
         -> (
             Pin<T, pin_state::Swm<Output, Inputs>>,
-            MovableFunction<F, movable_function_state::Unassigned>,
+            swm::Function<F, swm::state::Unassigned>,
         )
-        where F: InputFunction + MovableFunctionTrait
+        where F: InputFunction + swm::FunctionTrait<T>
     {
         let function = function.unassign(&mut self.ty, swm);
 
