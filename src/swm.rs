@@ -366,7 +366,7 @@ pub struct FixedFunction<T, State> {
     _state: State,
 }
 
-impl<T> FixedFunction<T, init_state::Unknown> {
+impl<T> FixedFunction<T, init_state::Unknown> where T: FixedFunctionTrait {
     /// Affirm that the fixed function is in its default state
     ///
     /// By calling this method, the user promises that the fixed function is in
@@ -379,7 +379,6 @@ impl<T> FixedFunction<T, init_state::Unknown> {
     /// calling this method.
     pub unsafe fn affirm_default_state(self)
         -> FixedFunction<T, T::DefaultState>
-        where T: FixedFunctionTrait
     {
         FixedFunction {
             ty    : self.ty,
@@ -388,7 +387,7 @@ impl<T> FixedFunction<T, init_state::Unknown> {
     }
 }
 
-impl<T> FixedFunction<T, init_state::Disabled> {
+impl<T> FixedFunction<T, init_state::Disabled> where T: FixedFunctionTrait {
     /// Enable the fixed function
     ///
     /// This method is intended for internal use only. Please use
@@ -399,7 +398,6 @@ impl<T> FixedFunction<T, init_state::Disabled> {
     /// [`Pin::enable_output_function`]: ../gpio/struct.Pin.html#method.enable_output_function
     pub fn enable(mut self, pin: &mut T::Pin, swm: &mut Handle)
         -> FixedFunction<T, init_state::Enabled>
-        where T: FixedFunctionTrait
     {
         self.ty.enable(pin, swm);
 
@@ -410,7 +408,7 @@ impl<T> FixedFunction<T, init_state::Disabled> {
     }
 }
 
-impl<T> FixedFunction<T, init_state::Enabled> {
+impl<T> FixedFunction<T, init_state::Enabled> where T: FixedFunctionTrait {
     /// Disable the fixed function
     ///
     /// This method is intended for internal use only. Please use
@@ -421,7 +419,6 @@ impl<T> FixedFunction<T, init_state::Enabled> {
     /// [`Pin::disable_output_function`]: ../gpio/struct.Pin.html#method.disable_output_function
     pub fn disable(mut self, pin: &mut T::Pin, swm: &mut Handle)
         -> FixedFunction<T, init_state::Disabled>
-        where T: FixedFunctionTrait
     {
         self.ty.disable(pin, swm);
 
