@@ -124,8 +124,6 @@ use raw::{
 use swm::{
     self,
     FunctionTrait,
-    InputFunction,
-    OutputFunction,
 };
 use syscon::{
     self,
@@ -190,8 +188,8 @@ impl<UsartX, State> USART<UsartX, State>
     )
         -> nb::Result<USART<UsartX, init_state::Enabled>, !>
         where
-            UsartX::Rx: FunctionTrait<Rx> + InputFunction,
-            UsartX::Tx: FunctionTrait<Tx> + OutputFunction,
+            UsartX::Rx: FunctionTrait<Rx>,
+            UsartX::Tx: FunctionTrait<Tx>,
     {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
