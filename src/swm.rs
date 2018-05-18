@@ -682,7 +682,13 @@ pub mod state {
     /// This trait is implemented by types that indicate the state of a movable
     /// function. It exists only to document which types those are. The user
     /// should not need to implement this trait, nor use it directly.
-    pub trait State {}
+    pub trait State {
+        /// Returns an instance of the state
+        ///
+        /// This method is intended for internal use. Any changes to this method
+        /// won't be considered breaking changes.
+        fn new() -> Self;
+    }
 
 
     /// Indicates that the current state of the movable function is unknown
@@ -691,17 +697,23 @@ pub mod state {
     /// happened before that.
     pub struct Unknown;
 
-    impl State for Unknown {}
+    impl State for Unknown {
+        fn new() -> Self { Unknown }
+    }
 
 
     /// Indicates that the movable function is unassigned
     pub struct Unassigned;
 
-    impl State for Unassigned {}
+    impl State for Unassigned {
+        fn new() -> Self { Unassigned }
+    }
 
 
     /// Indicates that the movable function is assigned to a pin
     pub struct Assigned<Pin>(pub(crate) PhantomData<Pin>);
 
-    impl<Pin> State for Assigned<Pin> {}
+    impl<Pin> State for Assigned<Pin> {
+        fn new() -> Self { Assigned(PhantomData) }
+    }
 }
