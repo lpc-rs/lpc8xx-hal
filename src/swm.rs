@@ -162,7 +162,7 @@ impl<T> MovableFunction<T, movable_function_state::Unassigned> {
     pub fn assign<P>(mut self, pin: &mut P, swm: &mut Handle)
         -> MovableFunction<T, movable_function_state::Assigned<P>>
         where
-            T: MovableFunctionTrait,
+            T: MovableFunctionTrait<P>,
             P: PinTrait,
     {
         self.ty.assign(pin, swm);
@@ -186,7 +186,7 @@ impl<T, P> MovableFunction<T, movable_function_state::Assigned<P>> {
     pub fn unassign(mut self, pin: &mut P, swm: &mut Handle)
         -> MovableFunction<T, movable_function_state::Unassigned>
         where
-            T: MovableFunctionTrait,
+            T: MovableFunctionTrait<P>,
             P: PinTrait,
     {
         self.ty.unassign(pin, swm);
@@ -235,7 +235,7 @@ pub mod movable_function_state {
 
 
 /// Implemented by all movable functions
-pub trait MovableFunctionTrait {
+pub trait MovableFunctionTrait<P: PinTrait> {
     /// Assigns the movable function to a pin
     ///
     /// This method is intended for internal use only. Please use
@@ -244,7 +244,7 @@ pub trait MovableFunctionTrait {
     ///
     /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
     /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
-    fn assign<P>(&mut self, pin: &mut P, swm: &mut Handle) where P: PinTrait;
+    fn assign(&mut self, pin: &mut P, swm: &mut Handle);
 
     /// Unassign the movable function
     ///
@@ -254,7 +254,7 @@ pub trait MovableFunctionTrait {
     ///
     /// [`Pin::unassign_input_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
     /// [`Pin::unassign_output_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
-    fn unassign<P>(&mut self, pin: &mut P, swm: &mut Handle);
+    fn unassign(&mut self, pin: &mut P, swm: &mut Handle);
 }
 
 
@@ -297,22 +297,54 @@ macro_rules! movable_functions {
             #[allow(non_camel_case_types)]
             pub struct $type(());
 
-            impl MovableFunctionTrait for $type {
-                fn assign<P>(&mut self, _pin: &mut P, swm : &mut Handle)
-                    where P: PinTrait
-                {
-                    swm.swm.$reg_name.modify(|_, w|
-                        unsafe { w.$reg_field().bits(P::ID) }
-                    );
-                }
-
-                fn unassign<P>(&mut self, _pin: &mut P, swm : &mut Handle) {
-                    swm.swm.$reg_name.modify(|_, w|
-                        unsafe { w.$reg_field().bits(0xff) }
-                    );
-                }
-            }
+            impl_function!($type, $reg_name, $reg_field, PIO0_0 );
+            impl_function!($type, $reg_name, $reg_field, PIO0_1 );
+            impl_function!($type, $reg_name, $reg_field, PIO0_2 );
+            impl_function!($type, $reg_name, $reg_field, PIO0_3 );
+            impl_function!($type, $reg_name, $reg_field, PIO0_4 );
+            impl_function!($type, $reg_name, $reg_field, PIO0_5 );
+            impl_function!($type, $reg_name, $reg_field, PIO0_6 );
+            impl_function!($type, $reg_name, $reg_field, PIO0_7 );
+            impl_function!($type, $reg_name, $reg_field, PIO0_8 );
+            impl_function!($type, $reg_name, $reg_field, PIO0_9 );
+            impl_function!($type, $reg_name, $reg_field, PIO0_10);
+            impl_function!($type, $reg_name, $reg_field, PIO0_11);
+            impl_function!($type, $reg_name, $reg_field, PIO0_12);
+            impl_function!($type, $reg_name, $reg_field, PIO0_13);
+            impl_function!($type, $reg_name, $reg_field, PIO0_14);
+            impl_function!($type, $reg_name, $reg_field, PIO0_15);
+            impl_function!($type, $reg_name, $reg_field, PIO0_16);
+            impl_function!($type, $reg_name, $reg_field, PIO0_17);
+            impl_function!($type, $reg_name, $reg_field, PIO0_18);
+            impl_function!($type, $reg_name, $reg_field, PIO0_19);
+            impl_function!($type, $reg_name, $reg_field, PIO0_20);
+            impl_function!($type, $reg_name, $reg_field, PIO0_21);
+            impl_function!($type, $reg_name, $reg_field, PIO0_22);
+            impl_function!($type, $reg_name, $reg_field, PIO0_23);
+            impl_function!($type, $reg_name, $reg_field, PIO0_24);
+            impl_function!($type, $reg_name, $reg_field, PIO0_25);
+            impl_function!($type, $reg_name, $reg_field, PIO0_26);
+            impl_function!($type, $reg_name, $reg_field, PIO0_27);
+            impl_function!($type, $reg_name, $reg_field, PIO0_28);
         )*
+    }
+}
+
+macro_rules! impl_function {
+    ($type:ident, $reg_name:ident, $reg_field:ident, $pin:ident) => {
+        impl MovableFunctionTrait<::gpio::$pin> for $type {
+            fn assign(&mut self, _pin: &mut ::gpio::$pin, swm : &mut Handle) {
+                swm.swm.$reg_name.modify(|_, w|
+                    unsafe { w.$reg_field().bits(::gpio::$pin::ID) }
+                );
+            }
+
+            fn unassign(&mut self, _pin: &mut ::gpio::$pin, swm : &mut Handle) {
+                swm.swm.$reg_name.modify(|_, w|
+                    unsafe { w.$reg_field().bits(0xff) }
+                );
+            }
+        }
     }
 }
 

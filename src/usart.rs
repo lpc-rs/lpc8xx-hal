@@ -192,8 +192,8 @@ impl<UsartX, State> USART<UsartX, State>
     )
         -> nb::Result<USART<UsartX, init_state::Enabled>, !>
         where
-            UsartX::Rx: MovableFunctionTrait + InputFunction,
-            UsartX::Tx: MovableFunctionTrait + OutputFunction,
+            UsartX::Rx: MovableFunctionTrait<Rx> + InputFunction,
+            UsartX::Tx: MovableFunctionTrait<Tx> + OutputFunction,
     {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);
