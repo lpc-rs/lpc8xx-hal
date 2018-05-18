@@ -42,6 +42,11 @@ name              = "usart"
 required-features = ["rt"]
 
 
+[profile.release]
+lto       = true
+opt-level = "z"
+
+
 [package.metadata.release]
 pre-release-commit-message = "chore: Release version {{version}}"
 pro-release-commit-message = "chore: Bump version to {{version}}"
