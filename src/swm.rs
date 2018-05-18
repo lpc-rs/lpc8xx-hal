@@ -197,41 +197,6 @@ impl<T, P> Function<T, state::Assigned<P>> {
 }
 
 
-/// Contains types that indicate the state of a movable function
-pub mod state {
-    use core::marker::PhantomData;
-
-
-    /// Implemented by types that indicate the state of a movable function
-    ///
-    /// This trait is implemented by types that indicate the state of a movable
-    /// function. It exists only to document which types those are. The user
-    /// should not need to implement this trait, nor use it directly.
-    pub trait State {}
-
-
-    /// Indicates that the current state of the movable function is unknown
-    ///
-    /// This is the case after the HAL is initialized, as we can't know what
-    /// happened before that.
-    pub struct Unknown;
-
-    impl State for Unknown {}
-
-
-    /// Indicates that the movable function is unassigned
-    pub struct Unassigned;
-
-    impl State for Unassigned {}
-
-
-    /// Indicates that the movable function is assigned to a pin
-    pub struct Assigned<Pin>(pub(crate) PhantomData<Pin>);
-
-    impl<Pin> State for Assigned<Pin> {}
-}
-
-
 /// Implemented by all movable functions
 pub trait FunctionTrait<P: PinTrait> {
     /// Assigns the movable function to a pin
@@ -705,3 +670,38 @@ impl InputFunction for VDDCMP {}
 impl InputFunction for XTALIN {}
 impl InputFunction for RESETN {}
 impl InputFunction for CLKIN {}
+
+
+/// Contains types that indicate the state of a movable function
+pub mod state {
+    use core::marker::PhantomData;
+
+
+    /// Implemented by types that indicate the state of a movable function
+    ///
+    /// This trait is implemented by types that indicate the state of a movable
+    /// function. It exists only to document which types those are. The user
+    /// should not need to implement this trait, nor use it directly.
+    pub trait State {}
+
+
+    /// Indicates that the current state of the movable function is unknown
+    ///
+    /// This is the case after the HAL is initialized, as we can't know what
+    /// happened before that.
+    pub struct Unknown;
+
+    impl State for Unknown {}
+
+
+    /// Indicates that the movable function is unassigned
+    pub struct Unassigned;
+
+    impl State for Unassigned {}
+
+
+    /// Indicates that the movable function is assigned to a pin
+    pub struct Assigned<Pin>(pub(crate) PhantomData<Pin>);
+
+    impl<Pin> State for Assigned<Pin> {}
+}
