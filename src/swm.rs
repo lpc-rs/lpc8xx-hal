@@ -142,7 +142,6 @@ impl<T> MovableFunction<T, movable_function_state::Unknown> {
     /// calling this method.
     pub unsafe fn affirm_default_state(self)
         -> MovableFunction<T, movable_function_state::Unassigned>
-        where T: MovableFunctionTrait
     {
         MovableFunction {
             ty    : self.ty,
