@@ -197,6 +197,13 @@ impl<T, P> Function<T, state::Assigned<P>> {
 }
 
 
+/// Implemented by all functions
+pub trait DefaultState {
+    /// The default state of this function
+    type DefaultState: state::State;
+}
+
+
 /// Implemented by all movable functions
 pub trait FunctionTrait<P: PinTrait> {
     /// Assigns the movable function to a pin
@@ -366,7 +373,7 @@ pub struct FixedFunction<T, State> {
     _state: State,
 }
 
-impl<T> FixedFunction<T, state::Unknown> where T: FixedFunctionTrait {
+impl<T> FixedFunction<T, state::Unknown> where T: DefaultState {
     /// Affirm that the fixed function is in its default state
     ///
     /// By calling this method, the user promises that the fixed function is in
@@ -439,9 +446,6 @@ pub trait FixedFunctionTrait {
     /// The pin that this fixed function can be enabled on
     type Pin: PinTrait;
 
-    /// The default state of this function
-    type DefaultState: state::State;
-
 
     /// Enable the fixed function
     ///
@@ -494,6 +498,10 @@ macro_rules! fixed_functions {
             #[allow(non_camel_case_types)]
             pub struct $type(());
 
+            impl DefaultState for $type {
+                type DefaultState = $default_state;
+            }
+
             impl FunctionTrait<::gpio::$pin> for $type {
                 fn assign(&mut self, _: &mut ::gpio::$pin, swm : &mut Handle) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
@@ -507,8 +515,6 @@ macro_rules! fixed_functions {
 
             impl FixedFunctionTrait for $type {
                 type Pin = $pin;
-
-                type DefaultState = $default_state;
 
 
                 fn enable(&mut self, _pin: &mut Self::Pin, swm: &mut Handle) {
