@@ -129,7 +129,7 @@ pub struct Function<T, State> {
     _state: State,
 }
 
-impl<T> Function<T, state::Unknown> {
+impl<T> Function<T, state::Unknown> where T: DefaultState {
     /// Affirm that the movable function is in its default state
     ///
     /// By calling this method, the user promises that the movable function is
@@ -140,10 +140,10 @@ impl<T> Function<T, state::Unknown> {
     /// the HAL API, then the user must use those means to return the movable
     /// function to its default state, as specified in the user manual, before
     /// calling this method.
-    pub unsafe fn affirm_default_state(self) -> Function<T, state::Unassigned> {
+    pub unsafe fn affirm_default_state(self) -> Function<T, T::DefaultState> {
         Function {
             ty    : self.ty,
-            _state: state::Unassigned,
+            _state: state::State::new(),
         }
     }
 }
@@ -263,6 +263,10 @@ macro_rules! movable_functions {
             /// Represents a movable function
             #[allow(non_camel_case_types)]
             pub struct $type(());
+
+            impl DefaultState for $type {
+                type DefaultState = state::Unassigned;
+            }
 
             impl_function!($type, $reg_name, $reg_field, PIO0_0 );
             impl_function!($type, $reg_name, $reg_field, PIO0_1 );
