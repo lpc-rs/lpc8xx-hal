@@ -509,7 +509,7 @@ pub trait FixedFunctionTrait {
 
 
 macro_rules! fixed_functions {
-    ($($type:ident, $field:ident, $pin:ty, $default_state:ident;)*) => {
+    ($($type:ident, $field:ident, $pin:ident, $default_state:ident;)*) => {
         /// Provides access to all fixed functions
         ///
         /// This struct is part of [`SWM`].
