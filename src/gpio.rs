@@ -587,7 +587,7 @@ pins!(
 ///
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
-/// let (pin, _) = pin.unassign_function(xtalout, &mut swm_handle);
+/// let (_, pin) = xtalout.unassign(pin, &mut swm_handle);
 /// let (_, pin) = u0_txd.assign(pin, &mut swm_handle);
 /// ```
 ///
@@ -718,9 +718,9 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// // be transitioned into another state now. However, PIO0_3 has its fixed
     /// // function enabled by default. If we want to use it for something else,
     /// // we need to transition it into the unused state before we can do so.
-    /// let pio0_3 = pio0_3
-    ///     .unassign_function(swclk, &mut swm_handle)
-    ///     .0 // also returns output function; we're only interested in pin
+    /// let pio0_3 = swclk
+    ///     .unassign(pio0_3, &mut swm_handle)
+    ///     .1 // also returns function; we're only interested in the pin
     ///     .into_unused_pin();
     /// ```
     pub unsafe fn affirm_default_state(self) -> Pin<T, T::DefaultState> {
@@ -969,101 +969,6 @@ impl<'gpio, T> StatefulOutputPin
     /// [`into_output`]: #method.into_output
     fn is_set_low(&self) -> bool {
         !self.state.pin0.read().port().bits() & T::MASK == T::MASK
-    }
-}
-
-impl<T, State> Pin<T, State>
-    where
-        T    : PinTrait,
-        State: PinState,
-{
-    /// Unassign a movable output function from this pin
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the SWM state. Use [`into_swm_pin`] to achieve this.
-    /// - An output function, either fixed or movable, is enabled on or assigned
-    ///   to this pin. Please refer to [`swm::OutputFunction`] to learn which
-    ///   fixed and movable functions are output functions.
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// Consumes the pin instance and an instance of the movable function, and
-    /// returns a tuple containing
-    /// - a new pin instance, its type state indicating that no output function
-    ///   is enabled; and
-    /// - a new instance of the movable function, its state indicating that it
-    ///   is not assigned to any pin. Please refer to the [`swm`] module to
-    ///   learn more about movable function states.
-    ///
-    /// Even though this method is available, if any output function is enabled
-    /// on this pin, it only accepts a movable function as a parameter, whose
-    /// state indicates that it is assigned to this specific pin. Code that
-    /// tries to unassign a movable function that isn't assigned to this pin
-    /// will not compile.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// # extern crate lpc82x;
-    /// # extern crate lpc82x_hal;
-    /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
-    /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
-    /// #
-    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let     swm    = SWM::new(peripherals.SWM);
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    /// #
-    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-    /// #
-    /// # let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() };
-    /// # let pio0_9 = pio0_9.into_swm_pin();
-    /// #
-    /// # let u0_txd = unsafe {
-    /// #     swm.movable_functions.u0_txd.affirm_default_state()
-    /// # };
-    /// #
-    /// # let (u0_txd, pio0_9) = u0_txd.assign(
-    /// #     pio0_9,
-    /// #     &mut swm_handle,
-    /// # );
-    /// #
-    /// // Assumes that U0_TXD is assigned to PIO0_9
-    /// let (pio0_9, u0_txd) = pio0_9.unassign_function(
-    ///     u0_txd,
-    ///     &mut swm_handle,
-    /// );
-    ///
-    /// // Both PIO0_9 and U0_TXD are now available again
-    /// ```
-    ///
-    /// [`into_swm_pin`]: #method.into_swm_pin
-    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
-    /// [`swm`]: ../swm/index.html
-    pub fn unassign_function<F, K>(mut self,
-        function: swm::Function<F, swm::state::Assigned<T>>,
-        swm     : &mut swm::Handle,
-    )
-        -> (
-            <Self as swm::UnassignFunction<F, K>>::Unassigned,
-            swm::Function<F, swm::state::Unassigned>,
-        )
-        where
-            Self: swm::UnassignFunction<F, K>,
-            F   : swm::FunctionTrait<T, Kind=K>,
-            K   : swm::FunctionKind,
-    {
-        use swm::UnassignFunction;
-
-        let function = function.unassign(&mut self.ty, swm);
-
-        (self.unassign(), function)
     }
 }
 

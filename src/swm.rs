@@ -172,18 +172,25 @@ impl<T, P> Function<T, state::Assigned<P>> {
     ///
     /// [`Pin::unassign_input_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
     /// [`Pin::unassign_output_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
-    pub fn unassign(mut self, pin: &mut P, swm: &mut Handle)
-        -> Function<T, state::Unassigned>
+    pub fn unassign<S>(mut self, mut pin: Pin<P, S>, swm: &mut Handle)
+        -> (
+            Function<T, state::Unassigned>,
+            <Pin<P, S> as UnassignFunction<T, T::Kind>>::Unassigned,
+        )
         where
-            T: FunctionTrait<P>,
-            P: PinTrait,
+            T        : FunctionTrait<P>,
+            P        : PinTrait,
+            S        : PinState,
+            Pin<P, S>: UnassignFunction<T, T::Kind>,
     {
-        self.ty.unassign(pin, swm);
+        self.ty.unassign(&mut pin.ty, swm);
 
-        Function {
+        let function = Function {
             ty    : self.ty,
             _state: state::Unassigned,
-        }
+        };
+
+        (function, pin.unassign())
     }
 }
 

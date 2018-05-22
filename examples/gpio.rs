@@ -60,8 +60,8 @@ fn main() -> ! {
     let swclk  = unsafe { swm.fixed_functions.swclk.affirm_default_state() };
 
     // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
-    let (pio0_3, _) = pio0_3
-        .unassign_function(swclk, &mut swm_handle);
+    let (_, pio0_3) = swclk
+        .unassign(pio0_3, &mut swm_handle);
     let mut pio0_3 = pio0_3
         .into_unused_pin()
         .into_gpio_pin(&gpio_handle)
