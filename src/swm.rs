@@ -9,8 +9,10 @@ use gpio::{
     PIO0_2,
     PIO0_3,
     PIO0_5,
+    Pin,
     PinTrait,
 };
+use gpio::pin_state::PinState;
 use init_state::{
     self,
     InitState,
@@ -139,18 +141,25 @@ impl<T> Function<T, state::Unassigned> {
     ///
     /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
     /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
-    pub fn assign<P>(mut self, pin: &mut P, swm: &mut Handle)
-        -> Function<T, state::Assigned<P>>
+    pub fn assign<P, S>(mut self, mut pin: Pin<P, S>, swm: &mut Handle)
+        -> (
+            Function<T, state::Assigned<P>>,
+            <Pin<P, S> as AssignFunction<T, T::Kind>>::Assigned,
+        )
         where
-            T: FunctionTrait<P>,
-            P: PinTrait,
+            T        : FunctionTrait<P>,
+            P        : PinTrait,
+            S        : PinState,
+            Pin<P, S>: AssignFunction<T, T::Kind>,
     {
-        self.ty.assign(pin, swm);
+        self.ty.assign(&mut pin.ty, swm);
 
-        Function {
+        let function = Function {
             ty    : self.ty,
             _state: state::Assigned(PhantomData),
-        }
+        };
+
+        (function, pin.assign())
     }
 }
 
@@ -163,18 +172,25 @@ impl<T, P> Function<T, state::Assigned<P>> {
     ///
     /// [`Pin::unassign_input_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
     /// [`Pin::unassign_output_function`]: ../gpio/struct.Pin.html#method.unassign_input_function
-    pub fn unassign(mut self, pin: &mut P, swm: &mut Handle)
-        -> Function<T, state::Unassigned>
+    pub fn unassign<S>(mut self, mut pin: Pin<P, S>, swm: &mut Handle)
+        -> (
+            Function<T, state::Unassigned>,
+            <Pin<P, S> as UnassignFunction<T, T::Kind>>::Unassigned,
+        )
         where
-            T: FunctionTrait<P>,
-            P: PinTrait,
+            T        : FunctionTrait<P>,
+            P        : PinTrait,
+            S        : PinState,
+            Pin<P, S>: UnassignFunction<T, T::Kind>,
     {
-        self.ty.unassign(pin, swm);
+        self.ty.unassign(&mut pin.ty, swm);
 
-        Function {
+        let function = Function {
             ty    : self.ty,
             _state: state::Unassigned,
-        }
+        };
+
+        (function, pin.unassign())
     }
 }
 
@@ -227,6 +243,10 @@ impl FunctionKind for Input {}
 /// Designates an SWM function as an output function
 pub struct Output;
 impl FunctionKind for Output {}
+
+/// Designates an SWM function as an ADC function
+pub struct Adc;
+impl FunctionKind for Adc {}
 
 
 /// Internal trait used to assign functions to pins
@@ -471,18 +491,18 @@ fixed_functions!(
     VDDCMP  , Input , vddcmp  , PIO0_6 , state::Unassigned;
     I2C0_SDA, Output, i2c0_sda, PIO0_11, state::Unassigned;
     I2C0_SCL, Output, i2c0_scl, PIO0_10, state::Unassigned;
-    ADC_0   , Output, adc_0   , PIO0_7 , state::Unassigned;
-    ADC_1   , Output, adc_1   , PIO0_6 , state::Unassigned;
-    ADC_2   , Output, adc_2   , PIO0_14, state::Unassigned;
-    ADC_3   , Output, adc_3   , PIO0_23, state::Unassigned;
-    ADC_4   , Output, adc_4   , PIO0_22, state::Unassigned;
-    ADC_5   , Output, adc_5   , PIO0_21, state::Unassigned;
-    ADC_6   , Output, adc_6   , PIO0_20, state::Unassigned;
-    ADC_7   , Output, adc_7   , PIO0_19, state::Unassigned;
-    ADC_8   , Output, adc_8   , PIO0_18, state::Unassigned;
-    ADC_9   , Output, adc_9   , PIO0_17, state::Unassigned;
-    ADC_10  , Output, adc_10  , PIO0_13, state::Unassigned;
-    ADC_11  , Output, adc_11  , PIO0_4 , state::Unassigned;
+    ADC_0   , Adc   , adc_0   , PIO0_7 , state::Unassigned;
+    ADC_1   , Adc   , adc_1   , PIO0_6 , state::Unassigned;
+    ADC_2   , Adc   , adc_2   , PIO0_14, state::Unassigned;
+    ADC_3   , Adc   , adc_3   , PIO0_23, state::Unassigned;
+    ADC_4   , Adc   , adc_4   , PIO0_22, state::Unassigned;
+    ADC_5   , Adc   , adc_5   , PIO0_21, state::Unassigned;
+    ADC_6   , Adc   , adc_6   , PIO0_20, state::Unassigned;
+    ADC_7   , Adc   , adc_7   , PIO0_19, state::Unassigned;
+    ADC_8   , Adc   , adc_8   , PIO0_18, state::Unassigned;
+    ADC_9   , Adc   , adc_9   , PIO0_17, state::Unassigned;
+    ADC_10  , Adc   , adc_10  , PIO0_13, state::Unassigned;
+    ADC_11  , Adc   , adc_11  , PIO0_4 , state::Unassigned;
 );
 
 

@@ -76,12 +76,8 @@
 //!     swm.movable_functions.u0_txd.affirm_default_state()
 //! };
 //!
-//! let (_, u0_rxd) = pio0_0
-//!     .into_swm_pin()
-//!     .assign_function(u0_rxd, &mut swm_handle);
-//! let (_, u0_txd) = pio0_4
-//!     .into_swm_pin()
-//!     .assign_function(u0_txd, &mut swm_handle);
+//! let (u0_rxd, _) = u0_rxd.assign(pio0_0.into_swm_pin(), &mut swm_handle);
+//! let (u0_txd, _) = u0_txd.assign(pio0_4.into_swm_pin(), &mut swm_handle);
 //!
 //! // Initialize USART0. This should never fail, as the only reason `init`
 //! // returns a `Result::Err` is when the transmitter is busy, which it

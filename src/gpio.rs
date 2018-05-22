@@ -58,8 +58,8 @@
 //!     swm.fixed_functions.vddcmp.affirm_default_state()
 //! };
 //! let pio0_6 = unsafe { gpio.pins.pio0_6.affirm_default_state() }
-//!     .into_swm_pin()
-//!     .assign_function(vddcmp, &mut swm_handle);
+//!     .into_swm_pin();
+//! vddcmp.assign(pio0_6, &mut swm_handle);
 //! ```
 //!
 //! [`GPIO`]: struct.GPIO.html
@@ -74,7 +74,6 @@ use embedded_hal::digital::{
     StatefulOutputPin,
 };
 
-use adc;
 use init_state::{
     self,
     InitState,
@@ -402,9 +401,7 @@ pins!(
 /// let clkout = unsafe {
 ///     swm.movable_functions.clkout.affirm_default_state()
 /// };
-/// let (pin, _) = pin
-///     .into_swm_pin()
-///     .assign_function(clkout, &mut swm_handle);
+/// let (_, pin) = clkout.assign(pin.into_swm_pin(), &mut swm_handle);
 ///
 /// // As long as the movable function is assigned, we can't use the pin for
 /// // general-purpose I/O. Therefore the following method call would cause a
@@ -579,26 +576,24 @@ pins!(
 ///     .into_swm_pin();
 ///
 /// // Enable this pin's fixed function, which is an output function.
-/// let (pin, xtalout) = pin.assign_function(xtalout, &mut swm_handle);
+/// let (xtalout, pin) = xtalout.assign(pin, &mut swm_handle);
 ///
 /// // Now we can assign various input functions in addition.
-/// let (pin, _) = pin.assign_function(u0_rxd, &mut swm_handle);
-/// let (pin, _) = pin.assign_function(u1_rxd, &mut swm_handle);
+/// let (_, pin) = u0_rxd.assign(pin, &mut swm_handle);
+/// let (_, pin) = u1_rxd.assign(pin, &mut swm_handle);
 ///
 /// // We can't assign another output function. The next line won't compile.
-/// // let (pin, _) = pin.assign_output_function(u0_txd.ty, &mut swm);
+/// // let (_, pin) = u0_txd.assign(pin, &mut swm_handle);
 ///
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
-/// let (pin, _) = pin.unassign_function(xtalout, &mut swm_handle);
-/// let (pin, _) = pin.assign_function(u0_txd, &mut swm_handle);
+/// let (_, pin) = xtalout.unassign(pin, &mut swm_handle);
+/// let (_, pin) = u0_txd.assign(pin, &mut swm_handle);
 /// ```
 ///
 /// # Analog Input
 ///
-/// To use a pin for analog input, you need to transition it from the unused
-/// state to the ADC state. ADC channels are fixed pin functions, so you need
-/// the access the respective fixed function from the [`swm`] API.
+/// To use a pin for analog input, you need to assign an ADC function.
 ///
 /// ``` no_run
 /// # extern crate lpc82x;
@@ -623,8 +618,9 @@ pins!(
 /// # };
 /// #
 /// // Transition pin into ADC state
-/// let pin = unsafe { gpio.pins.pio0_14.affirm_default_state() }
-///     .into_adc_pin(adc_2, &mut swm_handle);
+/// let pio0_14 = unsafe { gpio.pins.pio0_14.affirm_default_state() }
+///     .into_swm_pin();
+/// adc_2.assign(pio0_14, &mut swm_handle);
 /// ```
 ///
 /// Using the pin for analog input once it is in the ADC state is currently not
@@ -653,8 +649,8 @@ pins!(
 /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.IOCON.html
 /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.ADC.html
 pub struct Pin<T: PinTrait, S: PinState> {
-    ty   : T,
-    state: S,
+    pub(crate) ty   : T,
+               state: S,
 }
 
 impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
@@ -722,9 +718,9 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// // be transitioned into another state now. However, PIO0_3 has its fixed
     /// // function enabled by default. If we want to use it for something else,
     /// // we need to transition it into the unused state before we can do so.
-    /// let pio0_3 = pio0_3
-    ///     .unassign_function(swclk, &mut swm_handle)
-    ///     .0 // also returns output function; we're only interested in pin
+    /// let pio0_3 = swclk
+    ///     .unassign(pio0_3, &mut swm_handle)
+    ///     .1 // also returns function; we're only interested in the pin
     ///     .into_unused_pin();
     /// ```
     pub unsafe fn affirm_default_state(self) -> Pin<T, T::DefaultState> {
@@ -828,58 +824,6 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
             ty   : self.ty,
             state: pin_state::Swm::new(),
         }
-    }
-
-    /// Transitions this pin instance to the ADC state
-    ///
-    /// This method is only available while the pin is in the unused state. Code
-    /// that attempts to call this method while the pin is in any other state
-    /// will not compile. See [State Management] for more information on
-    /// managing pin states.
-    ///
-    /// Consumes the pin instance and the fixed function that represents the ADC
-    /// channel associated with this pin, and returns a tuple containing
-    /// - a new pin instance that is in the ADC state, and
-    /// - a new instance of the fixed function, in a state that indicates it is
-    ///   enabled. Please refer to the [`swm`] module to learn more about fixed
-    ///   function states.
-    ///
-    /// ADC channels are fixed functions, which means they are tied to one
-    /// specific pin. This method only accepts the fixed function that is
-    /// associated with this pin. Not all pins have an ADC channel associated
-    /// with them. Please refer to the user manual, section 21.4, table 278 for
-    /// a list of ADC channels and their associated pins.
-    ///
-    /// This method enables the analog function for this pin via the switch
-    /// matrix, but as of now, there is no HAL API to actually control the ADC.
-    /// You can use this method to enable the analog function and make sure that
-    /// no conflicting functions can be enabled for the pin. After that, you
-    /// need to use the raw [`lpc82x::IOCON`] and [`lpc82x::ADC`] register
-    /// mappings to actually do anything with it. If you are using the ADC,
-    /// [please let us know](https://github.com/braun-robotics/rust-lpc82x-hal/issues/51)!
-    ///
-    /// [State Management]: #state-management
-    /// [`swm`]: ../swm/index.html
-    /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.IOCON.html
-    /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.ADC.html
-    pub fn into_adc_pin<F>(mut self,
-        function: swm::Function<F, swm::state::Unassigned>,
-        swm     : &mut swm::Handle,
-    )
-        -> (
-            Pin<T, pin_state::Adc>,
-            swm::Function<F, swm::state::Assigned<T>>,
-        )
-        where F: adc::Channel + swm::FunctionTrait<T>
-    {
-        let function = function.assign(&mut self.ty, swm);
-
-        let pin = Pin {
-            ty   : self.ty,
-            state: pin_state::Adc,
-        };
-
-        (pin, function)
     }
 }
 
@@ -1028,179 +972,6 @@ impl<'gpio, T> StatefulOutputPin
     }
 }
 
-impl<T, State> Pin<T, State>
-    where
-        T    : PinTrait,
-        State: PinState,
-{
-    /// Assign a movable output function to this pin
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the SWM state. Use [`into_swm_pin`] to achieve this.
-    /// - No output function, either fixed or movable, is enabled on or assigned
-    ///   to this pin. Please refer to [`swm::OutputFunction`] to learn which
-    ///   fixed and movable functions are output functions.
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// Consumes the pin instance and an instance of the movable function, and
-    /// returns a tuple containing
-    /// - a new pin instance, its type state indicating that an output function
-    ///   is enabled; and
-    /// - a new instance of the movable function, its state indicating that it
-    ///   has been assigned to this pin. Please refer to the [`swm`] module to
-    ///   learn more about movable function states.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// # extern crate lpc82x;
-    /// # extern crate lpc82x_hal;
-    /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
-    /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
-    /// #
-    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let     swm    = SWM::new(peripherals.SWM);
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    /// #
-    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-    /// #
-    /// // Get pin ready for function assignment
-    /// let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() }
-    ///     .into_swm_pin();
-    ///
-    /// // Get the movable function ready to be assigned
-    /// let u0_txd = unsafe {
-    ///     swm.movable_functions.u0_txd.affirm_default_state()
-    /// };
-    ///
-    /// // Assign U0_TXD to PIO0_9
-    /// let (pio0_9, u0_txd) = pio0_9.assign_function(
-    ///     u0_txd,
-    ///     &mut swm_handle,
-    /// );
-    /// ```
-    ///
-    /// [`into_swm_pin`]: #method.into_swm_pin
-    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
-    /// [`swm`]: ../swm/index.html
-    pub fn assign_function<F, K>(mut self,
-        function: swm::Function<F, swm::state::Unassigned>,
-        swm     : &mut swm::Handle,
-    )
-        -> (
-            <Self as swm::AssignFunction<F, K>>::Assigned,
-            swm::Function<F, swm::state::Assigned<T>>,
-        )
-        where
-            Self: swm::AssignFunction<F, K>,
-            F   : swm::FunctionTrait<T, Kind=K>,
-            K   : swm::FunctionKind,
-    {
-        use swm::AssignFunction;
-
-        let function = function.assign(&mut self.ty, swm);
-
-        (self.assign(), function)
-    }
-
-    /// Unassign a movable output function from this pin
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the SWM state. Use [`into_swm_pin`] to achieve this.
-    /// - An output function, either fixed or movable, is enabled on or assigned
-    ///   to this pin. Please refer to [`swm::OutputFunction`] to learn which
-    ///   fixed and movable functions are output functions.
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// Consumes the pin instance and an instance of the movable function, and
-    /// returns a tuple containing
-    /// - a new pin instance, its type state indicating that no output function
-    ///   is enabled; and
-    /// - a new instance of the movable function, its state indicating that it
-    ///   is not assigned to any pin. Please refer to the [`swm`] module to
-    ///   learn more about movable function states.
-    ///
-    /// Even though this method is available, if any output function is enabled
-    /// on this pin, it only accepts a movable function as a parameter, whose
-    /// state indicates that it is assigned to this specific pin. Code that
-    /// tries to unassign a movable function that isn't assigned to this pin
-    /// will not compile.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// # extern crate lpc82x;
-    /// # extern crate lpc82x_hal;
-    /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
-    /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
-    /// #
-    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let     swm    = SWM::new(peripherals.SWM);
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    /// #
-    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-    /// #
-    /// # let pio0_9 = unsafe { gpio.pins.pio0_9.affirm_default_state() };
-    /// # let pio0_9 = pio0_9.into_swm_pin();
-    /// #
-    /// # let u0_txd = unsafe {
-    /// #     swm.movable_functions.u0_txd.affirm_default_state()
-    /// # };
-    /// #
-    /// # let (pio0_9, u0_txd) = pio0_9.assign_function(
-    /// #     u0_txd,
-    /// #     &mut swm_handle,
-    /// # );
-    /// #
-    /// // Assumes that U0_TXD is assigned to PIO0_9
-    /// let (pio0_9, u0_txd) = pio0_9.unassign_function(
-    ///     u0_txd,
-    ///     &mut swm_handle,
-    /// );
-    ///
-    /// // Both PIO0_9 and U0_TXD are now available again
-    /// ```
-    ///
-    /// [`into_swm_pin`]: #method.into_swm_pin
-    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
-    /// [`swm`]: ../swm/index.html
-    pub fn unassign_function<F, K>(mut self,
-        function: swm::Function<F, swm::state::Assigned<T>>,
-        swm     : &mut swm::Handle,
-    )
-        -> (
-            <Self as swm::UnassignFunction<F, K>>::Unassigned,
-            swm::Function<F, swm::state::Unassigned>,
-        )
-        where
-            Self: swm::UnassignFunction<F, K>,
-            F   : swm::FunctionTrait<T, Kind=K>,
-            K   : swm::FunctionKind,
-    {
-        use swm::UnassignFunction;
-
-        let function = function.unassign(&mut self.ty, swm);
-
-        (self.unassign(), function)
-    }
-}
-
 impl<T> Pin<T, pin_state::Swm<(), ()>> where T: PinTrait {
     /// Transitions this pin instance from the SWM state to the unused state
     ///
@@ -1287,6 +1058,22 @@ impl<T, F, Inputs> swm::UnassignFunction<F, swm::Output>
         Pin {
             ty   : self.ty,
             state: pin_state::Swm::new(),
+        }
+    }
+}
+
+impl<T, F> swm::AssignFunction<F, swm::Adc>
+    for Pin<T, pin_state::Swm<(), ()>>
+    where
+        T: PinTrait,
+        F: swm::FunctionTrait<T, Kind=swm::Adc>,
+{
+    type Assigned = Pin<T, pin_state::Adc>;
+
+    fn assign(self) -> Self::Assigned {
+        Pin {
+            ty   : self.ty,
+            state: pin_state::Adc,
         }
     }
 }

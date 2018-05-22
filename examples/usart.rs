@@ -68,8 +68,10 @@ fn main() -> ! {
     // assign the USART's movable function to. For that, the pins need to be
     // unused. Since PIO0_0 and PIO0_4 are unused by default, we just have to
     // promise the API that we didn't change the default state up till now.
-    let pio0_0 = unsafe { gpio.pins.pio0_0.affirm_default_state() };
-    let pio0_4 = unsafe { gpio.pins.pio0_4.affirm_default_state() };
+    let pio0_0 = unsafe { gpio.pins.pio0_0.affirm_default_state() }
+        .into_swm_pin();
+    let pio0_4 = unsafe { gpio.pins.pio0_4.affirm_default_state() }
+        .into_swm_pin();
 
     // We also need to provide USART0's movable functions. Those need to be
     // unassigned, and since they are unassigned by default, we just need to
@@ -77,12 +79,8 @@ fn main() -> ! {
     let u0_rxd = unsafe { swm.movable_functions.u0_rxd.affirm_default_state() };
     let u0_txd = unsafe { swm.movable_functions.u0_txd.affirm_default_state() };
 
-    let (_, u0_rxd) = pio0_0
-        .into_swm_pin()
-        .assign_function(u0_rxd, &mut swm_handle);
-    let (_, u0_txd) = pio0_4
-        .into_swm_pin()
-        .assign_function(u0_txd, &mut swm_handle);
+    let (u0_rxd, _) = u0_rxd.assign(pio0_0, &mut swm_handle);
+    let (u0_txd, _) = u0_txd.assign(pio0_4, &mut swm_handle);
 
     // Initialize USART0. This should never fail, as the only reason `init`
     // returns a `Result::Err` is when the transmitter is busy, which it
