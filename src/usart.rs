@@ -78,10 +78,10 @@
 //!
 //! let (_, u0_rxd) = pio0_0
 //!     .into_swm_pin()
-//!     .assign_input_function(u0_rxd, &mut swm_handle);
+//!     .assign_function(u0_rxd, &mut swm_handle);
 //! let (_, u0_txd) = pio0_4
 //!     .into_swm_pin()
-//!     .assign_output_function(u0_txd, &mut swm_handle);
+//!     .assign_function(u0_txd, &mut swm_handle);
 //!
 //! // Initialize USART0. This should never fail, as the only reason `init`
 //! // returns a `Result::Err` is when the transmitter is busy, which it
@@ -124,8 +124,6 @@ use raw::{
 use swm::{
     self,
     FunctionTrait,
-    InputFunction,
-    OutputFunction,
 };
 use syscon::{
     self,
@@ -190,8 +188,8 @@ impl<UsartX, State> USART<UsartX, State>
     )
         -> nb::Result<USART<UsartX, init_state::Enabled>, !>
         where
-            UsartX::Rx: FunctionTrait<Rx> + InputFunction,
-            UsartX::Tx: FunctionTrait<Tx> + OutputFunction,
+            UsartX::Rx: FunctionTrait<Rx>,
+            UsartX::Tx: FunctionTrait<Tx>,
     {
         syscon.enable_clock(&mut self.usart);
         syscon.clear_reset(&mut self.usart);

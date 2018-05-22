@@ -61,7 +61,7 @@ fn main() -> ! {
 
     // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
     let (pio0_3, _) = pio0_3
-        .unassign_output_function(swclk, &mut swm_handle);
+        .unassign_function(swclk, &mut swm_handle);
     let mut pio0_3 = pio0_3
         .into_unused_pin()
         .into_gpio_pin(&gpio_handle)

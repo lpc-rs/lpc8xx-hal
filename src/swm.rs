@@ -188,6 +188,13 @@ pub trait DefaultState {
 
 /// Implemented by all movable functions
 pub trait FunctionTrait<P: PinTrait> {
+    /// Whether this is an input or output function
+    ///
+    /// There are also bidirectional functions, but for our purposes, they are
+    /// treated as output functions.
+    type Kind: FunctionKind;
+
+
     /// Assigns the movable function to a pin
     ///
     /// This method is intended for internal use only. Please use
@@ -210,11 +217,43 @@ pub trait FunctionTrait<P: PinTrait> {
 }
 
 
+/// Implemented for types that designate whether a function is input or output
+pub trait FunctionKind {}
+
+/// Designates an SWM function as an input function
+pub struct Input;
+impl FunctionKind for Input {}
+
+/// Designates an SWM function as an output function
+pub struct Output;
+impl FunctionKind for Output {}
+
+
+/// Internal trait used to assign functions to pins
+pub trait AssignFunction<Function, Kind> {
+    /// The type of the pin after the function has been assigned
+    type Assigned;
+
+    /// Internal method for assigning a function to a pin
+    fn assign(self) -> Self::Assigned;
+}
+
+/// Internal trait used to unassign functions from pins
+pub trait UnassignFunction<Function, Kind> {
+    /// The type of the pin after the function has been unassigned
+    type Unassigned;
+
+    /// Internal method for unassigning a function from a pin
+    fn unassign(self) -> Self::Unassigned;
+}
+
+
 macro_rules! movable_functions {
     (
         $(
             $field:ident,
             $type:ident,
+            $kind:ident,
             $reg_name:ident,
             $reg_field:ident;
         )*
@@ -250,42 +289,51 @@ macro_rules! movable_functions {
                 type DefaultState = state::Unassigned;
             }
 
-            impl_function!($type, $reg_name, $reg_field, PIO0_0 );
-            impl_function!($type, $reg_name, $reg_field, PIO0_1 );
-            impl_function!($type, $reg_name, $reg_field, PIO0_2 );
-            impl_function!($type, $reg_name, $reg_field, PIO0_3 );
-            impl_function!($type, $reg_name, $reg_field, PIO0_4 );
-            impl_function!($type, $reg_name, $reg_field, PIO0_5 );
-            impl_function!($type, $reg_name, $reg_field, PIO0_6 );
-            impl_function!($type, $reg_name, $reg_field, PIO0_7 );
-            impl_function!($type, $reg_name, $reg_field, PIO0_8 );
-            impl_function!($type, $reg_name, $reg_field, PIO0_9 );
-            impl_function!($type, $reg_name, $reg_field, PIO0_10);
-            impl_function!($type, $reg_name, $reg_field, PIO0_11);
-            impl_function!($type, $reg_name, $reg_field, PIO0_12);
-            impl_function!($type, $reg_name, $reg_field, PIO0_13);
-            impl_function!($type, $reg_name, $reg_field, PIO0_14);
-            impl_function!($type, $reg_name, $reg_field, PIO0_15);
-            impl_function!($type, $reg_name, $reg_field, PIO0_16);
-            impl_function!($type, $reg_name, $reg_field, PIO0_17);
-            impl_function!($type, $reg_name, $reg_field, PIO0_18);
-            impl_function!($type, $reg_name, $reg_field, PIO0_19);
-            impl_function!($type, $reg_name, $reg_field, PIO0_20);
-            impl_function!($type, $reg_name, $reg_field, PIO0_21);
-            impl_function!($type, $reg_name, $reg_field, PIO0_22);
-            impl_function!($type, $reg_name, $reg_field, PIO0_23);
-            impl_function!($type, $reg_name, $reg_field, PIO0_24);
-            impl_function!($type, $reg_name, $reg_field, PIO0_25);
-            impl_function!($type, $reg_name, $reg_field, PIO0_26);
-            impl_function!($type, $reg_name, $reg_field, PIO0_27);
-            impl_function!($type, $reg_name, $reg_field, PIO0_28);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_0 );
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_1 );
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_2 );
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_3 );
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_4 );
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_5 );
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_6 );
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_7 );
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_8 );
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_9 );
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_10);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_11);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_12);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_13);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_14);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_15);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_16);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_17);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_18);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_19);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_20);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_21);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_22);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_23);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_24);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_25);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_26);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_27);
+            impl_function!($type, $kind, $reg_name, $reg_field, PIO0_28);
         )*
     }
 }
 
 macro_rules! impl_function {
-    ($type:ident, $reg_name:ident, $reg_field:ident, $pin:ident) => {
+    (
+        $type:ident,
+        $kind:ident,
+        $reg_name:ident,
+        $reg_field:ident,
+        $pin:ident
+    ) => {
         impl FunctionTrait<::gpio::$pin> for $type {
+            type Kind = $kind;
+
+
             fn assign(&mut self, _pin: &mut ::gpio::$pin, swm : &mut Handle) {
                 swm.swm.$reg_name.modify(|_, w|
                     unsafe { w.$reg_field().bits(::gpio::$pin::ID) }
@@ -302,59 +350,65 @@ macro_rules! impl_function {
 }
 
 movable_functions!(
-    u0_txd       , U0_TXD       , pinassign0 , u0_txd_o;
-    u0_rxd       , U0_RXD       , pinassign0 , u0_rxd_i;
-    u0_rts       , U0_RTS       , pinassign0 , u0_rts_o;
-    u0_cts       , U0_CTS       , pinassign0 , u0_cts_i;
-    u0_sclk      , U0_SCLK      , pinassign1 , u0_sclk_io;
-    u1_txd       , U1_TXD       , pinassign1 , u1_txd_o;
-    u1_rxd       , U1_RXD       , pinassign1 , u1_rxd_i;
-    u1_rts       , U1_RTS       , pinassign1 , u1_rts_o;
-    u1_cts       , U1_CTS       , pinassign2 , u1_cts_i;
-    u1_sclk      , U1_SCLK      , pinassign2 , u1_sclk_io;
-    u2_txd       , U2_TXD       , pinassign2 , u2_txd_o;
-    u2_rxd       , U2_RXD       , pinassign2 , u2_rxd_i;
-    u2_rts       , U2_RTS       , pinassign3 , u2_rts_o;
-    u2_cts       , U2_CTS       , pinassign3 , u2_cts_i;
-    u2_sclk      , U2_SCLK      , pinassign3 , u2_sclk_io;
-    spi0_sck     , SPI0_SCK     , pinassign3 , spi0_sck_io;
-    spi0_mosi    , SPI0_MOSI    , pinassign4 , spi0_mosi_io;
-    spi0_miso    , SPI0_MISO    , pinassign4 , spi0_miso_io;
-    spi0_ssel0   , SPI0_SSEL0   , pinassign4 , spi0_ssel0_io;
-    spi0_ssel1   , SPI0_SSEL1   , pinassign4 , spi0_ssel1_io;
-    spi0_ssel2   , SPI0_SSEL2   , pinassign5 , spi0_ssel2_io;
-    spi0_ssel3   , SPI0_SSEL3   , pinassign5 , spi0_ssel3_io;
-    spi1_sck     , SPI1_SCK     , pinassign5 , spi1_sck_io;
-    spi1_mosi    , SPI1_MOSI    , pinassign5 , spi1_mosi_io;
-    spi1_miso    , SPI1_MISO    , pinassign6 , spi1_miso_io;
-    spi1_ssel0   , SPI1_SSEL0   , pinassign6 , spi1_ssel0_io;
-    spi1_ssel1   , SPI1_SSEL1   , pinassign6 , spi1_ssel1_io;
-    sct_pin0     , SCT_PIN0     , pinassign6 , sct_in0_i;
-    sct_pin1     , SCT_PIN1     , pinassign7 , sct_in1_i;
-    sct_pin2     , SCT_PIN2     , pinassign7 , sct_in2_i;
-    sct_pin3     , SCT_PIN3     , pinassign7 , sct_in3_i;
-    sct_out0     , SCT_OUT0     , pinassign7 , sct_out0_o;
-    sct_out1     , SCT_OUT1     , pinassign8 , sct_out1_o;
-    sct_out2     , SCT_OUT2     , pinassign8 , sct_out2_o;
-    sct_out3     , SCT_OUT3     , pinassign8 , sct_out3_o;
-    sct_out4     , SCT_OUT4     , pinassign8 , sct_out4_o;
-    sct_out5     , SCT_OUT5     , pinassign9 , sct_out5_o;
-    i2c1_sda     , I2C1_SDA     , pinassign9 , i2c1_sda_io;
-    i2c1_scl     , I2C1_SCL     , pinassign9 , i2c1_scl_io;
-    i2c2_sda     , I2C2_SDA     , pinassign9 , i2c2_sda_io;
-    i2c2_scl     , I2C2_SCL     , pinassign10, i2c2_scl_io;
-    i2c3_sda     , I2C3_SDA     , pinassign10, i2c3_sda_io;
-    i2c3_scl     , I2C3_SCL     , pinassign10, i2c3_scl_io;
-    adc_pintrig0 , ADC_PINTRIG0 , pinassign10, adc_pintrig0_i;
-    acd_pintrig1 , ADC_PINTRIG1 , pinassign11, adc_pintrig1_i;
-    acmp_o       , ACMP_O       , pinassign11, acmp_o_o;
-    clkout       , CLKOUT       , pinassign11, clkout_o;
-    gpio_int_bmat, GPIO_INT_BMAT, pinassign11, gpio_int_bmat_o;
+    u0_txd       , U0_TXD       , Output, pinassign0 , u0_txd_o;
+    u0_rxd       , U0_RXD       , Input , pinassign0 , u0_rxd_i;
+    u0_rts       , U0_RTS       , Output, pinassign0 , u0_rts_o;
+    u0_cts       , U0_CTS       , Input , pinassign0 , u0_cts_i;
+    u0_sclk      , U0_SCLK      , Output, pinassign1 , u0_sclk_io;
+    u1_txd       , U1_TXD       , Output, pinassign1 , u1_txd_o;
+    u1_rxd       , U1_RXD       , Input , pinassign1 , u1_rxd_i;
+    u1_rts       , U1_RTS       , Output, pinassign1 , u1_rts_o;
+    u1_cts       , U1_CTS       , Input , pinassign2 , u1_cts_i;
+    u1_sclk      , U1_SCLK      , Output, pinassign2 , u1_sclk_io;
+    u2_txd       , U2_TXD       , Output, pinassign2 , u2_txd_o;
+    u2_rxd       , U2_RXD       , Input , pinassign2 , u2_rxd_i;
+    u2_rts       , U2_RTS       , Output, pinassign3 , u2_rts_o;
+    u2_cts       , U2_CTS       , Input , pinassign3 , u2_cts_i;
+    u2_sclk      , U2_SCLK      , Output, pinassign3 , u2_sclk_io;
+    spi0_sck     , SPI0_SCK     , Output, pinassign3 , spi0_sck_io;
+    spi0_mosi    , SPI0_MOSI    , Output, pinassign4 , spi0_mosi_io;
+    spi0_miso    , SPI0_MISO    , Output, pinassign4 , spi0_miso_io;
+    spi0_ssel0   , SPI0_SSEL0   , Output, pinassign4 , spi0_ssel0_io;
+    spi0_ssel1   , SPI0_SSEL1   , Output, pinassign4 , spi0_ssel1_io;
+    spi0_ssel2   , SPI0_SSEL2   , Output, pinassign5 , spi0_ssel2_io;
+    spi0_ssel3   , SPI0_SSEL3   , Output, pinassign5 , spi0_ssel3_io;
+    spi1_sck     , SPI1_SCK     , Output, pinassign5 , spi1_sck_io;
+    spi1_mosi    , SPI1_MOSI    , Output, pinassign5 , spi1_mosi_io;
+    spi1_miso    , SPI1_MISO    , Output, pinassign6 , spi1_miso_io;
+    spi1_ssel0   , SPI1_SSEL0   , Output, pinassign6 , spi1_ssel0_io;
+    spi1_ssel1   , SPI1_SSEL1   , Output, pinassign6 , spi1_ssel1_io;
+    sct_pin0     , SCT_PIN0     , Input , pinassign6 , sct_in0_i;
+    sct_pin1     , SCT_PIN1     , Input , pinassign7 , sct_in1_i;
+    sct_pin2     , SCT_PIN2     , Input , pinassign7 , sct_in2_i;
+    sct_pin3     , SCT_PIN3     , Input , pinassign7 , sct_in3_i;
+    sct_out0     , SCT_OUT0     , Output, pinassign7 , sct_out0_o;
+    sct_out1     , SCT_OUT1     , Output, pinassign8 , sct_out1_o;
+    sct_out2     , SCT_OUT2     , Output, pinassign8 , sct_out2_o;
+    sct_out3     , SCT_OUT3     , Output, pinassign8 , sct_out3_o;
+    sct_out4     , SCT_OUT4     , Output, pinassign8 , sct_out4_o;
+    sct_out5     , SCT_OUT5     , Output, pinassign9 , sct_out5_o;
+    i2c1_sda     , I2C1_SDA     , Output, pinassign9 , i2c1_sda_io;
+    i2c1_scl     , I2C1_SCL     , Output, pinassign9 , i2c1_scl_io;
+    i2c2_sda     , I2C2_SDA     , Output, pinassign9 , i2c2_sda_io;
+    i2c2_scl     , I2C2_SCL     , Output, pinassign10, i2c2_scl_io;
+    i2c3_sda     , I2C3_SDA     , Output, pinassign10, i2c3_sda_io;
+    i2c3_scl     , I2C3_SCL     , Output, pinassign10, i2c3_scl_io;
+    adc_pintrig0 , ADC_PINTRIG0 , Input , pinassign10, adc_pintrig0_i;
+    acd_pintrig1 , ADC_PINTRIG1 , Input , pinassign11, adc_pintrig1_i;
+    acmp_o       , ACMP_O       , Output, pinassign11, acmp_o_o;
+    clkout       , CLKOUT       , Output, pinassign11, clkout_o;
+    gpio_int_bmat, GPIO_INT_BMAT, Output, pinassign11, gpio_int_bmat_o;
 );
 
 
 macro_rules! fixed_functions {
-    ($($type:ident, $field:ident, $pin:ident, $default_state:ty;)*) => {
+    ($(
+        $type:ident,
+        $kind:ident,
+        $field:ident,
+        $pin:ident,
+        $default_state:ty;
+    )*) => {
         /// Provides access to all fixed functions
         ///
         /// This struct is part of [`SWM`].
@@ -387,6 +441,9 @@ macro_rules! fixed_functions {
             }
 
             impl FunctionTrait<::gpio::$pin> for $type {
+                type Kind = $kind;
+
+
                 fn assign(&mut self, _: &mut ::gpio::$pin, swm : &mut Handle) {
                     swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
                 }
@@ -401,149 +458,32 @@ macro_rules! fixed_functions {
 }
 
 fixed_functions!(
-    ACMP_I1 , acmp_i1 , PIO0_0 , state::Unassigned;
-    ACMP_I2 , acmp_i2 , PIO0_1 , state::Unassigned;
-    ACMP_I3 , acmp_i3 , PIO0_14, state::Unassigned;
-    ACMP_I4 , acmp_i4 , PIO0_23, state::Unassigned;
-    SWCLK   , swclk   , PIO0_3 , state::Assigned<PIO0_3>;
-    SWDIO   , swdio   , PIO0_2 , state::Assigned<PIO0_2>;
-    XTALIN  , xtalin  , PIO0_8 , state::Unassigned;
-    XTALOUT , xtalout , PIO0_9 , state::Unassigned;
-    RESETN  , resetn  , PIO0_5 , state::Assigned<PIO0_5>;
-    CLKIN   , clkin   , PIO0_1 , state::Unassigned;
-    VDDCMP  , vddcmp  , PIO0_6 , state::Unassigned;
-    I2C0_SDA, i2c0_sda, PIO0_11, state::Unassigned;
-    I2C0_SCL, i2c0_scl, PIO0_10, state::Unassigned;
-    ADC_0   , adc_0   , PIO0_7 , state::Unassigned;
-    ADC_1   , adc_1   , PIO0_6 , state::Unassigned;
-    ADC_2   , adc_2   , PIO0_14, state::Unassigned;
-    ADC_3   , adc_3   , PIO0_23, state::Unassigned;
-    ADC_4   , adc_4   , PIO0_22, state::Unassigned;
-    ADC_5   , adc_5   , PIO0_21, state::Unassigned;
-    ADC_6   , adc_6   , PIO0_20, state::Unassigned;
-    ADC_7   , adc_7   , PIO0_19, state::Unassigned;
-    ADC_8   , adc_8   , PIO0_18, state::Unassigned;
-    ADC_9   , adc_9   , PIO0_17, state::Unassigned;
-    ADC_10  , adc_10  , PIO0_13, state::Unassigned;
-    ADC_11  , adc_11  , PIO0_4 , state::Unassigned;
+    ACMP_I1 , Input , acmp_i1 , PIO0_0 , state::Unassigned;
+    ACMP_I2 , Input , acmp_i2 , PIO0_1 , state::Unassigned;
+    ACMP_I3 , Input , acmp_i3 , PIO0_14, state::Unassigned;
+    ACMP_I4 , Input , acmp_i4 , PIO0_23, state::Unassigned;
+    SWCLK   , Output, swclk   , PIO0_3 , state::Assigned<PIO0_3>;
+    SWDIO   , Output, swdio   , PIO0_2 , state::Assigned<PIO0_2>;
+    XTALIN  , Input , xtalin  , PIO0_8 , state::Unassigned;
+    XTALOUT , Output, xtalout , PIO0_9 , state::Unassigned;
+    RESETN  , Input , resetn  , PIO0_5 , state::Assigned<PIO0_5>;
+    CLKIN   , Input , clkin   , PIO0_1 , state::Unassigned;
+    VDDCMP  , Input , vddcmp  , PIO0_6 , state::Unassigned;
+    I2C0_SDA, Output, i2c0_sda, PIO0_11, state::Unassigned;
+    I2C0_SCL, Output, i2c0_scl, PIO0_10, state::Unassigned;
+    ADC_0   , Output, adc_0   , PIO0_7 , state::Unassigned;
+    ADC_1   , Output, adc_1   , PIO0_6 , state::Unassigned;
+    ADC_2   , Output, adc_2   , PIO0_14, state::Unassigned;
+    ADC_3   , Output, adc_3   , PIO0_23, state::Unassigned;
+    ADC_4   , Output, adc_4   , PIO0_22, state::Unassigned;
+    ADC_5   , Output, adc_5   , PIO0_21, state::Unassigned;
+    ADC_6   , Output, adc_6   , PIO0_20, state::Unassigned;
+    ADC_7   , Output, adc_7   , PIO0_19, state::Unassigned;
+    ADC_8   , Output, adc_8   , PIO0_18, state::Unassigned;
+    ADC_9   , Output, adc_9   , PIO0_17, state::Unassigned;
+    ADC_10  , Output, adc_10  , PIO0_13, state::Unassigned;
+    ADC_11  , Output, adc_11  , PIO0_4 , state::Unassigned;
 );
-
-
-/// Marker trait for fixed functions representing ADC channels
-///
-/// This is an internal trait. Any changes made to it won't be considered
-/// breaking changes.
-pub trait AdcChannel {}
-
-impl AdcChannel for ADC_0 {}
-impl AdcChannel for ADC_1 {}
-impl AdcChannel for ADC_2 {}
-impl AdcChannel for ADC_3 {}
-impl AdcChannel for ADC_4 {}
-impl AdcChannel for ADC_5 {}
-impl AdcChannel for ADC_6 {}
-impl AdcChannel for ADC_7 {}
-impl AdcChannel for ADC_8 {}
-impl AdcChannel for ADC_9 {}
-impl AdcChannel for ADC_10 {}
-impl AdcChannel for ADC_11 {}
-
-
-/// Marker trait for output functions
-///
-/// This trait marks all functions that include output, which means
-/// bidirectional functions are also included.
-///
-/// This is an internal trait. Any changes made to it won't be considered
-/// breaking changes.
-pub trait OutputFunction {}
-
-// Which movable functions are output functions is documented in the user manual
-// in section 7.4.1, table 65.
-impl OutputFunction for U0_TXD {}
-impl OutputFunction for U0_RTS {}
-impl OutputFunction for U0_SCLK {}
-impl OutputFunction for U1_TXD {}
-impl OutputFunction for U1_RTS {}
-impl OutputFunction for U1_SCLK {}
-impl OutputFunction for U2_TXD {}
-impl OutputFunction for U2_RTS {}
-impl OutputFunction for U2_SCLK {}
-impl OutputFunction for SPI0_SCK {}
-impl OutputFunction for SPI0_MOSI {}
-impl OutputFunction for SPI0_MISO {}
-impl OutputFunction for SPI0_SSEL0 {}
-impl OutputFunction for SPI0_SSEL1 {}
-impl OutputFunction for SPI0_SSEL2 {}
-impl OutputFunction for SPI0_SSEL3 {}
-impl OutputFunction for SPI1_SCK {}
-impl OutputFunction for SPI1_MOSI {}
-impl OutputFunction for SPI1_MISO {}
-impl OutputFunction for SPI1_SSEL0 {}
-impl OutputFunction for SPI1_SSEL1 {}
-impl OutputFunction for SCT_OUT0 {}
-impl OutputFunction for SCT_OUT1 {}
-impl OutputFunction for SCT_OUT2 {}
-impl OutputFunction for SCT_OUT3 {}
-impl OutputFunction for SCT_OUT4 {}
-impl OutputFunction for SCT_OUT5 {}
-impl OutputFunction for I2C1_SDA {}
-impl OutputFunction for I2C1_SCL {}
-impl OutputFunction for I2C2_SDA {}
-impl OutputFunction for I2C2_SCL {}
-impl OutputFunction for I2C3_SDA {}
-impl OutputFunction for I2C3_SCL {}
-impl OutputFunction for ACMP_O {}
-impl OutputFunction for CLKOUT {}
-impl OutputFunction for GPIO_INT_BMAT {}
-
-// See user manual, section 31.4, table 397
-impl OutputFunction for SWCLK {}
-impl OutputFunction for SWDIO {}
-
-// See user manual, section 5.4, table 20
-impl OutputFunction for XTALOUT {}
-
-// See user manual, section 15.4, table 202
-impl OutputFunction for I2C0_SDA {}
-impl OutputFunction for I2C0_SCL {}
-
-
-/// Marker trait for input functions
-///
-/// This trait marks only functions that are pure input functions, which means
-/// bidirectional functions are not included.
-///
-/// This is an internal trait. Any changes made to it won't be considered
-/// breaking changes.
-pub trait InputFunction {}
-
-// Which movable functions are input functions is documented in the user manual
-// in section 7.4.1, table 65.
-impl InputFunction for U0_RXD {}
-impl InputFunction for U0_CTS {}
-impl InputFunction for U1_RXD {}
-impl InputFunction for U1_CTS {}
-impl InputFunction for U2_RXD {}
-impl InputFunction for U2_CTS {}
-impl InputFunction for SCT_PIN0 {}
-impl InputFunction for SCT_PIN1 {}
-impl InputFunction for SCT_PIN2 {}
-impl InputFunction for SCT_PIN3 {}
-impl InputFunction for ADC_PINTRIG0 {}
-impl InputFunction for ADC_PINTRIG1 {}
-
-// See user manual, section 22.4, table 294
-impl InputFunction for ACMP_I1 {}
-impl InputFunction for ACMP_I2 {}
-impl InputFunction for ACMP_I3 {}
-impl InputFunction for ACMP_I4 {}
-impl InputFunction for VDDCMP {}
-
-// See user manual, section 5.4, table 20
-impl InputFunction for XTALIN {}
-impl InputFunction for RESETN {}
-impl InputFunction for CLKIN {}
 
 
 /// Contains types that indicate the state of a movable function
