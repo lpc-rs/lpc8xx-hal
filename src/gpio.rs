@@ -621,6 +621,7 @@ pins!(
 /// #
 /// // Transition pin into ADC state
 /// let (pio0_14, adc_2) = unsafe { gpio.pins.pio0_14.affirm_default_state() }
+///     .into_swm_pin()
 ///     .assign_function(adc_2, &mut swm_handle);
 /// ```
 ///
@@ -1236,7 +1237,8 @@ impl<T, F, Inputs> swm::UnassignFunction<F, swm::Output>
     }
 }
 
-impl<T, F> swm::AssignFunction<F, swm::Adc> for Pin<T, pin_state::Unused>
+impl<T, F> swm::AssignFunction<F, swm::Adc>
+    for Pin<T, pin_state::Swm<(), ()>>
     where
         T: PinTrait,
         F: swm::FunctionTrait<T, Kind=swm::Adc>,
