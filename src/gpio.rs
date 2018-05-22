@@ -595,9 +595,7 @@ pins!(
 ///
 /// # Analog Input
 ///
-/// To use a pin for analog input, you need to transition it from the unused
-/// state to the ADC state. ADC channels are fixed pin functions, so you need
-/// the access the respective fixed function from the [`swm`] API.
+/// To use a pin for analog input, you need to assign an ADC function.
 ///
 /// ``` no_run
 /// # extern crate lpc82x;
@@ -622,8 +620,8 @@ pins!(
 /// # };
 /// #
 /// // Transition pin into ADC state
-/// let pin = unsafe { gpio.pins.pio0_14.affirm_default_state() }
-///     .into_adc_pin(adc_2, &mut swm_handle);
+/// let (pio0_14, adc_2) = unsafe { gpio.pins.pio0_14.affirm_default_state() }
+///     .assign_function(adc_2, &mut swm_handle);
 /// ```
 ///
 /// Using the pin for analog input once it is in the ADC state is currently not
@@ -827,60 +825,6 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
             ty   : self.ty,
             state: pin_state::Swm::new(),
         }
-    }
-
-    /// Transitions this pin instance to the ADC state
-    ///
-    /// This method is only available while the pin is in the unused state. Code
-    /// that attempts to call this method while the pin is in any other state
-    /// will not compile. See [State Management] for more information on
-    /// managing pin states.
-    ///
-    /// Consumes the pin instance and the fixed function that represents the ADC
-    /// channel associated with this pin, and returns a tuple containing
-    /// - a new pin instance that is in the ADC state, and
-    /// - a new instance of the fixed function, in a state that indicates it is
-    ///   enabled. Please refer to the [`swm`] module to learn more about fixed
-    ///   function states.
-    ///
-    /// ADC channels are fixed functions, which means they are tied to one
-    /// specific pin. This method only accepts the fixed function that is
-    /// associated with this pin. Not all pins have an ADC channel associated
-    /// with them. Please refer to the user manual, section 21.4, table 278 for
-    /// a list of ADC channels and their associated pins.
-    ///
-    /// This method enables the analog function for this pin via the switch
-    /// matrix, but as of now, there is no HAL API to actually control the ADC.
-    /// You can use this method to enable the analog function and make sure that
-    /// no conflicting functions can be enabled for the pin. After that, you
-    /// need to use the raw [`lpc82x::IOCON`] and [`lpc82x::ADC`] register
-    /// mappings to actually do anything with it. If you are using the ADC,
-    /// [please let us know](https://github.com/braun-robotics/rust-lpc82x-hal/issues/51)!
-    ///
-    /// [State Management]: #state-management
-    /// [`swm`]: ../swm/index.html
-    /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.IOCON.html
-    /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.ADC.html
-    pub fn into_adc_pin<F>(mut self,
-        function: swm::Function<F, swm::state::Unassigned>,
-        swm     : &mut swm::Handle,
-    )
-        -> (
-            Pin<T, pin_state::Adc>,
-            swm::Function<F, swm::state::Assigned<T>>,
-        )
-        where
-            Self: swm::AssignFunction<F, swm::Adc>,
-            F   : swm::FunctionTrait<T, Kind=swm::Adc>,
-    {
-        let function = function.assign(&mut self.ty, swm);
-
-        let pin = Pin {
-            ty   : self.ty,
-            state: pin_state::Adc,
-        };
-
-        (pin, function)
     }
 }
 
