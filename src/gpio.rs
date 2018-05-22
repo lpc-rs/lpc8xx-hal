@@ -59,7 +59,7 @@
 //! };
 //! let pio0_6 = unsafe { gpio.pins.pio0_6.affirm_default_state() }
 //!     .into_swm_pin()
-//!     .assign_input_function(vddcmp, &mut swm_handle);
+//!     .assign_function(vddcmp, &mut swm_handle);
 //! ```
 //!
 //! [`GPIO`]: struct.GPIO.html
@@ -404,7 +404,7 @@ pins!(
 /// };
 /// let (pin, _) = pin
 ///     .into_swm_pin()
-///     .assign_output_function(clkout, &mut swm_handle);
+///     .assign_function(clkout, &mut swm_handle);
 ///
 /// // As long as the movable function is assigned, we can't use the pin for
 /// // general-purpose I/O. Therefore the following method call would cause a
@@ -579,11 +579,11 @@ pins!(
 ///     .into_swm_pin();
 ///
 /// // Enable this pin's fixed function, which is an output function.
-/// let (pin, xtalout) = pin.assign_output_function(xtalout, &mut swm_handle);
+/// let (pin, xtalout) = pin.assign_function(xtalout, &mut swm_handle);
 ///
 /// // Now we can assign various input functions in addition.
-/// let (pin, _) = pin.assign_input_function(u0_rxd, &mut swm_handle);
-/// let (pin, _) = pin.assign_input_function(u1_rxd, &mut swm_handle);
+/// let (pin, _) = pin.assign_function(u0_rxd, &mut swm_handle);
+/// let (pin, _) = pin.assign_function(u1_rxd, &mut swm_handle);
 ///
 /// // We can't assign another output function. The next line won't compile.
 /// // let (pin, _) = pin.assign_output_function(u0_txd.ty, &mut swm);
@@ -591,7 +591,7 @@ pins!(
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
 /// let (pin, _) = pin.unassign_output_function(xtalout, &mut swm_handle);
-/// let (pin, _) = pin.assign_output_function(u0_txd, &mut swm_handle);
+/// let (pin, _) = pin.assign_function(u0_txd, &mut swm_handle);
 /// ```
 ///
 /// # Analog Input
@@ -1028,7 +1028,11 @@ impl<'gpio, T> StatefulOutputPin
     }
 }
 
-impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
+impl<T, State> Pin<T, State>
+    where
+        T    : PinTrait,
+        State: PinState,
+{
     /// Assign a movable output function to this pin
     ///
     /// This method is only available, if two conditions are met:
@@ -1078,7 +1082,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// };
     ///
     /// // Assign U0_TXD to PIO0_9
-    /// let (pio0_9, u0_txd) = pio0_9.assign_output_function(
+    /// let (pio0_9, u0_txd) = pio0_9.assign_function(
     ///     u0_txd,
     ///     &mut swm_handle,
     /// );
@@ -1087,24 +1091,24 @@ impl<T, Inputs> Pin<T, pin_state::Swm<(), Inputs>> where T: PinTrait {
     /// [`into_swm_pin`]: #method.into_swm_pin
     /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
     /// [`swm`]: ../swm/index.html
-    pub fn assign_output_function<F>(mut self,
+    pub fn assign_function<F, K>(mut self,
         function: swm::Function<F, swm::state::Unassigned>,
         swm     : &mut swm::Handle,
     )
         -> (
-            Pin<T, pin_state::Swm<((),), Inputs>>,
+            <Self as swm::AssignFunction<F, K>>::Assigned,
             swm::Function<F, swm::state::Assigned<T>>,
         )
-        where F: swm::FunctionTrait<T, Kind=swm::Output>
+        where
+            Self: swm::AssignFunction<F, K>,
+            F   : swm::FunctionTrait<T, Kind=K>,
+            K   : swm::FunctionKind,
     {
+        use swm::AssignFunction;
+
         let function = function.assign(&mut self.ty, swm);
 
-        let pin = Pin {
-            ty   : self.ty,
-            state: pin_state::Swm::new(),
-        };
-
-        (pin, function)
+        (self.assign(), function)
     }
 }
 
@@ -1161,7 +1165,7 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
     /// #     swm.movable_functions.u0_txd.affirm_default_state()
     /// # };
     /// #
-    /// # let (pio0_9, u0_txd) = pio0_9.assign_output_function(
+    /// # let (pio0_9, u0_txd) = pio0_9.assign_function(
     /// #     u0_txd,
     /// #     &mut swm_handle,
     /// # );
@@ -1189,83 +1193,6 @@ impl<T, Inputs> Pin<T, pin_state::Swm<((),), Inputs>> where T: PinTrait {
         where F: swm::FunctionTrait<T, Kind=swm::Output>
     {
         let function = function.unassign(&mut self.ty, swm);
-
-        let pin = Pin {
-            ty   : self.ty,
-            state: pin_state::Swm::new(),
-        };
-
-        (pin, function)
-    }
-}
-
-impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, Inputs>>
-    where T: PinTrait
-{
-    /// Assign a movable input function to this pin
-    ///
-    /// This method is only available, if the pin is in the SWM state. Code
-    /// trying to call this method while this condition is not met, will not
-    /// compile. You can use [`into_swm_pin`] to put the pin into the SWM state.
-    ///
-    /// Consumes the pin instance and an instance of the movable function, and
-    /// returns a tuple containing
-    /// - a new pin instance, its type state indicating that an additonal input
-    ///   function has been enabled; and
-    /// - a new instance of the movable function, its state indicating that it
-    ///   has been assigned to this pin. Please refer to the [`swm`] module to
-    ///   learn more about movable function states.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// # extern crate lpc82x;
-    /// # extern crate lpc82x_hal;
-    /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
-    /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
-    /// #
-    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let     swm    = SWM::new(peripherals.SWM);
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    /// #
-    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-    /// #
-    /// // Get pin ready for function assignment
-    /// let pio0_8 = unsafe { gpio.pins.pio0_8.affirm_default_state() }
-    ///     .into_swm_pin();
-    ///
-    /// // Get the movable function ready to be assigned
-    /// let u0_rxd = unsafe {
-    ///     swm.movable_functions.u0_rxd.affirm_default_state()
-    /// };
-    ///
-    /// // Assign U0_RXD to PIO0_8
-    /// let (pio0_8, u0_rxd) = pio0_8.assign_input_function(
-    ///     u0_rxd,
-    ///     &mut swm_handle,
-    /// );
-    /// ```
-    ///
-    /// [`into_swm_pin`]: #method.into_swm_pin
-    /// [`swm::OutputFunction`]: ../swm/trait.OutputFunction.html
-    /// [`swm`]: ../swm/index.html
-    pub fn assign_input_function<F>(mut self,
-        function: swm::Function<F, swm::state::Unassigned>,
-        swm     : &mut swm::Handle,
-    )
-        -> (
-            Pin<T, pin_state::Swm<Output, (Inputs,)>>,
-            swm::Function<F, swm::state::Assigned<T>>,
-        )
-        where F: swm::FunctionTrait<T, Kind=swm::Input>
-    {
-        let function = function.assign(&mut self.ty, swm);
 
         let pin = Pin {
             ty   : self.ty,
@@ -1331,7 +1258,7 @@ impl<T, Output, Inputs> Pin<T, pin_state::Swm<Output, (Inputs,)>>
     /// #     swm.movable_functions.u0_rxd.affirm_default_state()
     /// # };
     /// #
-    /// # let (pio0_8, u0_rxd) = pio0_8.assign_input_function(
+    /// # let (pio0_8, u0_rxd) = pio0_8.assign_function(
     /// #     u0_rxd,
     /// #     &mut swm_handle,
     /// # );
