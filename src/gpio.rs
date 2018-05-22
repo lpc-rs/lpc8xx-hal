@@ -1395,6 +1395,71 @@ impl<T> Pin<T, pin_state::Swm<(), ()>> where T: PinTrait {
 }
 
 
+impl<T, F, Output, Inputs> swm::AssignFunction<F, swm::Input>
+    for Pin<T, pin_state::Swm<Output, Inputs>>
+    where
+        T: PinTrait,
+        F: swm::FunctionTrait<T, Kind=swm::Input>,
+{
+    type Assigned = Pin<T, pin_state::Swm<Output, (Inputs,)>>;
+
+    fn assign(self) -> Self::Assigned {
+        Pin {
+            ty   : self.ty,
+            state: pin_state::Swm::new(),
+        }
+    }
+}
+
+impl<T, F, Inputs> swm::AssignFunction<F, swm::Output>
+    for Pin<T, pin_state::Swm<(), Inputs>>
+    where
+        T: PinTrait,
+        F: swm::FunctionTrait<T, Kind=swm::Output>,
+{
+    type Assigned = Pin<T, pin_state::Swm<((),), Inputs>>;
+
+    fn assign(self) -> Self::Assigned {
+        Pin {
+            ty   : self.ty,
+            state: pin_state::Swm::new(),
+        }
+    }
+}
+
+impl<T, F, Output, Inputs> swm::UnassignFunction<F, swm::Input>
+     for Pin<T, pin_state::Swm<Output, (Inputs,)>>
+     where
+        T: PinTrait,
+        F: swm::FunctionTrait<T, Kind=swm::Output>,
+{
+    type Unassigned = Pin<T, pin_state::Swm<Output, Inputs>>;
+
+    fn unassign(self) -> Self::Unassigned {
+        Pin {
+            ty   : self.ty,
+            state: pin_state::Swm::new(),
+        }
+    }
+}
+
+impl<T, F, Inputs> swm::UnassignFunction<F, swm::Output>
+     for Pin<T, pin_state::Swm<((),), Inputs>>
+     where
+        T: PinTrait,
+        F: swm::FunctionTrait<T, Kind=swm::Output>,
+{
+    type Unassigned = Pin<T, pin_state::Swm<(), Inputs>>;
+
+    fn unassign(self) -> Self::Unassigned {
+        Pin {
+            ty   : self.ty,
+            state: pin_state::Swm::new(),
+        }
+    }
+}
+
+
 /// Contains types to indicate pin states
 ///
 /// Please refer to [`Pin`] for documentation on how these types are used.

@@ -229,6 +229,25 @@ pub struct Output;
 impl FunctionKind for Output {}
 
 
+/// Internal trait used to assign functions to pins
+pub trait AssignFunction<Function, Kind> {
+    /// The type of the pin after the function has been assigned
+    type Assigned;
+
+    /// Internal method for assigning a function to a pin
+    fn assign(self) -> Self::Assigned;
+}
+
+/// Internal trait used to unassign functions from pins
+pub trait UnassignFunction<Function, Kind> {
+    /// The type of the pin after the function has been unassigned
+    type Unassigned;
+
+    /// Internal method for unassigning a function from a pin
+    fn unassign(self) -> Self::Unassigned;
+}
+
+
 macro_rules! movable_functions {
     (
         $(
