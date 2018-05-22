@@ -9,8 +9,10 @@ use gpio::{
     PIO0_2,
     PIO0_3,
     PIO0_5,
+    Pin,
     PinTrait,
 };
+use gpio::pin_state::PinState;
 use init_state::{
     self,
     InitState,
@@ -139,18 +141,25 @@ impl<T> Function<T, state::Unassigned> {
     ///
     /// [`Pin::assign_input_function`]: ../gpio/struct.Pin.html#method.assign_input_function
     /// [`Pin::assign_output_function`]: ../gpio/struct.Pin.html#method.assign_output_function
-    pub fn assign<P>(mut self, pin: &mut P, swm: &mut Handle)
-        -> Function<T, state::Assigned<P>>
+    pub fn assign<P, S>(mut self, mut pin: Pin<P, S>, swm: &mut Handle)
+        -> (
+            Function<T, state::Assigned<P>>,
+            <Pin<P, S> as AssignFunction<T, T::Kind>>::Assigned,
+        )
         where
-            T: FunctionTrait<P>,
-            P: PinTrait,
+            T        : FunctionTrait<P>,
+            P        : PinTrait,
+            S        : PinState,
+            Pin<P, S>: AssignFunction<T, T::Kind>,
     {
-        self.ty.assign(pin, swm);
+        self.ty.assign(&mut pin.ty, swm);
 
-        Function {
+        let function = Function {
             ty    : self.ty,
             _state: state::Assigned(PhantomData),
-        }
+        };
+
+        (function, pin.assign())
     }
 }
 
