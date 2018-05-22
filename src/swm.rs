@@ -467,26 +467,6 @@ fixed_functions!(
 );
 
 
-/// Marker trait for fixed functions representing ADC channels
-///
-/// This is an internal trait. Any changes made to it won't be considered
-/// breaking changes.
-pub trait AdcChannel {}
-
-impl AdcChannel for ADC_0 {}
-impl AdcChannel for ADC_1 {}
-impl AdcChannel for ADC_2 {}
-impl AdcChannel for ADC_3 {}
-impl AdcChannel for ADC_4 {}
-impl AdcChannel for ADC_5 {}
-impl AdcChannel for ADC_6 {}
-impl AdcChannel for ADC_7 {}
-impl AdcChannel for ADC_8 {}
-impl AdcChannel for ADC_9 {}
-impl AdcChannel for ADC_10 {}
-impl AdcChannel for ADC_11 {}
-
-
 /// Contains types that indicate the state of a movable function
 pub mod state {
     use core::marker::PhantomData;

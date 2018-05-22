@@ -243,6 +243,7 @@ extern crate void;
 pub extern crate lpc82x as raw;
 
 
+pub mod adc;
 pub mod clock;
 pub mod gpio;
 pub mod pmu;

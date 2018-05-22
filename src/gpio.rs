@@ -74,15 +74,13 @@ use embedded_hal::digital::{
     StatefulOutputPin,
 };
 
+use adc::AdcChannel;
 use init_state::{
     self,
     InitState,
 };
 use raw;
-use swm::{
-    self,
-    AdcChannel,
-};
+use swm;
 use syscon;
 
 use self::pin_state::PinState;
