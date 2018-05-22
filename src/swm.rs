@@ -228,6 +228,10 @@ impl FunctionKind for Input {}
 pub struct Output;
 impl FunctionKind for Output {}
 
+/// Designates an SWM function as an ADC function
+pub struct Adc;
+impl FunctionKind for Adc {}
+
 
 /// Internal trait used to assign functions to pins
 pub trait AssignFunction<Function, Kind> {
@@ -471,18 +475,18 @@ fixed_functions!(
     VDDCMP  , Input , vddcmp  , PIO0_6 , state::Unassigned;
     I2C0_SDA, Output, i2c0_sda, PIO0_11, state::Unassigned;
     I2C0_SCL, Output, i2c0_scl, PIO0_10, state::Unassigned;
-    ADC_0   , Output, adc_0   , PIO0_7 , state::Unassigned;
-    ADC_1   , Output, adc_1   , PIO0_6 , state::Unassigned;
-    ADC_2   , Output, adc_2   , PIO0_14, state::Unassigned;
-    ADC_3   , Output, adc_3   , PIO0_23, state::Unassigned;
-    ADC_4   , Output, adc_4   , PIO0_22, state::Unassigned;
-    ADC_5   , Output, adc_5   , PIO0_21, state::Unassigned;
-    ADC_6   , Output, adc_6   , PIO0_20, state::Unassigned;
-    ADC_7   , Output, adc_7   , PIO0_19, state::Unassigned;
-    ADC_8   , Output, adc_8   , PIO0_18, state::Unassigned;
-    ADC_9   , Output, adc_9   , PIO0_17, state::Unassigned;
-    ADC_10  , Output, adc_10  , PIO0_13, state::Unassigned;
-    ADC_11  , Output, adc_11  , PIO0_4 , state::Unassigned;
+    ADC_0   , Adc   , adc_0   , PIO0_7 , state::Unassigned;
+    ADC_1   , Adc   , adc_1   , PIO0_6 , state::Unassigned;
+    ADC_2   , Adc   , adc_2   , PIO0_14, state::Unassigned;
+    ADC_3   , Adc   , adc_3   , PIO0_23, state::Unassigned;
+    ADC_4   , Adc   , adc_4   , PIO0_22, state::Unassigned;
+    ADC_5   , Adc   , adc_5   , PIO0_21, state::Unassigned;
+    ADC_6   , Adc   , adc_6   , PIO0_20, state::Unassigned;
+    ADC_7   , Adc   , adc_7   , PIO0_19, state::Unassigned;
+    ADC_8   , Adc   , adc_8   , PIO0_18, state::Unassigned;
+    ADC_9   , Adc   , adc_9   , PIO0_17, state::Unassigned;
+    ADC_10  , Adc   , adc_10  , PIO0_13, state::Unassigned;
+    ADC_11  , Adc   , adc_11  , PIO0_4 , state::Unassigned;
 );
 
 
