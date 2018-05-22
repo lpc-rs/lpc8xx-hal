@@ -74,7 +74,7 @@ use embedded_hal::digital::{
     StatefulOutputPin,
 };
 
-use adc::AdcChannel;
+use adc;
 use init_state::{
     self,
     InitState,
@@ -870,7 +870,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
             Pin<T, pin_state::Adc>,
             swm::Function<F, swm::state::Assigned<T>>,
         )
-        where F: AdcChannel + swm::FunctionTrait<T>
+        where F: adc::Channel + swm::FunctionTrait<T>
     {
         let function = function.assign(&mut self.ty, swm);
 

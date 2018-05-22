@@ -13,17 +13,17 @@ use swm;
 ///
 /// This is an internal trait. Any changes made to it won't be considered
 /// breaking changes.
-pub trait AdcChannel {}
+pub trait Channel {}
 
-impl AdcChannel for swm::ADC_0  {}
-impl AdcChannel for swm::ADC_1  {}
-impl AdcChannel for swm::ADC_2  {}
-impl AdcChannel for swm::ADC_3  {}
-impl AdcChannel for swm::ADC_4  {}
-impl AdcChannel for swm::ADC_5  {}
-impl AdcChannel for swm::ADC_6  {}
-impl AdcChannel for swm::ADC_7  {}
-impl AdcChannel for swm::ADC_8  {}
-impl AdcChannel for swm::ADC_9  {}
-impl AdcChannel for swm::ADC_10 {}
-impl AdcChannel for swm::ADC_11 {}
+impl Channel for swm::ADC_0  {}
+impl Channel for swm::ADC_1  {}
+impl Channel for swm::ADC_2  {}
+impl Channel for swm::ADC_3  {}
+impl Channel for swm::ADC_4  {}
+impl Channel for swm::ADC_5  {}
+impl Channel for swm::ADC_6  {}
+impl Channel for swm::ADC_7  {}
+impl Channel for swm::ADC_8  {}
+impl Channel for swm::ADC_9  {}
+impl Channel for swm::ADC_10 {}
+impl Channel for swm::ADC_11 {}
