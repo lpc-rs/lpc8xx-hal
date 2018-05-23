@@ -27,7 +27,7 @@
 //! let     swm    = SWM::new(peripherals.SWM);
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //!
-//! let gpio_handle = gpio.handle.enable(&mut syscon.handle);
+//! let gpio_handle = gpio.enable(&mut syscon.handle);
 //!
 //! let pio0_12 = unsafe { swm.pins.pio0_12.affirm_default_state() }
 //!     .into_gpio_pin(&gpio_handle)
@@ -101,38 +101,22 @@ use syscon;
 /// [`gpio::Handle`]: struct.Handle.html
 /// [`Pins`]: struct.Pins.html
 /// [module documentation]: index.html
-pub struct GPIO {
-    /// The handle to the GPIO peripheral
-    pub handle: Handle<init_state::Unknown,>,
-}
-
-impl GPIO {
-    /// Create an instance of `GPIO`
-    pub fn new(gpio: raw::GPIO_PORT) -> Self {
-        GPIO {
-            handle: Handle {
-                gpio  : gpio,
-                _state: init_state::Unknown,
-            },
-        }
-    }
-}
-
-
-/// The handle to the GPIO peripheral
-///
-/// This handle can be used to initialize the GPIO peripheral. It has a type
-/// parameter to track whether the peripheral has been initialized.
-///
-/// Please refer to the [module documentation] for more information.
-///
-/// [module documentation]: index.html
-pub struct Handle<State: InitState = init_state::Enabled> {
+pub struct GPIO<State: InitState = init_state::Enabled> {
     pub(crate) gpio  : raw::GPIO_PORT,
                _state: State,
 }
 
-impl<'gpio, State> Handle<State> where State: init_state::NotEnabled {
+impl GPIO<init_state::Unknown> {
+    /// Create an instance of `GPIO`
+    pub fn new(gpio: raw::GPIO_PORT) -> Self {
+        GPIO {
+            gpio  : gpio,
+            _state: init_state::Unknown,
+        }
+    }
+}
+
+impl<'gpio, State> GPIO<State> where State: init_state::NotEnabled {
     /// Enable the GPIO peripheral
     ///
     /// Enables the clock and clears the peripheral reset for the GPIO
@@ -147,19 +131,19 @@ impl<'gpio, State> Handle<State> where State: init_state::NotEnabled {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn enable(mut self, syscon: &mut syscon::Handle)
-        -> Handle<init_state::Enabled>
+        -> GPIO<init_state::Enabled>
     {
         syscon.enable_clock(&mut self.gpio);
         syscon.clear_reset(&mut self.gpio);
 
-        Handle {
+        GPIO {
             gpio  : self.gpio,
             _state: init_state::Enabled,
         }
     }
 }
 
-impl<State> Handle<State> where State: init_state::NotDisabled {
+impl<State> GPIO<State> where State: init_state::NotDisabled {
     /// Disable the GPIO peripheral
     ///
     /// This method is only available, if `gpio::Handle` is not already in the
@@ -171,11 +155,11 @@ impl<State> Handle<State> where State: init_state::NotDisabled {
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     pub fn disable(mut self, syscon: &mut syscon::Handle)
-        -> Handle<init_state::Disabled>
+        -> GPIO<init_state::Disabled>
     {
         syscon.disable_clock(&mut self.gpio);
 
-        Handle {
+        GPIO {
             gpio  : self.gpio,
             _state: init_state::Disabled,
         }
@@ -219,7 +203,7 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// # let     swm    = SWM::new(peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// # let gpio_handle = gpio.handle.enable(&mut syscon.handle);
+    /// # let gpio_handle = gpio.enable(&mut syscon.handle);
     /// #
     /// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
     /// #     .into_gpio_pin(&gpio_handle);

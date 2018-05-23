@@ -157,7 +157,7 @@
 //!
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing them will actually lead to compile-time errors.
-//! let mut gpio_handle = gpio.handle.enable(&mut syscon.handle);
+//! let mut gpio_handle = gpio.enable(&mut syscon.handle);
 //! let mut swm_handle  = swm.handle.enable(&mut syscon.handle);
 //! let mut wkt         = wkt.enable(&mut syscon.handle);
 //!

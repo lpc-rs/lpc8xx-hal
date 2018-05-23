@@ -5,7 +5,10 @@
 
 use core::marker::PhantomData;
 
-use gpio;
+use gpio::{
+    self,
+    GPIO,
+};
 use init_state::{
     self,
     InitState,
@@ -363,7 +366,7 @@ pins!(
 /// // To use general-purpose I/O, we need to enable the GPIO peripheral. The
 /// // call to `into_gpio_pin` below enforces this by requiring a reference to
 /// // an enabled GPIO handle.
-/// let gpio_handle = gpio.handle.enable(&mut syscon.handle);
+/// let gpio_handle = gpio.enable(&mut syscon.handle);
 ///
 /// // Affirm that pin is unused, then transition to the GPIO state
 /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
@@ -401,7 +404,7 @@ pins!(
 /// # let     swm    = SWM::new(peripherals.SWM);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
-/// # let gpio_handle = gpio.handle.enable(&mut syscon.handle);
+/// # let gpio_handle = gpio.enable(&mut syscon.handle);
 /// #
 /// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
 /// #     .into_gpio_pin(&gpio_handle);
@@ -692,7 +695,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// let gpio = GPIO::new(peripherals.GPIO_PORT);
     /// let swm  = SWM::new(peripherals.SWM);
     ///
-    /// let gpio_handle = gpio.handle.enable(&mut syscon.handle);
+    /// let gpio_handle = gpio.enable(&mut syscon.handle);
     ///
     /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
     ///     .into_gpio_pin(&gpio_handle);
@@ -702,7 +705,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     ///
     /// [State Management]: #state-management
     /// [`gpio::Handle`]: struct.Handle.html
-    pub fn into_gpio_pin(self, gpio: &gpio::Handle)
+    pub fn into_gpio_pin(self, gpio: &GPIO)
         -> Pin<T, pin_state::Gpio<gpio::direction::Unknown>>
     {
         Pin {
