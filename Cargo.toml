@@ -23,6 +23,9 @@ embedded-hal = { version = "0.2", features = ["unproven"] }
 lpc82x       = "0.4"
 nb           = "0.1.1"
 void         = { version = "1", default-features = false }
+# This should be in [dev-dependencies], but those can't be optional. Issue:
+# https://github.com/rust-lang/cargo/issues/1596
+compiletest_rs = { version = "0.3", optional = true }
 
 [dev-dependencies]
 cortex-m-rt = "0.5"
@@ -30,7 +33,10 @@ panic-abort = "0.2"
 
 
 [features]
-rt = ["lpc82x/rt"]
+# This is needed to make the compiletest stuff optional. It requires std, which
+# means we can't build it together with the examples.
+compiletest = ["compiletest_rs"]
+rt          = ["lpc82x/rt"]
 
 
 [[example]]
