@@ -37,9 +37,9 @@ fn main() -> ! {
 
     // Other peripherals need to be initialized. Trying to use the API before
     // initializing them will actually lead to compile-time errors.
-    let     gpio_handle = gpio.handle.enable(&mut syscon.handle);
-    let mut swm_handle  = swm.handle.enable(&mut syscon.handle);
-    let mut wkt         = wkt.enable(&mut syscon.handle);
+    let     gpio       = gpio.enable(&mut syscon.handle);
+    let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+    let mut wkt        = wkt.enable(&mut syscon.handle);
 
     // We're going to need a clock for sleeping. Let's use the IRC-derived clock
     // that runs at 750 kHz.
@@ -56,7 +56,7 @@ fn main() -> ! {
     // it is currently in.
     // Let's affirm that we haven't changed anything, and that PIO0_3 and SWCLK
     // are still in their initial states.
-    let pio0_3 = unsafe { gpio.pins.pio0_3.affirm_default_state()          };
+    let pio0_3 = unsafe { swm.pins.pio0_3.affirm_default_state()           };
     let swclk  = unsafe { swm.fixed_functions.swclk.affirm_default_state() };
 
     // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
@@ -64,7 +64,7 @@ fn main() -> ! {
         .unassign(pio0_3, &mut swm_handle);
     let mut pio0_3 = pio0_3
         .into_unused_pin()
-        .into_gpio_pin(&gpio_handle)
+        .into_gpio_pin(&gpio)
         .into_output();
 
     // Let's already initialize the durations that we're going to sleep for
