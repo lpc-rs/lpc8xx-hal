@@ -107,7 +107,6 @@ use embedded_hal::serial::{
 };
 use nb;
 
-use gpio::PinTrait;
 use init_state::{
     self,
     InitState,
@@ -120,6 +119,7 @@ use raw::{
 use swm::{
     self,
     FunctionTrait,
+    PinTrait,
 };
 use syscon::{
     self,

@@ -139,11 +139,11 @@
 //!     WKT,
 //! };
 //! use lpc82x_hal::clock::Ticks;
-//! use lpc82x_hal::gpio::PIO0_3;
 //! use lpc82x_hal::sleep::{
 //!     self,
 //!     Sleep,
 //! };
+//! use lpc82x_hal::swm::PIO0_3;
 //!
 //! // Create the struct we're going to use to access all the peripherals. This
 //! // is unsafe, because we're only allowed to create one instance.
