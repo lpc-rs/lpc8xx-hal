@@ -17,17 +17,19 @@
 //! use lpc82x_hal::prelude::*;
 //! use lpc82x_hal::{
 //!     GPIO,
+//!     SWM,
 //!     SYSCON,
 //! };
 //!
 //! let mut peripherals = lpc82x::Peripherals::take().unwrap();
 //!
 //! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
+//! let     swm    = SWM::new(peripherals.SWM);
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //!
 //! let gpio_handle = gpio.handle.enable(&mut syscon.handle);
 //!
-//! let pio0_12 = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+//! let pio0_12 = unsafe { swm.pins.pio0_12.affirm_default_state() }
 //!     .into_gpio_pin(&gpio_handle)
 //!     .into_output()
 //!     .set_high();
@@ -57,7 +59,7 @@
 //! let vddcmp = unsafe {
 //!     swm.fixed_functions.vddcmp.affirm_default_state()
 //! };
-//! let pio0_6 = unsafe { gpio.pins.pio0_6.affirm_default_state() }
+//! let pio0_6 = unsafe { swm.pins.pio0_6.affirm_default_state() }
 //!     .into_swm_pin();
 //! vddcmp.assign(pio0_6, &mut swm_handle);
 //! ```
@@ -82,7 +84,6 @@ use raw;
 use swm::{
     pin_state,
     Pin,
-    Pins,
     PinTrait,
 };
 use syscon;
@@ -103,9 +104,6 @@ use syscon;
 pub struct GPIO {
     /// The handle to the GPIO peripheral
     pub handle: Handle<init_state::Unknown,>,
-
-    /// The pins that can be used for GPIO or other functions
-    pub pins: Pins,
 }
 
 impl GPIO {
@@ -116,7 +114,6 @@ impl GPIO {
                 gpio  : gpio,
                 _state: init_state::Unknown,
             },
-            pins: Pins::new(),
         }
     }
 }
@@ -212,17 +209,19 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// #
     /// # use lpc82x_hal::{
     /// #     GPIO,
+    /// #     SWM,
     /// #     SYSCON,
     /// # };
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
     /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
+    /// # let     swm    = SWM::new(peripherals.SWM);
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
     /// # let gpio_handle = gpio.handle.enable(&mut syscon.handle);
     /// #
-    /// # let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+    /// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
     /// #     .into_gpio_pin(&gpio_handle);
     /// #
     /// use lpc82x_hal::prelude::*;

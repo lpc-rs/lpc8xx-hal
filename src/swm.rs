@@ -21,6 +21,9 @@ pub struct SWM {
     /// Main SWM API
     pub handle: Handle<init_state::Unknown>,
 
+    /// The pins that can be used for GPIO or other functions
+    pub pins: Pins,
+
     /// Movable functions
     pub movable_functions: MovableFunctions,
 
@@ -33,6 +36,7 @@ impl SWM {
     pub fn new(swm: raw::SWM) -> Self {
         SWM {
             handle           : Handle::new(swm),
+            pins             : Pins::new(),
             movable_functions: MovableFunctions::new(),
             fixed_functions  : FixedFunctions::new(),
         }
@@ -271,11 +275,11 @@ pins!(
 /// # extern crate lpc82x;
 /// # extern crate lpc82x_hal;
 /// #
-/// # use lpc82x_hal::GPIO;
+/// # use lpc82x_hal::SWM;
 /// #
 /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
 /// #
-/// # let gpio = GPIO::new(peripherals.GPIO_PORT);
+/// # let swm = SWM::new(peripherals.SWM);
 /// #
 /// use lpc82x_hal::swm::{
 ///     PIO0_12,
@@ -284,7 +288,7 @@ pins!(
 /// };
 ///
 /// // The pin starts out in the unknown state
-/// let pin: Pin<PIO0_12, pin_state::Unknown> = gpio.pins.pio0_12;
+/// let pin: Pin<PIO0_12, pin_state::Unknown> = swm.pins.pio0_12;
 ///
 /// // After we promise we didn't mess with the pin, the API knows it's unused
 /// let pin: Pin<PIO0_12, pin_state::Unused> =
@@ -315,7 +319,7 @@ pins!(
 /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
 /// // Reassure the API that the pin is in its default state, i.e. unused.
-/// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() };
+/// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() };
 ///
 /// // Assign a movable function to this pin
 /// let clkout = unsafe {
@@ -353,6 +357,7 @@ pins!(
 /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
 /// #
 /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
+/// # let     swm    = SWM::new(peripherals.SWM);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
 /// // To use general-purpose I/O, we need to enable the GPIO peripheral. The
@@ -361,7 +366,7 @@ pins!(
 /// let gpio_handle = gpio.handle.enable(&mut syscon.handle);
 ///
 /// // Affirm that pin is unused, then transition to the GPIO state
-/// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+/// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
 ///     .into_gpio_pin(&gpio_handle);
 /// ```
 ///
@@ -386,17 +391,19 @@ pins!(
 /// #
 /// # use lpc82x_hal::{
 /// #     GPIO,
+/// #     SWM,
 /// #     SYSCON,
 /// # };
 /// #
 /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
 /// #
 /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
+/// # let     swm    = SWM::new(peripherals.SWM);
 /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// #
 /// # let gpio_handle = gpio.handle.enable(&mut syscon.handle);
 /// #
-/// # let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+/// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
 /// #     .into_gpio_pin(&gpio_handle);
 /// #
 /// use lpc82x_hal::prelude::*;
@@ -431,14 +438,14 @@ pins!(
 /// # extern crate lpc82x;
 /// # extern crate lpc82x_hal;
 /// #
-/// # use lpc82x_hal::GPIO;
+/// # use lpc82x_hal::SWM;
 /// #
 /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
 /// #
-/// # let gpio = GPIO::new(peripherals.GPIO_PORT);
+/// # let swm = SWM::new(peripherals.SWM);
 /// #
 /// // Affirm that the pin is unused, then transition to the SWM state
-/// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+/// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
 ///     .into_swm_pin();
 /// ```
 ///
@@ -492,7 +499,7 @@ pins!(
 /// # };
 /// #
 /// // Put PIO0_9 into the SWM state
-/// let pin = unsafe { gpio.pins.pio0_9.affirm_default_state() }
+/// let pin = unsafe { swm.pins.pio0_9.affirm_default_state() }
 ///     .into_swm_pin();
 ///
 /// // Enable this pin's fixed function, which is an output function.
@@ -538,7 +545,7 @@ pins!(
 /// # };
 /// #
 /// // Transition pin into ADC state
-/// let pio0_14 = unsafe { gpio.pins.pio0_14.affirm_default_state() }
+/// let pio0_14 = unsafe { swm.pins.pio0_14.affirm_default_state() }
 ///     .into_swm_pin();
 /// adc_2.assign(pio0_14, &mut swm_handle);
 /// ```
@@ -625,8 +632,8 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// #
     /// // These pins are in the unknown state. As long as that's the case, we
     /// // can't do anything useful with them.
-    /// let pio0_3  = gpio.pins.pio0_3;
-    /// let pio0_12 = gpio.pins.pio0_12;
+    /// let pio0_3  = swm.pins.pio0_3;
+    /// let pio0_12 = swm.pins.pio0_12;
     ///
     /// // Since we didn't change the pin configuration, nor called any code
     /// // that did, we can safely affirm that the pins are in their default
@@ -674,6 +681,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// #
     /// # use lpc82x_hal::{
     /// #     GPIO,
+    /// #     SWM,
     /// #     SYSCON,
     /// # };
     /// #
@@ -681,10 +689,12 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// #
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
-    /// let gpio        = GPIO::new(peripherals.GPIO_PORT);
+    /// let gpio = GPIO::new(peripherals.GPIO_PORT);
+    /// let swm  = SWM::new(peripherals.SWM);
+    ///
     /// let gpio_handle = gpio.handle.enable(&mut syscon.handle);
     ///
-    /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+    /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
     ///     .into_gpio_pin(&gpio_handle);
     ///
     /// // `pin` is now available for general-purpose I/O
@@ -726,13 +736,13 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// # extern crate lpc82x;
     /// # extern crate lpc82x_hal;
     /// #
-    /// # use lpc82x_hal::GPIO;
+    /// # use lpc82x_hal::SWM;
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// let gpio = GPIO::new(peripherals.GPIO_PORT);
+    /// let swm = SWM::new(peripherals.SWM);
     ///
-    /// let pin = unsafe { gpio.pins.pio0_12.affirm_default_state() }
+    /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
     ///     .into_swm_pin();
     ///
     /// // `pin` is now ready for function assignment

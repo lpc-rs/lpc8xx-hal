@@ -63,8 +63,8 @@
 //! // assign the USART's movable function to. For that, the pins need to be
 //! // unused. Since PIO0_0 and PIO0_4 are unused by default, we just have to
 //! // promise the API that we didn't change the default state up till now.
-//! let pio0_0 = unsafe { gpio.pins.pio0_0.affirm_default_state() };
-//! let pio0_4 = unsafe { gpio.pins.pio0_4.affirm_default_state() };
+//! let pio0_0 = unsafe { swm.pins.pio0_0.affirm_default_state() };
+//! let pio0_4 = unsafe { swm.pins.pio0_4.affirm_default_state() };
 //!
 //! // We also need to provide USART0's movable functions. Those need to be
 //! // unassigned, and since they are unassigned by default, we just need to
