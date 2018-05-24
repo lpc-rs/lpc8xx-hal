@@ -104,13 +104,10 @@ impl Handle {
             self.pmu.pcon.modify(|_, w|
                 w.pm().default()
             );
+
             // The SLEEPDEEP bit must not be set for entering regular sleep
             // mode.
-            unsafe {
-                scb.scr.modify(|scr|
-                    scr & !SLEEPDEEP
-                );
-            }
+            scb.clear_sleepdeep();
 
             asm::dsb();
             asm::wfi();
@@ -188,10 +185,3 @@ impl<State> clock::Frequency for LowPowerClock<State> where State: InitState {
 }
 
 impl clock::Enabled for LowPowerClock<init_state::Enabled> {}
-
-
-/// The SLEEPDEEP bit from the SCB's SCR register
-///
-/// This is a crutch, currently used due to lack of higher-level APIs in
-/// cortex-m.
-const SLEEPDEEP: u32 = 0x1 << 2;
