@@ -150,6 +150,13 @@ impl<UsartX> USART<UsartX, init_state::Unknown>
     }
 }
 
+impl<UsartX, State> USART<UsartX, State> where State: InitState {
+    /// Return the raw peripheral
+    pub fn free(self) -> UsartX {
+        self.usart
+    }
+}
+
 impl<UsartX, State> USART<UsartX, State>
     where
         UsartX: Peripheral,

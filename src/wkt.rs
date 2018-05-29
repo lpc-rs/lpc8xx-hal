@@ -75,6 +75,13 @@ impl WKT<init_state::Unknown> {
     }
 }
 
+impl<State> WKT<State> where State: InitState {
+    /// Return the raw peripheral
+    pub fn free(self) -> raw::WKT {
+        self.wkt
+    }
+}
+
 impl<State> WKT<State> where State: init_state::NotEnabled {
     /// Enable the self-wake-up timer
     ///

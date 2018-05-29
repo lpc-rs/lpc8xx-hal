@@ -118,6 +118,13 @@ impl GPIO<init_state::Unknown> {
     }
 }
 
+impl<State> GPIO<State> where State: InitState {
+    /// Return the raw peripheral
+    pub fn free(self) -> raw::GPIO_PORT {
+        self.gpio
+    }
+}
+
 impl<'gpio, State> GPIO<State> where State: init_state::NotEnabled {
     /// Enable the GPIO peripheral
     ///

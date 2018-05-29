@@ -65,6 +65,11 @@ impl SYSCON {
             irc_derived_clock: IrcDerivedClock::new(),
         }
     }
+
+    /// Return the raw peripheral
+    pub fn free(self) -> raw::SYSCON {
+        self.syscon
+    }
 }
 
 

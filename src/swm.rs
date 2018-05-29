@@ -39,6 +39,11 @@ impl SWM {
             fixed_functions  : FixedFunctions::new(),
         }
     }
+
+    /// Return the raw peripheral
+    pub fn free(self) -> raw::SWM {
+        self.swm
+    }
 }
 
 

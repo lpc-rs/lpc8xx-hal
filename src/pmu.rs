@@ -61,6 +61,11 @@ impl PMU {
             low_power_clock: LowPowerClock::new(),
         }
     }
+
+    /// Return the raw peripheral
+    pub fn free(self) -> raw::PMU {
+        self.pmu
+    }
 }
 
 
