@@ -360,3 +360,133 @@ pub mod init_state {
     impl NotDisabled for Unknown {}
     impl NotDisabled for Enabled {}
 }
+
+
+/// Provides access to all peripherals
+pub struct Peripherals {
+    /// General-purpose I/O
+    pub gpio: GPIO<init_state::Unknown>,
+
+    /// Power Management Unit
+    pub pmu: PMU,
+
+    /// Switch matrix
+    pub swm: SWM,
+
+    /// System configuration
+    pub syscon: SYSCON,
+
+    /// USART0
+    pub usart0: USART<raw::USART0, init_state::Unknown>,
+
+    /// USART1
+    pub usart1: USART<raw::USART1, init_state::Unknown>,
+
+    /// USART2
+    pub usart2: USART<raw::USART2, init_state::Unknown>,
+
+    /// Self-wake-up timer
+    pub wkt: WKT<init_state::Unknown>,
+
+    /// Analog-to-Digital Converter
+    pub adc: raw::ADC,
+
+    /// Analog comparator
+    pub cmp: raw::CMP,
+
+    /// CRC engine
+    pub crc: raw::CRC,
+
+    /// DMA controller
+    pub dma: raw::DMA,
+
+    /// DMA trigger mux
+    pub dmatrigmux: raw::DMATRIGMUX,
+
+    /// Flash controller
+    pub flashctrl: raw::FLASHCTRL,
+
+    /// I2C0-bus interface
+    pub i2c0: raw::I2C0,
+
+    /// I2C0-bus interface
+    pub i2c1: raw::I2C1,
+
+    /// I2C0-bus interface
+    pub i2c2: raw::I2C2,
+
+    /// I2C0-bus interface
+    pub i2c3: raw::I2C3,
+
+    /// Input multiplexing
+    pub inputmux: raw::INPUTMUX,
+
+    /// I/O configuration
+    pub iocon: raw::IOCON,
+
+    /// Multi-Rate Timer
+    pub mrt: raw::MRT,
+
+    /// Pin interrupt and pattern match engine
+    pub pin_int: raw::PIN_INT,
+
+    /// State Configurable Timer
+    pub sct: raw::SCT,
+
+    /// SPI0
+    pub spi0: raw::SPI0,
+
+    /// SPI1
+    pub spi1: raw::SPI1,
+
+    /// Windowed Watchdog Timer
+    pub wwdt: raw::WWDT,
+}
+
+impl Peripherals {
+    /// Take the peripherals
+    pub fn take() -> Option<Self> {
+        let p = raw::Peripherals::take()?;
+
+        Some(Self::new(p))
+    }
+
+    /// Steal the peripherals
+    pub unsafe fn steal() -> Self {
+        Self::new(raw::Peripherals::steal())
+    }
+
+    fn new(p: raw::Peripherals) -> Self {
+        Peripherals {
+            // HAL peripherals
+            gpio  : GPIO::new(p.GPIO_PORT),
+            pmu   : PMU::new(p.PMU),
+            swm   : SWM::new(p.SWM),
+            syscon: SYSCON::new(p.SYSCON),
+            usart0: USART::new(p.USART0),
+            usart1: USART::new(p.USART1),
+            usart2: USART::new(p.USART2),
+            wkt   : WKT::new(p.WKT),
+
+            /// Raw peripherals
+            adc       : p.ADC,
+            cmp       : p.CMP,
+            crc       : p.CRC,
+            dma       : p.DMA,
+            dmatrigmux: p.DMATRIGMUX,
+            flashctrl : p.FLASHCTRL,
+            i2c0      : p.I2C0,
+            i2c1      : p.I2C1,
+            i2c2      : p.I2C2,
+            i2c3      : p.I2C3,
+            inputmux  : p.INPUTMUX,
+            iocon     : p.IOCON,
+            mrt       : p.MRT,
+            pin_int   : p.PIN_INT,
+            sct       : p.SCT,
+            spi0      : p.SPI0,
+            spi1      : p.SPI1,
+            wwdt      : p.WWDT,
+        }
+    }
+}
