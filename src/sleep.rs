@@ -163,7 +163,7 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
 /// let mut peripherals      = lpc82x::Peripherals::take().unwrap();
 ///
-/// let mut pmu    = PMU::new(peripherals.PMU);
+/// let mut pmu    = PMU::new(peripherals.PMU).split();
 /// let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 /// let     wkt    = WKT::new(peripherals.WKT);
 ///

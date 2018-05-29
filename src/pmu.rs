@@ -15,7 +15,7 @@
 //! let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
 //! let mut peripherals      = lpc82x::Peripherals::take().unwrap();
 //!
-//! let mut pmu = PMU::new(peripherals.PMU);
+//! let mut pmu = PMU::new(peripherals.PMU).split();
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
@@ -42,29 +42,40 @@ use raw;
 
 
 /// Entry point to the PMU API
-///
-/// Provides access to all types that make up the PMU API. Please refer to the
-/// [module documentation] for more information.
-///
-/// [module documentation]: index.html
 pub struct PMU {
-    /// The handle to the PMU peripheral
-    pub handle: Handle,
-
-    /// The 10 kHz low-power clock
-    pub low_power_clock: LowPowerClock<init_state::Unknown>,
+    pmu: raw::PMU,
 }
 
 impl PMU {
     /// Create an instance of `PMU`
     pub fn new(pmu: raw::PMU) -> Self {
-        PMU {
+        PMU { pmu }
+    }
+
+    /// Splits the PMU API into its parts
+    pub fn split(self) -> Parts {
+        Parts {
             handle: Handle {
-                pmu: pmu,
+                pmu: self.pmu,
             },
             low_power_clock: LowPowerClock::new(),
         }
     }
+}
+
+
+/// The main API for the PMU peripheral
+///
+/// Provides access to all types that make up the PMU API. Please refer to the
+/// [module documentation] for more information.
+///
+/// [module documentation]: index.html
+pub struct Parts {
+    /// The handle to the PMU peripheral
+    pub handle: Handle,
+
+    /// The 10 kHz low-power clock
+    pub low_power_clock: LowPowerClock<init_state::Unknown>,
 }
 
 
