@@ -152,11 +152,12 @@
 //! // Create the peripheral interfaces.
 //! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 //! let     swm    = SWM::new(peripherals.SWM).split();
-//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+//! let mut syscon = SYSCON::new(peripherals.SYSCON);
 //! let     wkt    = WKT::new(peripherals.WKT);
 //!
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing them will actually lead to compile-time errors.
+//! let mut syscon      = syscon.split();
 //! let mut gpio_handle = gpio.enable(&mut syscon.handle);
 //! let mut swm_handle  = swm.handle.enable(&mut syscon.handle);
 //! let mut wkt         = wkt.enable(&mut syscon.handle);

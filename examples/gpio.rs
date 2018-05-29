@@ -27,16 +27,17 @@ entry!(main);
 fn main() -> ! {
     // Create the struct we're going to use to access all the peripherals. This
     // is unsafe, because we're only allowed to create one instance.
-    let mut peripherals = raw::Peripherals::take().unwrap();
+    let peripherals = raw::Peripherals::take().unwrap();
 
     // Create the peripheral interfaces.
     let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     let     swm    = SWM::new(peripherals.SWM).split();
-    let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+    let mut syscon = SYSCON::new(peripherals.SYSCON);
     let     wkt    = WKT::new(peripherals.WKT);
 
     // Other peripherals need to be initialized. Trying to use the API before
     // initializing them will actually lead to compile-time errors.
+    let mut syscon     = syscon.split();
     let     gpio       = gpio.enable(&mut syscon.handle);
     let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     let mut wkt        = wkt.enable(&mut syscon.handle);

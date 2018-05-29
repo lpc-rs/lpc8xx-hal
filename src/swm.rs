@@ -328,8 +328,9 @@ pins!(
 /// #
 /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 /// # let     swm    = SWM::new(peripherals.SWM).split();
-/// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// # let mut syscon = SYSCON::new(peripherals.SYSCON);
 /// #
+/// # let mut syscon     = syscon.split();
 /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
 /// // Reassure the API that the pin is in its default state, i.e. unused.
@@ -372,12 +373,13 @@ pins!(
 /// #
 /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 /// # let     swm    = SWM::new(peripherals.SWM).split();
-/// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// # let mut syscon = SYSCON::new(peripherals.SYSCON);
 /// #
 /// // To use general-purpose I/O, we need to enable the GPIO peripheral. The
 /// // call to `into_gpio_pin` below enforces this by requiring a reference to
 /// // an enabled GPIO handle.
-/// let gpio_handle = gpio.enable(&mut syscon.handle);
+/// let mut syscon      = syscon.split();
+/// let     gpio_handle = gpio.enable(&mut syscon.handle);
 ///
 /// // Affirm that pin is unused, then transition to the GPIO state
 /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
@@ -413,9 +415,10 @@ pins!(
 /// #
 /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 /// # let     swm    = SWM::new(peripherals.SWM).split();
-/// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// # let mut syscon = SYSCON::new(peripherals.SYSCON);
 /// #
-/// # let gpio_handle = gpio.enable(&mut syscon.handle);
+/// # let mut syscon      = syscon.split();
+/// # let     gpio_handle = gpio.enable(&mut syscon.handle);
 /// #
 /// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
 /// #     .into_gpio_pin(&gpio_handle);
@@ -495,8 +498,9 @@ pins!(
 /// #
 /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 /// # let     swm    = SWM::new(peripherals.SWM).split();
-/// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// # let mut syscon = SYSCON::new(peripherals.SYSCON);
 /// #
+/// # let mut syscon     = syscon.split();
 /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
 /// # let xtalout = unsafe {
@@ -550,8 +554,9 @@ pins!(
 /// #
 /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 /// # let     swm    = SWM::new(peripherals.SWM).split();
-/// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// # let mut syscon = SYSCON::new(peripherals.SYSCON);
 /// #
+/// # let mut syscon     = syscon.split();
 /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
 /// # let adc_2 = unsafe {
@@ -636,12 +641,13 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
     /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+    /// # let mut syscon = SYSCON::new(peripherals.SYSCON);
     /// # let mut swm    = SWM::new(peripherals.SWM).split();
     /// #
     /// # let swclk = unsafe {
     /// #     swm.fixed_functions.swclk.affirm_default_state()
     /// # };
+    /// # let mut syscon     = syscon.split();
     /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
     /// // These pins are in the unknown state. As long as that's the case, we
@@ -701,7 +707,8 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// #
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+    /// # let mut syscon = SYSCON::new(peripherals.SYSCON);
+    /// # let mut syscon = syscon.split();
     /// #
     /// let gpio = GPIO::new(peripherals.GPIO_PORT);
     /// let swm  = SWM::new(peripherals.SWM).split();

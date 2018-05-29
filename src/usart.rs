@@ -23,11 +23,12 @@
 //!
 //! let mut peripherals = lpc82x::Peripherals::take().unwrap();
 //!
-//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+//! let mut syscon = SYSCON::new(peripherals.SYSCON);
 //! let     swm    = SWM::new(peripherals.SWM).split();
 //! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 //! let     usart0 = USART::new(peripherals.USART0);
 //!
+//! let mut syscon     = syscon.split();
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! // Set baud rate to 115200 baud

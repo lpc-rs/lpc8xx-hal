@@ -25,12 +25,13 @@ use lpc82x_hal::usart::{
 entry!(main);
 
 fn main() -> ! {
-    let mut peripherals = raw::Peripherals::take().unwrap();
+    let peripherals = raw::Peripherals::take().unwrap();
 
-    let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+    let mut syscon = SYSCON::new(peripherals.SYSCON);
     let     swm    = SWM::new(peripherals.SWM).split();
     let     usart0 = USART::new(peripherals.USART0);
 
+    let mut syscon     = syscon.split();
     let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 
     // Set baud rate to 115200 baud

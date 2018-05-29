@@ -17,10 +17,11 @@
 //!
 //! let mut peripherals = lpc82x::Peripherals::take().unwrap();
 //!
-//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+//! let mut syscon = SYSCON::new(peripherals.SYSCON);
 //! let     timer  = WKT::new(peripherals.WKT);
 //!
-//! let mut timer = timer.enable(&mut syscon.handle);
+//! let mut syscon = syscon.split();
+//! let mut timer  = timer.enable(&mut syscon.handle);
 //!
 //! // Start the timer at 750000. Sine the IRC-derived clock runs at 750 kHz,
 //! // this translates to a one second wait.

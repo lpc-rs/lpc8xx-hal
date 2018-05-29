@@ -25,9 +25,10 @@
 //!
 //! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 //! let     swm    = SWM::new(peripherals.SWM).split();
-//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+//! let mut syscon = SYSCON::new(peripherals.SYSCON);
 //!
-//! let gpio_handle = gpio.enable(&mut syscon.handle);
+//! let mut syscon      = syscon.split();
+//! let     gpio_handle = gpio.enable(&mut syscon.handle);
 //!
 //! let pio0_12 = unsafe { swm.pins.pio0_12.affirm_default_state() }
 //!     .into_gpio_pin(&gpio_handle)
@@ -52,8 +53,9 @@
 //!
 //! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
 //! let     swm    = SWM::new(peripherals.SWM).split();
-//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+//! let mut syscon = SYSCON::new(peripherals.SYSCON);
 //!
+//! let mut syscon     = syscon.split();
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! let vddcmp = unsafe {
@@ -201,9 +203,10 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// #
     /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
     /// # let     swm    = SWM::new(peripherals.SWM).split();
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+    /// # let mut syscon = SYSCON::new(peripherals.SYSCON);
     /// #
-    /// # let gpio_handle = gpio.enable(&mut syscon.handle);
+    /// # let mut syscon      = syscon.split();
+    /// # let     gpio_handle = gpio.enable(&mut syscon.handle);
     /// #
     /// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
     /// #     .into_gpio_pin(&gpio_handle);
