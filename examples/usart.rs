@@ -28,7 +28,7 @@ fn main() -> ! {
     let mut peripherals = raw::Peripherals::take().unwrap();
 
     let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    let     swm    = SWM::new(peripherals.SWM);
+    let     swm    = SWM::new(peripherals.SWM).split();
     let     usart0 = USART::new(peripherals.USART0);
 
     let mut swm_handle = swm.handle.enable(&mut syscon.handle);

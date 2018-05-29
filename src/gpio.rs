@@ -24,7 +24,7 @@
 //! let mut peripherals = lpc82x::Peripherals::take().unwrap();
 //!
 //! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-//! let     swm    = SWM::new(peripherals.SWM);
+//! let     swm    = SWM::new(peripherals.SWM).split();
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //!
 //! let gpio_handle = gpio.enable(&mut syscon.handle);
@@ -51,7 +51,7 @@
 //! let mut peripherals = lpc82x::Peripherals::take().unwrap();
 //!
 //! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-//! let     swm    = SWM::new(peripherals.SWM);
+//! let     swm    = SWM::new(peripherals.SWM).split();
 //! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
 //!
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
@@ -200,7 +200,7 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
     /// #
     /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let     swm    = SWM::new(peripherals.SWM);
+    /// # let     swm    = SWM::new(peripherals.SWM).split();
     /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
     /// #
     /// # let gpio_handle = gpio.enable(&mut syscon.handle);
