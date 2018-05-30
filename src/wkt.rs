@@ -59,11 +59,11 @@ pub struct WKT<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl WKT<init_state::Unknown> {
+impl WKT<init_state::Disabled> {
     pub(crate) fn new(wkt: raw::WKT) -> Self {
         WKT {
             wkt   : wkt,
-            _state: init_state::Unknown,
+            _state: init_state::Disabled,
         }
     }
 }

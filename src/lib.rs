@@ -147,9 +147,7 @@
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing them will actually lead to compile-time errors.
 //! let mut syscon      = p.syscon.split();
-//! let mut gpio_handle = p.gpio.enable(&mut syscon.handle);
-//! let     swm         = p.swm.split();
-//! let mut swm_handle  = swm.handle.enable(&mut syscon.handle);
+//! let mut swm         = p.swm.split();
 //! let mut wkt         = p.wkt.enable(&mut syscon.handle);
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
@@ -172,10 +170,10 @@
 //!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
 //! let (_, pio0_3) = swclk
-//!     .unassign(pio0_3, &mut swm_handle);
+//!     .unassign(pio0_3, &mut swm.handle);
 //! let mut pio0_3 = pio0_3
 //!     .into_unused_pin()
-//!     .into_gpio_pin(&gpio_handle)
+//!     .into_gpio_pin(&p.gpio)
 //!     .into_output();
 //!
 //! // Let's already initialize the durations that we're going to sleep for
@@ -353,9 +351,12 @@ pub mod init_state {
 
 
 /// Provides access to all peripherals
+///
+/// All peripheral states are set to their default states after hardware reset.
+/// See user manual, section 5.6.14.
 pub struct Peripherals {
-    /// General-purpose I/O
-    pub gpio: GPIO<init_state::Unknown>,
+    /// General-purpose I/O (GPIO)
+    pub gpio: GPIO<init_state::Enabled>,
 
     /// Power Management Unit
     pub pmu: PMU,
@@ -367,16 +368,22 @@ pub struct Peripherals {
     pub syscon: SYSCON,
 
     /// USART0
-    pub usart0: USART<raw::USART0, init_state::Unknown>,
+    pub usart0: USART<raw::USART0, init_state::Disabled>,
 
     /// USART1
-    pub usart1: USART<raw::USART1, init_state::Unknown>,
+    ///
+    /// The USART1 peripheral is disabled by default. See user manual, section
+    /// 5.6.14.
+    pub usart1: USART<raw::USART1, init_state::Disabled>,
 
     /// USART2
-    pub usart2: USART<raw::USART2, init_state::Unknown>,
+    ///
+    /// The USART2 peripheral is disabled by default. See user manual, section
+    /// 5.6.14.
+    pub usart2: USART<raw::USART2, init_state::Disabled>,
 
     /// Self-wake-up timer
-    pub wkt: WKT<init_state::Unknown>,
+    pub wkt: WKT<init_state::Disabled>,
 
     /// Analog-to-Digital Converter
     pub adc: raw::ADC,

@@ -20,8 +20,7 @@
 //! let mut p = Peripherals::take().unwrap();
 //!
 //! let mut syscon     = p.syscon.split();
-//! let     swm        = p.swm.split();
-//! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+//! let mut swm        = p.swm.split();
 //!
 //! // Set baud rate to 115200 baud
 //! //
@@ -69,8 +68,8 @@
 //!     swm.movable_functions.u0_txd.affirm_default_state()
 //! };
 //!
-//! let (u0_rxd, _) = u0_rxd.assign(pio0_0.into_swm_pin(), &mut swm_handle);
-//! let (u0_txd, _) = u0_txd.assign(pio0_4.into_swm_pin(), &mut swm_handle);
+//! let (u0_rxd, _) = u0_rxd.assign(pio0_0.into_swm_pin(), &mut swm.handle);
+//! let (u0_txd, _) = u0_txd.assign(pio0_4.into_swm_pin(), &mut swm.handle);
 //!
 //! // Initialize USART0. This should never fail, as the only reason `init`
 //! // returns a `Result::Err` is when the transmitter is busy, which it
@@ -130,13 +129,13 @@ pub struct USART<UsartX, State : InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl<UsartX> USART<UsartX, init_state::Unknown>
+impl<UsartX> USART<UsartX, init_state::Disabled>
     where UsartX: Peripheral,
 {
     pub(crate) fn new(usart: UsartX) -> Self {
         USART {
             usart : usart,
-            _state: init_state::Unknown,
+            _state: init_state::Disabled,
         }
     }
 }

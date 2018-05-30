@@ -25,11 +25,9 @@ fn main() -> ! {
 
     // Other peripherals need to be initialized. Trying to use the API before
     // initializing them will actually lead to compile-time errors.
-    let     swm        = p.swm.split();
-    let mut syscon     = p.syscon.split();
-    let     gpio       = p.gpio.enable(&mut syscon.handle);
-    let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-    let mut wkt        = p.wkt.enable(&mut syscon.handle);
+    let mut swm    = p.swm.split();
+    let mut syscon = p.syscon.split();
+    let mut wkt    = p.wkt.enable(&mut syscon.handle);
 
     // We're going to need a clock for sleeping. Let's use the IRC-derived clock
     // that runs at 750 kHz.
@@ -51,10 +49,10 @@ fn main() -> ! {
 
     // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
     let (_, pio0_3) = swclk
-        .unassign(pio0_3, &mut swm_handle);
+        .unassign(pio0_3, &mut swm.handle);
     let mut pio0_3 = pio0_3
         .into_unused_pin()
-        .into_gpio_pin(&gpio)
+        .into_gpio_pin(&p.gpio)
         .into_output();
 
     // Let's already initialize the durations that we're going to sleep for

@@ -49,7 +49,7 @@ impl SWM {
 /// Interface to the switch matrix (SWM)
 pub struct Parts {
     /// Main SWM API
-    pub handle: Handle<init_state::Unknown>,
+    pub handle: Handle<init_state::Enabled>,
 
     /// The pins that can be used for GPIO or other functions
     pub pins: Pins,
@@ -68,11 +68,11 @@ pub struct Handle<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl Handle<init_state::Unknown> {
+impl Handle<init_state::Enabled> {
     pub(crate) fn new(swm: raw::SWM) -> Self {
         Handle {
             swm   : swm,
-            _state: init_state::Unknown,
+            _state: init_state::Enabled,
         }
     }
 }
@@ -327,8 +327,7 @@ pins!(
 /// # let mut p = Peripherals::take().unwrap();
 /// #
 /// # let mut syscon     = p.syscon.split();
-/// # let     swm        = p.swm.split();
-/// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+/// # let mut swm        = p.swm.split();
 /// #
 /// // Reassure the API that the pin is in its default state, i.e. unused.
 /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() };
@@ -337,7 +336,7 @@ pins!(
 /// let clkout = unsafe {
 ///     swm.movable_functions.clkout.affirm_default_state()
 /// };
-/// let (_, pin) = clkout.assign(pin.into_swm_pin(), &mut swm_handle);
+/// let (_, pin) = clkout.assign(pin.into_swm_pin(), &mut swm.handle);
 ///
 /// // As long as the movable function is assigned, we can't use the pin for
 /// // general-purpose I/O. Therefore the following method call would cause a
@@ -368,12 +367,11 @@ pins!(
 /// // call to `into_gpio_pin` below enforces this by requiring a reference to
 /// // an enabled GPIO handle.
 /// let mut syscon      = p.syscon.split();
-/// let     swm         = p.swm.split();
-/// let     gpio_handle = p.gpio.enable(&mut syscon.handle);
+/// let mut swm         = p.swm.split();
 ///
 /// // Affirm that pin is unused, then transition to the GPIO state
 /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
-///     .into_gpio_pin(&gpio_handle);
+///     .into_gpio_pin(&p.gpio);
 /// ```
 ///
 /// Now `pin` is in the GPIO state. The GPIO state has the following sub-states:
@@ -400,11 +398,10 @@ pins!(
 /// # let mut p = Peripherals::take().unwrap();
 /// #
 /// # let mut syscon      = p.syscon.split();
-/// # let     swm         = p.swm.split();
-/// # let     gpio_handle = p.gpio.enable(&mut syscon.handle);
+/// # let mut swm         = p.swm.split();
 /// #
 /// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
-/// #     .into_gpio_pin(&gpio_handle);
+/// #     .into_gpio_pin(&p.gpio);
 /// #
 /// use lpc82x_hal::prelude::*;
 ///
@@ -476,8 +473,7 @@ pins!(
 /// # let mut p = Peripherals::take().unwrap();
 /// #
 /// # let mut syscon     = p.syscon.split();
-/// # let     swm        = p.swm.split();
-/// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+/// # let mut swm        = p.swm.split();
 /// #
 /// # let xtalout = unsafe {
 /// #     swm.fixed_functions.xtalout.affirm_default_state()
@@ -497,19 +493,19 @@ pins!(
 ///     .into_swm_pin();
 ///
 /// // Enable this pin's fixed function, which is an output function.
-/// let (xtalout, pin) = xtalout.assign(pin, &mut swm_handle);
+/// let (xtalout, pin) = xtalout.assign(pin, &mut swm.handle);
 ///
 /// // Now we can assign various input functions in addition.
-/// let (_, pin) = u0_rxd.assign(pin, &mut swm_handle);
-/// let (_, pin) = u1_rxd.assign(pin, &mut swm_handle);
+/// let (_, pin) = u0_rxd.assign(pin, &mut swm.handle);
+/// let (_, pin) = u1_rxd.assign(pin, &mut swm.handle);
 ///
 /// // We can't assign another output function. The next line won't compile.
-/// // let (_, pin) = u0_txd.assign(pin, &mut swm_handle);
+/// // let (_, pin) = u0_txd.assign(pin, &mut swm.handle);
 ///
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
-/// let (_, pin) = xtalout.unassign(pin, &mut swm_handle);
-/// let (_, pin) = u0_txd.assign(pin, &mut swm_handle);
+/// let (_, pin) = xtalout.unassign(pin, &mut swm.handle);
+/// let (_, pin) = u0_txd.assign(pin, &mut swm.handle);
 /// ```
 ///
 /// # Analog Input
@@ -525,8 +521,7 @@ pins!(
 /// # let mut p = Peripherals::take().unwrap();
 /// #
 /// # let mut syscon     = p.syscon.split();
-/// # let     swm        = p.swm.split();
-/// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+/// # let mut swm        = p.swm.split();
 /// #
 /// # let adc_2 = unsafe {
 /// #     swm.fixed_functions.adc_2.affirm_default_state()
@@ -535,7 +530,7 @@ pins!(
 /// // Transition pin into ADC state
 /// let pio0_14 = unsafe { swm.pins.pio0_14.affirm_default_state() }
 ///     .into_swm_pin();
-/// adc_2.assign(pio0_14, &mut swm_handle);
+/// adc_2.assign(pio0_14, &mut swm.handle);
 /// ```
 ///
 /// Using the pin for analog input once it is in the ADC state is currently not
@@ -606,8 +601,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// # let mut p = Peripherals::take().unwrap();
     /// #
     /// # let mut syscon     = p.syscon.split();
-    /// # let     swm        = p.swm.split();
-    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+    /// # let mut swm        = p.swm.split();
     /// #
     /// # let swclk = unsafe {
     /// #     swm.fixed_functions.swclk.affirm_default_state()
@@ -629,7 +623,7 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// // function enabled by default. If we want to use it for something else,
     /// // we need to transition it into the unused state before we can do so.
     /// let pio0_3 = swclk
-    ///     .unassign(pio0_3, &mut swm_handle)
+    ///     .unassign(pio0_3, &mut swm.handle)
     ///     .1 // also returns function; we're only interested in the pin
     ///     .into_unused_pin();
     /// ```
@@ -670,10 +664,8 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// #
     /// let swm = p.swm.split();
     ///
-    /// let gpio_handle = p.gpio.enable(&mut syscon.handle);
-    ///
     /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
-    ///     .into_gpio_pin(&gpio_handle);
+    ///     .into_gpio_pin(&p.gpio);
     ///
     /// // `pin` is now available for general-purpose I/O
     /// ```

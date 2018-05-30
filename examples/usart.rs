@@ -20,9 +20,8 @@ entry!(main);
 fn main() -> ! {
     let mut p = Peripherals::take().unwrap();
 
-    let     swm        = p.swm.split();
-    let mut syscon     = p.syscon.split();
-    let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+    let mut swm    = p.swm.split();
+    let mut syscon = p.syscon.split();
 
     // Set baud rate to 115200 baud
     //
@@ -68,8 +67,8 @@ fn main() -> ! {
     let u0_rxd = unsafe { swm.movable_functions.u0_rxd.affirm_default_state() };
     let u0_txd = unsafe { swm.movable_functions.u0_txd.affirm_default_state() };
 
-    let (u0_rxd, _) = u0_rxd.assign(pio0_0, &mut swm_handle);
-    let (u0_txd, _) = u0_txd.assign(pio0_4, &mut swm_handle);
+    let (u0_rxd, _) = u0_rxd.assign(pio0_0, &mut swm.handle);
+    let (u0_txd, _) = u0_txd.assign(pio0_4, &mut swm.handle);
 
     // Initialize USART0. This should never fail, as the only reason `init`
     // returns a `Result::Err` is when the transmitter is busy, which it

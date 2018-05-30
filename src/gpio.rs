@@ -21,10 +21,9 @@
 //!
 //! let mut syscon      = p.syscon.split();
 //! let     swm         = p.swm.split();
-//! let     gpio_handle = p.gpio.enable(&mut syscon.handle);
 //!
 //! let pio0_12 = unsafe { swm.pins.pio0_12.affirm_default_state() }
-//!     .into_gpio_pin(&gpio_handle)
+//!     .into_gpio_pin(&p.gpio)
 //!     .into_output()
 //!     .set_high();
 //! ```
@@ -41,15 +40,14 @@
 //! let mut p = Peripherals::take().unwrap();
 //!
 //! let mut syscon     = p.syscon.split();
-//! let     swm        = p.swm.split();
-//! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+//! let mut swm        = p.swm.split();
 //!
 //! let vddcmp = unsafe {
 //!     swm.fixed_functions.vddcmp.affirm_default_state()
 //! };
 //! let pio0_6 = unsafe { swm.pins.pio0_6.affirm_default_state() }
 //!     .into_swm_pin();
-//! vddcmp.assign(pio0_6, &mut swm_handle);
+//! vddcmp.assign(pio0_6, &mut swm.handle);
 //! ```
 //!
 //! [`GPIO`]: struct.GPIO.html
@@ -94,11 +92,11 @@ pub struct GPIO<State: InitState = init_state::Enabled> {
                _state: State,
 }
 
-impl GPIO<init_state::Unknown> {
+impl GPIO<init_state::Enabled> {
     pub(crate) fn new(gpio: raw::GPIO_PORT) -> Self {
         GPIO {
             gpio  : gpio,
-            _state: init_state::Unknown,
+            _state: init_state::Enabled,
         }
     }
 }
@@ -191,10 +189,9 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// #
     /// # let mut syscon      = p.syscon.split();
     /// # let     swm         = p.swm.split();
-    /// # let     gpio_handle = p.gpio.enable(&mut syscon.handle);
     /// #
     /// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
-    /// #     .into_gpio_pin(&gpio_handle);
+    /// #     .into_gpio_pin(&p.gpio);
     /// #
     /// use lpc82x_hal::prelude::*;
     ///
