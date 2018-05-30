@@ -11,27 +11,17 @@ extern crate panic_abort;
 use cortex_m_rt::ExceptionFrame;
 
 use lpc82x_hal::prelude::*;
-use lpc82x_hal::{
-    SYSCON,
-    SWM,
-    raw,
-};
-use lpc82x_hal::usart::{
-    BaudRate,
-    USART,
-};
+use lpc82x_hal::Peripherals;
+use lpc82x_hal::usart::BaudRate;
 
 
 entry!(main);
 
 fn main() -> ! {
-    let mut peripherals = raw::Peripherals::take().unwrap();
+    let mut p = Peripherals::take().unwrap();
 
-    let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    let     swm    = SWM::new(peripherals.SWM);
-    let     usart0 = USART::new(peripherals.USART0);
-
-    let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+    let mut swm    = p.swm.split();
+    let mut syscon = p.syscon.split();
 
     // Set baud rate to 115200 baud
     //
@@ -66,24 +56,22 @@ fn main() -> ! {
     // assign the USART's movable function to. For that, the pins need to be
     // unused. Since PIO0_0 and PIO0_4 are unused by default, we just have to
     // promise the API that we didn't change the default state up till now.
-    let pio0_0 = unsafe { swm.pins.pio0_0.affirm_default_state() }
-        .into_swm_pin();
-    let pio0_4 = unsafe { swm.pins.pio0_4.affirm_default_state() }
-        .into_swm_pin();
+    let pio0_0 = swm.pins.pio0_0.into_swm_pin();
+    let pio0_4 = swm.pins.pio0_4.into_swm_pin();
 
     // We also need to provide USART0's movable functions. Those need to be
     // unassigned, and since they are unassigned by default, we just need to
     // promise the API that we didn't change them.
-    let u0_rxd = unsafe { swm.movable_functions.u0_rxd.affirm_default_state() };
-    let u0_txd = unsafe { swm.movable_functions.u0_txd.affirm_default_state() };
+    let u0_rxd = swm.movable_functions.u0_rxd;
+    let u0_txd = swm.movable_functions.u0_txd;
 
-    let (u0_rxd, _) = u0_rxd.assign(pio0_0, &mut swm_handle);
-    let (u0_txd, _) = u0_txd.assign(pio0_4, &mut swm_handle);
+    let (u0_rxd, _) = u0_rxd.assign(pio0_0, &mut swm.handle);
+    let (u0_txd, _) = u0_txd.assign(pio0_4, &mut swm.handle);
 
     // Initialize USART0. This should never fail, as the only reason `init`
     // returns a `Result::Err` is when the transmitter is busy, which it
     // shouldn't be right now.
-    let mut serial = usart0
+    let mut serial = p.usart0
         .enable(
             &baud_rate,
             &mut syscon.handle,

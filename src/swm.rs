@@ -19,10 +19,37 @@ use syscon;
 use self::pin_state::PinState;
 
 
-/// Interface to the switch matrix (SWM)
+/// Entry point to the switch matrix API
 pub struct SWM {
+    swm: raw::SWM,
+}
+
+impl SWM {
+    pub(crate) fn new(swm: raw::SWM) -> Self {
+        SWM { swm }
+    }
+
+    /// Split the SWM API into its parts
+    pub fn split(self) -> Parts {
+        Parts {
+            handle           : Handle::new(self.swm),
+            pins             : Pins::new(),
+            movable_functions: MovableFunctions::new(),
+            fixed_functions  : FixedFunctions::new(),
+        }
+    }
+
+    /// Return the raw peripheral
+    pub fn free(self) -> raw::SWM {
+        self.swm
+    }
+}
+
+
+/// Interface to the switch matrix (SWM)
+pub struct Parts {
     /// Main SWM API
-    pub handle: Handle<init_state::Unknown>,
+    pub handle: Handle<init_state::Enabled>,
 
     /// The pins that can be used for GPIO or other functions
     pub pins: Pins,
@@ -34,18 +61,6 @@ pub struct SWM {
     pub fixed_functions: FixedFunctions,
 }
 
-impl SWM {
-    /// Create an instance of `SWM`
-    pub fn new(swm: raw::SWM) -> Self {
-        SWM {
-            handle           : Handle::new(swm),
-            pins             : Pins::new(),
-            movable_functions: MovableFunctions::new(),
-            fixed_functions  : FixedFunctions::new(),
-        }
-    }
-}
-
 
 /// Main API of the SWM peripheral
 pub struct Handle<State: InitState = init_state::Enabled> {
@@ -53,16 +68,16 @@ pub struct Handle<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl Handle<init_state::Unknown> {
+impl Handle<init_state::Enabled> {
     pub(crate) fn new(swm: raw::SWM) -> Self {
         Handle {
             swm   : swm,
-            _state: init_state::Unknown,
+            _state: init_state::Enabled,
         }
     }
 }
 
-impl<State> Handle<State> where State: init_state::NotEnabled {
+impl Handle<init_state::Disabled> {
     /// Enable the switch matrix
     ///
     /// This method is only available, if `swm::Handle` is not already in the
@@ -85,7 +100,7 @@ impl<State> Handle<State> where State: init_state::NotEnabled {
     }
 }
 
-impl<State> Handle<State> where State: init_state::NotDisabled {
+impl Handle<init_state::Enabled> {
     /// Disable the switch matrix
     ///
     /// This method is only available, if `swm::Handle` is not already in the
@@ -121,9 +136,6 @@ impl<State> Handle<State> where State: init_state::NotDisabled {
 ///
 /// [`Pin`]: struct.Pin.html
 pub trait PinTrait {
-    /// The default state of the pin after microcontroller initialization
-    type DefaultState: PinState;
-
     /// A number that identifies the pin
     ///
     /// This is `0` for [`PIO0_0`], `1` for [`PIO0_1`] and so forth.
@@ -140,9 +152,6 @@ pub trait PinTrait {
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO0_1`]: struct.PIO0_1.html
     const MASK: u32;
-
-    /// The initial value of the pin state after microcontroller initialization
-    const INITIAL_STATE: Self::DefaultState;
 }
 
 
@@ -151,7 +160,7 @@ macro_rules! pins {
         $field:ident,
         $type:ident,
         $id:expr,
-        $default_state:ty,
+        $default_state_ty:ty,
         $default_state_val:expr;
     )*) => {
         /// Provides access to all pins
@@ -172,7 +181,7 @@ macro_rules! pins {
         /// [`GPIO`]: struct.GPIO.html
         #[allow(missing_docs)]
         pub struct Pins {
-            $(pub $field: Pin<$type, pin_state::Unknown>,)*
+            $(pub $field: Pin<$type, $default_state_ty>,)*
         }
 
         impl Pins {
@@ -181,7 +190,7 @@ macro_rules! pins {
                     $(
                         $field: Pin {
                             ty   : $type(()),
-                            state: pin_state::Unknown,
+                            state: $default_state_val,
                         },
                     )*
                 }
@@ -205,12 +214,8 @@ macro_rules! pins {
             pub struct $type(());
 
             impl PinTrait for $type {
-                type DefaultState = $default_state;
-
                 const ID  : u8  = $id;
                 const MASK: u32 = 0x1 << $id;
-
-                const INITIAL_STATE: Self::DefaultState = $default_state_val;
             }
         )*
     }
@@ -278,11 +283,11 @@ pins!(
 /// # extern crate lpc82x;
 /// # extern crate lpc82x_hal;
 /// #
-/// # use lpc82x_hal::SWM;
+/// # use lpc82x_hal::Peripherals;
 /// #
-/// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
+/// # let mut p = Peripherals::take().unwrap();
 /// #
-/// # let swm = SWM::new(peripherals.SWM);
+/// # let swm = p.swm.split();
 /// #
 /// use lpc82x_hal::swm::{
 ///     PIO0_12,
@@ -290,12 +295,8 @@ pins!(
 ///     Pin,
 /// };
 ///
-/// // The pin starts out in the unknown state
-/// let pin: Pin<PIO0_12, pin_state::Unknown> = swm.pins.pio0_12;
-///
 /// // After we promise we didn't mess with the pin, the API knows it's unused
-/// let pin: Pin<PIO0_12, pin_state::Unused> =
-///     unsafe { pin.affirm_default_state() };
+/// let pin: Pin<PIO0_12, pin_state::Unused> = swm.pins.pio0_12;
 /// ```
 ///
 /// Once the API knows the pin's state, we can use its methods to configure it.
@@ -307,28 +308,19 @@ pins!(
 /// # extern crate lpc82x;
 /// # extern crate lpc82x_hal;
 /// #
-/// # use lpc82x_hal::{
-/// #     GPIO,
-/// #     SWM,
-/// #     SYSCON,
-/// # };
+/// # use lpc82x_hal::Peripherals;
 /// #
-/// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
+/// # let mut p = Peripherals::take().unwrap();
 /// #
-/// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-/// # let     swm    = SWM::new(peripherals.SWM);
-/// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// # let mut syscon     = p.syscon.split();
+/// # let mut swm        = p.swm.split();
 /// #
-/// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-/// #
-/// // Reassure the API that the pin is in its default state, i.e. unused.
-/// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() };
-///
 /// // Assign a movable function to this pin
-/// let clkout = unsafe {
-///     swm.movable_functions.clkout.affirm_default_state()
-/// };
-/// let (_, pin) = clkout.assign(pin.into_swm_pin(), &mut swm_handle);
+/// let clkout = swm.movable_functions.clkout;
+/// let (_, pin) = clkout.assign(
+///     swm.pins.pio0_12.into_swm_pin(),
+///     &mut swm.handle,
+/// );
 ///
 /// // As long as the movable function is assigned, we can't use the pin for
 /// // general-purpose I/O. Therefore the following method call would cause a
@@ -351,26 +343,19 @@ pins!(
 /// # extern crate lpc82x;
 /// # extern crate lpc82x_hal;
 /// #
-/// # use lpc82x_hal::{
-/// #     GPIO,
-/// #     SWM,
-/// #     SYSCON,
-/// # };
+/// # use lpc82x_hal::Peripherals;
 /// #
-/// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
-/// #
-/// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-/// # let     swm    = SWM::new(peripherals.SWM);
-/// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// # let mut p = Peripherals::take().unwrap();
 /// #
 /// // To use general-purpose I/O, we need to enable the GPIO peripheral. The
 /// // call to `into_gpio_pin` below enforces this by requiring a reference to
 /// // an enabled GPIO handle.
-/// let gpio_handle = gpio.enable(&mut syscon.handle);
+/// let mut syscon      = p.syscon.split();
+/// let mut swm         = p.swm.split();
 ///
 /// // Affirm that pin is unused, then transition to the GPIO state
-/// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
-///     .into_gpio_pin(&gpio_handle);
+/// let pin = swm.pins.pio0_12
+///     .into_gpio_pin(&p.gpio);
 /// ```
 ///
 /// Now `pin` is in the GPIO state. The GPIO state has the following sub-states:
@@ -392,22 +377,15 @@ pins!(
 /// # extern crate lpc82x;
 /// # extern crate lpc82x_hal;
 /// #
-/// # use lpc82x_hal::{
-/// #     GPIO,
-/// #     SWM,
-/// #     SYSCON,
-/// # };
+/// # use lpc82x_hal::Peripherals;
 /// #
-/// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
+/// # let mut p = Peripherals::take().unwrap();
 /// #
-/// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-/// # let     swm    = SWM::new(peripherals.SWM);
-/// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// # let mut syscon      = p.syscon.split();
+/// # let mut swm         = p.swm.split();
 /// #
-/// # let gpio_handle = gpio.enable(&mut syscon.handle);
-/// #
-/// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
-/// #     .into_gpio_pin(&gpio_handle);
+/// # let pin = swm.pins.pio0_12
+/// #     .into_gpio_pin(&p.gpio);
 /// #
 /// use lpc82x_hal::prelude::*;
 ///
@@ -441,14 +419,14 @@ pins!(
 /// # extern crate lpc82x;
 /// # extern crate lpc82x_hal;
 /// #
-/// # use lpc82x_hal::SWM;
+/// # use lpc82x_hal::Peripherals;
 /// #
-/// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
+/// # let mut p = Peripherals::take().unwrap();
 /// #
-/// # let swm = SWM::new(peripherals.SWM);
+/// # let swm = p.swm.split();
 /// #
 /// // Affirm that the pin is unused, then transition to the SWM state
-/// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
+/// let pin = swm.pins.pio0_12
 ///     .into_swm_pin();
 /// ```
 ///
@@ -474,51 +452,36 @@ pins!(
 /// # extern crate lpc82x;
 /// # extern crate lpc82x_hal;
 /// #
-/// # use lpc82x_hal::{
-/// #     GPIO,
-/// #     SWM,
-/// #     SYSCON,
-/// # };
+/// # use lpc82x_hal::Peripherals;
 /// #
-/// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
+/// # let mut p = Peripherals::take().unwrap();
 /// #
-/// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-/// # let     swm    = SWM::new(peripherals.SWM);
-/// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// # let mut syscon     = p.syscon.split();
+/// # let mut swm        = p.swm.split();
 /// #
-/// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-/// #
-/// # let xtalout = unsafe {
-/// #     swm.fixed_functions.xtalout.affirm_default_state()
-/// # };
-/// # let u0_rxd = unsafe {
-/// #     swm.movable_functions.u0_rxd.affirm_default_state()
-/// # };
-/// # let u1_rxd = unsafe {
-/// #     swm.movable_functions.u1_rxd.affirm_default_state()
-/// # };
-/// # let u0_txd = unsafe {
-/// #     swm.movable_functions.u0_txd.affirm_default_state()
-/// # };
+/// # let xtalout = swm.fixed_functions.xtalout;
+/// # let u0_rxd = swm.movable_functions.u0_rxd;
+/// # let u1_rxd = swm.movable_functions.u1_rxd;
+/// # let u0_txd = swm.movable_functions.u0_txd;
 /// #
 /// // Put PIO0_9 into the SWM state
-/// let pin = unsafe { swm.pins.pio0_9.affirm_default_state() }
+/// let pin = swm.pins.pio0_9
 ///     .into_swm_pin();
 ///
 /// // Enable this pin's fixed function, which is an output function.
-/// let (xtalout, pin) = xtalout.assign(pin, &mut swm_handle);
+/// let (xtalout, pin) = xtalout.assign(pin, &mut swm.handle);
 ///
 /// // Now we can assign various input functions in addition.
-/// let (_, pin) = u0_rxd.assign(pin, &mut swm_handle);
-/// let (_, pin) = u1_rxd.assign(pin, &mut swm_handle);
+/// let (_, pin) = u0_rxd.assign(pin, &mut swm.handle);
+/// let (_, pin) = u1_rxd.assign(pin, &mut swm.handle);
 ///
 /// // We can't assign another output function. The next line won't compile.
-/// // let (_, pin) = u0_txd.assign(pin, &mut swm_handle);
+/// // let (_, pin) = u0_txd.assign(pin, &mut swm.handle);
 ///
 /// // Once we disabled the currently enabled output function, we can assign
 /// // another output function.
-/// let (_, pin) = xtalout.unassign(pin, &mut swm_handle);
-/// let (_, pin) = u0_txd.assign(pin, &mut swm_handle);
+/// let (_, pin) = xtalout.unassign(pin, &mut swm.handle);
+/// let (_, pin) = u0_txd.assign(pin, &mut swm.handle);
 /// ```
 ///
 /// # Analog Input
@@ -529,28 +492,19 @@ pins!(
 /// # extern crate lpc82x;
 /// # extern crate lpc82x_hal;
 /// #
-/// # use lpc82x_hal::{
-/// #     GPIO,
-/// #     SWM,
-/// #     SYSCON,
-/// # };
+/// # use lpc82x_hal::Peripherals;
 /// #
-/// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
+/// # let mut p = Peripherals::take().unwrap();
 /// #
-/// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-/// # let     swm    = SWM::new(peripherals.SWM);
-/// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+/// # let mut syscon     = p.syscon.split();
+/// # let mut swm        = p.swm.split();
 /// #
-/// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-/// #
-/// # let adc_2 = unsafe {
-/// #     swm.fixed_functions.adc_2.affirm_default_state()
-/// # };
+/// # let adc_2 = swm.fixed_functions.adc_2;
 /// #
 /// // Transition pin into ADC state
-/// let pio0_14 = unsafe { swm.pins.pio0_14.affirm_default_state() }
+/// let pio0_14 = swm.pins.pio0_14
 ///     .into_swm_pin();
-/// adc_2.assign(pio0_14, &mut swm_handle);
+/// adc_2.assign(pio0_14, &mut swm.handle);
 /// ```
 ///
 /// Using the pin for analog input once it is in the ADC state is currently not
@@ -583,84 +537,6 @@ pub struct Pin<T: PinTrait, S: PinState> {
     pub(crate) state: S,
 }
 
-impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
-    /// Affirm that the pin is in its default state
-    ///
-    /// This method is only available, if the pin is in the unknown state. Code
-    /// that attempts to call this method while the pin is in any other state
-    /// will not compile.
-    ///
-    /// By calling this method, you promise that the pin's configuration has not
-    /// been changed from its default. For most pins, this means that the pin is
-    /// unused, but some pins are initially assigned to the switch matrix. This
-    /// method consumes the current pin instance and returns a new instance
-    /// whose state matches the pin's default configuration.
-    ///
-    /// Unless you have changed the pin's configuration before initializing the
-    /// HAL API, or have called some code that might have changed the
-    /// configuration, this method is safe to call.
-    ///
-    /// # Safety
-    ///
-    /// You MUST NOT call this method, if the pin configuration has been changed
-    /// from its default configuration. You can call this method again, after
-    /// you restore the pin to its default configuration.
-    ///
-    /// Calling this method while the pin's configuration deviates from the
-    /// default will create a `Pin` instance whose state doesn't match the
-    /// actual pin configuration. This can lead to any number of problems.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// # extern crate lpc82x;
-    /// # extern crate lpc82x_hal;
-    /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
-    /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
-    /// #
-    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-    /// # let mut swm    = SWM::new(peripherals.SWM);
-    /// #
-    /// # let swclk = unsafe {
-    /// #     swm.fixed_functions.swclk.affirm_default_state()
-    /// # };
-    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-    /// #
-    /// // These pins are in the unknown state. As long as that's the case, we
-    /// // can't do anything useful with them.
-    /// let pio0_3  = swm.pins.pio0_3;
-    /// let pio0_12 = swm.pins.pio0_12;
-    ///
-    /// // Since we didn't change the pin configuration, nor called any code
-    /// // that did, we can safely affirm that the pins are in their default
-    /// // state.
-    /// let pio0_3  = unsafe { pio0_3.affirm_default_state()  };
-    /// let pio0_12 = unsafe { pio0_12.affirm_default_state() };
-    ///
-    /// // PIO0_12 happens to be unused by default, which means it is ready to
-    /// // be transitioned into another state now. However, PIO0_3 has its fixed
-    /// // function enabled by default. If we want to use it for something else,
-    /// // we need to transition it into the unused state before we can do so.
-    /// let pio0_3 = swclk
-    ///     .unassign(pio0_3, &mut swm_handle)
-    ///     .1 // also returns function; we're only interested in the pin
-    ///     .into_unused_pin();
-    /// ```
-    pub unsafe fn affirm_default_state(self) -> Pin<T, T::DefaultState> {
-        Pin {
-            ty   : self.ty,
-            state: T::INITIAL_STATE,
-        }
-    }
-}
-
 impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// Transition this pin instance to the GPIO state
     ///
@@ -682,23 +558,16 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// # extern crate lpc82x;
     /// # extern crate lpc82x_hal;
     /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
+    /// # use lpc82x_hal::Peripherals;
     /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
+    /// # let mut p = Peripherals::take().unwrap();
     /// #
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+    /// # let mut syscon = p.syscon.split();
     /// #
-    /// let gpio = GPIO::new(peripherals.GPIO_PORT);
-    /// let swm  = SWM::new(peripherals.SWM);
+    /// let swm = p.swm.split();
     ///
-    /// let gpio_handle = gpio.enable(&mut syscon.handle);
-    ///
-    /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
-    ///     .into_gpio_pin(&gpio_handle);
+    /// let pin = swm.pins.pio0_12
+    ///     .into_gpio_pin(&p.gpio);
     ///
     /// // `pin` is now available for general-purpose I/O
     /// ```
@@ -739,13 +608,13 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// # extern crate lpc82x;
     /// # extern crate lpc82x_hal;
     /// #
-    /// # use lpc82x_hal::SWM;
+    /// # use lpc82x_hal::Peripherals;
     /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
+    /// # let mut p = Peripherals::take().unwrap();
     /// #
-    /// let swm = SWM::new(peripherals.SWM);
+    /// let swm = p.swm.split();
     ///
-    /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
+    /// let pin = swm.pins.pio0_12
     ///     .into_swm_pin();
     ///
     /// // `pin` is now ready for function assignment
@@ -894,19 +763,6 @@ pub mod pin_state {
     pub trait PinState {}
 
 
-    /// Marks a pin's state as being unknown
-    ///
-    /// As the HAL API can't know what happened to the hardware before the HAL
-    /// was initializized, this is the initial state of all pins.
-    ///
-    /// Please refer to [`Pin`] to see how this type is used.
-    ///
-    /// [`Pin`]: ../struct.Pin.html
-    pub struct Unknown;
-
-    impl PinState for Unknown {}
-
-
     /// Marks the pin as being unused
     ///
     /// Please refer to [`Pin`] to see how this type is used.
@@ -986,25 +842,6 @@ pub struct Function<T, State> {
     _state: State,
 }
 
-impl<T> Function<T, state::Unknown> where T: DefaultState {
-    /// Affirm that the movable function is in its default state
-    ///
-    /// By calling this method, the user promises that the movable function is
-    /// in its default state. This is safe to do, if nothing has changed that
-    /// state before the HAL has been initialized.
-    ///
-    /// If the movable function's state has been changed by any other means than
-    /// the HAL API, then the user must use those means to return the movable
-    /// function to its default state, as specified in the user manual, before
-    /// calling this method.
-    pub unsafe fn affirm_default_state(self) -> Function<T, T::DefaultState> {
-        Function {
-            ty    : self.ty,
-            _state: state::State::new(),
-        }
-    }
-}
-
 impl<T> Function<T, state::Unassigned> {
     /// Assign the movable function to a pin
     ///
@@ -1065,13 +902,6 @@ impl<T, P> Function<T, state::Assigned<P>> {
 
         (function, pin.unassign())
     }
-}
-
-
-/// Implemented by all functions
-pub trait DefaultState {
-    /// The default state of this function
-    type DefaultState: state::State;
 }
 
 
@@ -1158,7 +988,7 @@ macro_rules! movable_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct MovableFunctions {
-            $(pub $field: Function<$type, state::Unknown>,)*
+            $(pub $field: Function<$type, state::Unassigned>,)*
         }
 
         impl MovableFunctions {
@@ -1166,7 +996,7 @@ macro_rules! movable_functions {
                 MovableFunctions {
                     $($field: Function {
                         ty    : $type(()),
-                        _state: state::Unknown,
+                        _state: state::Unassigned,
                     },)*
                 }
             }
@@ -1177,10 +1007,6 @@ macro_rules! movable_functions {
             /// Represents a movable function
             #[allow(non_camel_case_types)]
             pub struct $type(());
-
-            impl DefaultState for $type {
-                type DefaultState = state::Unassigned;
-            }
 
             impl_function!($type, $kind, $reg_name, $reg_field, PIO0_0 );
             impl_function!($type, $kind, $reg_name, $reg_field, PIO0_1 );
@@ -1309,7 +1135,7 @@ macro_rules! fixed_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct FixedFunctions {
-            $(pub $field: Function<$type, state::Unknown>,)*
+            $(pub $field: Function<$type, $default_state>,)*
         }
 
         impl FixedFunctions {
@@ -1328,10 +1154,6 @@ macro_rules! fixed_functions {
             /// Represents a fixed function
             #[allow(non_camel_case_types)]
             pub struct $type(());
-
-            impl DefaultState for $type {
-                type DefaultState = $default_state;
-            }
 
             impl FunctionTrait<$pin> for $type {
                 type Kind = $kind;
@@ -1395,17 +1217,6 @@ pub mod state {
         /// This method is intended for internal use. Any changes to this method
         /// won't be considered breaking changes.
         fn new() -> Self;
-    }
-
-
-    /// Indicates that the current state of the movable function is unknown
-    ///
-    /// This is the case after the HAL is initialized, as we can't know what
-    /// happened before that.
-    pub struct Unknown;
-
-    impl State for Unknown {
-        fn new() -> Self { Unknown }
     }
 
 

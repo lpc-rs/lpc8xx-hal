@@ -10,12 +10,12 @@
 //! extern crate lpc82x;
 //! extern crate lpc82x_hal;
 //!
-//! use lpc82x_hal::PMU;
+//! use lpc82x_hal::Peripherals;
 //!
 //! let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
-//! let mut peripherals      = lpc82x::Peripherals::take().unwrap();
+//! let mut peripherals      = Peripherals::take().unwrap();
 //!
-//! let mut pmu = PMU::new(peripherals.PMU);
+//! let mut pmu = peripherals.pmu.split();
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
@@ -42,29 +42,44 @@ use raw;
 
 
 /// Entry point to the PMU API
+pub struct PMU {
+    pmu: raw::PMU,
+}
+
+impl PMU {
+    pub(crate) fn new(pmu: raw::PMU) -> Self {
+        PMU { pmu }
+    }
+
+    /// Splits the PMU API into its parts
+    pub fn split(self) -> Parts {
+        Parts {
+            handle: Handle {
+                pmu: self.pmu,
+            },
+            low_power_clock: LowPowerClock::new(),
+        }
+    }
+
+    /// Return the raw peripheral
+    pub fn free(self) -> raw::PMU {
+        self.pmu
+    }
+}
+
+
+/// The main API for the PMU peripheral
 ///
 /// Provides access to all types that make up the PMU API. Please refer to the
 /// [module documentation] for more information.
 ///
 /// [module documentation]: index.html
-pub struct PMU {
+pub struct Parts {
     /// The handle to the PMU peripheral
     pub handle: Handle,
 
     /// The 10 kHz low-power clock
-    pub low_power_clock: LowPowerClock<init_state::Unknown>,
-}
-
-impl PMU {
-    /// Create an instance of `PMU`
-    pub fn new(pmu: raw::PMU) -> Self {
-        PMU {
-            handle: Handle {
-                pmu: pmu,
-            },
-            low_power_clock: LowPowerClock::new(),
-        }
-    }
+    pub low_power_clock: LowPowerClock<init_state::Disabled>,
 }
 
 
@@ -112,15 +127,15 @@ pub struct LowPowerClock<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl LowPowerClock<init_state::Unknown> {
+impl LowPowerClock<init_state::Disabled> {
     pub(crate) fn new() -> Self {
         LowPowerClock {
-            _state: init_state::Unknown,
+            _state: init_state::Disabled,
         }
     }
 }
 
-impl<State> LowPowerClock<State> where State: init_state::NotEnabled {
+impl LowPowerClock<init_state::Disabled> {
     /// Enable the low-power clock
     ///
     /// This method is only available if the low-power clock is not already
@@ -146,7 +161,7 @@ impl<State> LowPowerClock<State> where State: init_state::NotEnabled {
     }
 }
 
-impl<State> LowPowerClock<State> where State: init_state::NotDisabled {
+impl LowPowerClock<init_state::Enabled> {
     /// Disable the low-power clock
     ///
     /// This method is only available if the low-power clock is not already

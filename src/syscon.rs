@@ -26,10 +26,56 @@ use raw::syscon::{
 };
 
 
-/// Entry point to the SYSCON API.
+/// Entry point to the SYSCON API
+pub struct SYSCON {
+    syscon: raw::SYSCON,
+}
+
+impl SYSCON {
+    pub(crate) fn new(syscon: raw::SYSCON) -> Self {
+        SYSCON { syscon }
+    }
+
+    /// Split the API into its parts
+    pub fn split(&mut self) -> Parts {
+        Parts {
+            handle: Handle {
+                pdruncfg     : &self.syscon.pdruncfg,
+                presetctrl   : &self.syscon.presetctrl,
+                sysahbclkctrl: &self.syscon.sysahbclkctrl,
+            },
+
+            bod    : BOD(PhantomData),
+            flash  : FLASH(PhantomData),
+            irc    : IRC(PhantomData),
+            ircout : IRCOUT(PhantomData),
+            mtb    : MTB(PhantomData),
+            ram0_1 : RAM0_1(PhantomData),
+            rom    : ROM(PhantomData),
+            sysosc : SYSOSC(PhantomData),
+            syspll : SYSPLL(PhantomData),
+            uartfrg: UARTFRG {
+                uartclkdiv : &self.syscon.uartclkdiv,
+                uartfrgdiv : &self.syscon.uartfrgdiv,
+                uartfrgmult: &self.syscon.uartfrgmult,
+
+            },
+
+            irc_derived_clock: IrcDerivedClock::new(),
+        }
+    }
+
+    /// Return the raw peripheral
+    pub fn free(self) -> raw::SYSCON {
+        self.syscon
+    }
+}
+
+
+/// The main API for the SYSCON peripheral
 ///
 /// Provides access to all types that make up the SYSCON API.
-pub struct SYSCON<'syscon> {
+pub struct Parts<'syscon> {
     /// The handle to the SYSCON peripheral
     pub handle: Handle<'syscon>,
 
@@ -64,38 +110,7 @@ pub struct SYSCON<'syscon> {
     pub uartfrg: UARTFRG<'syscon>,
 
     /// The 750 kHz IRC-derived clock
-    pub irc_derived_clock: IrcDerivedClock<init_state::Unknown>,
-}
-
-impl<'syscon> SYSCON<'syscon> {
-    /// Create an instance of `SYSCON`
-    pub fn new(syscon: &'syscon mut raw::SYSCON) -> Self {
-        SYSCON {
-            handle: Handle {
-                pdruncfg     : &syscon.pdruncfg,
-                presetctrl   : &syscon.presetctrl,
-                sysahbclkctrl: &syscon.sysahbclkctrl,
-            },
-
-            bod    : BOD(PhantomData),
-            flash  : FLASH(PhantomData),
-            irc    : IRC(PhantomData),
-            ircout : IRCOUT(PhantomData),
-            mtb    : MTB(PhantomData),
-            ram0_1 : RAM0_1(PhantomData),
-            rom    : ROM(PhantomData),
-            sysosc : SYSOSC(PhantomData),
-            syspll : SYSPLL(PhantomData),
-            uartfrg: UARTFRG {
-                uartclkdiv : &syscon.uartclkdiv,
-                uartfrgdiv : &syscon.uartfrgdiv,
-                uartfrgmult: &syscon.uartfrgmult,
-
-            },
-
-            irc_derived_clock: IrcDerivedClock::new(),
-        }
-    }
+    pub irc_derived_clock: IrcDerivedClock<init_state::Enabled>,
 }
 
 
@@ -444,15 +459,15 @@ pub struct IrcDerivedClock<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl IrcDerivedClock<init_state::Unknown> {
+impl IrcDerivedClock<init_state::Enabled> {
     pub(crate) fn new() -> Self {
         IrcDerivedClock {
-            _state: init_state::Unknown,
+            _state: init_state::Enabled,
         }
     }
 }
 
-impl<State> IrcDerivedClock<State> where State: init_state::NotEnabled {
+impl IrcDerivedClock<init_state::Disabled> {
     /// Enable the IRC-derived clock
     ///
     /// This method is only available if the IRC-derived clock is not already

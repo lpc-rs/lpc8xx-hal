@@ -15,22 +15,15 @@
 //! extern crate lpc82x_hal;
 //!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::{
-//!     GPIO,
-//!     SWM,
-//!     SYSCON,
-//! };
+//! use lpc82x_hal::Peripherals;
 //!
-//! let mut peripherals = lpc82x::Peripherals::take().unwrap();
+//! let mut p = Peripherals::take().unwrap();
 //!
-//! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-//! let     swm    = SWM::new(peripherals.SWM);
-//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+//! let mut syscon      = p.syscon.split();
+//! let     swm         = p.swm.split();
 //!
-//! let gpio_handle = gpio.enable(&mut syscon.handle);
-//!
-//! let pio0_12 = unsafe { swm.pins.pio0_12.affirm_default_state() }
-//!     .into_gpio_pin(&gpio_handle)
+//! let pio0_12 = swm.pins.pio0_12
+//!     .into_gpio_pin(&p.gpio)
 //!     .into_output()
 //!     .set_high();
 //! ```
@@ -42,26 +35,17 @@
 //! extern crate lpc82x_hal;
 //!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::{
-//!     GPIO,
-//!     SWM,
-//!     SYSCON,
-//! };
+//! use lpc82x_hal::Peripherals;
 //!
-//! let mut peripherals = lpc82x::Peripherals::take().unwrap();
+//! let mut p = Peripherals::take().unwrap();
 //!
-//! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-//! let     swm    = SWM::new(peripherals.SWM);
-//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+//! let mut syscon     = p.syscon.split();
+//! let mut swm        = p.swm.split();
 //!
-//! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-//!
-//! let vddcmp = unsafe {
-//!     swm.fixed_functions.vddcmp.affirm_default_state()
-//! };
-//! let pio0_6 = unsafe { swm.pins.pio0_6.affirm_default_state() }
+//! let vddcmp = swm.fixed_functions.vddcmp;
+//! let pio0_6 = swm.pins.pio0_6
 //!     .into_swm_pin();
-//! vddcmp.assign(pio0_6, &mut swm_handle);
+//! vddcmp.assign(pio0_6, &mut swm.handle);
 //! ```
 //!
 //! [`GPIO`]: struct.GPIO.html
@@ -106,17 +90,23 @@ pub struct GPIO<State: InitState = init_state::Enabled> {
                _state: State,
 }
 
-impl GPIO<init_state::Unknown> {
-    /// Create an instance of `GPIO`
-    pub fn new(gpio: raw::GPIO_PORT) -> Self {
+impl GPIO<init_state::Enabled> {
+    pub(crate) fn new(gpio: raw::GPIO_PORT) -> Self {
         GPIO {
             gpio  : gpio,
-            _state: init_state::Unknown,
+            _state: init_state::Enabled,
         }
     }
 }
 
-impl<'gpio, State> GPIO<State> where State: init_state::NotEnabled {
+impl<State> GPIO<State> where State: InitState {
+    /// Return the raw peripheral
+    pub fn free(self) -> raw::GPIO_PORT {
+        self.gpio
+    }
+}
+
+impl<'gpio> GPIO<init_state::Disabled> {
     /// Enable the GPIO peripheral
     ///
     /// Enables the clock and clears the peripheral reset for the GPIO
@@ -143,7 +133,7 @@ impl<'gpio, State> GPIO<State> where State: init_state::NotEnabled {
     }
 }
 
-impl<State> GPIO<State> where State: init_state::NotDisabled {
+impl GPIO<init_state::Enabled> {
     /// Disable the GPIO peripheral
     ///
     /// This method is only available, if `gpio::Handle` is not already in the
@@ -191,22 +181,15 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// # extern crate lpc82x;
     /// # extern crate lpc82x_hal;
     /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
+    /// # use lpc82x_hal::Peripherals;
     /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
+    /// # let mut p = Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let     swm    = SWM::new(peripherals.SWM);
-    /// # let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
+    /// # let mut syscon      = p.syscon.split();
+    /// # let     swm         = p.swm.split();
     /// #
-    /// # let gpio_handle = gpio.enable(&mut syscon.handle);
-    /// #
-    /// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
-    /// #     .into_gpio_pin(&gpio_handle);
+    /// # let pin = swm.pins.pio0_12
+    /// #     .into_gpio_pin(&p.gpio);
     /// #
     /// use lpc82x_hal::prelude::*;
     ///

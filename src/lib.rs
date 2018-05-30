@@ -132,12 +132,7 @@
 //! extern crate lpc82x_hal;
 //!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::{
-//!     GPIO,
-//!     SWM,
-//!     SYSCON,
-//!     WKT,
-//! };
+//! use lpc82x_hal::Peripherals;
 //! use lpc82x_hal::clock::Ticks;
 //! use lpc82x_hal::sleep::{
 //!     self,
@@ -147,27 +142,17 @@
 //!
 //! // Create the struct we're going to use to access all the peripherals. This
 //! // is unsafe, because we're only allowed to create one instance.
-//! let mut peripherals = lpc82x::Peripherals::take().unwrap();
-//!
-//! // Create the peripheral interfaces.
-//! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-//! let     swm    = SWM::new(peripherals.SWM);
-//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-//! let     wkt    = WKT::new(peripherals.WKT);
+//! let mut p = Peripherals::take().unwrap();
 //!
 //! // Other peripherals need to be initialized. Trying to use the API before
 //! // initializing them will actually lead to compile-time errors.
-//! let mut gpio_handle = gpio.enable(&mut syscon.handle);
-//! let mut swm_handle  = swm.handle.enable(&mut syscon.handle);
-//! let mut wkt         = wkt.enable(&mut syscon.handle);
+//! let mut syscon      = p.syscon.split();
+//! let mut swm         = p.swm.split();
+//! let mut wkt         = p.wkt.enable(&mut syscon.handle);
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
 //! // that runs at 750 kHz.
-//! let clock = syscon.irc_derived_clock.enable(
-//!     &mut syscon.handle,
-//!     syscon.irc,
-//!     syscon.ircout,
-//! );
+//! let clock = syscon.irc_derived_clock;
 //!
 //! // In the next step, we need to configure the pin PIO0_3 and its fixed
 //! // function SWCLK. The API tracks the state of both of those, to prevent any
@@ -176,15 +161,15 @@
 //! // it is currently in.
 //! // Let's affirm that we haven't changed anything, and that PIO0_3 and SWCLK
 //! // are still in their initial states.
-//! let pio0_3 = unsafe { swm.pins.pio0_3.affirm_default_state()          };
-//! let swclk  = unsafe { swm.fixed_functions.swclk.affirm_default_state() };
+//! let pio0_3 = swm.pins.pio0_3;
+//! let swclk  = swm.fixed_functions.swclk;
 //!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
 //! let (_, pio0_3) = swclk
-//!     .unassign(pio0_3, &mut swm_handle);
+//!     .unassign(pio0_3, &mut swm.handle);
 //! let mut pio0_3 = pio0_3
 //!     .into_unused_pin()
-//!     .into_gpio_pin(&gpio_handle)
+//!     .into_gpio_pin(&p.gpio)
 //!     .into_output();
 //!
 //! // Let's already initialize the durations that we're going to sleep for
@@ -308,15 +293,6 @@ pub mod init_state {
     pub trait InitState {}
 
 
-    /// Indicates that the hardware's state is currently unknown
-    ///
-    /// This is usually the initial state after the HAL API has been
-    /// initialized, as we don't know what happened before that.
-    pub struct Unknown;
-
-    impl InitState for Unknown {}
-
-
     /// Indicates that the hardware component is enabled
     ///
     /// This usually indicates that the hardware has been initialized and can be
@@ -330,32 +306,143 @@ pub mod init_state {
     pub struct Disabled;
 
     impl InitState for Disabled {}
+}
 
 
-    /// Marks a hardware component as not being enabled
+/// Provides access to all peripherals
+///
+/// All peripheral states are set to their default states after hardware reset.
+/// See user manual, section 5.6.14.
+pub struct Peripherals {
+    /// General-purpose I/O (GPIO)
+    pub gpio: GPIO<init_state::Enabled>,
+
+    /// Power Management Unit
+    pub pmu: PMU,
+
+    /// Switch matrix
+    pub swm: SWM,
+
+    /// System configuration
+    pub syscon: SYSCON,
+
+    /// USART0
+    pub usart0: USART<raw::USART0, init_state::Disabled>,
+
+    /// USART1
     ///
-    /// This is a helper trait that is implemented for all states, except
-    /// [`Enabled`]. It is used to create `impl` blocks that define methods that
-    /// should be available in all states, except when the hardware component is
-    /// enabled.
+    /// The USART1 peripheral is disabled by default. See user manual, section
+    /// 5.6.14.
+    pub usart1: USART<raw::USART1, init_state::Disabled>,
+
+    /// USART2
     ///
-    /// [`Enabled`]: struct.Enabled.html
-    pub trait NotEnabled: InitState {}
+    /// The USART2 peripheral is disabled by default. See user manual, section
+    /// 5.6.14.
+    pub usart2: USART<raw::USART2, init_state::Disabled>,
 
-    impl NotEnabled for Unknown {}
-    impl NotEnabled for Disabled {}
+    /// Self-wake-up timer
+    pub wkt: WKT<init_state::Disabled>,
 
+    /// Analog-to-Digital Converter
+    pub adc: raw::ADC,
 
-    /// Marks a hardware component as not being disabled
-    ///
-    /// This is a helper trait that is implemented for all states, except
-    /// [`Disabled`]. It is used to create `impl` blocks that define methods
-    /// that should be available in all states, except when the hardware
-    /// component is disabled.
-    ///
-    /// [`Disabled`]: struct.Disabled.html
-    pub trait NotDisabled: InitState {}
+    /// Analog comparator
+    pub cmp: raw::CMP,
 
-    impl NotDisabled for Unknown {}
-    impl NotDisabled for Enabled {}
+    /// CRC engine
+    pub crc: raw::CRC,
+
+    /// DMA controller
+    pub dma: raw::DMA,
+
+    /// DMA trigger mux
+    pub dmatrigmux: raw::DMATRIGMUX,
+
+    /// Flash controller
+    pub flashctrl: raw::FLASHCTRL,
+
+    /// I2C0-bus interface
+    pub i2c0: raw::I2C0,
+
+    /// I2C0-bus interface
+    pub i2c1: raw::I2C1,
+
+    /// I2C0-bus interface
+    pub i2c2: raw::I2C2,
+
+    /// I2C0-bus interface
+    pub i2c3: raw::I2C3,
+
+    /// Input multiplexing
+    pub inputmux: raw::INPUTMUX,
+
+    /// I/O configuration
+    pub iocon: raw::IOCON,
+
+    /// Multi-Rate Timer
+    pub mrt: raw::MRT,
+
+    /// Pin interrupt and pattern match engine
+    pub pin_int: raw::PIN_INT,
+
+    /// State Configurable Timer
+    pub sct: raw::SCT,
+
+    /// SPI0
+    pub spi0: raw::SPI0,
+
+    /// SPI1
+    pub spi1: raw::SPI1,
+
+    /// Windowed Watchdog Timer
+    pub wwdt: raw::WWDT,
+}
+
+impl Peripherals {
+    /// Take the peripherals
+    pub fn take() -> Option<Self> {
+        let p = raw::Peripherals::take()?;
+
+        Some(Self::new(p))
+    }
+
+    /// Steal the peripherals
+    pub unsafe fn steal() -> Self {
+        Self::new(raw::Peripherals::steal())
+    }
+
+    fn new(p: raw::Peripherals) -> Self {
+        Peripherals {
+            // HAL peripherals
+            gpio  : GPIO::new(p.GPIO_PORT),
+            pmu   : PMU::new(p.PMU),
+            swm   : SWM::new(p.SWM),
+            syscon: SYSCON::new(p.SYSCON),
+            usart0: USART::new(p.USART0),
+            usart1: USART::new(p.USART1),
+            usart2: USART::new(p.USART2),
+            wkt   : WKT::new(p.WKT),
+
+            /// Raw peripherals
+            adc       : p.ADC,
+            cmp       : p.CMP,
+            crc       : p.CRC,
+            dma       : p.DMA,
+            dmatrigmux: p.DMATRIGMUX,
+            flashctrl : p.FLASHCTRL,
+            i2c0      : p.I2C0,
+            i2c1      : p.I2C1,
+            i2c2      : p.I2C2,
+            i2c3      : p.I2C3,
+            inputmux  : p.INPUTMUX,
+            iocon     : p.IOCON,
+            mrt       : p.MRT,
+            pin_int   : p.PIN_INT,
+            sct       : p.SCT,
+            spi0      : p.SPI0,
+            spi1      : p.SPI1,
+            wwdt      : p.WWDT,
+        }
+    }
 }

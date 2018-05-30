@@ -10,17 +10,12 @@
 //! extern crate nb;
 //!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::{
-//!     SYSCON,
-//!     WKT,
-//! };
+//! use lpc82x_hal::Peripherals;
 //!
-//! let mut peripherals = lpc82x::Peripherals::take().unwrap();
+//! let mut p = Peripherals::take().unwrap();
 //!
-//! let mut syscon = SYSCON::new(&mut peripherals.SYSCON);
-//! let     timer  = WKT::new(peripherals.WKT);
-//!
-//! let mut timer = timer.enable(&mut syscon.handle);
+//! let mut syscon = p.syscon.split();
+//! let mut timer  = p.wkt.enable(&mut syscon.handle);
 //!
 //! // Start the timer at 750000. Sine the IRC-derived clock runs at 750 kHz,
 //! // this translates to a one second wait.
@@ -64,17 +59,23 @@ pub struct WKT<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl WKT<init_state::Unknown> {
-    /// Create an instance of `WKT`
-    pub fn new(wkt: raw::WKT) -> Self {
+impl WKT<init_state::Disabled> {
+    pub(crate) fn new(wkt: raw::WKT) -> Self {
         WKT {
             wkt   : wkt,
-            _state: init_state::Unknown,
+            _state: init_state::Disabled,
         }
     }
 }
 
-impl<State> WKT<State> where State: init_state::NotEnabled {
+impl<State> WKT<State> where State: InitState {
+    /// Return the raw peripheral
+    pub fn free(self) -> raw::WKT {
+        self.wkt
+    }
+}
+
+impl WKT<init_state::Disabled> {
     /// Enable the self-wake-up timer
     ///
     /// This method is only available, if `WKT` is not already in the
@@ -98,7 +99,7 @@ impl<State> WKT<State> where State: init_state::NotEnabled {
     }
 }
 
-impl<State> WKT<State> where State: init_state::NotDisabled {
+impl WKT<init_state::Enabled> {
     /// Disable the self-wake-up timer
     ///
     /// This method is only available, if `WKT` is not already in the
