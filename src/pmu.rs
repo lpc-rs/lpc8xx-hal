@@ -79,7 +79,7 @@ pub struct Parts {
     pub handle: Handle,
 
     /// The 10 kHz low-power clock
-    pub low_power_clock: LowPowerClock<init_state::Unknown>,
+    pub low_power_clock: LowPowerClock<init_state::Disabled>,
 }
 
 
@@ -127,10 +127,10 @@ pub struct LowPowerClock<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl LowPowerClock<init_state::Unknown> {
+impl LowPowerClock<init_state::Disabled> {
     pub(crate) fn new() -> Self {
         LowPowerClock {
-            _state: init_state::Unknown,
+            _state: init_state::Disabled,
         }
     }
 }

@@ -152,11 +152,7 @@
 //!
 //! // We're going to need a clock for sleeping. Let's use the IRC-derived clock
 //! // that runs at 750 kHz.
-//! let clock = syscon.irc_derived_clock.enable(
-//!     &mut syscon.handle,
-//!     syscon.irc,
-//!     syscon.ircout,
-//! );
+//! let clock = syscon.irc_derived_clock;
 //!
 //! // In the next step, we need to configure the pin PIO0_3 and its fixed
 //! // function SWCLK. The API tracks the state of both of those, to prevent any

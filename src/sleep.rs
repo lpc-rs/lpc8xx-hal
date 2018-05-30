@@ -74,11 +74,7 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// let mut syscon = p.syscon.split();
 /// let mut wkt    = p.wkt.enable(&mut syscon.handle);
 ///
-/// let clock = syscon.irc_derived_clock.enable(
-///     &mut syscon.handle,
-///     syscon.irc,
-///     syscon.ircout,
-/// );
+/// let clock = syscon.irc_derived_clock;
 ///
 /// let mut sleep = sleep::Busy::prepare(&mut wkt);
 ///
@@ -162,11 +158,7 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// let mut syscon = peripherals.syscon.split();
 /// let mut wkt    = peripherals.wkt.enable(&mut syscon.handle);
 ///
-/// let clock = syscon.irc_derived_clock.enable(
-///     &mut syscon.handle,
-///     syscon.irc,
-///     syscon.ircout,
-/// );
+/// let clock = syscon.irc_derived_clock;
 ///
 /// let mut sleep = sleep::Regular::prepare(
 ///     &mut core_peripherals.NVIC,

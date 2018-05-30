@@ -110,7 +110,7 @@ pub struct Parts<'syscon> {
     pub uartfrg: UARTFRG<'syscon>,
 
     /// The 750 kHz IRC-derived clock
-    pub irc_derived_clock: IrcDerivedClock<init_state::Unknown>,
+    pub irc_derived_clock: IrcDerivedClock<init_state::Enabled>,
 }
 
 
@@ -459,10 +459,10 @@ pub struct IrcDerivedClock<State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl IrcDerivedClock<init_state::Unknown> {
+impl IrcDerivedClock<init_state::Enabled> {
     pub(crate) fn new() -> Self {
         IrcDerivedClock {
-            _state: init_state::Unknown,
+            _state: init_state::Enabled,
         }
     }
 }
