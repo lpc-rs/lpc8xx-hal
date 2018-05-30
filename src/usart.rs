@@ -147,11 +147,7 @@ impl<UsartX, State> USART<UsartX, State> where State: InitState {
     }
 }
 
-impl<UsartX, State> USART<UsartX, State>
-    where
-        UsartX: Peripheral,
-        State : init_state::NotEnabled
-{
+impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     /// Enable a USART peripheral
     ///
     /// This method is only available, if `USART` is not already in the
@@ -249,11 +245,7 @@ impl<UsartX, State> USART<UsartX, State>
     }
 }
 
-impl<UsartX, State> USART<UsartX, State>
-    where
-        UsartX: Peripheral,
-        State : init_state::NotDisabled
-{
+impl<UsartX> USART<UsartX, init_state::Enabled> where UsartX: Peripheral {
     /// Disable a USART peripheral
     ///
     /// This method is only available, if `USART` is not already in the

@@ -108,7 +108,7 @@ impl<State> GPIO<State> where State: InitState {
     }
 }
 
-impl<'gpio, State> GPIO<State> where State: init_state::NotEnabled {
+impl<'gpio> GPIO<init_state::Disabled> {
     /// Enable the GPIO peripheral
     ///
     /// Enables the clock and clears the peripheral reset for the GPIO
@@ -135,7 +135,7 @@ impl<'gpio, State> GPIO<State> where State: init_state::NotEnabled {
     }
 }
 
-impl<State> GPIO<State> where State: init_state::NotDisabled {
+impl GPIO<init_state::Enabled> {
     /// Disable the GPIO peripheral
     ///
     /// This method is only available, if `gpio::Handle` is not already in the

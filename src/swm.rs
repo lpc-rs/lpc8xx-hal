@@ -77,7 +77,7 @@ impl Handle<init_state::Enabled> {
     }
 }
 
-impl<State> Handle<State> where State: init_state::NotEnabled {
+impl Handle<init_state::Disabled> {
     /// Enable the switch matrix
     ///
     /// This method is only available, if `swm::Handle` is not already in the
@@ -100,7 +100,7 @@ impl<State> Handle<State> where State: init_state::NotEnabled {
     }
 }
 
-impl<State> Handle<State> where State: init_state::NotDisabled {
+impl Handle<init_state::Enabled> {
     /// Disable the switch matrix
     ///
     /// This method is only available, if `swm::Handle` is not already in the

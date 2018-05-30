@@ -75,7 +75,7 @@ impl<State> WKT<State> where State: InitState {
     }
 }
 
-impl<State> WKT<State> where State: init_state::NotEnabled {
+impl WKT<init_state::Disabled> {
     /// Enable the self-wake-up timer
     ///
     /// This method is only available, if `WKT` is not already in the
@@ -99,7 +99,7 @@ impl<State> WKT<State> where State: init_state::NotEnabled {
     }
 }
 
-impl<State> WKT<State> where State: init_state::NotDisabled {
+impl WKT<init_state::Enabled> {
     /// Disable the self-wake-up timer
     ///
     /// This method is only available, if `WKT` is not already in the
