@@ -11,24 +11,16 @@
 //! extern crate lpc82x_hal;
 //!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::{
-//!     GPIO,
-//!     SYSCON,
-//!     SWM,
-//! };
+//! use lpc82x_hal::Peripherals;
 //! use lpc82x_hal::usart::{
 //!     BaudRate,
 //!     USART,
 //! };
 //!
-//! let mut peripherals = lpc82x::Peripherals::take().unwrap();
+//! let mut p = Peripherals::take().unwrap();
 //!
-//! let mut syscon = SYSCON::new(peripherals.SYSCON);
-//! let     swm    = SWM::new(peripherals.SWM).split();
-//! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-//! let     usart0 = USART::new(peripherals.USART0);
-//!
-//! let mut syscon     = syscon.split();
+//! let mut syscon     = p.syscon.split();
+//! let     swm        = p.swm.split();
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! // Set baud rate to 115200 baud
@@ -83,7 +75,7 @@
 //! // Initialize USART0. This should never fail, as the only reason `init`
 //! // returns a `Result::Err` is when the transmitter is busy, which it
 //! // shouldn't be right now.
-//! let mut serial = usart0
+//! let mut serial = p.usart0
 //!     .enable(
 //!         &baud_rate,
 //!         &mut syscon.handle,

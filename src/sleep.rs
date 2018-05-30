@@ -65,18 +65,14 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// use lpc82x_hal::prelude::*;
 /// use lpc82x_hal::{
 ///     sleep,
-///     SYSCON,
-///     WKT,
+///     Peripherals,
 /// };
 /// use lpc82x_hal::clock::Ticks;
 ///
-/// let mut peripherals = lpc82x::Peripherals::take().unwrap();
+/// let mut p = Peripherals::take().unwrap();
 ///
-/// let mut syscon = SYSCON::new(peripherals.SYSCON);
-/// let     wkt    = WKT::new(peripherals.WKT);
-///
-/// let mut syscon = syscon.split();
-/// let mut wkt    = wkt.enable(&mut syscon.handle);
+/// let mut syscon = p.syscon.split();
+/// let mut wkt    = p.wkt.enable(&mut syscon.handle);
 ///
 /// let clock = syscon.irc_derived_clock.enable(
 ///     &mut syscon.handle,
@@ -155,21 +151,16 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// use lpc82x_hal::prelude::*;
 /// use lpc82x_hal::{
 ///     sleep,
-///     PMU,
-///     SYSCON,
-///     WKT,
+///     Peripherals,
 /// };
 /// use lpc82x_hal::clock::Ticks;
 ///
 /// let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
-/// let mut peripherals      = lpc82x::Peripherals::take().unwrap();
+/// let mut peripherals      = Peripherals::take().unwrap();
 ///
-/// let mut pmu    = PMU::new(peripherals.PMU).split();
-/// let mut syscon = SYSCON::new(peripherals.SYSCON);
-/// let     wkt    = WKT::new(peripherals.WKT);
-///
-/// let mut syscon = syscon.split();
-/// let mut wkt    = wkt.enable(&mut syscon.handle);
+/// let mut pmu    = peripherals.pmu.split();
+/// let mut syscon = peripherals.syscon.split();
+/// let mut wkt    = peripherals.wkt.enable(&mut syscon.handle);
 ///
 /// let clock = syscon.irc_derived_clock.enable(
 ///     &mut syscon.handle,

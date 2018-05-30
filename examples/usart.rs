@@ -11,27 +11,17 @@ extern crate panic_abort;
 use cortex_m_rt::ExceptionFrame;
 
 use lpc82x_hal::prelude::*;
-use lpc82x_hal::{
-    SYSCON,
-    SWM,
-    raw,
-};
-use lpc82x_hal::usart::{
-    BaudRate,
-    USART,
-};
+use lpc82x_hal::Peripherals;
+use lpc82x_hal::usart::BaudRate;
 
 
 entry!(main);
 
 fn main() -> ! {
-    let peripherals = raw::Peripherals::take().unwrap();
+    let mut p = Peripherals::take().unwrap();
 
-    let mut syscon = SYSCON::new(peripherals.SYSCON);
-    let     swm    = SWM::new(peripherals.SWM).split();
-    let     usart0 = USART::new(peripherals.USART0);
-
-    let mut syscon     = syscon.split();
+    let     swm        = p.swm.split();
+    let mut syscon     = p.syscon.split();
     let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 
     // Set baud rate to 115200 baud
@@ -84,7 +74,7 @@ fn main() -> ! {
     // Initialize USART0. This should never fail, as the only reason `init`
     // returns a `Result::Err` is when the transmitter is busy, which it
     // shouldn't be right now.
-    let mut serial = usart0
+    let mut serial = p.usart0
         .enable(
             &baud_rate,
             &mut syscon.handle,

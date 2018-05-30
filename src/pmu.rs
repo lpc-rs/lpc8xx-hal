@@ -10,12 +10,12 @@
 //! extern crate lpc82x;
 //! extern crate lpc82x_hal;
 //!
-//! use lpc82x_hal::PMU;
+//! use lpc82x_hal::Peripherals;
 //!
 //! let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
-//! let mut peripherals      = lpc82x::Peripherals::take().unwrap();
+//! let mut peripherals      = Peripherals::take().unwrap();
 //!
-//! let mut pmu = PMU::new(peripherals.PMU).split();
+//! let mut pmu = peripherals.pmu.split();
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.

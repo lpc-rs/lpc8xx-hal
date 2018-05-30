@@ -15,20 +15,13 @@
 //! extern crate lpc82x_hal;
 //!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::{
-//!     GPIO,
-//!     SWM,
-//!     SYSCON,
-//! };
+//! use lpc82x_hal::Peripherals;
 //!
-//! let mut peripherals = lpc82x::Peripherals::take().unwrap();
+//! let mut p = Peripherals::take().unwrap();
 //!
-//! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-//! let     swm    = SWM::new(peripherals.SWM).split();
-//! let mut syscon = SYSCON::new(peripherals.SYSCON);
-//!
-//! let mut syscon      = syscon.split();
-//! let     gpio_handle = gpio.enable(&mut syscon.handle);
+//! let mut syscon      = p.syscon.split();
+//! let     swm         = p.swm.split();
+//! let     gpio_handle = p.gpio.enable(&mut syscon.handle);
 //!
 //! let pio0_12 = unsafe { swm.pins.pio0_12.affirm_default_state() }
 //!     .into_gpio_pin(&gpio_handle)
@@ -43,19 +36,12 @@
 //! extern crate lpc82x_hal;
 //!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::{
-//!     GPIO,
-//!     SWM,
-//!     SYSCON,
-//! };
+//! use lpc82x_hal::Peripherals;
 //!
-//! let mut peripherals = lpc82x::Peripherals::take().unwrap();
+//! let mut p = Peripherals::take().unwrap();
 //!
-//! let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-//! let     swm    = SWM::new(peripherals.SWM).split();
-//! let mut syscon = SYSCON::new(peripherals.SYSCON);
-//!
-//! let mut syscon     = syscon.split();
+//! let mut syscon     = p.syscon.split();
+//! let     swm        = p.swm.split();
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! let vddcmp = unsafe {
@@ -200,20 +186,13 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// # extern crate lpc82x;
     /// # extern crate lpc82x_hal;
     /// #
-    /// # use lpc82x_hal::{
-    /// #     GPIO,
-    /// #     SWM,
-    /// #     SYSCON,
-    /// # };
+    /// # use lpc82x_hal::Peripherals;
     /// #
-    /// # let mut peripherals = lpc82x::Peripherals::take().unwrap();
+    /// # let mut p = Peripherals::take().unwrap();
     /// #
-    /// # let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    /// # let     swm    = SWM::new(peripherals.SWM).split();
-    /// # let mut syscon = SYSCON::new(peripherals.SYSCON);
-    /// #
-    /// # let mut syscon      = syscon.split();
-    /// # let     gpio_handle = gpio.enable(&mut syscon.handle);
+    /// # let mut syscon      = p.syscon.split();
+    /// # let     swm         = p.swm.split();
+    /// # let     gpio_handle = p.gpio.enable(&mut syscon.handle);
     /// #
     /// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
     /// #     .into_gpio_pin(&gpio_handle);

@@ -11,13 +11,7 @@ extern crate panic_abort;
 use cortex_m_rt::ExceptionFrame;
 
 use lpc82x_hal::prelude::*;
-use lpc82x_hal::{
-    raw,
-    GPIO,
-    SWM,
-    SYSCON,
-    WKT,
-};
+use lpc82x_hal::Peripherals;
 use lpc82x_hal::clock::Ticks;
 use lpc82x_hal::sleep;
 
@@ -27,20 +21,15 @@ entry!(main);
 fn main() -> ! {
     // Create the struct we're going to use to access all the peripherals. This
     // is unsafe, because we're only allowed to create one instance.
-    let peripherals = raw::Peripherals::take().unwrap();
-
-    // Create the peripheral interfaces.
-    let     gpio   = GPIO::new(peripherals.GPIO_PORT);
-    let     swm    = SWM::new(peripherals.SWM).split();
-    let mut syscon = SYSCON::new(peripherals.SYSCON);
-    let     wkt    = WKT::new(peripherals.WKT);
+    let mut p = Peripherals::take().unwrap();
 
     // Other peripherals need to be initialized. Trying to use the API before
     // initializing them will actually lead to compile-time errors.
-    let mut syscon     = syscon.split();
-    let     gpio       = gpio.enable(&mut syscon.handle);
+    let     swm        = p.swm.split();
+    let mut syscon     = p.syscon.split();
+    let     gpio       = p.gpio.enable(&mut syscon.handle);
     let mut swm_handle = swm.handle.enable(&mut syscon.handle);
-    let mut wkt        = wkt.enable(&mut syscon.handle);
+    let mut wkt        = p.wkt.enable(&mut syscon.handle);
 
     // We're going to need a clock for sleeping. Let's use the IRC-derived clock
     // that runs at 750 kHz.

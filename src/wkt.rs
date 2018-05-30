@@ -10,18 +10,12 @@
 //! extern crate nb;
 //!
 //! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::{
-//!     SYSCON,
-//!     WKT,
-//! };
+//! use lpc82x_hal::Peripherals;
 //!
-//! let mut peripherals = lpc82x::Peripherals::take().unwrap();
+//! let mut p = Peripherals::take().unwrap();
 //!
-//! let mut syscon = SYSCON::new(peripherals.SYSCON);
-//! let     timer  = WKT::new(peripherals.WKT);
-//!
-//! let mut syscon = syscon.split();
-//! let mut timer  = timer.enable(&mut syscon.handle);
+//! let mut syscon = p.syscon.split();
+//! let mut timer  = p.wkt.enable(&mut syscon.handle);
 //!
 //! // Start the timer at 750000. Sine the IRC-derived clock runs at 750 kHz,
 //! // this translates to a one second wait.
