@@ -162,7 +162,7 @@
 //! // Let's affirm that we haven't changed anything, and that PIO0_3 and SWCLK
 //! // are still in their initial states.
 //! let pio0_3 = swm.pins.pio0_3;
-//! let swclk  = unsafe { swm.fixed_functions.swclk.affirm_default_state() };
+//! let swclk  = swm.fixed_functions.swclk;
 //!
 //! // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
 //! let (_, pio0_3) = swclk

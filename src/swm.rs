@@ -459,9 +459,7 @@ pins!(
 /// # let mut syscon     = p.syscon.split();
 /// # let mut swm        = p.swm.split();
 /// #
-/// # let xtalout = unsafe {
-/// #     swm.fixed_functions.xtalout.affirm_default_state()
-/// # };
+/// # let xtalout = swm.fixed_functions.xtalout;
 /// # let u0_rxd = swm.movable_functions.u0_rxd;
 /// # let u1_rxd = swm.movable_functions.u1_rxd;
 /// # let u0_txd = swm.movable_functions.u0_txd;
@@ -501,9 +499,7 @@ pins!(
 /// # let mut syscon     = p.syscon.split();
 /// # let mut swm        = p.swm.split();
 /// #
-/// # let adc_2 = unsafe {
-/// #     swm.fixed_functions.adc_2.affirm_default_state()
-/// # };
+/// # let adc_2 = swm.fixed_functions.adc_2;
 /// #
 /// // Transition pin into ADC state
 /// let pio0_14 = swm.pins.pio0_14
@@ -1165,7 +1161,7 @@ macro_rules! fixed_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct FixedFunctions {
-            $(pub $field: Function<$type, state::Unknown>,)*
+            $(pub $field: Function<$type, $default_state>,)*
         }
 
         impl FixedFunctions {
@@ -1184,10 +1180,6 @@ macro_rules! fixed_functions {
             /// Represents a fixed function
             #[allow(non_camel_case_types)]
             pub struct $type(());
-
-            impl DefaultState for $type {
-                type DefaultState = $default_state;
-            }
 
             impl FunctionTrait<$pin> for $type {
                 type Kind = $kind;

@@ -42,9 +42,7 @@
 //! let mut syscon     = p.syscon.split();
 //! let mut swm        = p.swm.split();
 //!
-//! let vddcmp = unsafe {
-//!     swm.fixed_functions.vddcmp.affirm_default_state()
-//! };
+//! let vddcmp = swm.fixed_functions.vddcmp;
 //! let pio0_6 = swm.pins.pio0_6
 //!     .into_swm_pin();
 //! vddcmp.assign(pio0_6, &mut swm.handle);
