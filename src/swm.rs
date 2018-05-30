@@ -842,25 +842,6 @@ pub struct Function<T, State> {
     _state: State,
 }
 
-impl<T> Function<T, state::Unknown> where T: DefaultState {
-    /// Affirm that the movable function is in its default state
-    ///
-    /// By calling this method, the user promises that the movable function is
-    /// in its default state. This is safe to do, if nothing has changed that
-    /// state before the HAL has been initialized.
-    ///
-    /// If the movable function's state has been changed by any other means than
-    /// the HAL API, then the user must use those means to return the movable
-    /// function to its default state, as specified in the user manual, before
-    /// calling this method.
-    pub unsafe fn affirm_default_state(self) -> Function<T, T::DefaultState> {
-        Function {
-            ty    : self.ty,
-            _state: state::State::new(),
-        }
-    }
-}
-
 impl<T> Function<T, state::Unassigned> {
     /// Assign the movable function to a pin
     ///
@@ -921,13 +902,6 @@ impl<T, P> Function<T, state::Assigned<P>> {
 
         (function, pin.unassign())
     }
-}
-
-
-/// Implemented by all functions
-pub trait DefaultState {
-    /// The default state of this function
-    type DefaultState: state::State;
 }
 
 
@@ -1243,17 +1217,6 @@ pub mod state {
         /// This method is intended for internal use. Any changes to this method
         /// won't be considered breaking changes.
         fn new() -> Self;
-    }
-
-
-    /// Indicates that the current state of the movable function is unknown
-    ///
-    /// This is the case after the HAL is initialized, as we can't know what
-    /// happened before that.
-    pub struct Unknown;
-
-    impl State for Unknown {
-        fn new() -> Self { Unknown }
     }
 
 
