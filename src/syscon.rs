@@ -467,7 +467,7 @@ impl IrcDerivedClock<init_state::Enabled> {
     }
 }
 
-impl<State> IrcDerivedClock<State> where State: init_state::NotEnabled {
+impl IrcDerivedClock<init_state::Disabled> {
     /// Enable the IRC-derived clock
     ///
     /// This method is only available if the IRC-derived clock is not already

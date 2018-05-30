@@ -135,7 +135,7 @@ impl LowPowerClock<init_state::Disabled> {
     }
 }
 
-impl<State> LowPowerClock<State> where State: init_state::NotEnabled {
+impl LowPowerClock<init_state::Disabled> {
     /// Enable the low-power clock
     ///
     /// This method is only available if the low-power clock is not already
@@ -161,7 +161,7 @@ impl<State> LowPowerClock<State> where State: init_state::NotEnabled {
     }
 }
 
-impl<State> LowPowerClock<State> where State: init_state::NotDisabled {
+impl LowPowerClock<init_state::Enabled> {
     /// Disable the low-power clock
     ///
     /// This method is only available if the low-power clock is not already
