@@ -316,9 +316,7 @@ pins!(
 /// # let mut swm        = p.swm.split();
 /// #
 /// // Assign a movable function to this pin
-/// let clkout = unsafe {
-///     swm.movable_functions.clkout.affirm_default_state()
-/// };
+/// let clkout = swm.movable_functions.clkout;
 /// let (_, pin) = clkout.assign(
 ///     swm.pins.pio0_12.into_swm_pin(),
 ///     &mut swm.handle,
@@ -464,15 +462,9 @@ pins!(
 /// # let xtalout = unsafe {
 /// #     swm.fixed_functions.xtalout.affirm_default_state()
 /// # };
-/// # let u0_rxd = unsafe {
-/// #     swm.movable_functions.u0_rxd.affirm_default_state()
-/// # };
-/// # let u1_rxd = unsafe {
-/// #     swm.movable_functions.u1_rxd.affirm_default_state()
-/// # };
-/// # let u0_txd = unsafe {
-/// #     swm.movable_functions.u0_txd.affirm_default_state()
-/// # };
+/// # let u0_rxd = swm.movable_functions.u0_rxd;
+/// # let u1_rxd = swm.movable_functions.u1_rxd;
+/// # let u0_txd = swm.movable_functions.u0_txd;
 /// #
 /// // Put PIO0_9 into the SWM state
 /// let pin = swm.pins.pio0_9
@@ -1026,7 +1018,7 @@ macro_rules! movable_functions {
         /// [`SWM`]: struct.SWM.html
         #[allow(missing_docs)]
         pub struct MovableFunctions {
-            $(pub $field: Function<$type, state::Unknown>,)*
+            $(pub $field: Function<$type, state::Unassigned>,)*
         }
 
         impl MovableFunctions {
@@ -1034,7 +1026,7 @@ macro_rules! movable_functions {
                 MovableFunctions {
                     $($field: Function {
                         ty    : $type(()),
-                        _state: state::Unknown,
+                        _state: state::Unassigned,
                     },)*
                 }
             }
@@ -1045,10 +1037,6 @@ macro_rules! movable_functions {
             /// Represents a movable function
             #[allow(non_camel_case_types)]
             pub struct $type(());
-
-            impl DefaultState for $type {
-                type DefaultState = state::Unassigned;
-            }
 
             impl_function!($type, $kind, $reg_name, $reg_field, PIO0_0 );
             impl_function!($type, $kind, $reg_name, $reg_field, PIO0_1 );

@@ -62,8 +62,8 @@ fn main() -> ! {
     // We also need to provide USART0's movable functions. Those need to be
     // unassigned, and since they are unassigned by default, we just need to
     // promise the API that we didn't change them.
-    let u0_rxd = unsafe { swm.movable_functions.u0_rxd.affirm_default_state() };
-    let u0_txd = unsafe { swm.movable_functions.u0_txd.affirm_default_state() };
+    let u0_rxd = swm.movable_functions.u0_rxd;
+    let u0_txd = swm.movable_functions.u0_txd;
 
     let (u0_rxd, _) = u0_rxd.assign(pio0_0, &mut swm.handle);
     let (u0_txd, _) = u0_txd.assign(pio0_4, &mut swm.handle);
