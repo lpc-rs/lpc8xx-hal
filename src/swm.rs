@@ -187,7 +187,7 @@ macro_rules! pins {
         /// [`GPIO`]: struct.GPIO.html
         #[allow(missing_docs)]
         pub struct Pins {
-            $(pub $field: Pin<$type, pin_state::Unknown>,)*
+            $(pub $field: Pin<$type, $default_state>,)*
         }
 
         impl Pins {
@@ -196,7 +196,7 @@ macro_rules! pins {
                     $(
                         $field: Pin {
                             ty   : $type(()),
-                            state: pin_state::Unknown,
+                            state: $default_state_val,
                         },
                     )*
                 }
@@ -305,12 +305,8 @@ pins!(
 ///     Pin,
 /// };
 ///
-/// // The pin starts out in the unknown state
-/// let pin: Pin<PIO0_12, pin_state::Unknown> = swm.pins.pio0_12;
-///
 /// // After we promise we didn't mess with the pin, the API knows it's unused
-/// let pin: Pin<PIO0_12, pin_state::Unused> =
-///     unsafe { pin.affirm_default_state() };
+/// let pin: Pin<PIO0_12, pin_state::Unused> = swm.pins.pio0_12;
 /// ```
 ///
 /// Once the API knows the pin's state, we can use its methods to configure it.
@@ -329,14 +325,14 @@ pins!(
 /// # let mut syscon     = p.syscon.split();
 /// # let mut swm        = p.swm.split();
 /// #
-/// // Reassure the API that the pin is in its default state, i.e. unused.
-/// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() };
-///
 /// // Assign a movable function to this pin
 /// let clkout = unsafe {
 ///     swm.movable_functions.clkout.affirm_default_state()
 /// };
-/// let (_, pin) = clkout.assign(pin.into_swm_pin(), &mut swm.handle);
+/// let (_, pin) = clkout.assign(
+///     swm.pins.pio0_12.into_swm_pin(),
+///     &mut swm.handle,
+/// );
 ///
 /// // As long as the movable function is assigned, we can't use the pin for
 /// // general-purpose I/O. Therefore the following method call would cause a
@@ -370,7 +366,7 @@ pins!(
 /// let mut swm         = p.swm.split();
 ///
 /// // Affirm that pin is unused, then transition to the GPIO state
-/// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
+/// let pin = swm.pins.pio0_12
 ///     .into_gpio_pin(&p.gpio);
 /// ```
 ///
@@ -400,7 +396,7 @@ pins!(
 /// # let mut syscon      = p.syscon.split();
 /// # let mut swm         = p.swm.split();
 /// #
-/// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
+/// # let pin = swm.pins.pio0_12
 /// #     .into_gpio_pin(&p.gpio);
 /// #
 /// use lpc82x_hal::prelude::*;
@@ -442,7 +438,7 @@ pins!(
 /// # let swm = p.swm.split();
 /// #
 /// // Affirm that the pin is unused, then transition to the SWM state
-/// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
+/// let pin = swm.pins.pio0_12
 ///     .into_swm_pin();
 /// ```
 ///
@@ -489,7 +485,7 @@ pins!(
 /// # };
 /// #
 /// // Put PIO0_9 into the SWM state
-/// let pin = unsafe { swm.pins.pio0_9.affirm_default_state() }
+/// let pin = swm.pins.pio0_9
 ///     .into_swm_pin();
 ///
 /// // Enable this pin's fixed function, which is an output function.
@@ -528,7 +524,7 @@ pins!(
 /// # };
 /// #
 /// // Transition pin into ADC state
-/// let pio0_14 = unsafe { swm.pins.pio0_14.affirm_default_state() }
+/// let pio0_14 = swm.pins.pio0_14
 ///     .into_swm_pin();
 /// adc_2.assign(pio0_14, &mut swm.handle);
 /// ```
@@ -612,12 +608,6 @@ impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
     /// let pio0_3  = swm.pins.pio0_3;
     /// let pio0_12 = swm.pins.pio0_12;
     ///
-    /// // Since we didn't change the pin configuration, nor called any code
-    /// // that did, we can safely affirm that the pins are in their default
-    /// // state.
-    /// let pio0_3  = unsafe { pio0_3.affirm_default_state()  };
-    /// let pio0_12 = unsafe { pio0_12.affirm_default_state() };
-    ///
     /// // PIO0_12 happens to be unused by default, which means it is ready to
     /// // be transitioned into another state now. However, PIO0_3 has its fixed
     /// // function enabled by default. If we want to use it for something else,
@@ -664,7 +654,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// #
     /// let swm = p.swm.split();
     ///
-    /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
+    /// let pin = swm.pins.pio0_12
     ///     .into_gpio_pin(&p.gpio);
     ///
     /// // `pin` is now available for general-purpose I/O
@@ -712,7 +702,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// #
     /// let swm = p.swm.split();
     ///
-    /// let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
+    /// let pin = swm.pins.pio0_12
     ///     .into_swm_pin();
     ///
     /// // `pin` is now ready for function assignment

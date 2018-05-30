@@ -22,7 +22,7 @@
 //! let mut syscon      = p.syscon.split();
 //! let     swm         = p.swm.split();
 //!
-//! let pio0_12 = unsafe { swm.pins.pio0_12.affirm_default_state() }
+//! let pio0_12 = swm.pins.pio0_12
 //!     .into_gpio_pin(&p.gpio)
 //!     .into_output()
 //!     .set_high();
@@ -45,7 +45,7 @@
 //! let vddcmp = unsafe {
 //!     swm.fixed_functions.vddcmp.affirm_default_state()
 //! };
-//! let pio0_6 = unsafe { swm.pins.pio0_6.affirm_default_state() }
+//! let pio0_6 = swm.pins.pio0_6
 //!     .into_swm_pin();
 //! vddcmp.assign(pio0_6, &mut swm.handle);
 //! ```
@@ -190,7 +190,7 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// # let mut syscon      = p.syscon.split();
     /// # let     swm         = p.swm.split();
     /// #
-    /// # let pin = unsafe { swm.pins.pio0_12.affirm_default_state() }
+    /// # let pin = swm.pins.pio0_12
     /// #     .into_gpio_pin(&p.gpio);
     /// #
     /// use lpc82x_hal::prelude::*;
