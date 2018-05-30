@@ -166,7 +166,7 @@ macro_rules! pins {
         $field:ident,
         $type:ident,
         $id:expr,
-        $default_state:ty,
+        $default_state_ty:ty,
         $default_state_val:expr;
     )*) => {
         /// Provides access to all pins
@@ -187,7 +187,7 @@ macro_rules! pins {
         /// [`GPIO`]: struct.GPIO.html
         #[allow(missing_docs)]
         pub struct Pins {
-            $(pub $field: Pin<$type, $default_state>,)*
+            $(pub $field: Pin<$type, $default_state_ty>,)*
         }
 
         impl Pins {
@@ -220,7 +220,7 @@ macro_rules! pins {
             pub struct $type(());
 
             impl PinTrait for $type {
-                type DefaultState = $default_state;
+                type DefaultState = $default_state_ty;
 
                 const ID  : u8  = $id;
                 const MASK: u32 = 0x1 << $id;
