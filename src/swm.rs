@@ -136,9 +136,6 @@ impl Handle<init_state::Enabled> {
 ///
 /// [`Pin`]: struct.Pin.html
 pub trait PinTrait {
-    /// The default state of the pin after microcontroller initialization
-    type DefaultState: PinState;
-
     /// A number that identifies the pin
     ///
     /// This is `0` for [`PIO0_0`], `1` for [`PIO0_1`] and so forth.
@@ -155,9 +152,6 @@ pub trait PinTrait {
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO0_1`]: struct.PIO0_1.html
     const MASK: u32;
-
-    /// The initial value of the pin state after microcontroller initialization
-    const INITIAL_STATE: Self::DefaultState;
 }
 
 
@@ -220,12 +214,8 @@ macro_rules! pins {
             pub struct $type(());
 
             impl PinTrait for $type {
-                type DefaultState = $default_state_ty;
-
                 const ID  : u8  = $id;
                 const MASK: u32 = 0x1 << $id;
-
-                const INITIAL_STATE: Self::DefaultState = $default_state_val;
             }
         )*
     }
@@ -559,72 +549,6 @@ pub struct Pin<T: PinTrait, S: PinState> {
     pub(crate) state: S,
 }
 
-impl<T> Pin<T, pin_state::Unknown> where T: PinTrait {
-    /// Affirm that the pin is in its default state
-    ///
-    /// This method is only available, if the pin is in the unknown state. Code
-    /// that attempts to call this method while the pin is in any other state
-    /// will not compile.
-    ///
-    /// By calling this method, you promise that the pin's configuration has not
-    /// been changed from its default. For most pins, this means that the pin is
-    /// unused, but some pins are initially assigned to the switch matrix. This
-    /// method consumes the current pin instance and returns a new instance
-    /// whose state matches the pin's default configuration.
-    ///
-    /// Unless you have changed the pin's configuration before initializing the
-    /// HAL API, or have called some code that might have changed the
-    /// configuration, this method is safe to call.
-    ///
-    /// # Safety
-    ///
-    /// You MUST NOT call this method, if the pin configuration has been changed
-    /// from its default configuration. You can call this method again, after
-    /// you restore the pin to its default configuration.
-    ///
-    /// Calling this method while the pin's configuration deviates from the
-    /// default will create a `Pin` instance whose state doesn't match the
-    /// actual pin configuration. This can lead to any number of problems.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// # extern crate lpc82x;
-    /// # extern crate lpc82x_hal;
-    /// #
-    /// # use lpc82x_hal::Peripherals;
-    /// #
-    /// # let mut p = Peripherals::take().unwrap();
-    /// #
-    /// # let mut syscon     = p.syscon.split();
-    /// # let mut swm        = p.swm.split();
-    /// #
-    /// # let swclk = unsafe {
-    /// #     swm.fixed_functions.swclk.affirm_default_state()
-    /// # };
-    /// #
-    /// // These pins are in the unknown state. As long as that's the case, we
-    /// // can't do anything useful with them.
-    /// let pio0_3  = swm.pins.pio0_3;
-    /// let pio0_12 = swm.pins.pio0_12;
-    ///
-    /// // PIO0_12 happens to be unused by default, which means it is ready to
-    /// // be transitioned into another state now. However, PIO0_3 has its fixed
-    /// // function enabled by default. If we want to use it for something else,
-    /// // we need to transition it into the unused state before we can do so.
-    /// let pio0_3 = swclk
-    ///     .unassign(pio0_3, &mut swm.handle)
-    ///     .1 // also returns function; we're only interested in the pin
-    ///     .into_unused_pin();
-    /// ```
-    pub unsafe fn affirm_default_state(self) -> Pin<T, T::DefaultState> {
-        Pin {
-            ty   : self.ty,
-            state: T::INITIAL_STATE,
-        }
-    }
-}
-
 impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// Transition this pin instance to the GPIO state
     ///
@@ -849,19 +773,6 @@ pub mod pin_state {
     ///
     /// [`Pin`]: ../struct.Pin.html
     pub trait PinState {}
-
-
-    /// Marks a pin's state as being unknown
-    ///
-    /// As the HAL API can't know what happened to the hardware before the HAL
-    /// was initializized, this is the initial state of all pins.
-    ///
-    /// Please refer to [`Pin`] to see how this type is used.
-    ///
-    /// [`Pin`]: ../struct.Pin.html
-    pub struct Unknown;
-
-    impl PinState for Unknown {}
 
 
     /// Marks the pin as being unused
