@@ -95,8 +95,7 @@ pub struct GPIO<State: InitState = init_state::Enabled> {
 }
 
 impl GPIO<init_state::Unknown> {
-    /// Create an instance of `GPIO`
-    pub fn new(gpio: raw::GPIO_PORT) -> Self {
+    pub(crate) fn new(gpio: raw::GPIO_PORT) -> Self {
         GPIO {
             gpio  : gpio,
             _state: init_state::Unknown,

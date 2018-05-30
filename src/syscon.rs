@@ -32,8 +32,7 @@ pub struct SYSCON {
 }
 
 impl SYSCON {
-    /// Create an instance of `SYSCON`
-    pub fn new(syscon: raw::SYSCON) -> Self {
+    pub(crate) fn new(syscon: raw::SYSCON) -> Self {
         SYSCON { syscon }
     }
 

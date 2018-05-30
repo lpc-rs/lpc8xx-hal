@@ -133,8 +133,7 @@ pub struct USART<UsartX, State : InitState = init_state::Enabled> {
 impl<UsartX> USART<UsartX, init_state::Unknown>
     where UsartX: Peripheral,
 {
-    /// Create an instance of `USART`
-    pub fn new(usart: UsartX) -> Self {
+    pub(crate) fn new(usart: UsartX) -> Self {
         USART {
             usart : usart,
             _state: init_state::Unknown,

@@ -47,8 +47,7 @@ pub struct PMU {
 }
 
 impl PMU {
-    /// Create an instance of `PMU`
-    pub fn new(pmu: raw::PMU) -> Self {
+    pub(crate) fn new(pmu: raw::PMU) -> Self {
         PMU { pmu }
     }
 

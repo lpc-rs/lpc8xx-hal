@@ -60,8 +60,7 @@ pub struct WKT<State: InitState = init_state::Enabled> {
 }
 
 impl WKT<init_state::Unknown> {
-    /// Create an instance of `WKT`
-    pub fn new(wkt: raw::WKT) -> Self {
+    pub(crate) fn new(wkt: raw::WKT) -> Self {
         WKT {
             wkt   : wkt,
             _state: init_state::Unknown,

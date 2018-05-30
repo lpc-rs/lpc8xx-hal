@@ -25,8 +25,7 @@ pub struct SWM {
 }
 
 impl SWM {
-    /// Create an instance of `SWM`
-    pub fn new(swm: raw::SWM) -> Self {
+    pub(crate) fn new(swm: raw::SWM) -> Self {
         SWM { swm }
     }
 
