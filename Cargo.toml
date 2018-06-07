@@ -26,7 +26,7 @@ void         = { version = "1", default-features = false }
 
 [dev-dependencies]
 cortex-m-rt = "0.5"
-panic-abort = "0.1"
+panic-abort = "0.2"
 
 
 [features]
