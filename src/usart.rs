@@ -121,7 +121,7 @@ use syscon::{
 /// Please refer to the [module documentation] for more information.
 ///
 /// [module documentation]: index.html
-pub struct USART<UsartX, State : InitState = init_state::Enabled> {
+pub struct USART<UsartX, State: InitState = init_state::Enabled> {
     usart : UsartX,
     _state: State,
 }
