@@ -690,7 +690,7 @@ impl<T, F, O, Is> UnassignFunction<F, Input>
      for Pin<T, pin_state::Swm<O, (Is,)>>
      where
         T: PinTrait,
-        F: FunctionTrait<T, Kind=Output>,
+        F: FunctionTrait<T, Kind=Input>,
 {
     type Unassigned = Pin<T, pin_state::Swm<O, Is>>;
 
