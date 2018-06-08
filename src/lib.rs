@@ -230,6 +230,7 @@ pub extern crate lpc82x as raw;
 
 pub mod clock;
 pub mod gpio;
+pub mod i2c;
 pub mod pmu;
 pub mod sleep;
 pub mod swm;
@@ -250,6 +251,7 @@ pub use raw::{
 };
 
 pub use self::gpio::GPIO;
+pub use self::i2c::I2C;
 pub use self::pmu::PMU;
 pub use self::swm::SWM;
 pub use self::syscon::SYSCON;
@@ -317,6 +319,9 @@ pub struct Peripherals {
     /// General-purpose I/O (GPIO)
     pub gpio: GPIO<init_state::Enabled>,
 
+    /// I2C0-bus interface
+    pub i2c0: I2C<init_state::Disabled>,
+
     /// Power Management Unit
     pub pmu: PMU,
 
@@ -361,9 +366,6 @@ pub struct Peripherals {
 
     /// Flash controller
     pub flashctrl: raw::FLASHCTRL,
-
-    /// I2C0-bus interface
-    pub i2c0: raw::I2C0,
 
     /// I2C0-bus interface
     pub i2c1: raw::I2C1,
@@ -416,6 +418,7 @@ impl Peripherals {
         Peripherals {
             // HAL peripherals
             gpio  : GPIO::new(p.GPIO_PORT),
+            i2c0  : I2C::new(p.I2C0),
             pmu   : PMU::new(p.PMU),
             swm   : SWM::new(p.SWM),
             syscon: SYSCON::new(p.SYSCON),
@@ -431,7 +434,6 @@ impl Peripherals {
             dma       : p.DMA,
             dmatrigmux: p.DMATRIGMUX,
             flashctrl : p.FLASHCTRL,
-            i2c0      : p.I2C0,
             i2c1      : p.I2C1,
             i2c2      : p.I2C2,
             i2c3      : p.I2C3,

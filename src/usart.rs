@@ -86,6 +86,7 @@
 //! [`USART`]: struct.USART.html
 
 
+use core::fmt;
 use core::ops::Deref;
 
 use embedded_hal::blocking::serial::write::Default as BlockingWriteDefault;
@@ -120,7 +121,7 @@ use syscon::{
 /// Please refer to the [module documentation] for more information.
 ///
 /// [module documentation]: index.html
-pub struct USART<UsartX, State : InitState = init_state::Enabled> {
+pub struct USART<UsartX, State: InitState = init_state::Enabled> {
     usart : UsartX,
     _state: State,
 }
@@ -388,6 +389,19 @@ impl<UsartX> Write<u8> for USART<UsartX>
 impl<UsartX> BlockingWriteDefault<u8> for USART<UsartX>
     where UsartX: Peripheral,
 {}
+
+impl<UsartX> fmt::Write for USART<UsartX>
+    where
+        Self  : BlockingWriteDefault<u8>,
+        UsartX: Peripheral,
+{
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        use ::prelude::*;
+
+        self.bwrite_all(s.as_bytes())
+            .map_err(|_| fmt::Error)
+    }
+}
 
 
 /// Internal trait for USART peripherals

@@ -1,0 +1,153 @@
+//! I2C example using the VL53L0X distance sensor by ST
+//!
+//! This example expects the microcontroller to be connected to a VL53L0X
+//! satellite board in the following way:
+//! - PIO0_11/I2C0_SDA to SDA_I
+//! - PIO0_10/I2C0_SCL to SCL_I
+//! - VSS to GND
+//! - VDD to VDD
+//! - VDD to XSDN_I, via a 10 kOhm pull-up resistor
+
+
+#![no_main]
+#![no_std]
+
+
+#[macro_use]
+extern crate cortex_m_rt;
+extern crate lpc82x_hal;
+extern crate nb;
+extern crate panic_abort;
+
+
+use core::fmt::Write;
+
+use cortex_m_rt::ExceptionFrame;
+
+use lpc82x_hal::Peripherals;
+use lpc82x_hal::prelude::*;
+use lpc82x_hal::usart::BaudRate;
+
+
+entry!(main);
+
+fn main() -> ! {
+    let mut p = Peripherals::take().unwrap();
+
+    let     i2c    = p.i2c0;
+    let mut swm    = p.swm.split();
+    let mut syscon = p.syscon.split();
+
+    // Set baud rate to 115200 baud
+    //
+    // The common peripheral clock for all UART units, U_PCLK, needs to be set
+    // to 16 times the desired baud rate. This results in a frequency of
+    // 1843200 Hz for U_PLCK.
+    //
+    // We assume the main clock runs at 12 Mhz. To get close to the desired
+    // frequency for U_PLCK, we divide that by 6 using UARTCLKDIV, resulting in
+    // a frequency of 2 Mhz.
+    //
+    // To get to the desired 1843200 Hz, we need to further divide the frequency
+    // using the fractional baud rate generator. The fractional baud rate
+    // generator divides the frequency by `1 + MULT/DIV`.
+    //
+    // DIV must always be 256. To achieve this, we need to set the UARTFRGDIV to
+    // 0xff. MULT can then be fine-tuned to get as close as possible to the
+    // desired value. We choose the value 22, which we write into UARTFRGMULT.
+    //
+    // Finally, we can set an additional divider value for the UART unit by
+    // writing to the BRG register. As we are already close enough to the
+    // desired value, we write 0, resulting in no further division.
+    //
+    // All of this is somewhat explained in the user manual, section 13.3.1.
+    syscon.uartfrg.set_clkdiv(6);
+    syscon.uartfrg.set_frgmult(22);
+    syscon.uartfrg.set_frgdiv(0xff);
+
+    let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(
+        swm.pins.pio0_0.into_swm_pin(),
+        &mut swm.handle,
+    );
+    let (u0_txd, _) = swm.movable_functions.u0_txd.assign(
+        swm.pins.pio0_4.into_swm_pin(),
+        &mut swm.handle,
+    );
+
+    let serial = p.usart0
+        .enable(
+            &BaudRate::new(&syscon.uartfrg, 0),
+            &mut syscon.handle,
+            u0_rxd,
+            u0_txd,
+        );
+    let mut serial = match serial {
+        Ok(uart) =>
+            uart,
+        Err(nb::Error::WouldBlock) =>
+            // It blocks if the transmitter is busy, and there's no reason for
+            // that.
+            panic!("USART initialization shouldn't need to block"),
+
+        // This wasn't needed previously, because the compiler correctly
+        // recognized that the error type is `!`, which doesn't need to be
+        // handled. No idea why that changed.
+        Err(nb::Error::Other(_)) =>
+            unreachable!(),
+    };
+
+    serial.bwrite_all(b"Initializing I2C...\n")
+        .expect("Write should never fail");
+
+    let (i2c0_sda, _) = swm.fixed_functions.i2c0_sda.assign(
+        swm.pins.pio0_11.into_swm_pin(),
+        &mut swm.handle,
+    );
+    let (i2c0_scl, _) = swm.fixed_functions.i2c0_scl.assign(
+        swm.pins.pio0_10.into_swm_pin(),
+        &mut swm.handle,
+    );
+
+    let mut i2c = i2c.enable(&mut syscon.handle, i2c0_sda, i2c0_scl);
+
+    serial.bwrite_all(b"Writing data...\n")
+        .expect("Write should never fail");
+
+    // Write index of reference register
+    i2c.write(0x52, &[0xC0])
+        .expect("Failed to write data");
+
+    serial.bwrite_all(b"Receiving data...\n")
+        .expect("Write should never fail");
+
+    // Read value from reference register
+    let mut buffer = [0u8; 1];
+    i2c.read(0x52, &mut buffer)
+        .expect("Failed to read data");
+
+    write!(serial, "{:#X}\n", buffer[0])
+        .expect("Write should never fail");
+
+    if buffer[0] == 0xEE {
+        serial.bwrite_all(b"SUCCESS!\n")
+            .expect("Write should never fail");
+    }
+    else {
+        serial.bwrite_all(b"FAILURE!\n")
+            .expect("Write should never fail");
+    }
+
+    loop {}
+}
+
+
+exception!(*, default_handler);
+exception!(HardFault, handle_hard_fault);
+
+fn default_handler(irqn: i16) {
+    panic!("Unhandled exception or interrupt: {}", irqn);
+}
+
+fn handle_hard_fault(ef: &ExceptionFrame) -> ! {
+    panic!("{:#?}", ef);
+}
