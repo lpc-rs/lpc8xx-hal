@@ -16,12 +16,15 @@ fn main() {
     let mut syscon = p.syscon.split();
 
     let pio0_0: Pin<_, pin_state::Unused> = swm.pins.pio0_0;
-    let pio0_1: Pin<_, pin_state::Unused> = swm.pins.pio0_1;
 
     let u0_rxd: swm::Function<_, swm::state::Unassigned> =
         swm.movable_functions.u0_rxd;
 
-    let (u0_rxd, _) = u0_rxd.assign(pio0_0.into_swm_pin(), &mut swm.handle);
-    let (u0_rxd, _) = u0_rxd.unassign(pio0_1.into_swm_pin(), &mut swm.handle);
-    //~^ ERROR mismatched types [E0308]
+    let (u0_rxd, pio0_0) =
+        u0_rxd.assign(pio0_0.into_swm_pin(), &mut swm.handle);
+    let (u0_rxd, pio0_0) =
+        u0_rxd.unassign(pio0_0, &mut swm.handle);
+    let (u0_rxd, pio0_0) =
+        u0_rxd.unassign(pio0_0, &mut swm.handle);
+    //~^ ERROR no method named `unassign` found for type
 }
