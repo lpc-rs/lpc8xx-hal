@@ -105,8 +105,8 @@ impl Handle {
                 w.pm().default()
             );
 
-            // The SLEEPDEEP bit must not be set for entering regular sleep
-            // mode.
+            // The SLEEPDEEP bit must be cleared when entering regular sleep
+            // mode. See user manual, section 6.7.4.2.
             scb.clear_sleepdeep();
 
             asm::dsb();
