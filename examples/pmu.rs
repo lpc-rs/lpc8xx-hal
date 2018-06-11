@@ -6,6 +6,7 @@ extern crate cortex_m;
 #[macro_use]
 extern crate cortex_m_rt;
 extern crate lpc82x_hal;
+#[macro_use]
 extern crate nb;
 extern crate panic_abort;
 
@@ -20,6 +21,7 @@ use lpc82x_hal::{
 };
 use lpc82x_hal::pmu::LowPowerClock;
 use lpc82x_hal::raw::Interrupt;
+use lpc82x_hal::syscon::WktWakeup;
 use lpc82x_hal::usart::BaudRate;
 
 
@@ -59,15 +61,15 @@ fn main() -> ! {
 
     let _ = pmu.low_power_clock.enable(&mut pmu.handle);
 
-    // Need to re-assign PMU handle. Otherwise, the closure will try to capture
-    // all of `PMU`, which can't be moved because `low_power_clock` has been
-    // moved out of it in the previous assignment.
-    let mut pmu = pmu.handle;
-
     let mut wkt = p.wkt.enable(&mut syscon.handle);
     wkt.select_clock::<LowPowerClock>();
 
     let five_seconds: u32 = 10_000 * 5;
+
+    // Need to re-assign some stuff that's needed inside the closure. Otherwise
+    // it will try to move stuff that's still borrowed outside of it.
+    let mut pmu    = pmu.handle;
+    let mut syscon = syscon.handle;
 
     interrupt::free(|_| {
         cp.NVIC.enable(Interrupt::WKT);
@@ -83,6 +85,17 @@ fn main() -> ! {
         cp.NVIC.clear_pending(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
             pmu.enter_sleep_mode(&mut cp.SCB);
+        }
+
+        serial.bwrite_all(b"5 seconds of deep-sleep mode...\n")
+            .expect("UART write shouldn't fail");
+        block!(serial.flush())
+            .expect("Flush shouldn't fail");
+        syscon.enable_interrupt_wakeup::<WktWakeup>();
+        wkt.start(five_seconds);
+        cp.NVIC.clear_pending(Interrupt::WKT);
+        while let Err(nb::Error::WouldBlock) = wkt.wait() {
+            unsafe { pmu.enter_deep_sleep_mode(&mut cp.SCB) };
         }
 
         serial.bwrite_all(b"Done\n")
