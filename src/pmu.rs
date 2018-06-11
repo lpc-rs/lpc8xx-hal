@@ -153,6 +153,46 @@ impl Handle {
             asm::wfi();
         })
     }
+
+    /// Enter power-down mode
+    ///
+    /// The microcontroller will wake up from power-down mode, if an
+    /// NVIC-enabled interrupt occurs. See user manual, section 6.7.6.3.
+    ///
+    /// # Limitations
+    ///
+    /// According to the user manual, section 6.7.6.2, the IRC must be selected
+    /// as the main clock before entering deep-sleep mode.
+    ///
+    /// If you intend to wake up from this mode again, you need to configure the
+    /// STARTERP0 and STARTERP1 registers of the SYSCON appropriately. See user
+    /// manual, section 6.5.1.
+    ///
+    /// # Safety
+    ///
+    /// The configuration of various peripherals after wake-up is controlled by
+    /// the PDAWAKECFG register. If the configuration in that register doesn't
+    /// match the peripheral states in this API, you can confuse the API into
+    /// believing that peripherals have a different state than they actually
+    /// have which can lead to all kinds of adverse consequences.
+    ///
+    /// Please make sure that the peripheral states configured in PDAWAKECFG
+    /// match the peripheral states as tracked by the API before calling this
+    /// method.
+    pub unsafe fn enter_power_down_mode(&mut self, scb: &mut raw::SCB) {
+        interrupt::free(|_| {
+            self.pmu.pcon.modify(|_, w|
+                w.pm().power_down_mode()
+            );
+
+            // The SLEEPDEEP bit must be set for entering regular sleep mode.
+            // See user manual, section 6.7.5.2.
+            scb.set_sleepdeep();
+
+            asm::dsb();
+            asm::wfi();
+        })
+    }
 }
 
 

@@ -87,15 +87,28 @@ fn main() -> ! {
             pmu.enter_sleep_mode(&mut cp.SCB);
         }
 
+        // Without this, the WKT interrupt won't wake up the system from
+        // deep-sleep and power-down modes.
+        syscon.enable_interrupt_wakeup::<WktWakeup>();
+
         serial.bwrite_all(b"5 seconds of deep-sleep mode...\n")
             .expect("UART write shouldn't fail");
         block!(serial.flush())
             .expect("Flush shouldn't fail");
-        syscon.enable_interrupt_wakeup::<WktWakeup>();
         wkt.start(five_seconds);
         cp.NVIC.clear_pending(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
             unsafe { pmu.enter_deep_sleep_mode(&mut cp.SCB) };
+        }
+
+        serial.bwrite_all(b"5 seconds of power-down mode...\n")
+            .expect("UART write shouldn't fail");
+        block!(serial.flush())
+            .expect("Flush shouldn't fail");
+        wkt.start(five_seconds);
+        cp.NVIC.clear_pending(Interrupt::WKT);
+        while let Err(nb::Error::WouldBlock) = wkt.wait() {
+            unsafe { pmu.enter_power_down_mode(&mut cp.SCB) };
         }
 
         serial.bwrite_all(b"Done\n")
