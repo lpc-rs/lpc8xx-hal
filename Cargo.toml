@@ -48,6 +48,10 @@ name              = "i2c_vl53l0x"
 required-features = ["rt"]
 
 [[example]]
+name              = "pmu"
+required-features = ["rt"]
+
+[[example]]
 name              = "usart"
 required-features = ["rt"]
 
