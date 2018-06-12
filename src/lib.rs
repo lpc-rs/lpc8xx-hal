@@ -208,7 +208,7 @@ pub mod prelude {
 }
 
 
-/// Contains types that encode the state hardware initialization
+/// Contains types that encode the state of hardware initialization
 ///
 /// The types in this module are used by structs representing peripherals or
 /// other hardware components, to encode the initialization state of the
