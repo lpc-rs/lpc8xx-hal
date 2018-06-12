@@ -10,7 +10,7 @@
 //!
 //! ``` toml
 //! [dependencies]
-//! lpc82x-hal = "0.1"
+//! lpc82x-hal = "0.2"
 //! ```
 //!
 //! With that in place, you can just reference the crate in your Rust code, like
@@ -26,7 +26,7 @@
 //!
 //! Please note that LPC82x HAL is an implementation of [embedded-hal]. If your
 //! library is not specific to LPC82x, please consider depending on embedded-hal
-//! instead. Doing so means that your library will work on top of all
+//! instead. Doing so means that your library should work on top of all
 //! embedded-hal implementations.
 //!
 //! ## Using LPC82x HAL in an Application
@@ -44,7 +44,7 @@
 //!
 //! ``` toml
 //! [dependencies.lpc82x-hal]
-//! version  = "0.1"
+//! version  = "0.2"
 //! features = ["rt"]
 //! ```
 //!
@@ -79,7 +79,10 @@
 //! $ rustup target add thumbv6m-none-eabi
 //! ```
 //!
-//! Additionally, you need to tell Cargo how to link your project. Create the
+//! This will install the precompiled core library we need, enabling us to
+//! cross-compile binaries for the LPC82x.
+//!
+//! Additionally, we need to tell Cargo how to link your project. Create the
 //! file `.cargo/config` in your project directory, and add the following
 //! contents:
 //!
