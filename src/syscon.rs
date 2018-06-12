@@ -14,9 +14,11 @@ use raw;
 use raw::syscon::{
     pdruncfg,
     presetctrl,
+    starterp1,
     sysahbclkctrl,
     PDRUNCFG,
     PRESETCTRL,
+    STARTERP1,
     SYSAHBCLKCTRL,
     UARTCLKDIV,
     UARTFRGDIV,
@@ -40,6 +42,7 @@ impl SYSCON {
             handle: Handle {
                 pdruncfg     : &self.syscon.pdruncfg,
                 presetctrl   : &self.syscon.presetctrl,
+                starterp1    : &self.syscon.starterp1,
                 sysahbclkctrl: &self.syscon.sysahbclkctrl,
             },
 
@@ -116,6 +119,7 @@ pub struct Parts<'syscon> {
 pub struct Handle<'syscon> {
     pdruncfg     : &'syscon PDRUNCFG,
     presetctrl   : &'syscon PRESETCTRL,
+    starterp1    : &'syscon STARTERP1,
     sysahbclkctrl: &'syscon SYSAHBCLKCTRL,
 }
 
@@ -159,6 +163,22 @@ impl<'r> Handle<'r> {
     /// Remove power from an analog block
     pub fn power_down<P: AnalogBlock>(&mut self, peripheral: &mut P) {
         self.pdruncfg.modify(|_, w| peripheral.power_down(w));
+    }
+
+    /// Enable interrupt wake-up from deep-sleep and power-down modes
+    ///
+    /// To use an interrupt for waking up the system from the deep-sleep and
+    /// power-down modes, it needs to be enabled using this method, in addition
+    /// to being enabled in the NVIC.
+    ///
+    /// This method is not required when using the regular sleep mode.
+    pub fn enable_interrupt_wakeup<I>(&mut self) where I: WakeUpInterrupt {
+        self.starterp1.modify(|_, w| I::enable(w));
+    }
+
+    /// Disable interrupt wake-up from deep-sleep and power-down modes
+    pub fn disable_interrupt_wakeup<I>(&mut self) where I: WakeUpInterrupt {
+        self.starterp1.modify(|_, w| I::disable(w));
     }
 }
 
@@ -501,3 +521,43 @@ impl<State> clock::Frequency for IrcDerivedClock<State>
 }
 
 impl clock::Enabled for IrcDerivedClock<init_state::Enabled> {}
+
+
+/// Internal trait used to configure interrupt wake-up
+pub trait WakeUpInterrupt {
+    /// Internal method
+    fn enable(w: &mut starterp1::W) -> &mut starterp1::W;
+
+    /// Internal method
+    fn disable(w: &mut starterp1::W) -> &mut starterp1::W;
+}
+
+macro_rules! wakeup_interrupt {
+    ($name:ident, $field:ident) => {
+        /// Can be used to enable/disable interrupt wake-up behavior
+        pub struct $name;
+
+        impl WakeUpInterrupt for $name {
+            fn enable(w: &mut starterp1::W) -> &mut starterp1::W {
+                w.$field().enabled()
+            }
+
+            fn disable(w: &mut starterp1::W) -> &mut starterp1::W {
+                w.$field().disabled()
+            }
+        }
+    }
+}
+
+wakeup_interrupt!(Spi0Wakeup  , spi0);
+wakeup_interrupt!(Spi1Wakeup  , spi1);
+wakeup_interrupt!(Usart0Wakeup, usart0);
+wakeup_interrupt!(Usart1Wakeup, usart1);
+wakeup_interrupt!(Usart2Wakeup, usart2);
+wakeup_interrupt!(I2c1Wakeup  , i2c1  );
+wakeup_interrupt!(I2c0Wakeup  , i2c0  );
+wakeup_interrupt!(WwdtWakeup  , wwdt  );
+wakeup_interrupt!(BodWakeup   , bod   );
+wakeup_interrupt!(WktWakeup   , wkt   );
+wakeup_interrupt!(I2c2Wakeup  , i2c2  );
+wakeup_interrupt!(I2c3Wakeup  , i2c3  );
