@@ -84,6 +84,9 @@
 //! contents:
 //!
 //! ``` toml
+//! [build]
+//! target = "thumbv6m-none-eabi"
+//!
 //! [target.thumbv6m-none-eabi]
 //! rustflags = [
 //!     "-C", "link-arg=-Tlink.x",
@@ -100,7 +103,7 @@
 //! following command:
 //!
 //! ``` ignore
-//! $ cargo build --release --target=thumbv6m-none-eabi
+//! $ cargo build --release
 //! ```
 //!
 //! ### Uploading the Binary
