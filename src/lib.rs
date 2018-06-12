@@ -69,29 +69,15 @@
 //!
 //! ### Build System
 //!
-//! The build system needs to be set up to compile and link a binary for LPC82x.
-//! Cargo alone is not enough for this, as its support for embedded development
-//! is currently limited. [Xargo] exists to fill the gap in the meantime. You
-//! can install it using Cargo:
+//! The LPC82x is a Cortex-M0+ microcontroller, which means it has an ARMv6-M
+//! core. In order to compile and link a binary for that architecture, we need
+//! to install a precompiled Rust core library.
+//!
+//! The following example assumes you installed Rust using [rustup].
 //!
 //! ``` ignore
-//! $ cargo install xargo
+//! $ rustup target add thumbv6m-none-eabi
 //! ```
-//!
-//! Add a new file, `Xargo.toml` right next to your `Cargo.toml`, with the
-//! following contents:
-//!
-//! ``` toml
-//! [dependencies.core]
-//! stage = 0
-//!
-//! [dependencies.compiler_builtins]
-//! stage    = 1
-//! features = ["c", "mem"]
-//! ```
-//!
-//! You might not need all those optional features of `compiler_builtin`, so
-//! feel free to experiment.
 //!
 //! Additionally, you need to tell Cargo how to link your project. Create the
 //! file `.cargo/config` in your project directory, and add the following
@@ -114,7 +100,7 @@
 //! following command:
 //!
 //! ``` ignore
-//! $ xargo build --release --target=thumbv6m-none-eabi
+//! $ cargo build --release --target=thumbv6m-none-eabi
 //! ```
 //!
 //! ### Uploading the Binary
@@ -203,7 +189,7 @@
 //! [embedded-hal]: https://crates.io/crates/embedded-hal
 //! [cortex-m-quickstart]: https://github.com/japaric/cortex-m-quickstart
 //! [cortex-m-rt]: https://crates.io/crates/cortex-m-rt
-//! [Xargo]: https://crates.io/crates/xargo
+//! [rustup]: https://rustup.rs/
 //! [This fork of lpc21isp]: https://github.com/hannobraun/lpc21isp
 //! [available from NXP]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
 
