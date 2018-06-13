@@ -4,6 +4,45 @@
 //! important things missing. Please be careful when using this API.
 //!
 //! The I2C peripherals are described in the user manual, chapter 15.
+//!
+//! # Examples
+//!
+//! Write data to an I2C slave:
+//!
+//! ``` no_run
+//! # let address = 0x0;
+//! # let data    = [0; 8];
+//! #
+//! use lpc82x_hal::prelude::*;
+//! use lpc82x_hal::Peripherals;
+//!
+//! let mut p = Peripherals::take().unwrap();
+//!
+//! let mut swm    = p.swm.split();
+//! let mut syscon = p.syscon.split();
+//!
+//! let (i2c0_sda, _) = swm.fixed_functions.i2c0_sda.assign(
+//!     swm.pins.pio0_11.into_swm_pin(),
+//!     &mut swm.handle,
+//! );
+//! let (i2c0_scl, _) = swm.fixed_functions.i2c0_scl.assign(
+//!     swm.pins.pio0_10.into_swm_pin(),
+//!     &mut swm.handle,
+//! );
+//!
+//! let mut i2c = p.i2c0.enable(
+//!     &mut syscon.handle,
+//!     i2c0_sda,
+//!     i2c0_scl,
+//! );
+//!
+//! i2c.write(address, &data)
+//!     .expect("Failed to write data");
+//! ```
+//!
+//! Please refer to the [examples in the repository] for more example code.
+//!
+//! [examples in the repository]: https://github.com/braun-robotics/rust-lpc82x-hal/tree/master/examples
 
 
 use embedded_hal::blocking::i2c;
@@ -34,7 +73,8 @@ use swm::{
 /// - Only master mode is supported.
 /// - Errors are not handled.
 ///
-/// Other limitations are documented for specific methods.
+/// Additional limitations are documented on the specific methods that they
+/// apply to.
 ///
 /// [module documentation]: index.html
 pub struct I2C<State: InitState = init_state::Enabled> {
@@ -52,6 +92,16 @@ impl I2C<init_state::Disabled> {
 
     /// Enable the I2C peripheral
     ///
+    /// Enables the clock and clears the peripheral reset for the I2C
+    /// peripheral.
+    ///
+    /// This method is only available, if `I2C` is not already in the
+    /// [`Enabled`] state. Code that attempts to call this method when the
+    /// peripheral is already enabled will not compile.
+    ///
+    /// Consumes this instance of `I2C` and returns another instance that has
+    /// its `State` type parameter set to [`Enabled`].
+    ///
     /// # Limitations
     ///
     /// This method expects the I2C mode for PIO0_10 and PIO0_11 to be set to
@@ -59,6 +109,8 @@ impl I2C<init_state::Disabled> {
     ///
     /// The I2C clock frequency is hardcoded to a specific value. For unknown
     /// reasons, this seems to be 79.6 kHz.
+    ///
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn enable(mut self,
         syscon: &mut syscon::Handle,
         _     : swm::Function<I2C0_SDA, swm::state::Assigned<PIO0_11>>,
@@ -103,9 +155,13 @@ impl i2c::Write for I2C<init_state::Enabled> {
 
     /// Write to the I2C bus
     ///
+    /// Please refer to the [embedded-hal documentation] for details.
+    ///
     /// # Limitations
     ///
     /// Writing multiple bytes should work, but has not been tested.
+    ///
+    /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Write.html#tymethod.write
     fn write(&mut self, address: u8, data: &[u8]) -> Result<(), Self::Error> {
         // Wait until peripheral is idle
         while !self.i2c.stat.read().mststate().is_idle() {}
@@ -142,9 +198,13 @@ impl i2c::Read for I2C<init_state::Enabled> {
 
     /// Read from the I2C bus
     ///
+    /// Please refer to the [embedded-hal documentation] for details.
+    ///
     /// # Limitations
     ///
     /// Reading multiple bytes should work, but has not been tested.
+    ///
+    /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Read.html#tymethod.read
     fn read(&mut self, address: u8, buffer: &mut [u8])
         -> Result<(), Self::Error>
     {
