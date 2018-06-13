@@ -68,13 +68,6 @@ impl WKT<init_state::Disabled> {
     }
 }
 
-impl<State> WKT<State> where State: InitState {
-    /// Return the raw peripheral
-    pub fn free(self) -> raw::WKT {
-        self.wkt
-    }
-}
-
 impl WKT<init_state::Disabled> {
     /// Enable the self-wake-up timer
     ///
@@ -170,6 +163,13 @@ impl timer::CountDown for WKT<init_state::Enabled> {
         }
 
         Err(nb::Error::WouldBlock)
+    }
+}
+
+impl<State> WKT<State> where State: InitState {
+    /// Return the raw peripheral
+    pub fn free(self) -> raw::WKT {
+        self.wkt
     }
 }
 

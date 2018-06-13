@@ -137,13 +137,6 @@ impl<UsartX> USART<UsartX, init_state::Disabled>
     }
 }
 
-impl<UsartX, State> USART<UsartX, State> where State: InitState {
-    /// Return the raw peripheral
-    pub fn free(self) -> UsartX {
-        self.usart
-    }
-}
-
 impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     /// Enable a USART peripheral
     ///
@@ -400,6 +393,13 @@ impl<UsartX> fmt::Write for USART<UsartX>
 
         self.bwrite_all(s.as_bytes())
             .map_err(|_| fmt::Error)
+    }
+}
+
+impl<UsartX, State> USART<UsartX, State> where State: InitState {
+    /// Return the raw peripheral
+    pub fn free(self) -> UsartX {
+        self.usart
     }
 }
 
