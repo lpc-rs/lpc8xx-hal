@@ -126,18 +126,14 @@ pub struct USART<UsartX, State: InitState = init_state::Enabled> {
     _state: State,
 }
 
-impl<UsartX> USART<UsartX, init_state::Disabled>
-    where UsartX: Peripheral,
-{
+impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     pub(crate) fn new(usart: UsartX) -> Self {
         USART {
             usart : usart,
             _state: init_state::Disabled,
         }
     }
-}
 
-impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     /// Enable a USART peripheral
     ///
     /// This method is only available, if `USART` is not already in the
@@ -256,11 +252,7 @@ impl<UsartX> USART<UsartX, init_state::Enabled> where UsartX: Peripheral {
             _state: init_state::Disabled,
         }
     }
-}
 
-impl<UsartX> USART<UsartX, init_state::Enabled>
-    where UsartX: Peripheral,
-{
     /// Enable the USART interrupts
     ///
     /// Enable the interrupts for this USART peripheral. This only enables the

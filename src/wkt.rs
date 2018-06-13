@@ -66,9 +66,7 @@ impl WKT<init_state::Disabled> {
             _state: init_state::Disabled,
         }
     }
-}
 
-impl WKT<init_state::Disabled> {
     /// Enable the self-wake-up timer
     ///
     /// This method is only available, if `WKT` is not already in the
@@ -113,9 +111,7 @@ impl WKT<init_state::Enabled> {
             _state: init_state::Disabled,
         }
     }
-}
 
-impl WKT<init_state::Enabled> {
     /// Select the clock to run the self-wake-up timer
     ///
     /// This method is only available if the WKT has been initialized. Code
