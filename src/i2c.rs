@@ -95,9 +95,9 @@ impl I2C<init_state::Disabled> {
     /// Enables the clock and clears the peripheral reset for the I2C
     /// peripheral.
     ///
-    /// This method is only available, if `I2C` is not already in the
-    /// [`Enabled`] state. Code that attempts to call this method when the
-    /// peripheral is already enabled will not compile.
+    /// This method is only available, if `I2C` is in the [`Disabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// enabled will not compile.
     ///
     /// Consumes this instance of `I2C` and returns another instance that has
     /// its `State` type parameter set to [`Enabled`].
@@ -110,6 +110,7 @@ impl I2C<init_state::Disabled> {
     /// The I2C clock frequency is hardcoded to a specific value. For unknown
     /// reasons, this seems to be 79.6 kHz.
     ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn enable(mut self,
         syscon: &mut syscon::Handle,
