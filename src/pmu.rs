@@ -1,5 +1,8 @@
 //! API for the Power Management Unit (PMU)
 //!
+//! The entry point to this API is [`PMU`]. Please refer to [`PMU`]'s
+//! documentation for additional information.
+//!
 //! The PMU is described in the user manual, chapter 6.
 //!
 //! # Examples
@@ -7,27 +10,23 @@
 //! Use the PMU to enter sleep mode:
 //!
 //! ``` no_run
-//! extern crate lpc82x;
-//! extern crate lpc82x_hal;
+//! use lpc82x_hal::{
+//!     raw,
+//!     Peripherals,
+//! };
 //!
-//! use lpc82x_hal::Peripherals;
+//! let mut cp = raw::CorePeripherals::take().unwrap();
+//! let mut p  = Peripherals::take().unwrap();
 //!
-//! let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
-//! let mut peripherals      = Peripherals::take().unwrap();
-//!
-//! let mut pmu = peripherals.pmu.split();
+//! let mut pmu = p.pmu.split();
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
-//! pmu.handle.enter_sleep_mode(&mut core_peripherals.SCB);
+//! pmu.handle.enter_sleep_mode(&mut cp.SCB);
 //! ```
 //!
 //! Please refer to the [examples in the repository] for more example code.
 //!
-//! [`PMU`]: struct.PMU.html
-//! [`Peripherals`]: ../struct.Peripherals.html
-//! [`pmu::Handle`]: struct.Handle.html
-//! [`lpc82x::PMU`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.PMU.html
 //! [examples in the repository]: https://github.com/braun-robotics/rust-lpc82x-hal/tree/master/examples
 
 
@@ -45,6 +44,22 @@ use raw;
 
 
 /// Entry point to the PMU API
+///
+/// The PMU API is split into multiple parts, which are all available through
+/// [`pmu::Parts`]. You can use [`PMU::split`] method to gain access to
+/// [`pmu::Parts`].
+///
+/// You can also use this struct to gain access to the raw peripheral using
+/// [`PMU::free`]. This is the main reason this struct exists, as it's no longer
+/// possible to do this after the API has been split.
+///
+/// Use [`Peripherals`] to gain access to an instance of this struct.
+///
+/// Please refer to the [module documentation] for more information.
+///
+/// [`pmu::Parts`]: struct.Parts.html
+/// [`Peripherals`]: ../struct.Peripherals.html
+/// [module documentation]: index.html
 pub struct PMU {
     pmu: raw::PMU,
 }
@@ -54,7 +69,11 @@ impl PMU {
         PMU { pmu }
     }
 
-    /// Splits the PMU API into its parts
+    /// Splits the PMU API into its component parts
+    ///
+    /// This is the regular way to access the PMU API. It exists as an explicit
+    /// step, as it's no longer possible to gain access to the raw peripheral
+    /// using [`PMU::free`] after you've called this method.
     pub fn split(self) -> Parts {
         Parts {
             handle: Handle {
@@ -97,7 +116,11 @@ pub struct Parts {
 }
 
 
-/// The handle to the PMU peripheral
+/// Handle to the PMU peripheral
+///
+/// This handle to the PMU peripheral provides access to the main part of the
+/// PMU API. It is also required by other parts of the API to synchronize access
+/// the the underlying registers, wherever this is required.
 ///
 /// Please refer to the [module documentation] for more information about the
 /// PMU.
@@ -146,7 +169,7 @@ impl Handle {
     ///
     /// The configuration of various peripherals after wake-up is controlled by
     /// the PDAWAKECFG register. If the configuration in that register doesn't
-    /// match the peripheral states in this API, you can confuse the API into
+    /// match the peripheral states in the HAL API, you can confuse the API into
     /// believing that peripherals have a different state than they actually
     /// have which can lead to all kinds of adverse consequences.
     ///
@@ -229,15 +252,17 @@ impl LowPowerClock<init_state::Disabled> {
 impl LowPowerClock<init_state::Disabled> {
     /// Enable the low-power clock
     ///
-    /// This method is only available if the low-power clock is not already
-    /// enabled. Code attempting to call this method when this is not the case
-    /// will not compile.
+    /// This method is only available, if `LowPowerClock` is in the [`Disabled`]
+    /// state. Code that attempts to call this method when the clock is already
+    /// enabled will not compile.
     ///
-    /// Consumes this instance of `LowPowerClock` and returns a new instance
-    /// whose state indicates that the clock is enabled. That new instance
-    /// implements [`clock::Enabled`], which might be required by APIs that need
-    /// an enabled clock.
+    /// Consumes this instance of `LowPowerClock` and returns another instance
+    /// that has its `State` type parameter set to [`Enabled`]. That new
+    /// instance implements [`clock::Enabled`], which might be required by APIs
+    /// that need an enabled clock.
     ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
     pub fn enable(self, pmu: &mut Handle)
         -> LowPowerClock<init_state::Enabled>
@@ -255,12 +280,15 @@ impl LowPowerClock<init_state::Disabled> {
 impl LowPowerClock<init_state::Enabled> {
     /// Disable the low-power clock
     ///
-    /// This method is only available if the low-power clock is not already
-    /// disabled. Code attempting to call this method when this is not the case
-    /// will not compile.
+    /// This method is only available, if `LowPowerClock` is in the [`Enabled`]
+    /// state. Code that attempts to call this method when the clock is already
+    /// disabled will not compile.
     ///
-    /// Consumes this instance of `LowPowerClock` and returns a new instance
-    /// whose state indicates that the clock is disabled.
+    /// Consumes this instance of `LowPowerClock` and returns another instance
+    /// that has its `State` type parameter set to [`Disabled`].
+    ///
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
     pub fn disable(self, pmu: &mut Handle)
         -> LowPowerClock<init_state::Disabled>
     {
