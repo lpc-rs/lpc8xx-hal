@@ -49,7 +49,7 @@ use syscon;
 
 
 
-/// Represents the GPIO peripheral
+/// Interface to the GPIO peripheral
 ///
 /// Controls the GPIO peripheral. Can be used to enable, disable, or free the
 /// peripheral. For GPIO-functionality directly related to pins, please refer
