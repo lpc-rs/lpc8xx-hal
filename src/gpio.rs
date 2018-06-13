@@ -55,8 +55,11 @@ use syscon;
 /// peripheral. For GPIO-functionality directly related to pins, please refer
 /// to [`Pin`].
 ///
+/// Use [`Peripherals`] to gain access to an instance of this struct.
+///
 /// Please refer to the [module documentation] for more information.
 ///
+/// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct GPIO<State: InitState = init_state::Enabled> {
     pub(crate) gpio  : raw::GPIO_PORT,
@@ -78,13 +81,14 @@ impl<'gpio> GPIO<init_state::Disabled> {
     /// Enables the clock and clears the peripheral reset for the GPIO
     /// peripheral.
     ///
-    /// This method is only available, if `GPIO` is not already in the
-    /// [`Enabled`] state. Code that attempts to call this method when the GPIO
-    /// peripheral is already enabled will not compile.
+    /// This method is only available, if `GPIO` is in the [`Disabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// enabled will not compile.
     ///
     /// Consumes this instance of `GPIO` and returns another instance that has
     /// its `State` type parameter set to [`Enabled`].
     ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn enable(mut self, syscon: &mut syscon::Handle)
         -> GPIO<init_state::Enabled>
@@ -102,13 +106,14 @@ impl<'gpio> GPIO<init_state::Disabled> {
 impl GPIO<init_state::Enabled> {
     /// Disable the GPIO peripheral
     ///
-    /// This method is only available, if `GPIO` is not already in the
-    /// [`Disabled`] state. Code that attempts to call this method when the GPIO
-    /// peripheral is already disabled will not compile.
+    /// This method is only available, if `GPIO` is in the [`Enabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// disabled will not compile.
     ///
     /// Consumes this instance of `GPIO` and returns another instance that has
     /// its `State` type parameter set to [`Disabled`].
     ///
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     pub fn disable(mut self, syscon: &mut syscon::Handle)
         -> GPIO<init_state::Disabled>
