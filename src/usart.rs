@@ -302,7 +302,7 @@ impl<UsartX> USART<UsartX, init_state::Enabled> where UsartX: Peripheral {
     }
 }
 
-impl<UsartX> Read<u8> for USART<UsartX>
+impl<UsartX> Read<u8> for USART<UsartX, init_state::Enabled>
     where UsartX: Peripheral,
 {
     type Error = Error;
@@ -345,7 +345,7 @@ impl<UsartX> Read<u8> for USART<UsartX>
     }
 }
 
-impl<UsartX> Write<u8> for USART<UsartX>
+impl<UsartX> Write<u8> for USART<UsartX, init_state::Enabled>
     where UsartX: Peripheral,
 {
     type Error = !;
@@ -371,7 +371,7 @@ impl<UsartX> Write<u8> for USART<UsartX>
     }
 }
 
-impl<UsartX> BlockingWriteDefault<u8> for USART<UsartX>
+impl<UsartX> BlockingWriteDefault<u8> for USART<UsartX, init_state::Enabled>
     where UsartX: Peripheral,
 {}
 
