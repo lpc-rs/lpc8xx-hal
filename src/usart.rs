@@ -398,6 +398,17 @@ impl<UsartX> fmt::Write for USART<UsartX>
 
 impl<UsartX, State> USART<UsartX, State> where State: InitState {
     /// Return the raw peripheral
+    ///
+    /// This method serves as an escape hatch from the HAL API. It returns the
+    /// raw peripheral, allowing you to do whatever you want with it, without
+    /// limitations imposed by the API.
+    ///
+    /// If you are using this method because a feature you need is missing from
+    /// the HAL API, please [open an issue] or, if an issue for your feature
+    /// request already exists, comment on the existing issue, so we can
+    /// prioritize it accordingly.
+    ///
+    /// [open an issue]: https://github.com/braun-robotics/rust-lpc82x-hal/issues
     pub fn free(self) -> UsartX {
         self.usart
     }
