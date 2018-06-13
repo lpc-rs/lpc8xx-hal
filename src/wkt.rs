@@ -26,7 +26,10 @@
 //! }
 //! ```
 //!
+//! Please refer to the [examples in the repository] for more example code.
+//!
 //! [`lpc82x::WKT`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.WKT.html
+//! [examples in the repository]: https://github.com/braun-robotics/rust-lpc82x-hal/tree/master/examples
 
 
 use embedded_hal::timer;

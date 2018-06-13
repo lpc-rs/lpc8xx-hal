@@ -24,7 +24,10 @@
 //!     .set_high();
 //! ```
 //!
+//! Please refer to the [examples in the repository] for more example code.
+//!
 //! [`swm`]: ../swm/index.html
+//! [examples in the repository]: https://github.com/braun-robotics/rust-lpc82x-hal/tree/master/examples
 
 
 use embedded_hal::digital::{

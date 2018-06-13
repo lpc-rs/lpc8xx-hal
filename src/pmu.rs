@@ -22,10 +22,13 @@
 //! pmu.handle.enter_sleep_mode(&mut core_peripherals.SCB);
 //! ```
 //!
+//! Please refer to the [examples in the repository] for more example code.
+//!
 //! [`PMU`]: struct.PMU.html
 //! [`Peripherals`]: ../struct.Peripherals.html
 //! [`pmu::Handle`]: struct.Handle.html
 //! [`lpc82x::PMU`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.PMU.html
+//! [examples in the repository]: https://github.com/braun-robotics/rust-lpc82x-hal/tree/master/examples
 
 
 use cortex_m::{

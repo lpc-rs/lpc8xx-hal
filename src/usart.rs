@@ -83,7 +83,10 @@
 //! serial.bwrite_all(b"Hello, world!");
 //! ```
 //!
+//! Please refer to the [examples in the repository] for more example code.
+//!
 //! [`USART`]: struct.USART.html
+//! [examples in the repository]: https://github.com/braun-robotics/rust-lpc82x-hal/tree/master/examples
 
 
 use core::fmt;
