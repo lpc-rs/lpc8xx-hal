@@ -1,5 +1,12 @@
 //! API for system configuration (SYSCON)
 //!
+//! The entry point to this API is [`SYSCON`]. Please refer to [`SYSCON`]'s
+//! documentation for additional information.
+//!
+//! This module mostly provides infrastructure required by other parts of the
+//! HAL API. For this reason, only a small subset of SYSCON functionality is
+//! currently implemented.
+//!
 //! The SYSCON peripheral is described in the user manual, chapter 5.
 
 
@@ -27,6 +34,22 @@ use raw::syscon::{
 
 
 /// Entry point to the SYSCON API
+///
+/// The SYSCON API is split into multiple parts, which are all available through
+/// [`syscon::Parts`]. You can use [`SYSCON::split`] to gain access to
+/// [`syscon::Parts`].
+///
+/// You can also use this struct to gain access to the raw peripheral using
+/// [`SYSCON::free`]. This is the main reason this struct exists, as it's no
+/// longer possible to do this after the API has been split.
+///
+/// Use [`Peripherals`] to gain access to an instance of this struct.
+///
+/// Please refer to the [module documentation] for more information.
+///
+/// [`syscon::Parts`]: struct.Parts.html
+/// [`Peripherals`]: ../struct.Peripherals.html
+/// [module documentation]: index.html
 pub struct SYSCON {
     syscon: raw::SYSCON,
 }
@@ -36,7 +59,11 @@ impl SYSCON {
         SYSCON { syscon }
     }
 
-    /// Split the API into its parts
+    /// Splits the SYSCON API into its component parts
+    ///
+    /// This is the regular way to access the SYSCON API. It exists as an
+    /// explicit step, as it's no longer possible to gain access to the raw
+    /// peripheral using [`SYSCON::free`] after you've called this method.
     pub fn split(&mut self) -> Parts {
         Parts {
             handle: Handle {
@@ -86,7 +113,10 @@ impl SYSCON {
 
 /// The main API for the SYSCON peripheral
 ///
-/// Provides access to all types that make up the SYSCON API.
+/// Provides access to all types that make up the SYSCON API. Please refer to
+/// the [module documentation] for more information.
+///
+/// [module documentation]: index.html
 pub struct Parts<'syscon> {
     /// The handle to the SYSCON peripheral
     pub handle: Handle<'syscon>,
@@ -126,7 +156,16 @@ pub struct Parts<'syscon> {
 }
 
 
-/// The handle to the SYSCON peripheral
+/// Handle to the SYSCON peripheral
+///
+/// This handle to the SYSCON peripheral provides access to the main part of the
+/// SYSCON API. It is also required by other parts of the HAL API to synchronize
+/// access the the underlying registers, wherever this is required.
+///
+/// Please refer to the [module documentation] for more information about the
+/// PMU.
+///
+/// [module documentation]: index.html
 pub struct Handle<'syscon> {
     pdruncfg     : &'syscon PDRUNCFG,
     presetctrl   : &'syscon PRESETCTRL,
@@ -499,19 +538,20 @@ impl IrcDerivedClock<init_state::Enabled> {
 impl IrcDerivedClock<init_state::Disabled> {
     /// Enable the IRC-derived clock
     ///
-    /// This method is only available if the IRC-derived clock is not already
-    /// enabled. Code attempting to call this method when this is not the case
-    /// will not compile.
+    /// This method is only available, if `IrcDerivedClock` is in the
+    /// [`Disabled`] state. Code that attempts to call this method when the
+    /// clock is already enabled will not compile.
     ///
-    /// Consumes this instance of `IrcDerivedClock` and returns a new instance
-    /// whose state indicates that the clock is enabled. That new instance
-    /// implements [`clock::Enabled`], which might be required by APIs that need
-    /// an enabled clock.
+    /// Consumes this instance of `IrcDerivedClock` and returns another instance
+    /// that has its `State` type parameter set to [`Enabled`]. That new
+    /// instance implements [`clock::Enabled`], which might be required by APIs
+    /// that need an enabled clock.
     ///
-    /// Also consumes the handles to IRC and IRCOUT, to make it impossible
-    /// (outside of unsafe code) to break API guarantees by disabling the
-    /// IRC-derived clock again.
+    /// Also consumes the handles to [`IRC`] and [`IRCOUT`], to make it
+    /// impossible (outside of unsafe code) to break API guarantees.
     ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
     pub fn enable(self, syscon: &mut Handle, mut irc: IRC, mut ircout: IRCOUT)
         -> IrcDerivedClock<init_state::Enabled>
@@ -535,17 +575,34 @@ impl clock::Enabled for IrcDerivedClock<init_state::Enabled> {}
 
 
 /// Internal trait used to configure interrupt wake-up
+///
+/// This trait is an internal implementation detail and should neither be
+/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// be considered breaking changes.
+///
+/// Please refer to [`syscon::Handle::enable_interrupt_wakeup`] and
+/// [`syscon::Handle::disable_interrupt_wakeup`] for the public API that uses
+/// this trait.
+///
+/// [`syscon::Handle::enable_interrupt_wakeup`]: struct.Handle.html#method.enable_interrupt_wakeup
+/// [`syscon::Handle::disable_interrupt_wakeup`]: struct.Handle.html#method.disable_interrupt_wakeup
 pub trait WakeUpInterrupt {
-    /// Internal method
+    /// Internal method to configure interrupt wakeup behavior
     fn enable(w: &mut starterp1::W) -> &mut starterp1::W;
 
-    /// Internal method
+    /// Internal method to configure interrupt wakeup behavior
     fn disable(w: &mut starterp1::W) -> &mut starterp1::W;
 }
 
 macro_rules! wakeup_interrupt {
     ($name:ident, $field:ident) => {
         /// Can be used to enable/disable interrupt wake-up behavior
+        ///
+        /// See [`syscon::Handle::enable_interrupt_wakeup`] and
+        /// [`syscon::Handle::disable_interrupt_wakeup`].
+        ///
+        /// [`syscon::Handle::enable_interrupt_wakeup`]: struct.Handle.html#method.enable_interrupt_wakeup
+        /// [`syscon::Handle::disable_interrupt_wakeup`]: struct.Handle.html#method.disable_interrupt_wakeup
         pub struct $name;
 
         impl WakeUpInterrupt for $name {
