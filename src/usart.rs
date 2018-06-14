@@ -1,15 +1,13 @@
-//! API for the USART peripherals
+//! API for USART
+//!
+//! The entry point to this API is [`USART`]. Currently, only some limited UART
+//! functionality is implemented.
 //!
 //! The USART peripheral is described in the user manual, chapter 13.
-//!
-//! Currently, only some UART functionality is implemented.
 //!
 //! # Examples
 //!
 //! ``` no_run
-//! extern crate lpc82x;
-//! extern crate lpc82x_hal;
-//!
 //! use lpc82x_hal::prelude::*;
 //! use lpc82x_hal::Peripherals;
 //! use lpc82x_hal::usart::{
@@ -19,53 +17,25 @@
 //!
 //! let mut p = Peripherals::take().unwrap();
 //!
-//! let mut syscon     = p.syscon.split();
-//! let mut swm        = p.swm.split();
+//! let mut syscon = p.syscon.split();
+//! let mut swm    = p.swm.split();
 //!
 //! // Set baud rate to 115200 baud
-//! //
-//! // The common peripheral clock for all UART units, U_PCLK, needs to be set
-//! // to 16 times the desired baud rate. This results in a frequency of
-//! // 1843200 Hz for U_PLCK.
-//! //
-//! // We assume the main clock runs at 12 Mhz. To get close to the desired
-//! // frequency for U_PLCK, we divide that by 6 using UARTCLKDIV, resulting in
-//! // a frequency of 2 Mhz.
-//! //
-//! // To get to the desired 1843200 Hz, we need to further divide the frequency
-//! // using the fractional baud rate generator. The fractional baud rate
-//! // generator divides the frequency by `1 + MULT/DIV`.
-//! //
-//! // DIV must always be 256. To achieve this, we need to set the UARTFRGDIV to
-//! // 0xff. MULT can then be fine-tuned to get as close as possible to the
-//! // desired value. We choose the value 22, which we write into UARTFRGMULT.
-//! //
-//! // Finally, we can set an additional divider value for the UART unit by
-//! // passing it as an argument to `BaudRate::new` (this will set the BRG
-//! // register). As we are already close enough to the desired value, we pass
-//! // 0, resulting in no further division.
-//! //
-//! // All of this is somewhat explained in the user manual, section 13.3.1.
+//! // Please refer to the USART example in the repository for a full
+//! // explanation of this value.
 //! syscon.uartfrg.set_clkdiv(6);
 //! syscon.uartfrg.set_frgmult(22);
 //! syscon.uartfrg.set_frgdiv(0xff);
 //! let baud_rate = BaudRate::new(&syscon.uartfrg, 0);
 //!
-//! // Prepare PIO0_0 and PIO0_4. The `init` method we call below needs pins to
-//! // assign the USART's movable function to. For that, the pins need to be
-//! // unused. Since PIO0_0 and PIO0_4 are unused by default, we just have to
-//! // promise the API that we didn't change the default state up till now.
-//! let pio0_0 = swm.pins.pio0_0;
-//! let pio0_4 = swm.pins.pio0_4;
-//!
-//! // We also need to provide USART0's movable functions. Those need to be
-//! // unassigned, and since they are unassigned by default, we just need to
-//! // promise the API that we didn't change them.
-//! let u0_rxd = swm.movable_functions.u0_rxd;
-//! let u0_txd = swm.movable_functions.u0_txd;
-//!
-//! let (u0_rxd, _) = u0_rxd.assign(pio0_0.into_swm_pin(), &mut swm.handle);
-//! let (u0_txd, _) = u0_txd.assign(pio0_4.into_swm_pin(), &mut swm.handle);
+//! let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(
+//!     swm.pins.pio0_0.into_swm_pin(),
+//!     &mut swm.handle,
+//! );
+//! let (u0_txd, _) = swm.movable_functions.u0_txd.assign(
+//!     swm.pins.pio0_4.into_swm_pin(),
+//!     &mut swm.handle,
+//! );
 //!
 //! // Initialize USART0. This should never fail, as the only reason `init`
 //! // returns a `Result::Err` is when the transmitter is busy, which it
@@ -79,13 +49,12 @@
 //!     )
 //!     .expect("UART initialization shouldn't fail");
 //!
-//! // Write a string, blocking until it has finished writing
+//! // Use a blocking method to write a string
 //! serial.bwrite_all(b"Hello, world!");
 //! ```
 //!
 //! Please refer to the [examples in the repository] for more example code.
 //!
-//! [`USART`]: struct.USART.html
 //! [examples in the repository]: https://github.com/braun-robotics/rust-lpc82x-hal/tree/master/examples
 
 
@@ -121,8 +90,12 @@ use syscon::{
 
 /// Interface to a USART peripheral
 ///
+/// Controls the USART.  Use [`Peripherals`] to gain access to an instance of
+/// this struct.
+///
 /// Please refer to the [module documentation] for more information.
 ///
+/// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct USART<UsartX, State: InitState = init_state::Enabled> {
     usart : UsartX,
@@ -137,11 +110,14 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
         }
     }
 
-    /// Enable a USART peripheral
+    /// Enable the USART
     ///
-    /// This method is only available, if `USART` is not already in the
-    /// [`Enabled`] state. Code that attempts to call this method when the USART
-    /// is already enabled will not compile.
+    /// Enables the clock and clears the peripheral reset for the USART
+    /// peripheral.
+    ///
+    /// This method is only available, if `USART` is in the [`Disabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// enabled will not compile.
     ///
     /// Consumes this instance of `USART` and returns another instance that has
     /// its `State` type parameter set to [`Enabled`].
@@ -149,17 +125,18 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     /// # Limitations
     ///
     /// For USART to function correctly, the UARTFRG reset must be cleared. This
-    /// is the default case, so unless you have messed with those settings, you
+    /// is the default, so unless you have messed with those settings, you
     /// should be good.
     ///
     /// # Examples
     ///
     /// Please refer to the [module documentation] for a full example.
     ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<Rx: PinTrait, Tx: PinTrait>(mut self,
+    pub fn enable<Rx, Tx>(mut self,
         baud_rate: &BaudRate,
         syscon   : &mut syscon::Handle,
         _        : swm::Function<UsartX::Rx, swm::state::Assigned<Rx>>,
@@ -167,6 +144,8 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     )
         -> nb::Result<USART<UsartX, init_state::Enabled>, !>
         where
+            Rx        : PinTrait,
+            Tx        : PinTrait,
             UsartX::Rx: FunctionTrait<Rx>,
             UsartX::Tx: FunctionTrait<Tx>,
     {
@@ -235,15 +214,16 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
 }
 
 impl<UsartX> USART<UsartX, init_state::Enabled> where UsartX: Peripheral {
-    /// Disable a USART peripheral
+    /// Disable the USART
     ///
-    /// This method is only available, if `USART` is not already in the
-    /// [`Disabled`] state. Code that attempts to call this method when the
-    /// USART is already disabled will not compile.
+    /// This method is only available, if `USART` is in the [`Enabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// disabled will not compile.
     ///
     /// Consumes this instance of `USART` and returns another instance that has
     /// its `State` type parameter set to [`Disabled`].
     ///
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     pub fn disable(mut self, syscon: &mut syscon::Handle)
         -> USART<UsartX, init_state::Disabled>
@@ -415,14 +395,6 @@ impl<UsartX, State> USART<UsartX, State> where State: InitState {
 /// This trait is an internal implementation detail and should neither be
 /// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
 /// be considered breaking changes.
-///
-/// The trait definition comes with some complexity that is caused by the fact
-/// that the required [`Deref`] implementation is implemented for `Self`, while
-/// the other traits required are implemented for `&Self`. This should be
-/// resolved once we pick up some changes to upstream dependencies that are
-/// currently coming down the pipe.
-///
-/// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
 pub trait Peripheral:
     Deref<Target = raw::usart0::RegisterBlock>
     + syscon::ClockControl
@@ -462,10 +434,8 @@ impl Peripheral for raw::USART2 {
 
 /// Represents a UART baud rate
 ///
-/// Can be passed to [`USART::init`] to configure the baud rate for a USART
+/// Can be passed to [`USART::enable`] to configure the baud rate for a USART
 /// peripheral.
-///
-/// [`USART::init`]: struct.USART.html#method.init
 pub struct BaudRate<'frg> {
     _uartfrg: &'frg UARTFRG<'frg>,
 
@@ -492,8 +462,6 @@ impl<'frg> BaudRate<'frg> {
     /// is divided by 2 before using it, `2` means it's divided by 3, and so on.
     ///
     /// Please refer to the user manual, section 13.3.1, for further details.
-    ///
-    /// [`UARTFRG`]: ../syscon/struct.UARTFRG.html
     pub fn new(uartfrg : &'frg UARTFRG<'frg>, brgval : u16) -> Self {
         Self {
             _uartfrg: uartfrg,
@@ -503,7 +471,7 @@ impl<'frg> BaudRate<'frg> {
 }
 
 
-/// USART error
+/// A USART error
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Error {
     /// Character received with a stop bit missing at the expected location
