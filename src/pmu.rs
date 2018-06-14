@@ -46,8 +46,7 @@ use raw;
 /// Entry point to the PMU API
 ///
 /// The PMU API is split into multiple parts, which are all available through
-/// [`pmu::Parts`]. You can use [`PMU::split`] method to gain access to
-/// [`pmu::Parts`].
+/// [`pmu::Parts`]. You can use [`PMU::split`] to gain access to [`pmu::Parts`].
 ///
 /// You can also use this struct to gain access to the raw peripheral using
 /// [`PMU::free`]. This is the main reason this struct exists, as it's no longer
