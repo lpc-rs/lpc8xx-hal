@@ -59,9 +59,6 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// # Examples
 ///
 /// ``` no_run
-/// extern crate lpc82x;
-/// extern crate lpc82x_hal;
-///
 /// use lpc82x_hal::prelude::*;
 /// use lpc82x_hal::{
 ///     sleep,
@@ -81,10 +78,6 @@ pub trait Sleep<Clock> where Clock: clock::Enabled {
 /// let delay = Ticks { value: 750_000, clock: &clock }; // 1000 ms
 /// sleep.sleep(delay);
 /// ```
-///
-/// [`Sleep`]: trait.Sleep.html
-/// [WKT]: ../wkt/struct.WKT.html
-/// [`wkt::Clock`]: ../wkt/trait.Clock.html
 pub struct Busy<'wkt> {
     wkt: &'wkt mut WKT,
 }
@@ -98,10 +91,6 @@ impl<'wkt> Busy<'wkt> {
     /// Requires a mutable reference to [`WKT`]. The reference will be borrowed
     /// for as long as the `sleep::Busy` instance exists, as it will be needed
     /// to count down the time in every call to [`Sleep::sleep`].
-    ///
-    /// [`Sleep`]: trait.Sleep.html
-    /// [`WKT`]: ../wkt/struct.WKT.html
-    /// [`Sleep::sleep`]: trait.Sleep.html#tymethod.sleep
     pub fn prepare(wkt: &'wkt mut WKT) -> Self {
         Busy {
             wkt: wkt,
@@ -141,29 +130,27 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// # Examples
 ///
 /// ``` no_run
-/// extern crate lpc82x;
-/// extern crate lpc82x_hal;
-///
 /// use lpc82x_hal::prelude::*;
 /// use lpc82x_hal::{
+///     raw,
 ///     sleep,
 ///     Peripherals,
 /// };
 /// use lpc82x_hal::clock::Ticks;
 ///
-/// let mut core_peripherals = lpc82x::CorePeripherals::take().unwrap();
-/// let mut peripherals      = Peripherals::take().unwrap();
+/// let mut cp = raw::CorePeripherals::take().unwrap();
+/// let mut p  = Peripherals::take().unwrap();
 ///
-/// let mut pmu    = peripherals.pmu.split();
-/// let mut syscon = peripherals.syscon.split();
-/// let mut wkt    = peripherals.wkt.enable(&mut syscon.handle);
+/// let mut pmu    = p.pmu.split();
+/// let mut syscon = p.syscon.split();
+/// let mut wkt    = p.wkt.enable(&mut syscon.handle);
 ///
 /// let clock = syscon.irc_derived_clock;
 ///
 /// let mut sleep = sleep::Regular::prepare(
-///     &mut core_peripherals.NVIC,
+///     &mut cp.NVIC,
 ///     &mut pmu.handle,
-///     &mut core_peripherals.SCB,
+///     &mut cp.SCB,
 ///     &mut wkt,
 /// );
 ///
@@ -172,11 +159,6 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// // This will put the microcontroller into sleep mode.
 /// sleep.sleep(delay);
 /// ```
-///
-/// [`Sleep`]: trait.Sleep.html
-/// [WKT]: ../wkt/struct.WKT.html
-/// [handle the WKT interrupt]: ../wkt/struct.WKT.html#method.handle_interrupt
-/// [`wkt::Clock`]: ../wkt/trait.Clock.html
 pub struct Regular<'r> {
     nvic: &'r mut raw::NVIC,
     pmu : &'r mut pmu::Handle,
@@ -193,10 +175,6 @@ impl<'r> Regular<'r> {
     /// Requires references to various peripherals, which will be borrowed for
     /// as long as the `sleep::Regular` instance exists, as they will be needed
     /// for every call to [`Sleep::sleep`].
-    ///
-    /// [`Sleep`]: trait.Sleep.html
-    /// [`WKT`]: ../wkt/struct.WKT.html
-    /// [`Sleep::sleep`]: trait.Sleep.html#tymethod.sleep
     pub fn prepare(
         nvic: &'r mut raw::NVIC,
         pmu : &'r mut pmu::Handle,
