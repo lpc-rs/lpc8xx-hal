@@ -1,11 +1,12 @@
 //! API for the self-wake-up timer (WKT)
 //!
+//! The entry point to this API is [`WKT`].
+//!
 //! The WKT peripheral is described in the user manual, chapter 9.
 //!
 //! # Examples
 //!
 //! ``` no_run
-//! extern crate lpc82x;
 //! extern crate lpc82x_hal;
 //! extern crate nb;
 //!
@@ -26,7 +27,9 @@
 //! }
 //! ```
 //!
-//! [`lpc82x::WKT`]: https://docs.rs/lpc82x/0.3.*/lpc82x/struct.WKT.html
+//! Please refer to the [examples in the repository] for more example code.
+//!
+//! [examples in the repository]: https://github.com/braun-robotics/rust-lpc82x-hal/tree/master/examples
 
 
 use embedded_hal::timer;
@@ -46,13 +49,14 @@ use raw;
 use raw::wkt::ctrl;
 
 
-/// The API for the self-wake-up timer (WKT)
+/// Interface to the self-wake-up timer (WKT)
 ///
-/// This is the main API for the WKT. All aspects of the WKT can be controlled
-/// via this struct.
+/// Controls the WKT. Use [`Peripherals`] to gain access to an instance of this
+/// struct.
 ///
 /// Please refer to the [module documentation] for more information.
 ///
+/// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct WKT<State: InitState = init_state::Enabled> {
     wkt   : raw::WKT,
@@ -66,25 +70,20 @@ impl WKT<init_state::Disabled> {
             _state: init_state::Disabled,
         }
     }
-}
 
-impl<State> WKT<State> where State: InitState {
-    /// Return the raw peripheral
-    pub fn free(self) -> raw::WKT {
-        self.wkt
-    }
-}
-
-impl WKT<init_state::Disabled> {
-    /// Enable the self-wake-up timer
+    /// Enable the WKT
     ///
-    /// This method is only available, if `WKT` is not already in the
-    /// [`Enabled`] state. Code that attempts to call this method when the WKT
-    /// is already enabled will not compile.
+    /// Enables the clock and clears the peripheral reset for the WKT
+    /// peripheral.
+    ///
+    /// This method is only available, if `WKT` is in the [`Disabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// enabled will not compile.
     ///
     /// Consumes this instance of `WKT` and returns another instance that has
     /// its `State` type parameter set to [`Enabled`].
     ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn enable(mut self, syscon: &mut syscon::Handle)
         -> WKT<init_state::Enabled>
@@ -100,15 +99,16 @@ impl WKT<init_state::Disabled> {
 }
 
 impl WKT<init_state::Enabled> {
-    /// Disable the self-wake-up timer
+    /// Disable the WKT
     ///
-    /// This method is only available, if `WKT` is not already in the
-    /// [`Disabled`] state. Code that attempts to call this method when the WKT
-    /// is already disabled will not compile.
+    /// This method is only available, if `WKT` is in the [`Enabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// disabled will not compile.
     ///
     /// Consumes this instance of `WKT` and returns another instance that has
     /// its `State` type parameter set to [`Disabled`].
     ///
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     pub fn disable(mut self, syscon: &mut syscon::Handle)
         -> WKT<init_state::Disabled>
@@ -120,14 +120,11 @@ impl WKT<init_state::Enabled> {
             _state: init_state::Disabled,
         }
     }
-}
 
-impl WKT<init_state::Enabled> {
-    /// Select the clock to run the self-wake-up timer
+    /// Select the clock that runs the self-wake-up timer
     ///
-    /// This method is only available if the WKT has been initialized. Code
-    /// attempting to call this method when this is not the case, will not
-    /// compile. Call [`init`] to initialize the WKT.
+    /// This method is only available if the WKT is enabled. Code attempting to
+    /// call this method when this is not the case will not compile.
     ///
     /// All clocks that can run the WKT implement a common trait. Please refer
     /// to [`wkt::Clock`] for a list of clocks that can be passed to this
@@ -136,11 +133,10 @@ impl WKT<init_state::Enabled> {
     ///
     /// # Limitations
     ///
-    /// Currently nothing prevents the user from selecting a clock that is
+    /// Currently, nothing prevents the user from selecting a clock that is
     /// disabled, attempting to start the timer while the clock is disabled, or
     /// disabling the clock while the timer is running.
     ///
-    /// [`init`]: #method.init
     /// [`wkt::Clock`]: trait.Clock.html
     pub fn select_clock<C>(&mut self) where C: Clock {
         self.wkt.ctrl.modify(|_, w|
@@ -173,12 +169,29 @@ impl timer::CountDown for WKT<init_state::Enabled> {
     }
 }
 
+impl<State> WKT<State> where State: InitState {
+    /// Return the raw peripheral
+    ///
+    /// This method serves as an escape hatch from the HAL API. It returns the
+    /// raw peripheral, allowing you to do whatever you want with it, without
+    /// limitations imposed by the API.
+    ///
+    /// If you are using this method because a feature you need is missing from
+    /// the HAL API, please [open an issue] or, if an issue for your feature
+    /// request already exists, comment on the existing issue, so we can
+    /// prioritize it accordingly.
+    ///
+    /// [open an issue]: https://github.com/braun-robotics/rust-lpc82x-hal/issues
+    pub fn free(self) -> raw::WKT {
+        self.wkt
+    }
+}
+
 
 /// A clock that is usable by the self-wake-up timer (WKT)
 ///
-/// This trait should be implemented by all clocks that are supported by the
-/// WKT. The user shouldn't need to implement this trait themselves, except to
-/// compensate for missing pieces of HAL functionality.
+/// This trait is implemented for all clocks that are supported by the WKT. The
+/// user shouldn't need to implement this trait themselves.
 pub trait Clock {
     /// Internal method to select the clock as the clock source for the WKT
     ///
