@@ -151,46 +151,34 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
         T: PinTrait,
         D: direction::NotOutput,
 {
-    /// Sets pin direction to output
+    /// Set pin direction to output
     ///
     /// This method is only available, if the pin is in the GPIO state and the
     /// pin is not already in output mode, i.e. the pin direction is input or
-    /// unknown. You can enter the GPIO state using [`into_gpio_pin`].
+    /// unknown. You can enter the GPIO state using [`Pin::into_gpio_pin`].
     ///
     /// Consumes the pin instance and returns a new instance that is in output
     /// mode, making the methods to set the output level available.
     ///
-    /// **NOTE**: There are some doubts about whether this is the right API
-    /// design. [Please leave your feedback](https://github.com/braun-robotics/rust-lpc82x-hal/issues/53),
-    /// if you have anything to say about this.
-    ///
     /// # Example
     ///
     /// ``` no_run
-    /// # extern crate lpc82x;
-    /// # extern crate lpc82x_hal;
-    /// #
-    /// # use lpc82x_hal::Peripherals;
-    /// #
-    /// # let mut p = Peripherals::take().unwrap();
-    /// #
-    /// # let mut syscon      = p.syscon.split();
-    /// # let     swm         = p.swm.split();
-    /// #
-    /// # let pin = swm.pins.pio0_12
-    /// #     .into_gpio_pin(&p.gpio);
-    /// #
     /// use lpc82x_hal::prelude::*;
+    /// use lpc82x_hal::Peripherals;
     ///
-    /// // Assumes the pin is already in the GPIO state
-    /// let mut pin = pin.into_output();
+    /// let p = Peripherals::take().unwrap();
     ///
-    /// // Output level can now be set
+    /// let swm = p.swm.split();
+    ///
+    /// // Transition pin into GPIO state, then set it to output
+    /// let mut pin = swm.pins.pio0_12
+    ///     .into_gpio_pin(&p.gpio)
+    ///     .into_output();
+    ///
+    /// // Output level can now be controlled
     /// pin.set_high();
     /// pin.set_low();
     /// ```
-    ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
     pub fn into_output(self)
         -> Pin<T, pin_state::Gpio<'gpio, direction::Output>>
     {
