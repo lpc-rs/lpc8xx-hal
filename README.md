@@ -6,7 +6,7 @@ Hardware Abstraction Layer (HAL) for [NXP LPC82x] microcontrollers, written in t
 
 LPC82x HAL leverages Rust's type system to prevent common mistakes. Things like attempting to use a peripheral that has not been properly initialized, or attempting to assign conflicting functions to the same pin, will all result in compile-time errors.
 
-This crate is an implementation of [embedded-hal]. Please consider, if you can make your code platform-independent, by depending on [embedded-hal] instead of this library.
+This crate is an implementation of [embedded-hal]. Please consider if you can make your code platform-independent, by depending on [embedded-hal] instead of this library.
 
 [NXP LPC82x]: https://www.nxp.com/products/processors-and-microcontrollers/arm-based-processors-and-mcus/lpc-cortex-m-mcus/lpc800-series-cortex-m0-plus-mcus/low-cost-microcontrollers-mcus-based-on-arm-cortex-m0-plus-cores:LPC82X
 [Rust]: https://www.rust-lang.org/
@@ -30,7 +30,7 @@ This crate currently requires a nightly version of the Rust toolchain. If you in
 
 Are you familiar with the LPC82x family? We need your help, even if you are not using LPC82x HAL. Some design issues require feedback from people familiar with the hardware and how it is used. Check out the [help wanted] tag on the issue tracker.
 
-Do you want to contribute to LPC82x HAL? There's a number of [good first issues] on the issue tracker. If you're unsure about anything, checkout out our documentation on [how to contribute], or just ask!
+Do you want to contribute to LPC82x HAL? There's a number of [good first issues] on the issue tracker. If you're unsure about anything, check out our documentation on [how to contribute], or just ask!
 
 [help wanted]: https://github.com/braun-robotics/rust-lpc82x-hal/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
 [good first issues]: https://github.com/braun-robotics/rust-lpc82x-hal/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
@@ -43,7 +43,7 @@ To include LPC82x HAL in you project, add the following to your `Cargo.toml`:
 
 ``` toml
 [dependencies]
-lpc82x-hal = "0.1"
+lpc82x-hal = "0.2"
 ```
 
 If you want to use LPC82x HAL in an application (as opposed to a library), there are additional things that need to be set up. Please refer to the [API Reference] for details.
