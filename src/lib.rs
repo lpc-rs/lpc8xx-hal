@@ -145,8 +145,7 @@
 #![no_std]
 
 
-#[cfg(test)]
-extern crate std;
+#[cfg(test)] extern crate std;
 
 extern crate cortex_m;
 extern crate embedded_hal;
