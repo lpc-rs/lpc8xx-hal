@@ -126,8 +126,6 @@ impl Handle<init_state::Enabled> {
 impl Handle<init_state::Disabled> {
     /// Enable the switch matrix
     ///
-    /// Enables the clock for the SWM peripheral.
-    ///
     /// This method is only available, if `SWM` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
     /// enabled will not compile.

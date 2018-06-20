@@ -78,9 +78,6 @@ impl GPIO<init_state::Enabled> {
 impl<'gpio> GPIO<init_state::Disabled> {
     /// Enable the GPIO peripheral
     ///
-    /// Enables the clock and clears the peripheral reset for the GPIO
-    /// peripheral.
-    ///
     /// This method is only available, if `GPIO` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
     /// enabled will not compile.
@@ -94,7 +91,6 @@ impl<'gpio> GPIO<init_state::Disabled> {
         -> GPIO<init_state::Enabled>
     {
         syscon.enable_clock(&mut self.gpio);
-        syscon.clear_reset(&mut self.gpio);
 
         GPIO {
             gpio  : self.gpio,

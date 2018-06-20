@@ -112,9 +112,6 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
 
     /// Enable the USART
     ///
-    /// Enables the clock and clears the peripheral reset for the USART
-    /// peripheral.
-    ///
     /// This method is only available, if `USART` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
     /// enabled will not compile.
@@ -150,7 +147,6 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
             UsartX::Tx: FunctionTrait<Tx>,
     {
         syscon.enable_clock(&mut self.usart);
-        syscon.clear_reset(&mut self.usart);
 
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 

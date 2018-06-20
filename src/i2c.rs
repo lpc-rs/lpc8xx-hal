@@ -92,9 +92,6 @@ impl I2C<init_state::Disabled> {
 
     /// Enable the I2C peripheral
     ///
-    /// Enables the clock and clears the peripheral reset for the I2C
-    /// peripheral.
-    ///
     /// This method is only available, if `I2C` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
     /// enabled will not compile.
@@ -120,7 +117,6 @@ impl I2C<init_state::Disabled> {
         -> I2C<init_state::Enabled>
     {
         syscon.enable_clock(&mut self.i2c);
-        syscon.clear_reset(&mut self.i2c);
 
         // We need the I2C mode for the pins set to standard/fast mode,
         // according to the user manual, section 15.3.1. This is already the

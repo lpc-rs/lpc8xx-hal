@@ -73,9 +73,6 @@ impl WKT<init_state::Disabled> {
 
     /// Enable the WKT
     ///
-    /// Enables the clock and clears the peripheral reset for the WKT
-    /// peripheral.
-    ///
     /// This method is only available, if `WKT` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
     /// enabled will not compile.
@@ -89,7 +86,6 @@ impl WKT<init_state::Disabled> {
         -> WKT<init_state::Enabled>
     {
         syscon.enable_clock(&mut self.wkt);
-        syscon.clear_reset(&mut self.wkt);
 
         WKT {
             wkt   : self.wkt,
