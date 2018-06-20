@@ -74,27 +74,12 @@ fn main() -> ! {
         &mut swm.handle,
     );
 
-    let serial = p.USART0
-        .enable(
-            &BaudRate::new(&syscon.uartfrg, 0),
-            &mut syscon.handle,
-            u0_rxd,
-            u0_txd,
-        );
-    let mut serial = match serial {
-        Ok(uart) =>
-            uart,
-        Err(nb::Error::WouldBlock) =>
-            // It blocks if the transmitter is busy, and there's no reason for
-            // that.
-            panic!("USART initialization shouldn't need to block"),
-
-        // This wasn't needed previously, because the compiler correctly
-        // recognized that the error type is `!`, which doesn't need to be
-        // handled. No idea why that changed.
-        Err(nb::Error::Other(_)) =>
-            unreachable!(),
-    };
+    let mut serial = p.USART0.enable(
+        &BaudRate::new(&syscon.uartfrg, 0),
+        &mut syscon.handle,
+        u0_rxd,
+        u0_txd,
+    );
 
     serial.bwrite_all(b"Initializing I2C...\n")
         .expect("Write should never fail");

@@ -48,10 +48,7 @@
 use embedded_hal::blocking::i2c;
 
 use syscon;
-use init_state::{
-    self,
-    InitState,
-};
+use init_state;
 use raw;
 use swm::{
     self,
@@ -77,7 +74,7 @@ use swm::{
 /// apply to.
 ///
 /// [module documentation]: index.html
-pub struct I2C<State: InitState = init_state::Enabled> {
+pub struct I2C<State = init_state::Enabled> {
     i2c   : raw::I2C0,
     _state: State,
 }
@@ -91,9 +88,6 @@ impl I2C<init_state::Disabled> {
     }
 
     /// Enable the I2C peripheral
-    ///
-    /// Enables the clock and clears the peripheral reset for the I2C
-    /// peripheral.
     ///
     /// This method is only available, if `I2C` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
@@ -120,7 +114,6 @@ impl I2C<init_state::Disabled> {
         -> I2C<init_state::Enabled>
     {
         syscon.enable_clock(&mut self.i2c);
-        syscon.clear_reset(&mut self.i2c);
 
         // We need the I2C mode for the pins set to standard/fast mode,
         // according to the user manual, section 15.3.1. This is already the
@@ -230,7 +223,7 @@ impl i2c::Read for I2C<init_state::Enabled> {
     }
 }
 
-impl<State> I2C<State> where State: InitState {
+impl<State> I2C<State> {
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the

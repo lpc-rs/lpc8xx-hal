@@ -40,14 +40,12 @@
 //! // Initialize USART0. This should never fail, as the only reason `init`
 //! // returns a `Result::Err` is when the transmitter is busy, which it
 //! // shouldn't be right now.
-//! let mut serial = p.USART0
-//!     .enable(
-//!         &baud_rate,
-//!         &mut syscon.handle,
-//!         u0_rxd,
-//!         u0_txd,
-//!     )
-//!     .expect("UART initialization shouldn't fail");
+//! let mut serial = p.USART0.enable(
+//!     &baud_rate,
+//!     &mut syscon.handle,
+//!     u0_rxd,
+//!     u0_txd,
+//! );
 //!
 //! // Use a blocking method to write a string
 //! serial.bwrite_all(b"Hello, world!");
@@ -68,10 +66,7 @@ use embedded_hal::serial::{
 };
 use nb;
 
-use init_state::{
-    self,
-    InitState,
-};
+use init_state;
 use raw::{
     self,
     Interrupt,
@@ -97,7 +92,7 @@ use syscon::{
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct USART<UsartX, State: InitState = init_state::Enabled> {
+pub struct USART<UsartX, State = init_state::Enabled> {
     usart : UsartX,
     _state: State,
 }
@@ -111,9 +106,6 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     }
 
     /// Enable the USART
-    ///
-    /// Enables the clock and clears the peripheral reset for the USART
-    /// peripheral.
     ///
     /// This method is only available, if `USART` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
@@ -142,7 +134,7 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
         _        : swm::Function<UsartX::Rx, swm::state::Assigned<Rx>>,
         _        : swm::Function<UsartX::Tx, swm::state::Assigned<Tx>>,
     )
-        -> nb::Result<USART<UsartX, init_state::Enabled>, !>
+        -> USART<UsartX, init_state::Enabled>
         where
             Rx        : PinTrait,
             Tx        : PinTrait,
@@ -150,39 +142,13 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
             UsartX::Tx: FunctionTrait<Tx>,
     {
         syscon.enable_clock(&mut self.usart);
-        syscon.clear_reset(&mut self.usart);
 
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 
-        // Disable USART peripheral before writing configuration. This is
-        // required, according to the user manual, section 13.6.1.
-        //
-        // Also according to that section in the user manual, we should make
-        // sure that the USART is neither sending nor receiving. Presumably we
-        // have full control over the USART at this point, so the sending bit is
-        // fine. How it could be possible to make sure we're not receiving
-        // without introducing a race condition, I don't know.
-        //
-        // Even if the race condition weren't an issue, we can't just wait for
-        // the receiver to become idle. If another piece of hardware is
-        // continuously sending (maybe due to some malfunction), that would mean
-        // this function could block forever. This is not an acceptable risk to
-        // take.
-        //
-        // I have no idea what would happen, if we tried to disable the USART
-        // while it is receiving. If you, the reader, ever find out, well, this
-        // is the piece of code that may need fixing.
-        if self.usart.stat.read().txidle().bit_is_clear() {
-            // Since we should have full control over the USART at this point,
-            // this presumably shouldn't take long and just waiting in a loop
-            // should be okay. However, it's possible that some other piece of
-            // code is working with the UART behind our back.
-            //
-            // If that were the case, we would want an explicit error, not a
-            // random freeze.
-            return Err(nb::Error::WouldBlock);
-        }
-        self.usart.cfg.write(|w| w.enable().disabled());
+        // According to the user manual, section 13.6.1, we need to make sure
+        // that the USART is not sending or receiving data before writing to
+        // CFG, and that it is disabled. We statically know that it is disabled
+        // at this point, so there isn't anything to do here to ensure it.
 
         self.usart.cfg.modify(|_, w|
             w
@@ -206,10 +172,10 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
                 .autobaud().disabled()
         );
 
-        Ok(USART {
+        USART {
             usart : self.usart,
             _state: init_state::Enabled,
-        })
+        }
     }
 }
 
@@ -358,7 +324,7 @@ impl<UsartX> BlockingWriteDefault<u8> for USART<UsartX, init_state::Enabled>
     where UsartX: Peripheral,
 {}
 
-impl<UsartX> fmt::Write for USART<UsartX>
+impl<UsartX> fmt::Write for USART<UsartX, init_state::Enabled>
     where
         Self  : BlockingWriteDefault<u8>,
         UsartX: Peripheral,
@@ -375,7 +341,7 @@ impl<UsartX> fmt::Write for USART<UsartX>
     }
 }
 
-impl<UsartX, State> USART<UsartX, State> where State: InitState {
+impl<UsartX, State> USART<UsartX, State> {
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the

@@ -46,14 +46,12 @@ fn main() -> ! {
         &mut swm.handle,
     );
 
-    let mut serial = p.USART0
-        .enable(
-            &baud_rate,
-            &mut syscon.handle,
-            u0_rxd,
-            u0_txd,
-        )
-        .expect("UART initialization shouldn't fail");
+    let mut serial = p.USART0.enable(
+        &baud_rate,
+        &mut syscon.handle,
+        u0_rxd,
+        u0_txd,
+    );
 
     let _ = pmu.low_power_clock.enable(&mut pmu.handle);
 

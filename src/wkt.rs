@@ -40,10 +40,7 @@ use syscon::{
     self,
     IrcDerivedClock,
 };
-use init_state::{
-    self,
-    InitState,
-};
+use init_state;
 use pmu::LowPowerClock;
 use raw;
 use raw::wkt::ctrl;
@@ -58,7 +55,7 @@ use raw::wkt::ctrl;
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct WKT<State: InitState = init_state::Enabled> {
+pub struct WKT<State = init_state::Enabled> {
     wkt   : raw::WKT,
     _state: State,
 }
@@ -73,9 +70,6 @@ impl WKT<init_state::Disabled> {
 
     /// Enable the WKT
     ///
-    /// Enables the clock and clears the peripheral reset for the WKT
-    /// peripheral.
-    ///
     /// This method is only available, if `WKT` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
     /// enabled will not compile.
@@ -89,7 +83,6 @@ impl WKT<init_state::Disabled> {
         -> WKT<init_state::Enabled>
     {
         syscon.enable_clock(&mut self.wkt);
-        syscon.clear_reset(&mut self.wkt);
 
         WKT {
             wkt   : self.wkt,
@@ -169,7 +162,7 @@ impl timer::CountDown for WKT<init_state::Enabled> {
     }
 }
 
-impl<State> WKT<State> where State: InitState {
+impl<State> WKT<State> {
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the
@@ -201,7 +194,7 @@ pub trait Clock {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W;
 }
 
-impl<State> Clock for IrcDerivedClock<State> where State: InitState {
+impl<State> Clock for IrcDerivedClock<State> {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
         w
             .sel_extclk().internal()
@@ -209,7 +202,7 @@ impl<State> Clock for IrcDerivedClock<State> where State: InitState {
     }
 }
 
-impl<State> Clock for LowPowerClock<State> where State: InitState {
+impl<State> Clock for LowPowerClock<State> {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
         w
             .sel_extclk().internal()
