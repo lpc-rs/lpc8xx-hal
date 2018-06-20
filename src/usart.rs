@@ -367,7 +367,11 @@ impl<UsartX> fmt::Write for USART<UsartX>
         use ::prelude::*;
 
         self.bwrite_all(s.as_bytes())
-            .map_err(|_| fmt::Error)
+            .map_err(|_| fmt::Error)?;
+        block!(self.flush())
+            .map_err(|_| fmt::Error)?;
+
+        Ok(())
     }
 }
 
