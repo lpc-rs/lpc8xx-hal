@@ -515,7 +515,7 @@ impl Peripherals {
             USART2: USART::new(p.USART2),
             WKT   : WKT::new(p.WKT),
 
-            /// Raw peripherals
+            // Raw peripherals
             ADC       : p.ADC,
             CMP       : p.CMP,
             CRC       : p.CRC,
