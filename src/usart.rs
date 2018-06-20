@@ -354,7 +354,7 @@ impl<UsartX> BlockingWriteDefault<u8> for USART<UsartX, init_state::Enabled>
     where UsartX: Peripheral,
 {}
 
-impl<UsartX> fmt::Write for USART<UsartX>
+impl<UsartX> fmt::Write for USART<UsartX, init_state::Enabled>
     where
         Self  : BlockingWriteDefault<u8>,
         UsartX: Peripheral,
