@@ -11,10 +11,7 @@ use gpio::{
     self,
     GPIO,
 };
-use init_state::{
-    self,
-    InitState,
-};
+use init_state;
 use raw;
 use syscon;
 
@@ -109,7 +106,7 @@ pub struct Parts {
 /// PMU.
 ///
 /// [module documentation]: index.html
-pub struct Handle<State: InitState = init_state::Enabled> {
+pub struct Handle<State = init_state::Enabled> {
     swm   : raw::SWM,
     _state: State,
 }

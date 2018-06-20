@@ -48,10 +48,7 @@
 use embedded_hal::blocking::i2c;
 
 use syscon;
-use init_state::{
-    self,
-    InitState,
-};
+use init_state;
 use raw;
 use swm::{
     self,
@@ -77,7 +74,7 @@ use swm::{
 /// apply to.
 ///
 /// [module documentation]: index.html
-pub struct I2C<State: InitState = init_state::Enabled> {
+pub struct I2C<State = init_state::Enabled> {
     i2c   : raw::I2C0,
     _state: State,
 }
@@ -226,7 +223,7 @@ impl i2c::Read for I2C<init_state::Enabled> {
     }
 }
 
-impl<State> I2C<State> where State: InitState {
+impl<State> I2C<State> {
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the

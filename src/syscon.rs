@@ -13,10 +13,7 @@
 use core::marker::PhantomData;
 
 use clock;
-use init_state::{
-    self,
-    InitState,
-};
+use init_state;
 use raw;
 use raw::syscon::{
     pdruncfg,
@@ -523,7 +520,7 @@ impl_analog_block!(raw::CMP , acmp      );
 ///
 /// This is one of the clocks that can be used to run the self-wake-up timer
 /// (WKT). See user manual, section 18.5.1.
-pub struct IrcDerivedClock<State: InitState = init_state::Enabled> {
+pub struct IrcDerivedClock<State = init_state::Enabled> {
     _state: State,
 }
 
@@ -565,9 +562,7 @@ impl IrcDerivedClock<init_state::Disabled> {
     }
 }
 
-impl<State> clock::Frequency for IrcDerivedClock<State>
-    where State: InitState
-{
+impl<State> clock::Frequency for IrcDerivedClock<State> {
     fn hz(&self) -> u32 { 750_000 }
 }
 

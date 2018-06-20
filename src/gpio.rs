@@ -35,10 +35,7 @@ use embedded_hal::digital::{
     StatefulOutputPin,
 };
 
-use init_state::{
-    self,
-    InitState,
-};
+use init_state;
 use raw;
 use swm::{
     pin_state,
@@ -61,7 +58,7 @@ use syscon;
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct GPIO<State: InitState = init_state::Enabled> {
+pub struct GPIO<State = init_state::Enabled> {
     pub(crate) gpio  : raw::GPIO_PORT,
                _state: State,
 }
@@ -123,7 +120,7 @@ impl GPIO<init_state::Enabled> {
     }
 }
 
-impl<State> GPIO<State> where State: InitState {
+impl<State> GPIO<State> {
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the

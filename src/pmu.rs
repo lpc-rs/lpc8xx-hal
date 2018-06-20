@@ -35,10 +35,7 @@ use cortex_m::{
 };
 
 use clock;
-use init_state::{
-    self,
-    InitState,
-};
+use init_state;
 use raw;
 
 
@@ -235,7 +232,7 @@ impl Handle {
 ///
 /// This is one of the clocks that can be used to run the self-wake-up timer
 /// (WKT). See user manual, section 18.5.1.
-pub struct LowPowerClock<State: InitState = init_state::Enabled> {
+pub struct LowPowerClock<State = init_state::Enabled> {
     _state: State,
 }
 
@@ -300,7 +297,7 @@ impl LowPowerClock<init_state::Enabled> {
     }
 }
 
-impl<State> clock::Frequency for LowPowerClock<State> where State: InitState {
+impl<State> clock::Frequency for LowPowerClock<State> {
     fn hz(&self) -> u32 { 10_000 }
 }
 

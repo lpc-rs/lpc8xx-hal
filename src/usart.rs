@@ -68,10 +68,7 @@ use embedded_hal::serial::{
 };
 use nb;
 
-use init_state::{
-    self,
-    InitState,
-};
+use init_state;
 use raw::{
     self,
     Interrupt,
@@ -97,7 +94,7 @@ use syscon::{
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct USART<UsartX, State: InitState = init_state::Enabled> {
+pub struct USART<UsartX, State = init_state::Enabled> {
     usart : UsartX,
     _state: State,
 }
@@ -371,7 +368,7 @@ impl<UsartX> fmt::Write for USART<UsartX, init_state::Enabled>
     }
 }
 
-impl<UsartX, State> USART<UsartX, State> where State: InitState {
+impl<UsartX, State> USART<UsartX, State> {
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the

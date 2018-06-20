@@ -214,28 +214,14 @@ pub mod prelude {
 /// other hardware components, to encode the initialization state of the
 /// underlying hardware as part of the type.
 pub mod init_state {
-    /// Implemented by the types that represent the initialization states
-    ///
-    /// This type is used as a trait bound for type paramters that represent
-    /// initialization states. This is done for the purpose of documentation.
-    /// HAL users should never need to implement this trait, nor use it
-    /// directly.
-    pub trait InitState {}
-
-
     /// Indicates that the hardware component is enabled
     ///
     /// This usually indicates that the hardware has been initialized and can be
     /// used for its intended purpose.
     pub struct Enabled;
 
-    impl InitState for Enabled {}
-
-
     /// Indicates that the hardware component is disabled
     pub struct Disabled;
-
-    impl InitState for Disabled {}
 }
 
 
