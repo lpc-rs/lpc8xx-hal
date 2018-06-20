@@ -312,8 +312,7 @@ pins!(
 /// #
 /// # let mut p = Peripherals::take().unwrap();
 /// #
-/// # let     gpio = p.gpio;
-/// # let mut swm  = p.swm.split();
+/// # let mut swm = p.swm.split();
 /// #
 /// // Assign a function to a pin
 /// let (clkout, pio0_12) = swm.movable_functions.clkout.assign(
@@ -324,7 +323,7 @@ pins!(
 /// // As long as the function is assigned, we can't use the pin for
 /// // general-purpose I/O. Therefore the following method call would cause a
 /// // compile-time error.
-/// // let pio0_12 = pio0_12.into_gpio_pin(&gpio);
+/// // let pio0_12 = pio0_12.into_gpio_pin(&p.gpio);
 /// ```
 ///
 /// To use the pin in the above example for GPIO, we first have to unassign the
@@ -335,8 +334,7 @@ pins!(
 /// #
 /// # let mut p = Peripherals::take().unwrap();
 /// #
-/// # let     gpio = p.gpio;
-/// # let mut swm  = p.swm.split();
+/// # let mut swm = p.swm.split();
 /// #
 /// # let (clkout, pio0_12) = swm.movable_functions.clkout.assign(
 /// #     swm.pins.pio0_12.into_swm_pin(),
@@ -347,7 +345,7 @@ pins!(
 /// let pio0_12 = pio0_12.into_unused_pin();
 ///
 /// // Now we can transition the pin into the GPIO state.
-/// let pio0_12 = pio0_12.into_gpio_pin(&gpio);
+/// let pio0_12 = pio0_12.into_gpio_pin(&p.gpio);
 /// ```
 ///
 /// # General Purpose I/O
