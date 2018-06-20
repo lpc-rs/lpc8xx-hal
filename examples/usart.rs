@@ -71,14 +71,12 @@ fn main() -> ! {
     // Initialize USART0. This should never fail, as the only reason `init`
     // returns a `Result::Err` is when the transmitter is busy, which it
     // shouldn't be right now.
-    let mut serial = p.USART0
-        .enable(
-            &baud_rate,
-            &mut syscon.handle,
-            u0_rxd,
-            u0_txd,
-        )
-        .expect("UART initialization shouldn't fail");
+    let mut serial = p.USART0.enable(
+        &baud_rate,
+        &mut syscon.handle,
+        u0_rxd,
+        u0_txd,
+    );
 
     // Write a string, blocking until it has finished writing
     serial.bwrite_all(b"Hello, world!\n")
