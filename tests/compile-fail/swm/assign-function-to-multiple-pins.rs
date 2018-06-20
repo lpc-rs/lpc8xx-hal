@@ -12,8 +12,8 @@ use lpc82x_hal::swm::{
 fn main() {
     let mut p = Peripherals::take().unwrap();
 
-    let     swm    = p.swm.split();
-    let mut syscon = p.syscon.split();
+    let     swm    = p.SWM.split();
+    let mut syscon = p.SYSCON.split();
 
     let pio0_0: Pin<_, pin_state::Unused> = swm.pins.pio0_0;
     let pio0_1: Pin<_, pin_state::Unused> = swm.pins.pio0_1;

@@ -15,10 +15,7 @@ use cortex_m::interrupt;
 use cortex_m_rt::ExceptionFrame;
 
 use lpc82x_hal::prelude::*;
-use lpc82x_hal::{
-    raw,
-    Peripherals,
-};
+use lpc82x_hal::Peripherals;
 use lpc82x_hal::pmu::LowPowerClock;
 use lpc82x_hal::raw::Interrupt;
 use lpc82x_hal::syscon::WktWakeup;
@@ -28,12 +25,11 @@ use lpc82x_hal::usart::BaudRate;
 entry!(main);
 
 fn main() -> ! {
-    let mut cp = raw::CorePeripherals::take().unwrap();
-    let mut p  = Peripherals::take().unwrap();
+    let mut p = Peripherals::take().unwrap();
 
-    let mut pmu    = p.pmu.split();
-    let mut swm    = p.swm.split();
-    let mut syscon = p.syscon.split();
+    let mut pmu    = p.PMU.split();
+    let mut swm    = p.SWM.split();
+    let mut syscon = p.SYSCON.split();
 
     // 115200 baud
     syscon.uartfrg.set_clkdiv(6);
@@ -50,7 +46,7 @@ fn main() -> ! {
         &mut swm.handle,
     );
 
-    let mut serial = p.usart0
+    let mut serial = p.USART0
         .enable(
             &baud_rate,
             &mut syscon.handle,
@@ -61,14 +57,16 @@ fn main() -> ! {
 
     let _ = pmu.low_power_clock.enable(&mut pmu.handle);
 
-    let mut wkt = p.wkt.enable(&mut syscon.handle);
+    let mut wkt = p.WKT.enable(&mut syscon.handle);
     wkt.select_clock::<LowPowerClock>();
 
     let five_seconds: u32 = 10_000 * 5;
 
     // Need to re-assign some stuff that's needed inside the closure. Otherwise
     // it will try to move stuff that's still borrowed outside of it.
+    let mut nvic   = p.NVIC;
     let mut pmu    = pmu.handle;
+    let mut scb    = p.SCB;
     let mut syscon = syscon.handle;
 
     interrupt::free(|_| {
@@ -76,7 +74,7 @@ fn main() -> ! {
         // `interrupt::free` will allow the interrupt to wake up the system, if
         // it's sleeping. But the interrupt handler won't run, which means we
         // don't have to define one.
-        cp.NVIC.enable(Interrupt::WKT);
+        nvic.enable(Interrupt::WKT);
 
         // Busy Waiting
         serial.bwrite_all(b"5 seconds of busy waiting...\n")
@@ -96,9 +94,9 @@ fn main() -> ! {
         serial.bwrite_all(b"5 seconds of sleep mode...\n")
             .expect("UART write shouldn't fail");
         wkt.start(five_seconds);
-        cp.NVIC.clear_pending(Interrupt::WKT);
+        nvic.clear_pending(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
-            pmu.enter_sleep_mode(&mut cp.SCB);
+            pmu.enter_sleep_mode(&mut scb);
         }
 
         // Without this, the WKT interrupt won't wake up the system from
@@ -111,9 +109,9 @@ fn main() -> ! {
         block!(serial.flush())
             .expect("Flush shouldn't fail");
         wkt.start(five_seconds);
-        cp.NVIC.clear_pending(Interrupt::WKT);
+        nvic.clear_pending(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
-            unsafe { pmu.enter_deep_sleep_mode(&mut cp.SCB) };
+            unsafe { pmu.enter_deep_sleep_mode(&mut scb) };
         }
 
         // Power-down mode
@@ -122,9 +120,9 @@ fn main() -> ! {
         block!(serial.flush())
             .expect("Flush shouldn't fail");
         wkt.start(five_seconds);
-        cp.NVIC.clear_pending(Interrupt::WKT);
+        nvic.clear_pending(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
-            unsafe { pmu.enter_power_down_mode(&mut cp.SCB) };
+            unsafe { pmu.enter_power_down_mode(&mut scb) };
         }
 
         // A demonstration of deep power-down mode is currently missing from

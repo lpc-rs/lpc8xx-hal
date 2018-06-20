@@ -34,9 +34,9 @@ entry!(main);
 fn main() -> ! {
     let mut p = Peripherals::take().unwrap();
 
-    let     i2c    = p.i2c0;
-    let mut swm    = p.swm.split();
-    let mut syscon = p.syscon.split();
+    let     i2c    = p.I2C0;
+    let mut swm    = p.SWM.split();
+    let mut syscon = p.SYSCON.split();
 
     // Set baud rate to 115200 baud
     //
@@ -74,7 +74,7 @@ fn main() -> ! {
         &mut swm.handle,
     );
 
-    let serial = p.usart0
+    let serial = p.USART0
         .enable(
             &BaudRate::new(&syscon.uartfrg, 0),
             &mut syscon.handle,

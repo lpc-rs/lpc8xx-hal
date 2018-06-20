@@ -18,8 +18,8 @@
 //!
 //! let mut p = Peripherals::take().unwrap();
 //!
-//! let mut swm    = p.swm.split();
-//! let mut syscon = p.syscon.split();
+//! let mut swm    = p.SWM.split();
+//! let mut syscon = p.SYSCON.split();
 //!
 //! let (i2c0_sda, _) = swm.fixed_functions.i2c0_sda.assign(
 //!     swm.pins.pio0_11.into_swm_pin(),
@@ -30,7 +30,7 @@
 //!     &mut swm.handle,
 //! );
 //!
-//! let mut i2c = p.i2c0.enable(
+//! let mut i2c = p.I2C0.enable(
 //!     &mut syscon.handle,
 //!     i2c0_sda,
 //!     i2c0_scl,

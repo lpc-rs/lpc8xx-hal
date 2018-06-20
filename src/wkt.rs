@@ -15,8 +15,8 @@
 //!
 //! let mut p = Peripherals::take().unwrap();
 //!
-//! let mut syscon = p.syscon.split();
-//! let mut timer  = p.wkt.enable(&mut syscon.handle);
+//! let mut syscon = p.SYSCON.split();
+//! let mut timer  = p.WKT.enable(&mut syscon.handle);
 //!
 //! // Start the timer at 750000. Sine the IRC-derived clock runs at 750 kHz,
 //! // this translates to a one second wait.
