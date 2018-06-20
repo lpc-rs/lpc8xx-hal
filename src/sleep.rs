@@ -138,8 +138,7 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// };
 /// use lpc82x_hal::clock::Ticks;
 ///
-/// let mut cp = raw::CorePeripherals::take().unwrap();
-/// let mut p  = Peripherals::take().unwrap();
+/// let mut p = Peripherals::take().unwrap();
 ///
 /// let mut pmu    = p.PMU.split();
 /// let mut syscon = p.SYSCON.split();
@@ -148,9 +147,9 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// let clock = syscon.irc_derived_clock;
 ///
 /// let mut sleep = sleep::Regular::prepare(
-///     &mut cp.NVIC,
+///     &mut p.NVIC,
 ///     &mut pmu.handle,
-///     &mut cp.SCB,
+///     &mut p.SCB,
 ///     &mut wkt,
 /// );
 ///

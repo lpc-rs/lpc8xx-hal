@@ -420,6 +420,41 @@ pub struct Peripherals {
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
     pub WWDT: raw::WWDT,
+
+    /// CPUID
+    ///
+    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
+    pub CPUID: raw::CPUID,
+
+    /// Debug Control Block (DCB)
+    ///
+    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
+    pub DCB: raw::DCB,
+
+    /// Data Watchpoint and Trace unit (DWT)
+    ///
+    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
+    pub DWT: raw::DWT,
+
+    /// Memory Protection Unit (MPU)
+    ///
+    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
+    pub MPU: raw::MPU,
+
+    /// Nested Vector Interrupt Controller (NVIC)
+    ///
+    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
+    pub NVIC: raw::NVIC,
+
+    /// System Control Block (SCB)
+    ///
+    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
+    pub SCB: raw::SCB,
+
+    /// SysTick: System Timer
+    ///
+    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
+    pub SYST: raw::SYST,
 }
 
 impl Peripherals {
@@ -453,9 +488,10 @@ impl Peripherals {
     /// let p = Peripherals::take().unwrap();
     /// ```
     pub fn take() -> Option<Self> {
-        let p = raw::Peripherals::take()?;
-
-        Some(Self::new(p))
+        Some(Self::new(
+            raw::Peripherals::take()?,
+            raw::CorePeripherals::take()?,
+        ))
     }
 
     /// Steal the peripherals
@@ -499,10 +535,13 @@ impl Peripherals {
     /// Since there are no means within this API to forcibly change type state,
     /// you will need to resort to something like [`core::mem::transmute`].
     pub unsafe fn steal() -> Self {
-        Self::new(raw::Peripherals::steal())
+        Self::new(
+            raw::Peripherals::steal(),
+            raw::CorePeripherals::steal(),
+        )
     }
 
-    fn new(p: raw::Peripherals) -> Self {
+    fn new(p: raw::Peripherals, cp: raw::CorePeripherals) -> Self {
         Peripherals {
             // HAL peripherals
             GPIO  : GPIO::new(p.GPIO_PORT),
@@ -533,6 +572,15 @@ impl Peripherals {
             SPI0      : p.SPI0,
             SPI1      : p.SPI1,
             WWDT      : p.WWDT,
+
+            // Core peripherals
+            CPUID: cp.CPUID,
+            DCB  : cp.DCB,
+            DWT  : cp.DWT,
+            MPU  : cp.MPU,
+            NVIC : cp.NVIC,
+            SCB  : cp.SCB,
+            SYST : cp.SYST,
         }
     }
 }

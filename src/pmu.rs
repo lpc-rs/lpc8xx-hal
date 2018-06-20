@@ -15,14 +15,13 @@
 //!     Peripherals,
 //! };
 //!
-//! let mut cp = raw::CorePeripherals::take().unwrap();
-//! let mut p  = Peripherals::take().unwrap();
+//! let mut p = Peripherals::take().unwrap();
 //!
 //! let mut pmu = p.PMU.split();
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
-//! pmu.handle.enter_sleep_mode(&mut cp.SCB);
+//! pmu.handle.enter_sleep_mode(&mut p.SCB);
 //! ```
 //!
 //! Please refer to the [examples in the repository] for more example code.
