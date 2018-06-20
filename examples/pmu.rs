@@ -31,9 +31,9 @@ fn main() -> ! {
     let mut cp = raw::CorePeripherals::take().unwrap();
     let mut p  = Peripherals::take().unwrap();
 
-    let mut pmu    = p.pmu.split();
-    let mut swm    = p.swm.split();
-    let mut syscon = p.syscon.split();
+    let mut pmu    = p.PMU.split();
+    let mut swm    = p.SWM.split();
+    let mut syscon = p.SYSCON.split();
 
     // 115200 baud
     syscon.uartfrg.set_clkdiv(6);
@@ -50,7 +50,7 @@ fn main() -> ! {
         &mut swm.handle,
     );
 
-    let mut serial = p.usart0
+    let mut serial = p.USART0
         .enable(
             &baud_rate,
             &mut syscon.handle,
@@ -61,7 +61,7 @@ fn main() -> ! {
 
     let _ = pmu.low_power_clock.enable(&mut pmu.handle);
 
-    let mut wkt = p.wkt.enable(&mut syscon.handle);
+    let mut wkt = p.WKT.enable(&mut syscon.handle);
     wkt.select_clock::<LowPowerClock>();
 
     let five_seconds: u32 = 10_000 * 5;

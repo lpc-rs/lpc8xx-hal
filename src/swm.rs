@@ -312,7 +312,7 @@ pins!(
 /// #
 /// # let mut p = Peripherals::take().unwrap();
 /// #
-/// # let mut swm = p.swm.split();
+/// # let mut swm = p.SWM.split();
 /// #
 /// // Assign a function to a pin
 /// let (clkout, pio0_12) = swm.movable_functions.clkout.assign(
@@ -323,7 +323,7 @@ pins!(
 /// // As long as the function is assigned, we can't use the pin for
 /// // general-purpose I/O. Therefore the following method call would cause a
 /// // compile-time error.
-/// // let pio0_12 = pio0_12.into_gpio_pin(&p.gpio);
+/// // let pio0_12 = pio0_12.into_gpio_pin(&p.GPIO);
 /// ```
 ///
 /// To use the pin in the above example for GPIO, we first have to unassign the
@@ -334,7 +334,7 @@ pins!(
 /// #
 /// # let mut p = Peripherals::take().unwrap();
 /// #
-/// # let mut swm = p.swm.split();
+/// # let mut swm = p.SWM.split();
 /// #
 /// # let (clkout, pio0_12) = swm.movable_functions.clkout.assign(
 /// #     swm.pins.pio0_12.into_swm_pin(),
@@ -345,7 +345,7 @@ pins!(
 /// let pio0_12 = pio0_12.into_unused_pin();
 ///
 /// // Now we can transition the pin into the GPIO state.
-/// let pio0_12 = pio0_12.into_gpio_pin(&p.gpio);
+/// let pio0_12 = pio0_12.into_gpio_pin(&p.GPIO);
 /// ```
 ///
 /// # General Purpose I/O
@@ -360,12 +360,12 @@ pins!(
 ///
 /// let mut p = Peripherals::take().unwrap();
 ///
-/// let mut swm = p.swm.split();
+/// let mut swm = p.SWM.split();
 ///
 /// // The pin takes a shared reference to `GPIO`, which it keeps around as long
 /// // as the pin is in the GPIO state. This ensures the GPIO peripheral can't
 /// // be disabled while we're still using the pin for GPIO.
-/// let pin = swm.pins.pio0_12.into_gpio_pin(&p.gpio);
+/// let pin = swm.pins.pio0_12.into_gpio_pin(&p.GPIO);
 /// ```
 ///
 /// Now `pin` is in the GPIO state. The GPIO state has the following sub-states:
@@ -385,10 +385,10 @@ pins!(
 /// #
 /// # let p = Peripherals::take().unwrap();
 /// #
-/// # let mut swm = p.swm.split();
+/// # let mut swm = p.SWM.split();
 /// #
 /// # let pin = swm.pins.pio0_12
-/// #     .into_gpio_pin(&p.gpio);
+/// #     .into_gpio_pin(&p.GPIO);
 /// #
 /// use lpc82x_hal::prelude::*;
 ///
@@ -418,7 +418,7 @@ pins!(
 /// #
 /// # let p = Peripherals::take().unwrap();
 /// #
-/// # let swm = p.swm.split();
+/// # let swm = p.SWM.split();
 /// #
 /// let pin = swm.pins.pio0_12
 ///     .into_swm_pin();
@@ -450,7 +450,7 @@ pins!(
 ///
 /// let p = Peripherals::take().unwrap();
 ///
-/// let mut swm = p.swm.split();
+/// let mut swm = p.SWM.split();
 ///
 /// // Transition pin into ADC state
 /// let (adc_2, pio0_14) = swm.fixed_functions.adc_2.assign(
@@ -498,10 +498,10 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     ///
     /// let p = Peripherals::take().unwrap();
     ///
-    /// let swm = p.swm.split();
+    /// let swm = p.SWM.split();
     ///
     /// let pin = swm.pins.pio0_12
-    ///     .into_gpio_pin(&p.gpio);
+    ///     .into_gpio_pin(&p.GPIO);
     ///
     /// // `pin` is now available for general-purpose I/O
     /// ```
@@ -542,7 +542,7 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     ///
     /// let p = Peripherals::take().unwrap();
     ///
-    /// let swm = p.swm.split();
+    /// let swm = p.SWM.split();
     ///
     /// let pin = swm.pins.pio0_12
     ///     .into_swm_pin();
@@ -798,7 +798,7 @@ impl<T> Function<T, state::Unassigned> {
     ///
     /// let p = Peripherals::take().unwrap();
     ///
-    /// let mut swm = p.swm.split();
+    /// let mut swm = p.SWM.split();
     ///
     /// // Assign output function to a pin
     /// let (u0_txd, pio0_0) = swm.movable_functions.u0_txd.assign(
@@ -868,7 +868,7 @@ impl<T, P> Function<T, state::Assigned<P>> {
     /// #
     /// # let p = Peripherals::take().unwrap();
     /// #
-    /// # let mut swm = p.swm.split();
+    /// # let mut swm = p.SWM.split();
     /// #
     /// # // Assign output function to a pin
     /// # let (u0_txd, pio0_0) = swm.movable_functions.u0_txd.assign(

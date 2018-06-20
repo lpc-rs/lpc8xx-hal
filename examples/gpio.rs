@@ -25,9 +25,9 @@ fn main() -> ! {
 
     // Other peripherals need to be initialized. Trying to use the API before
     // initializing them will actually lead to compile-time errors.
-    let mut swm    = p.swm.split();
-    let mut syscon = p.syscon.split();
-    let mut wkt    = p.wkt.enable(&mut syscon.handle);
+    let mut swm    = p.SWM.split();
+    let mut syscon = p.SYSCON.split();
+    let mut wkt    = p.WKT.enable(&mut syscon.handle);
 
     // We're going to need a clock for sleeping. Let's use the IRC-derived clock
     // that runs at 750 kHz.
@@ -48,7 +48,7 @@ fn main() -> ! {
         .unassign(pio0_3, &mut swm.handle);
     let mut pio0_3 = pio0_3
         .into_unused_pin()
-        .into_gpio_pin(&p.gpio)
+        .into_gpio_pin(&p.GPIO)
         .into_output();
 
     // Let's already initialize the durations that we're going to sleep for

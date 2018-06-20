@@ -16,10 +16,10 @@
 //!
 //! let mut p = Peripherals::take().unwrap();
 //!
-//! let swm = p.swm.split();
+//! let swm = p.SWM.split();
 //!
 //! let pio0_12 = swm.pins.pio0_12
-//!     .into_gpio_pin(&p.gpio)
+//!     .into_gpio_pin(&p.GPIO)
 //!     .into_output()
 //!     .set_high();
 //! ```
@@ -168,11 +168,11 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     ///
     /// let p = Peripherals::take().unwrap();
     ///
-    /// let swm = p.swm.split();
+    /// let swm = p.SWM.split();
     ///
     /// // Transition pin into GPIO state, then set it to output
     /// let mut pin = swm.pins.pio0_12
-    ///     .into_gpio_pin(&p.gpio)
+    ///     .into_gpio_pin(&p.GPIO)
     ///     .into_output();
     ///
     /// // Output level can now be controlled

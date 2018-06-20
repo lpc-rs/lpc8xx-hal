@@ -20,8 +20,8 @@ entry!(main);
 fn main() -> ! {
     let mut p = Peripherals::take().unwrap();
 
-    let mut swm    = p.swm.split();
-    let mut syscon = p.syscon.split();
+    let mut swm    = p.SWM.split();
+    let mut syscon = p.SYSCON.split();
 
     // Set baud rate to 115200 baud
     //
@@ -71,7 +71,7 @@ fn main() -> ! {
     // Initialize USART0. This should never fail, as the only reason `init`
     // returns a `Result::Err` is when the transmitter is busy, which it
     // shouldn't be right now.
-    let mut serial = p.usart0
+    let mut serial = p.USART0
         .enable(
             &baud_rate,
             &mut syscon.handle,

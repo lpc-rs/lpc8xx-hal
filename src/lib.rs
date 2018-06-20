@@ -269,36 +269,37 @@ pub mod init_state {
 /// make sure you know what you're doing. In specific terms, this means you
 /// should be fully aware of what your code does, and whether that is a valid
 /// use of the hardware.
+#[allow(non_snake_case)]
 pub struct Peripherals {
     /// General-purpose I/O (GPIO)
     ///
     /// The GPIO peripheral is enabled by default. See user manual, section
     /// 5.6.14.
-    pub gpio: GPIO<init_state::Enabled>,
+    pub GPIO: GPIO<init_state::Enabled>,
 
     /// I2C0-bus interface
-    pub i2c0: I2C<init_state::Disabled>,
+    pub I2C0: I2C<init_state::Disabled>,
 
     /// Power Management Unit
-    pub pmu: PMU,
+    pub PMU: PMU,
 
     /// Switch matrix
-    pub swm: SWM,
+    pub SWM: SWM,
 
     /// System configuration
-    pub syscon: SYSCON,
+    pub SYSCON: SYSCON,
 
     /// USART0
-    pub usart0: USART<raw::USART0, init_state::Disabled>,
+    pub USART0: USART<raw::USART0, init_state::Disabled>,
 
     /// USART1
-    pub usart1: USART<raw::USART1, init_state::Disabled>,
+    pub USART1: USART<raw::USART1, init_state::Disabled>,
 
     /// USART2
-    pub usart2: USART<raw::USART2, init_state::Disabled>,
+    pub USART2: USART<raw::USART2, init_state::Disabled>,
 
     /// Self-wake-up timer (WKT)
-    pub wkt: WKT<init_state::Disabled>,
+    pub WKT: WKT<init_state::Disabled>,
 
 
     /// Analog-to-Digital Converter (ADC)
@@ -306,119 +307,119 @@ pub struct Peripherals {
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub adc: raw::ADC,
+    pub ADC: raw::ADC,
 
     /// Analog comparator
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub cmp: raw::CMP,
+    pub CMP: raw::CMP,
 
     /// CRC engine
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub crc: raw::CRC,
+    pub CRC: raw::CRC,
 
     /// DMA controller
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub dma: raw::DMA,
+    pub DMA: raw::DMA,
 
     /// DMA trigger mux
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub dmatrigmux: raw::DMATRIGMUX,
+    pub DMATRIGMUX: raw::DMATRIGMUX,
 
     /// Flash controller
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub flashctrl: raw::FLASHCTRL,
+    pub FLASHCTRL: raw::FLASHCTRL,
 
     /// I2C0-bus interface
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub i2c1: raw::I2C1,
+    pub I2C1: raw::I2C1,
 
     /// I2C0-bus interface
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub i2c2: raw::I2C2,
+    pub I2C2: raw::I2C2,
 
     /// I2C0-bus interface
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub i2c3: raw::I2C3,
+    pub I2C3: raw::I2C3,
 
     /// Input multiplexing
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub inputmux: raw::INPUTMUX,
+    pub INPUTMUX: raw::INPUTMUX,
 
     /// I/O configuration
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub iocon: raw::IOCON,
+    pub IOCON: raw::IOCON,
 
     /// Multi-Rate Timer (MRT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub mrt: raw::MRT,
+    pub MRT: raw::MRT,
 
     /// Pin interrupt and pattern match engine
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub pin_int: raw::PIN_INT,
+    pub PIN_INT: raw::PIN_INT,
 
     /// State Configurable Timer (SCT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub sct: raw::SCT,
+    pub SCT: raw::SCT,
 
     /// SPI0
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub spi0: raw::SPI0,
+    pub SPI0: raw::SPI0,
 
     /// SPI1
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub spi1: raw::SPI1,
+    pub SPI1: raw::SPI1,
 
     /// Windowed Watchdog Timer (WWDT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub wwdt: raw::WWDT,
+    pub WWDT: raw::WWDT,
 }
 
 impl Peripherals {
@@ -504,34 +505,34 @@ impl Peripherals {
     fn new(p: raw::Peripherals) -> Self {
         Peripherals {
             // HAL peripherals
-            gpio  : GPIO::new(p.GPIO_PORT),
-            i2c0  : I2C::new(p.I2C0),
-            pmu   : PMU::new(p.PMU),
-            swm   : SWM::new(p.SWM),
-            syscon: SYSCON::new(p.SYSCON),
-            usart0: USART::new(p.USART0),
-            usart1: USART::new(p.USART1),
-            usart2: USART::new(p.USART2),
-            wkt   : WKT::new(p.WKT),
+            GPIO  : GPIO::new(p.GPIO_PORT),
+            I2C0  : I2C::new(p.I2C0),
+            PMU   : PMU::new(p.PMU),
+            SWM   : SWM::new(p.SWM),
+            SYSCON: SYSCON::new(p.SYSCON),
+            USART0: USART::new(p.USART0),
+            USART1: USART::new(p.USART1),
+            USART2: USART::new(p.USART2),
+            WKT   : WKT::new(p.WKT),
 
             /// Raw peripherals
-            adc       : p.ADC,
-            cmp       : p.CMP,
-            crc       : p.CRC,
-            dma       : p.DMA,
-            dmatrigmux: p.DMATRIGMUX,
-            flashctrl : p.FLASHCTRL,
-            i2c1      : p.I2C1,
-            i2c2      : p.I2C2,
-            i2c3      : p.I2C3,
-            inputmux  : p.INPUTMUX,
-            iocon     : p.IOCON,
-            mrt       : p.MRT,
-            pin_int   : p.PIN_INT,
-            sct       : p.SCT,
-            spi0      : p.SPI0,
-            spi1      : p.SPI1,
-            wwdt      : p.WWDT,
+            ADC       : p.ADC,
+            CMP       : p.CMP,
+            CRC       : p.CRC,
+            DMA       : p.DMA,
+            DMATRIGMUX: p.DMATRIGMUX,
+            FLASHCTRL : p.FLASHCTRL,
+            I2C1      : p.I2C1,
+            I2C2      : p.I2C2,
+            I2C3      : p.I2C3,
+            INPUTMUX  : p.INPUTMUX,
+            IOCON     : p.IOCON,
+            MRT       : p.MRT,
+            PIN_INT   : p.PIN_INT,
+            SCT       : p.SCT,
+            SPI0      : p.SPI0,
+            SPI1      : p.SPI1,
+            WWDT      : p.WWDT,
         }
     }
 }

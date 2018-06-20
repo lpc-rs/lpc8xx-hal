@@ -18,7 +18,7 @@
 //! let mut cp = raw::CorePeripherals::take().unwrap();
 //! let mut p  = Peripherals::take().unwrap();
 //!
-//! let mut pmu = p.pmu.split();
+//! let mut pmu = p.PMU.split();
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
