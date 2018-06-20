@@ -167,17 +167,6 @@ pub mod usart;
 pub mod wkt;
 
 
-pub use raw::{
-    CPUID,
-    DCB,
-    DWT,
-    MPU,
-    NVIC,
-    SCB,
-    SYST,
-    Interrupt,
-};
-
 pub use self::gpio::GPIO;
 pub use self::i2c::I2C;
 pub use self::pmu::PMU;
