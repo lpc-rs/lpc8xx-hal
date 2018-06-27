@@ -100,7 +100,7 @@ pub trait Frequency {
 ///         // ...
 ///
 ///         MyClock {
-///             _state: init_state::Enabled,
+///             _state: init_state::Enabled(()),
 ///         }
 ///     }
 /// }

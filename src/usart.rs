@@ -174,7 +174,7 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
 
         USART {
             usart : self.usart,
-            _state: init_state::Enabled,
+            _state: init_state::Enabled(()),
         }
     }
 }

@@ -139,7 +139,7 @@ impl I2C<init_state::Disabled> {
 
         I2C {
             i2c   : self.i2c,
-            _state: init_state::Enabled,
+            _state: init_state::Enabled(()),
         }
     }
 }

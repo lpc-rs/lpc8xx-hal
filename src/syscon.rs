@@ -528,7 +528,7 @@ pub struct IrcDerivedClock<State = init_state::Enabled> {
 impl IrcDerivedClock<init_state::Enabled> {
     pub(crate) fn new() -> Self {
         IrcDerivedClock {
-            _state: init_state::Enabled,
+            _state: init_state::Enabled(()),
         }
     }
 }
@@ -558,7 +558,7 @@ impl IrcDerivedClock<init_state::Disabled> {
         syscon.power_up(&mut ircout);
 
         IrcDerivedClock {
-            _state: init_state::Enabled,
+            _state: init_state::Enabled(()),
         }
     }
 }

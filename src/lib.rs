@@ -208,8 +208,9 @@ pub mod init_state {
     /// Indicates that the hardware component is enabled
     ///
     /// This usually indicates that the hardware has been initialized and can be
-    /// used for its intended purpose.
-    pub struct Enabled;
+    /// used for its intended purpose. Contains an optional payload that APIs
+    /// can use to keep data that is only available while enabled.
+    pub struct Enabled<T = ()>(pub T);
 
     /// Indicates that the hardware component is disabled
     pub struct Disabled;
