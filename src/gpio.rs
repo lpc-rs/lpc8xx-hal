@@ -72,7 +72,7 @@ impl GPIO<init_state::Enabled> {
     }
 }
 
-impl<'gpio> GPIO<init_state::Disabled> {
+impl GPIO<init_state::Disabled> {
     /// Enable the GPIO peripheral
     ///
     /// This method is only available, if `GPIO` is in the [`Disabled`] state.
