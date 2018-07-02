@@ -177,17 +177,17 @@ impl Handle {
     /// Enables the clock for a peripheral or other hardware component. HAL
     /// users usually won't have to call this method directly, as other
     /// peripheral APIs will do this for them.
-    pub fn enable_clock<P: ClockControl>(&mut self, peripheral: &mut P) {
+    pub fn enable_clock<P: ClockControl>(&mut self, peripheral: &P) {
         self.sysahbclkctrl.modify(|_, w| peripheral.enable_clock(w));
     }
 
     /// Disable peripheral clock
-    pub fn disable_clock<P: ClockControl>(&mut self, peripheral: &mut P) {
+    pub fn disable_clock<P: ClockControl>(&mut self, peripheral: &P) {
         self.sysahbclkctrl.modify(|_, w| peripheral.disable_clock(w));
     }
 
     /// Assert peripheral reset
-    pub fn assert_reset<P: ResetControl>(&mut self, peripheral: &mut P) {
+    pub fn assert_reset<P: ResetControl>(&mut self, peripheral: &P) {
         self.presetctrl.modify(|_, w| peripheral.assert_reset(w));
     }
 
@@ -196,7 +196,7 @@ impl Handle {
     /// Clears the reset for a peripheral or other hardware component. HAL users
     /// usually won't have to call this method directly, as other peripheral
     /// APIs will do this for them.
-    pub fn clear_reset<P: ResetControl>(&mut self, peripheral: &mut P) {
+    pub fn clear_reset<P: ResetControl>(&mut self, peripheral: &P) {
         self.presetctrl.modify(|_, w| peripheral.clear_reset(w));
     }
 
@@ -204,12 +204,12 @@ impl Handle {
     ///
     /// HAL users usually won't have to call this method themselves, as other
     /// peripheral APIs will do this for them.
-    pub fn power_up<P: AnalogBlock>(&mut self, peripheral: &mut P) {
+    pub fn power_up<P: AnalogBlock>(&mut self, peripheral: &P) {
         self.pdruncfg.modify(|_, w| peripheral.power_up(w));
     }
 
     /// Remove power from an analog block
-    pub fn power_down<P: AnalogBlock>(&mut self, peripheral: &mut P) {
+    pub fn power_down<P: AnalogBlock>(&mut self, peripheral: &P) {
         self.pdruncfg.modify(|_, w| peripheral.power_down(w));
     }
 
@@ -357,24 +357,24 @@ impl UARTFRG {
 /// [`syscon::Handle::disable_clock`]: struct.Handle.html#method.disable_clock
 pub trait ClockControl {
     /// Internal method to enable a peripheral clock
-    fn enable_clock<'w>(&mut self, w: &'w mut sysahbclkctrl::W)
+    fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W)
         -> &'w mut sysahbclkctrl::W;
 
     /// Internal method to disable a peripheral clock
-    fn disable_clock<'w>(&mut self, w: &'w mut sysahbclkctrl::W)
+    fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W)
         -> &'w mut sysahbclkctrl::W;
 }
 
 macro_rules! impl_clock_control {
     ($clock_control:ty, $clock:ident) => {
         impl ClockControl for $clock_control {
-            fn enable_clock<'w>(&mut self, w: &'w mut sysahbclkctrl::W)
+            fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W)
                 -> &'w mut sysahbclkctrl::W
             {
                 w.$clock().enable()
             }
 
-            fn disable_clock<'w>(&mut self, w: &'w mut sysahbclkctrl::W)
+            fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W)
                 -> &'w mut sysahbclkctrl::W
             {
                 w.$clock().disable()
@@ -423,24 +423,24 @@ impl_clock_control!(raw::DMA      , dma     );
 /// [`syscon::Handle::clear_reset`]: struct.Handle.html#method.clear_reset
 pub trait ResetControl {
     /// Internal method to assert peripheral reset
-    fn assert_reset<'w>(&mut self, w: &'w mut presetctrl::W)
+    fn assert_reset<'w>(&self, w: &'w mut presetctrl::W)
         -> &'w mut presetctrl::W;
 
     /// Internal method to clear peripheral reset
-    fn clear_reset<'w>(&mut self, w: &'w mut presetctrl::W)
+    fn clear_reset<'w>(&self, w: &'w mut presetctrl::W)
         -> &'w mut presetctrl::W;
 }
 
 macro_rules! impl_reset_control {
     ($reset_control:ty, $field:ident) => {
         impl<'a> ResetControl for $reset_control {
-            fn assert_reset<'w>(&mut self, w: &'w mut presetctrl::W)
+            fn assert_reset<'w>(&self, w: &'w mut presetctrl::W)
                 -> &'w mut presetctrl::W
             {
                 w.$field().clear_bit()
             }
 
-            fn clear_reset<'w>(&mut self, w: &'w mut presetctrl::W)
+            fn clear_reset<'w>(&self, w: &'w mut presetctrl::W)
                 -> &'w mut presetctrl::W
             {
                 w.$field().set_bit()
@@ -482,22 +482,22 @@ impl_reset_control!(raw::DMA      , dma_rst_n    );
 /// [`syscon::Handle::power_down`]: struct.Handle.html#method.power_down
 pub trait AnalogBlock {
     /// Internal method to power up an analog block
-    fn power_up<'w>(&mut self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W;
+    fn power_up<'w>(&self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W;
 
     /// Internal method to power down an analog block
-    fn power_down<'w>(&mut self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W;
+    fn power_down<'w>(&self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W;
 }
 
 macro_rules! impl_analog_block {
     ($analog_block:ty, $field:ident) => {
         impl<'a> AnalogBlock for $analog_block {
-            fn power_up<'w>(&mut self, w: &'w mut pdruncfg::W)
+            fn power_up<'w>(&self, w: &'w mut pdruncfg::W)
                 -> &'w mut pdruncfg::W
             {
                 w.$field().powered()
             }
 
-            fn power_down<'w>(&mut self, w: &'w mut pdruncfg::W)
+            fn power_down<'w>(&self, w: &'w mut pdruncfg::W)
                 -> &'w mut pdruncfg::W
             {
                 w.$field().powered_down()
