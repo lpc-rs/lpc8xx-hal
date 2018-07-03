@@ -28,6 +28,7 @@ use raw::syscon::{
     UARTFRGDIV,
     UARTFRGMULT,
 };
+use reg_proxy::RegProxy;
 
 
 /// Entry point to the SYSCON API
@@ -61,13 +62,13 @@ impl SYSCON {
     /// This is the regular way to access the SYSCON API. It exists as an
     /// explicit step, as it's no longer possible to gain access to the raw
     /// peripheral using [`SYSCON::free`] after you've called this method.
-    pub fn split(&mut self) -> Parts {
+    pub fn split(self) -> Parts {
         Parts {
             handle: Handle {
-                pdruncfg     : &self.syscon.pdruncfg,
-                presetctrl   : &self.syscon.presetctrl,
-                starterp1    : &self.syscon.starterp1,
-                sysahbclkctrl: &self.syscon.sysahbclkctrl,
+                pdruncfg     : RegProxy::new(),
+                presetctrl   : RegProxy::new(),
+                starterp1    : RegProxy::new(),
+                sysahbclkctrl: RegProxy::new(),
             },
 
             bod    : BOD(PhantomData),
@@ -80,9 +81,9 @@ impl SYSCON {
             sysosc : SYSOSC(PhantomData),
             syspll : SYSPLL(PhantomData),
             uartfrg: UARTFRG {
-                uartclkdiv : &self.syscon.uartclkdiv,
-                uartfrgdiv : &self.syscon.uartfrgdiv,
-                uartfrgmult: &self.syscon.uartfrgmult,
+                uartclkdiv : RegProxy::new(),
+                uartfrgdiv : RegProxy::new(),
+                uartfrgmult: RegProxy::new(),
 
             },
 
@@ -114,9 +115,9 @@ impl SYSCON {
 /// the [module documentation] for more information.
 ///
 /// [module documentation]: index.html
-pub struct Parts<'syscon> {
+pub struct Parts {
     /// The handle to the SYSCON peripheral
-    pub handle: Handle<'syscon>,
+    pub handle: Handle,
 
     /// Brown-out detection
     pub bod: BOD,
@@ -146,7 +147,7 @@ pub struct Parts<'syscon> {
     pub syspll: SYSPLL,
 
     /// UART Fractional Baud Rate Generator
-    pub uartfrg: UARTFRG<'syscon>,
+    pub uartfrg: UARTFRG,
 
     /// The 750 kHz IRC-derived clock
     pub irc_derived_clock: IrcDerivedClock<init_state::Enabled>,
@@ -163,14 +164,14 @@ pub struct Parts<'syscon> {
 /// PMU.
 ///
 /// [module documentation]: index.html
-pub struct Handle<'syscon> {
-    pdruncfg     : &'syscon PDRUNCFG,
-    presetctrl   : &'syscon PRESETCTRL,
-    starterp1    : &'syscon STARTERP1,
-    sysahbclkctrl: &'syscon SYSAHBCLKCTRL,
+pub struct Handle {
+    pdruncfg     : RegProxy<PDRUNCFG>,
+    presetctrl   : RegProxy<PRESETCTRL>,
+    starterp1    : RegProxy<STARTERP1>,
+    sysahbclkctrl: RegProxy<SYSAHBCLKCTRL>,
 }
 
-impl<'r> Handle<'r> {
+impl Handle {
     /// Enable peripheral clock
     ///
     /// Enables the clock for a peripheral or other hardware component. HAL
@@ -307,13 +308,13 @@ pub struct SYSPLL(PhantomData<*const ()>);
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
-pub struct UARTFRG<'syscon> {
-    uartclkdiv : &'syscon UARTCLKDIV,
-    uartfrgdiv : &'syscon UARTFRGDIV,
-    uartfrgmult: &'syscon UARTFRGMULT,
+pub struct UARTFRG {
+    uartclkdiv : RegProxy<UARTCLKDIV>,
+    uartfrgdiv : RegProxy<UARTFRGDIV>,
+    uartfrgmult: RegProxy<UARTFRGMULT>,
 }
 
-impl<'syscon> UARTFRG<'syscon> {
+impl UARTFRG {
     /// Set UART clock divider value (UARTCLKDIV)
     ///
     /// See user manual, section 5.6.15.
@@ -450,7 +451,7 @@ macro_rules! impl_reset_control {
 
 impl_reset_control!(raw::SPI0     , spi0_rst_n   );
 impl_reset_control!(raw::SPI1     , spi1_rst_n   );
-impl_reset_control!(UARTFRG<'a>   , uartfrg_rst_n);
+impl_reset_control!(UARTFRG       , uartfrg_rst_n);
 impl_reset_control!(raw::USART0   , uart0_rst_n  );
 impl_reset_control!(raw::USART1   , uart1_rst_n  );
 impl_reset_control!(raw::USART2   , uart2_rst_n  );
@@ -624,3 +625,13 @@ wakeup_interrupt!(BodWakeup   , bod   );
 wakeup_interrupt!(WktWakeup   , wkt   );
 wakeup_interrupt!(I2c2Wakeup  , i2c2  );
 wakeup_interrupt!(I2c3Wakeup  , i2c3  );
+
+
+reg!(PDRUNCFG     , raw::SYSCON, pdruncfg     );
+reg!(PRESETCTRL   , raw::SYSCON, presetctrl   );
+reg!(STARTERP1    , raw::SYSCON, starterp1    );
+reg!(SYSAHBCLKCTRL, raw::SYSCON, sysahbclkctrl);
+
+reg!(UARTCLKDIV , raw::SYSCON, uartclkdiv );
+reg!(UARTFRGDIV , raw::SYSCON, uartfrgdiv );
+reg!(UARTFRGMULT, raw::SYSCON, uartfrgmult);

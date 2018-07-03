@@ -156,6 +156,8 @@ extern crate void;
 pub extern crate lpc82x as raw;
 
 
+#[macro_use] pub(crate) mod reg_proxy;
+
 pub mod clock;
 pub mod gpio;
 pub mod i2c;

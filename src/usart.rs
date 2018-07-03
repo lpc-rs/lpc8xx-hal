@@ -407,7 +407,7 @@ impl Peripheral for raw::USART2 {
 /// Can be passed to [`USART::enable`] to configure the baud rate for a USART
 /// peripheral.
 pub struct BaudRate<'frg> {
-    _uartfrg: &'frg UARTFRG<'frg>,
+    _uartfrg: &'frg UARTFRG,
 
     /// USART Baud Rate Generator divider value
     ///
@@ -432,7 +432,7 @@ impl<'frg> BaudRate<'frg> {
     /// is divided by 2 before using it, `2` means it's divided by 3, and so on.
     ///
     /// Please refer to the user manual, section 13.3.1, for further details.
-    pub fn new(uartfrg : &'frg UARTFRG<'frg>, brgval : u16) -> Self {
+    pub fn new(uartfrg : &'frg UARTFRG, brgval : u16) -> Self {
         Self {
             _uartfrg: uartfrg,
             brgval  : brgval,

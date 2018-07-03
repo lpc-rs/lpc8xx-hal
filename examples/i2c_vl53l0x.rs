@@ -32,7 +32,7 @@ use lpc82x_hal::usart::BaudRate;
 entry!(main);
 
 fn main() -> ! {
-    let mut p = Peripherals::take().unwrap();
+    let p = Peripherals::take().unwrap();
 
     let     i2c    = p.I2C0;
     let mut swm    = p.SWM.split();

@@ -21,7 +21,7 @@ entry!(main);
 fn main() -> ! {
     // Create the struct we're going to use to access all the peripherals. This
     // is unsafe, because we're only allowed to create one instance.
-    let mut p = Peripherals::take().unwrap();
+    let p = Peripherals::take().unwrap();
 
     // Other peripherals need to be initialized. Trying to use the API before
     // initializing them will actually lead to compile-time errors.
