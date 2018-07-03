@@ -25,7 +25,7 @@ use lpc82x_hal::usart::BaudRate;
 entry!(main);
 
 fn main() -> ! {
-    let mut p = Peripherals::take().unwrap();
+    let p = Peripherals::take().unwrap();
 
     let mut pmu    = p.PMU.split();
     let mut swm    = p.SWM.split();
