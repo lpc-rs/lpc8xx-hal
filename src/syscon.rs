@@ -627,11 +627,11 @@ wakeup_interrupt!(I2c2Wakeup  , i2c2  );
 wakeup_interrupt!(I2c3Wakeup  , i2c3  );
 
 
-reg!(PDRUNCFG     , raw::SYSCON, pdruncfg     );
-reg!(PRESETCTRL   , raw::SYSCON, presetctrl   );
-reg!(STARTERP1    , raw::SYSCON, starterp1    );
-reg!(SYSAHBCLKCTRL, raw::SYSCON, sysahbclkctrl);
+reg!(PDRUNCFG     , PDRUNCFG     , raw::SYSCON, pdruncfg     );
+reg!(PRESETCTRL   , PRESETCTRL   , raw::SYSCON, presetctrl   );
+reg!(STARTERP1    , STARTERP1    , raw::SYSCON, starterp1    );
+reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, raw::SYSCON, sysahbclkctrl);
 
-reg!(UARTCLKDIV , raw::SYSCON, uartclkdiv );
-reg!(UARTFRGDIV , raw::SYSCON, uartfrgdiv );
-reg!(UARTFRGMULT, raw::SYSCON, uartfrgmult);
+reg!(UARTCLKDIV , UARTCLKDIV   , raw::SYSCON, uartclkdiv );
+reg!(UARTFRGDIV , UARTFRGDIV   , raw::SYSCON, uartfrgdiv );
+reg!(UARTFRGMULT, UARTFRGMULT  , raw::SYSCON, uartfrgmult);
