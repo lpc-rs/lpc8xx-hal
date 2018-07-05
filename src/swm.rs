@@ -115,7 +115,7 @@ impl Handle<init_state::Enabled> {
     pub(crate) fn new(swm: raw::SWM) -> Self {
         Handle {
             swm   : swm,
-            _state: init_state::Enabled,
+            _state: init_state::Enabled(()),
         }
     }
 }
@@ -139,7 +139,7 @@ impl Handle<init_state::Disabled> {
 
         Handle {
             swm   : self.swm,
-            _state: init_state::Enabled,
+            _state: init_state::Enabled(()),
         }
     }
 }

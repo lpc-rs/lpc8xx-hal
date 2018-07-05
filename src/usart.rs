@@ -66,12 +66,14 @@ use embedded_hal::serial::{
 };
 use nb;
 
+use dma;
 use init_state;
 use raw::{
     self,
     Interrupt,
     NVIC,
 };
+use raw::usart0::TXDAT;
 use swm::{
     self,
     FunctionTrait,
@@ -174,7 +176,7 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
 
         USART {
             usart : self.usart,
-            _state: init_state::Enabled,
+            _state: init_state::Enabled(()),
         }
     }
 }
@@ -358,6 +360,21 @@ impl<UsartX, State> USART<UsartX, State> {
         self.usart
     }
 }
+
+impl<UsartX> dma::Dest for USART<UsartX, init_state::Enabled>
+    where UsartX: Peripheral,
+{
+    type Error = !;
+
+    fn wait(&mut self) -> nb::Result<(), Self::Error> {
+        self.flush()
+    }
+
+    fn end_addr(&mut self) -> *mut u8 {
+        &self.usart.txdat as *const _ as *mut TXDAT as *mut u8
+    }
+}
+
 
 
 /// Internal trait for USART peripherals

@@ -159,6 +159,7 @@ pub extern crate lpc82x as raw;
 #[macro_use] pub(crate) mod reg_proxy;
 
 pub mod clock;
+pub mod dma;
 pub mod gpio;
 pub mod i2c;
 pub mod pmu;
@@ -169,6 +170,7 @@ pub mod usart;
 pub mod wkt;
 
 
+pub use self::dma::DMA;
 pub use self::gpio::GPIO;
 pub use self::i2c::I2C;
 pub use self::pmu::PMU;
@@ -208,8 +210,9 @@ pub mod init_state {
     /// Indicates that the hardware component is enabled
     ///
     /// This usually indicates that the hardware has been initialized and can be
-    /// used for its intended purpose.
-    pub struct Enabled;
+    /// used for its intended purpose. Contains an optional payload that APIs
+    /// can use to keep data that is only available while enabled.
+    pub struct Enabled<T = ()>(pub T);
 
     /// Indicates that the hardware component is disabled
     pub struct Disabled;
@@ -248,6 +251,9 @@ pub mod init_state {
 /// use of the hardware.
 #[allow(non_snake_case)]
 pub struct Peripherals {
+    /// DMA controller
+    pub DMA: DMA,
+
     /// General-purpose I/O (GPIO)
     ///
     /// The GPIO peripheral is enabled by default. See user manual, section
@@ -299,13 +305,6 @@ pub struct Peripherals {
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
     pub CRC: raw::CRC,
-
-    /// DMA controller
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub DMA: raw::DMA,
 
     /// DMA trigger mux
     ///
@@ -521,6 +520,7 @@ impl Peripherals {
     fn new(p: raw::Peripherals, cp: raw::CorePeripherals) -> Self {
         Peripherals {
             // HAL peripherals
+            DMA   : DMA::new(p.DMA),
             GPIO  : GPIO::new(p.GPIO_PORT),
             I2C0  : I2C::new(p.I2C0),
             PMU   : PMU::new(p.PMU),
@@ -535,7 +535,6 @@ impl Peripherals {
             ADC       : p.ADC,
             CMP       : p.CMP,
             CRC       : p.CRC,
-            DMA       : p.DMA,
             DMATRIGMUX: p.DMATRIGMUX,
             FLASHCTRL : p.FLASHCTRL,
             I2C1      : p.I2C1,

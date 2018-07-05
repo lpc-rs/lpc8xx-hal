@@ -267,7 +267,7 @@ impl LowPowerClock<init_state::Disabled> {
         );
 
         LowPowerClock {
-            _state: init_state::Enabled,
+            _state: init_state::Enabled(()),
         }
     }
 }

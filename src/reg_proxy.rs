@@ -56,7 +56,7 @@ impl<T> RegProxy<T> where T: Reg {
 unsafe impl<T> Send for RegProxy<T> where T: Reg {}
 
 impl<T> Deref for RegProxy<T> where T: Reg {
-    type Target = T;
+    type Target = T::Target;
 
     fn deref(&self) -> &Self::Target {
         // As long as `T` upholds the safety restrictions laid out in the
@@ -79,14 +79,25 @@ impl<T> Deref for RegProxy<T> where T: Reg {
 /// The pointer returned by `get` must be valid for the duration of the program.
 /// This should always be the case for MMIO registers.
 pub unsafe trait Reg {
+    /// The type that `RegProxy` should derefence to
+    ///
+    /// If only one instance of the register exists, this should be `Self`.
+    /// If the same type in the svd2rust API is used to represent registers at
+    /// multiple memory locations, this trait must be implemented for a type
+    /// that represents a specific register at a specific location, and `Target`
+    /// must be the common type.
+    type Target;
+
     /// Return a pointer to the memory location of the register
-    fn get() -> *const Self;
+    fn get() -> *const Self::Target;
 }
 
 macro_rules! reg {
-    ($ty:ident, $peripheral:path, $field:ident) => {
+    ($ty:ident, $target:ty, $peripheral:path, $field:ident) => {
         unsafe impl $crate::reg_proxy::Reg for $ty {
-            fn get() -> *const Self {
+            type Target = $target;
+
+            fn get() -> *const Self::Target {
                 unsafe { &(*<$peripheral>::ptr()).$field as *const _ }
             }
         }

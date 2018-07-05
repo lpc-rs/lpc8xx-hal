@@ -67,12 +67,12 @@ impl GPIO<init_state::Enabled> {
     pub(crate) fn new(gpio: raw::GPIO_PORT) -> Self {
         GPIO {
             gpio  : gpio,
-            _state: init_state::Enabled,
+            _state: init_state::Enabled(()),
         }
     }
 }
 
-impl<'gpio> GPIO<init_state::Disabled> {
+impl GPIO<init_state::Disabled> {
     /// Enable the GPIO peripheral
     ///
     /// This method is only available, if `GPIO` is in the [`Disabled`] state.
@@ -91,7 +91,7 @@ impl<'gpio> GPIO<init_state::Disabled> {
 
         GPIO {
             gpio  : self.gpio,
-            _state: init_state::Enabled,
+            _state: init_state::Enabled(()),
         }
     }
 }

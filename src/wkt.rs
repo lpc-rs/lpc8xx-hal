@@ -86,7 +86,7 @@ impl WKT<init_state::Disabled> {
 
         WKT {
             wkt   : self.wkt,
-            _state: init_state::Enabled,
+            _state: init_state::Enabled(()),
         }
     }
 }
