@@ -4,6 +4,10 @@
 
 
 use core::ptr;
+use core::sync::atomic::{
+    compiler_fence,
+    Ordering,
+};
 
 use nb;
 
@@ -224,11 +228,14 @@ impl<T> Channel<T> where T: ChannelTrait {
         -> Transfer<T, D>
         where D: Dest
     {
+        compiler_fence(Ordering::SeqCst);
+
         // We need to substract 1 from the length below. If the source is empty,
         // return early to prevent underflow.
         if source.len() == 0 {
             return Transfer {
                 channel: self,
+                source : source,
                 dest   : dest,
             }
         }
@@ -275,6 +282,7 @@ impl<T> Channel<T> where T: ChannelTrait {
 
         Transfer {
             channel: self,
+            source : source,
             dest   : dest,
         }
     }
@@ -382,6 +390,7 @@ pub trait Dest {
 /// A DMA transfer
 pub struct Transfer<T, D> where T: ChannelTrait {
     channel: Channel<T>,
+    source : &'static mut [u8],
     dest   : D,
 }
 
@@ -391,7 +400,9 @@ impl<T, D> Transfer<T, D>
         D: Dest,
 {
     /// Waits for the transfer to finish
-    pub fn wait(mut self) -> Result<(Channel<T>, D), D::Error> {
+    pub fn wait(mut self)
+        -> Result<(Channel<T>, &'static mut [u8], D), D::Error>
+    {
         // There's an error interrupt status register. Maybe we should check
         // this here, but I have no idea whether that actually makes sense:
         // 1. As of this writing, we're not enabling any interrupts. I don't
@@ -405,13 +416,19 @@ impl<T, D> Transfer<T, D>
 
         loop {
             match self.dest.wait() {
-                Err(nb::Error::WouldBlock)   => continue,
-                Err(nb::Error::Other(error)) => return Err(error),
-                Ok(())                       => break,
+                Err(nb::Error::WouldBlock) => continue,
+                Ok(())                     => break,
+
+                Err(nb::Error::Other(error)) => {
+                    compiler_fence(Ordering::SeqCst);
+                    return Err(error);
+                }
             }
         }
 
-        Ok((self.channel, self.dest))
+        compiler_fence(Ordering::SeqCst);
+
+        Ok((self.channel, self.source, self.dest))
     }
 }
 
