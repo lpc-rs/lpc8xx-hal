@@ -4,6 +4,10 @@
 
 
 use core::ptr;
+use core::sync::atomic::{
+    compiler_fence,
+    Ordering,
+};
 
 use nb;
 
@@ -224,6 +228,8 @@ impl<T> Channel<T> where T: ChannelTrait {
         -> Transfer<T, D>
         where D: Dest
     {
+        compiler_fence(Ordering::SeqCst);
+
         // We need to substract 1 from the length below. If the source is empty,
         // return early to prevent underflow.
         if source.len() == 0 {
@@ -410,11 +416,17 @@ impl<T, D> Transfer<T, D>
 
         loop {
             match self.dest.wait() {
-                Err(nb::Error::WouldBlock)   => continue,
-                Err(nb::Error::Other(error)) => return Err(error),
-                Ok(())                       => break,
+                Err(nb::Error::WouldBlock) => continue,
+                Ok(())                     => break,
+
+                Err(nb::Error::Other(error)) => {
+                    compiler_fence(Ordering::SeqCst);
+                    return Err(error);
+                }
             }
         }
+
+        compiler_fence(Ordering::SeqCst);
 
         Ok((self.channel, self.source, self.dest))
     }
