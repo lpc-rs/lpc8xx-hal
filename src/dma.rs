@@ -229,6 +229,7 @@ impl<T> Channel<T> where T: ChannelTrait {
         if source.len() == 0 {
             return Transfer {
                 channel: self,
+                source : source,
                 dest   : dest,
             }
         }
@@ -275,6 +276,7 @@ impl<T> Channel<T> where T: ChannelTrait {
 
         Transfer {
             channel: self,
+            source : source,
             dest   : dest,
         }
     }
@@ -382,6 +384,7 @@ pub trait Dest {
 /// A DMA transfer
 pub struct Transfer<T, D> where T: ChannelTrait {
     channel: Channel<T>,
+    source : &'static mut [u8],
     dest   : D,
 }
 
@@ -391,7 +394,9 @@ impl<T, D> Transfer<T, D>
         D: Dest,
 {
     /// Waits for the transfer to finish
-    pub fn wait(mut self) -> Result<(Channel<T>, D), D::Error> {
+    pub fn wait(mut self)
+        -> Result<(Channel<T>, &'static mut [u8], D), D::Error>
+    {
         // There's an error interrupt status register. Maybe we should check
         // this here, but I have no idea whether that actually makes sense:
         // 1. As of this writing, we're not enabling any interrupts. I don't
@@ -411,7 +416,7 @@ impl<T, D> Transfer<T, D>
             }
         }
 
-        Ok((self.channel, self.dest))
+        Ok((self.channel, self.source, self.dest))
     }
 }
 
