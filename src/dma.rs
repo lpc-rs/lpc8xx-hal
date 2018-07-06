@@ -203,8 +203,9 @@ unsafe impl Send for ChannelDescriptor {}
 
 
 /// A DMA channel
-pub struct Channel<T> where T: ChannelTrait {
-    _ty       : T,
+pub struct Channel<T, S> where T: ChannelTrait {
+    ty        : T,
+    _state    : S,
     descriptor: &'static mut ChannelDescriptor,
 
     // This channel's dedicated registers.
@@ -218,24 +219,41 @@ pub struct Channel<T> where T: ChannelTrait {
     settrig0  : RegProxy<SETTRIG0>,
 }
 
-impl<T> Channel<T> where T: ChannelTrait {
+impl<T> Channel<T, init_state::Disabled> where T: ChannelTrait {
+    /// Enable the channel
+    pub fn enable<'dma>(self, dma: &'dma Handle)
+        -> Channel<T, init_state::Enabled<&'dma Handle>>
+    {
+        Channel {
+            ty        : self.ty,
+            _state    : init_state::Enabled(dma),
+            descriptor: self.descriptor,
+
+            cfg    : self.cfg,
+            xfercfg: self.xfercfg,
+
+            active0   : self.active0,
+            enableset0: self.enableset0,
+            settrig0  : self.settrig0,
+        }
+    }
+}
+
+impl<'dma, T> Channel<T, init_state::Enabled<&'dma Handle>>
+    where T: ChannelTrait
+{
     /// Starts a DMA transfer
     ///
     /// # Limitations
     ///
     /// The length of `source` must be 1024 or less.
     pub fn start_transfer<D>(self,
-            _     : &mut Handle,
             source: &'static mut [u8],
         mut dest  : D,
     )
-        -> Transfer<T, D>
+        -> Transfer<'dma, T, D>
         where D: Dest
     {
-        // The reference to the handle is unused, but we need it to make sure
-        // the DMA controller is enabled while we access the registers in this
-        // method.
-
         compiler_fence(Ordering::SeqCst);
 
         // We need to substract 1 from the length below. If the source is empty,
@@ -322,7 +340,7 @@ macro_rules! channels {
         /// Provides access to all channels
         #[allow(missing_docs)]
         pub struct Channels {
-            $(pub $field: Channel<$name>,)*
+            $(pub $field: Channel<$name, init_state::Disabled>,)*
         }
 
         impl Channels {
@@ -332,7 +350,8 @@ macro_rules! channels {
                 Channels {
                     $(
                         $field: Channel {
-                            _ty       : $name(()),
+                            ty        : $name(()),
+                            _state    : init_state::Disabled,
                             descriptor: descriptors.next().unwrap(),
 
                             cfg    : RegProxy::new(),
@@ -401,20 +420,27 @@ pub trait Dest {
 
 
 /// A DMA transfer
-pub struct Transfer<T, D> where T: ChannelTrait {
-    channel: Channel<T>,
+pub struct Transfer<'dma, T, D> where T: ChannelTrait {
+    channel: Channel<T, init_state::Enabled<&'dma Handle>>,
     source : &'static mut [u8],
     dest   : D,
 }
 
-impl<T, D> Transfer<T, D>
+impl<'dma, T, D> Transfer<'dma, T, D>
     where
         T: ChannelTrait,
         D: Dest,
 {
     /// Waits for the transfer to finish
     pub fn wait(mut self)
-        -> Result<(Channel<T>, &'static mut [u8], D), D::Error>
+        -> Result<
+            (
+                Channel<T, init_state::Enabled<&'dma Handle>>,
+                &'static mut [u8],
+                D
+            ),
+            D::Error
+        >
     {
         // There's an error interrupt status register. Maybe we should check
         // this here, but I have no idea whether that actually makes sense:
