@@ -42,10 +42,12 @@ impl DMA {
     /// This is the regular way to access the DMA API. It exists as an explicit
     /// step, as it's no longer possible to gain access to the raw peripheral
     /// using [`DMA::free`] after you've called this method.
-    pub fn split(self) -> Parts {
+    pub fn split(self, descriptors: &'static mut DescriptorTable) -> Parts {
+        let srambase = descriptors as *mut _ as u32;
+
         Parts {
-            handle  : Handle::new(self.dma),
-            channels: Channels::new(),
+            handle  : Handle::new(self.dma, srambase),
+            channels: Channels::new(descriptors),
         }
     }
 
@@ -82,27 +84,26 @@ pub struct Parts {
 
 
 /// Handle to the DMA controller
-pub struct Handle<State = init_state::Enabled<&'static mut DescriptorTable>> {
-    _state: State,
-    dma   : raw::DMA,
+pub struct Handle<State = init_state::Enabled> {
+    _state  : State,
+    dma     : raw::DMA,
+    srambase: u32,
 }
 
 impl Handle<init_state::Disabled> {
-    pub(crate) fn new(dma: raw::DMA) -> Self {
+    pub(crate) fn new(dma: raw::DMA, srambase: u32) -> Self {
         Handle {
-            _state: init_state::Disabled,
-            dma   : dma,
+            _state  : init_state::Disabled,
+            dma     : dma,
+            srambase: srambase,
         }
     }
 }
 
 impl<'dma> Handle<init_state::Disabled> {
     /// Enable the DMA controller
-    pub fn enable(self,
-        descriptors: &'static mut DescriptorTable,
-        syscon     : &mut syscon::Handle,
-    )
-        -> Handle<init_state::Enabled<&'static mut DescriptorTable>>
+    pub fn enable(self, syscon: &mut syscon::Handle)
+        -> Handle<init_state::Enabled>
     {
         syscon.enable_clock(&self.dma);
 
@@ -110,7 +111,7 @@ impl<'dma> Handle<init_state::Disabled> {
         //
         // See user manual, section 12.6.3.
         self.dma.srambase.write(|w|
-            unsafe { w.bits(descriptors as *const _ as u32) }
+            unsafe { w.bits(self.srambase) }
         );
 
         // Enable the DMA controller
@@ -119,8 +120,9 @@ impl<'dma> Handle<init_state::Disabled> {
         self.dma.ctrl.write(|w| w.enable().enabled());
 
         Handle {
-            _state: init_state::Enabled(descriptors),
-            dma   : self.dma,
+            _state  : init_state::Enabled(()),
+            dma     : self.dma,
+            srambase: self.srambase,
         }
     }
 }
@@ -133,8 +135,9 @@ impl Handle<init_state::Enabled> {
         syscon.disable_clock(&self.dma);
 
         Handle {
-            _state: init_state::Disabled,
-            dma   : self.dma,
+            _state  : init_state::Disabled,
+            dma     : self.dma,
+            srambase: self.srambase,
         }
     }
 }
@@ -201,7 +204,8 @@ unsafe impl Send for ChannelDescriptor {}
 
 /// A DMA channel
 pub struct Channel<T> where T: ChannelTrait {
-    _ty: T,
+    _ty       : T,
+    descriptor: &'static mut ChannelDescriptor,
 
     // This channel's dedicated registers.
     cfg    : RegProxy<T::Cfg>,
@@ -221,13 +225,17 @@ impl<T> Channel<T> where T: ChannelTrait {
     ///
     /// The length of `source` must be 1024 or less.
     pub fn start_transfer<D>(self,
-            dma   : &mut Handle,
+            _     : &mut Handle,
             source: &'static mut [u8],
         mut dest  : D,
     )
         -> Transfer<T, D>
         where D: Dest
     {
+        // The reference to the handle is unused, but we need it to make sure
+        // the DMA controller is enabled while we access the registers in this
+        // method.
+
         compiler_fence(Ordering::SeqCst);
 
         // We need to substract 1 from the length below. If the source is empty,
@@ -270,8 +278,8 @@ impl<T> Channel<T> where T: ChannelTrait {
 
         // Configure channel descriptor
         // See user manual, sections 12.5.2 and 12.5.3.
-        (dma._state.0).0[T::INDEX].source_end = source_end;
-        (dma._state.0).0[T::INDEX].dest_end   = dest.end_addr();
+        self.descriptor.source_end = source_end;
+        self.descriptor.dest_end   = dest.end_addr();
 
         // Enable channel 1
         // See user manual, section 12.6.4.
@@ -318,11 +326,14 @@ macro_rules! channels {
         }
 
         impl Channels {
-            fn new() -> Self {
+            fn new(descriptors: &'static mut DescriptorTable) -> Self {
+                let mut descriptors = (&mut descriptors.0).into_iter();
+
                 Channels {
                     $(
                         $field: Channel {
-                            _ty: $name(()),
+                            _ty       : $name(()),
+                            descriptor: descriptors.next().unwrap(),
 
                             cfg    : RegProxy::new(),
                             xfercfg: RegProxy::new(),
@@ -352,6 +363,8 @@ macro_rules! channels {
     }
 }
 
+// The channels must always be specified in order, from lowest to highest, as
+// the channel descriptors are assigned based on that order.
 channels!(
     channel_0 , Channel0 ,  0, CFG0 , XFERCFG0 ;
     channel_1 , Channel1 ,  1, CFG1 , XFERCFG1 ;
