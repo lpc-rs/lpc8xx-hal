@@ -99,14 +99,16 @@ pub struct USART<UsartX, State = init_state::Enabled> {
     _state: State,
 }
 
-impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
+impl<UsartX> USART<UsartX, init_state::Disabled> {
     pub(crate) fn new(usart: UsartX) -> Self {
         USART {
             usart : usart,
             _state: init_state::Disabled,
         }
     }
+}
 
+impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     /// Enable the USART
     ///
     /// This method is only available, if `USART` is in the [`Disabled`] state.
