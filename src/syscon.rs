@@ -71,20 +71,20 @@ impl SYSCON {
                 sysahbclkctrl: RegProxy::new(),
             },
 
-            bod    : BOD(PhantomData),
-            flash  : FLASH(PhantomData),
-            irc    : IRC(PhantomData),
-            ircout : IRCOUT(PhantomData),
-            mtb    : MTB(PhantomData),
-            ram0_1 : RAM0_1(PhantomData),
-            rom    : ROM(PhantomData),
-            sysosc : SYSOSC(PhantomData),
-            syspll : SYSPLL(PhantomData),
+            bod   : BOD(PhantomData),
+            flash : FLASH(PhantomData),
+            irc   : IRC(PhantomData),
+            ircout: IRCOUT(PhantomData),
+            mtb   : MTB(PhantomData),
+            ram0_1: RAM0_1(PhantomData),
+            rom   : ROM(PhantomData),
+            sysosc: SYSOSC(PhantomData),
+            syspll: SYSPLL(PhantomData),
+
             uartfrg: UARTFRG {
                 uartclkdiv : RegProxy::new(),
                 uartfrgdiv : RegProxy::new(),
                 uartfrgmult: RegProxy::new(),
-
             },
 
             irc_derived_clock: IrcDerivedClock::new(),
