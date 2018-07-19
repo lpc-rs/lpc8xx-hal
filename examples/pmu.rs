@@ -46,7 +46,7 @@ fn main() -> ! {
         &mut swm.handle,
     );
 
-    let mut serial = p.USART0.enable(
+    let serial = p.USART0.enable(
         &baud_rate,
         &mut syscon.handle,
         u0_rxd,
@@ -75,7 +75,7 @@ fn main() -> ! {
         nvic.enable(Interrupt::WKT);
 
         // Busy Waiting
-        serial.bwrite_all(b"5 seconds of busy waiting...\n")
+        serial.tx().bwrite_all(b"5 seconds of busy waiting...\n")
             .expect("UART write shouldn't fail");
         wkt.start(five_seconds);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {}
@@ -89,7 +89,7 @@ fn main() -> ! {
         // the timer from here on out.
 
         // Sleep mode
-        serial.bwrite_all(b"5 seconds of sleep mode...\n")
+        serial.tx().bwrite_all(b"5 seconds of sleep mode...\n")
             .expect("UART write shouldn't fail");
         wkt.start(five_seconds);
         nvic.clear_pending(Interrupt::WKT);
@@ -102,9 +102,9 @@ fn main() -> ! {
         syscon.enable_interrupt_wakeup::<WktWakeup>();
 
         // Deep-sleep mode
-        serial.bwrite_all(b"5 seconds of deep-sleep mode...\n")
+        serial.tx().bwrite_all(b"5 seconds of deep-sleep mode...\n")
             .expect("UART write shouldn't fail");
-        block!(serial.flush())
+        block!(serial.tx().flush())
             .expect("Flush shouldn't fail");
         wkt.start(five_seconds);
         nvic.clear_pending(Interrupt::WKT);
@@ -113,9 +113,9 @@ fn main() -> ! {
         }
 
         // Power-down mode
-        serial.bwrite_all(b"5 seconds of power-down mode...\n")
+        serial.tx().bwrite_all(b"5 seconds of power-down mode...\n")
             .expect("UART write shouldn't fail");
-        block!(serial.flush())
+        block!(serial.tx().flush())
             .expect("Flush shouldn't fail");
         wkt.start(five_seconds);
         nvic.clear_pending(Interrupt::WKT);
@@ -127,7 +127,7 @@ fn main() -> ! {
         // this example, due to some problems with my setup that prevent me from
         // testing it for the time being.
 
-        serial.bwrite_all(b"Done\n")
+        serial.tx().bwrite_all(b"Done\n")
             .expect("UART write shouldn't fail");
 
         loop {}

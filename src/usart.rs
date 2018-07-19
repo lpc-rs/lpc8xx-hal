@@ -48,7 +48,7 @@
 //! );
 //!
 //! // Use a blocking method to write a string
-//! serial.bwrite_all(b"Hello, world!");
+//! serial.tx().bwrite_all(b"Hello, world!");
 //! ```
 //!
 //! Please refer to the [examples in the repository] for more example code.
@@ -253,15 +253,47 @@ impl<UsartX> USART<UsartX, init_state::Enabled> where UsartX: Peripheral {
             w.txrdyclr().set_bit()
         );
     }
+
+    /// Return USART receiver
+    pub fn rx(&self) -> Receiver<UsartX> {
+        Receiver(self)
+    }
+
+    /// Return USART transmitter
+    pub fn tx(&self) -> Transmitter<UsartX> {
+        Transmitter(self)
+    }
 }
 
-impl<UsartX> Read<u8> for USART<UsartX, init_state::Enabled>
+impl<UsartX, State> USART<UsartX, State> {
+    /// Return the raw peripheral
+    ///
+    /// This method serves as an escape hatch from the HAL API. It returns the
+    /// raw peripheral, allowing you to do whatever you want with it, without
+    /// limitations imposed by the API.
+    ///
+    /// If you are using this method because a feature you need is missing from
+    /// the HAL API, please [open an issue] or, if an issue for your feature
+    /// request already exists, comment on the existing issue, so we can
+    /// prioritize it accordingly.
+    ///
+    /// [open an issue]: https://github.com/braun-robotics/rust-lpc82x-hal/issues
+    pub fn free(self) -> UsartX {
+        self.usart
+    }
+}
+
+
+/// USART receiver
+pub struct Receiver<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
+
+impl<'usart, UsartX> Read<u8> for Receiver<'usart, UsartX>
     where UsartX: Peripheral,
 {
     type Error = Error;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
-        let stat = self.usart.stat.read();
+        let stat = self.0.usart.stat.read();
 
         if stat.rxbrk().bit_is_set() {
             return Err(nb::Error::WouldBlock);
@@ -273,7 +305,7 @@ impl<UsartX> Read<u8> for USART<UsartX, init_state::Enabled>
         if stat.rxrdy().bit_is_set() {
             // It's important to read this register all at once, as reading
             // it changes the status flags.
-            let rx_dat_stat = self.usart.rxdatstat.read();
+            let rx_dat_stat = self.0.usart.rxdatstat.read();
 
             if rx_dat_stat.framerr().bit_is_set() {
                 return Err(nb::Error::Other(Error::Framing));
@@ -296,25 +328,29 @@ impl<UsartX> Read<u8> for USART<UsartX, init_state::Enabled>
     }
 }
 
-impl<UsartX> Write<u8> for USART<UsartX, init_state::Enabled>
+
+/// USART transmitter
+pub struct Transmitter<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
+
+impl<'usart, UsartX> Write<u8> for Transmitter<'usart, UsartX>
     where UsartX: Peripheral,
 {
     type Error = !;
 
     fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
-        if self.usart.stat.read().txrdy().bit_is_clear() {
+        if self.0.usart.stat.read().txrdy().bit_is_clear() {
             return Err(nb::Error::WouldBlock);
         }
 
         unsafe {
-            self.usart.txdat.write(|w| w.txdat().bits(word as u16));
+            self.0.usart.txdat.write(|w| w.txdat().bits(word as u16));
         }
 
         Ok(())
     }
 
     fn flush(&mut self) -> nb::Result<(), Self::Error> {
-        if self.usart.stat.read().txidle().bit_is_clear() {
+        if self.0.usart.stat.read().txidle().bit_is_clear() {
             return Err(nb::Error::WouldBlock);
         }
 
@@ -322,11 +358,11 @@ impl<UsartX> Write<u8> for USART<UsartX, init_state::Enabled>
     }
 }
 
-impl<UsartX> BlockingWriteDefault<u8> for USART<UsartX, init_state::Enabled>
+impl<'usart, UsartX> BlockingWriteDefault<u8> for Transmitter<'usart, UsartX>
     where UsartX: Peripheral,
 {}
 
-impl<UsartX> fmt::Write for USART<UsartX, init_state::Enabled>
+impl<'usart, UsartX> fmt::Write for Transmitter<'usart, UsartX>
     where
         Self  : BlockingWriteDefault<u8>,
         UsartX: Peripheral,
@@ -343,25 +379,7 @@ impl<UsartX> fmt::Write for USART<UsartX, init_state::Enabled>
     }
 }
 
-impl<UsartX, State> USART<UsartX, State> {
-    /// Return the raw peripheral
-    ///
-    /// This method serves as an escape hatch from the HAL API. It returns the
-    /// raw peripheral, allowing you to do whatever you want with it, without
-    /// limitations imposed by the API.
-    ///
-    /// If you are using this method because a feature you need is missing from
-    /// the HAL API, please [open an issue] or, if an issue for your feature
-    /// request already exists, comment on the existing issue, so we can
-    /// prioritize it accordingly.
-    ///
-    /// [open an issue]: https://github.com/braun-robotics/rust-lpc82x-hal/issues
-    pub fn free(self) -> UsartX {
-        self.usart
-    }
-}
-
-impl<UsartX> dma::Dest for USART<UsartX, init_state::Enabled>
+impl<'usart, UsartX> dma::Dest for Transmitter<'usart, UsartX>
     where UsartX: Peripheral,
 {
     type Error = !;
@@ -371,10 +389,9 @@ impl<UsartX> dma::Dest for USART<UsartX, init_state::Enabled>
     }
 
     fn end_addr(&mut self) -> *mut u8 {
-        &self.usart.txdat as *const _ as *mut TXDAT as *mut u8
+        &self.0.usart.txdat as *const _ as *mut TXDAT as *mut u8
     }
 }
-
 
 
 /// Internal trait for USART peripherals

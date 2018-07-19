@@ -74,14 +74,14 @@ fn main() -> ! {
         &mut swm.handle,
     );
 
-    let mut serial = p.USART0.enable(
+    let serial = p.USART0.enable(
         &BaudRate::new(&syscon.uartfrg, 0),
         &mut syscon.handle,
         u0_rxd,
         u0_txd,
     );
 
-    serial.bwrite_all(b"Initializing I2C...\n")
+    serial.tx().bwrite_all(b"Initializing I2C...\n")
         .expect("Write should never fail");
 
     let (i2c0_sda, _) = swm.fixed_functions.i2c0_sda.assign(
@@ -95,14 +95,14 @@ fn main() -> ! {
 
     let mut i2c = i2c.enable(&mut syscon.handle, i2c0_sda, i2c0_scl);
 
-    serial.bwrite_all(b"Writing data...\n")
+    serial.tx().bwrite_all(b"Writing data...\n")
         .expect("Write should never fail");
 
     // Write index of reference register
     i2c.write(0x52, &[0xC0])
         .expect("Failed to write data");
 
-    serial.bwrite_all(b"Receiving data...\n")
+    serial.tx().bwrite_all(b"Receiving data...\n")
         .expect("Write should never fail");
 
     // Read value from reference register
@@ -110,15 +110,15 @@ fn main() -> ! {
     i2c.read(0x52, &mut buffer)
         .expect("Failed to read data");
 
-    write!(serial, "{:#X}\n", buffer[0])
+    write!(serial.tx(), "{:#X}\n", buffer[0])
         .expect("Write should never fail");
 
     if buffer[0] == 0xEE {
-        serial.bwrite_all(b"SUCCESS!\n")
+        serial.tx().bwrite_all(b"SUCCESS!\n")
             .expect("Write should never fail");
     }
     else {
-        serial.bwrite_all(b"FAILURE!\n")
+        serial.tx().bwrite_all(b"FAILURE!\n")
             .expect("Write should never fail");
     }
 
