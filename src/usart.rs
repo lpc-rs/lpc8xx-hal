@@ -261,9 +261,7 @@ impl<UsartX> Read<u8> for USART<UsartX, init_state::Enabled>
     type Error = Error;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
-        let ref uart = self.usart;
-
-        let stat = uart.stat.read();
+        let stat = self.usart.stat.read();
 
         if stat.rxbrk().bit_is_set() {
             return Err(nb::Error::WouldBlock);
@@ -275,7 +273,7 @@ impl<UsartX> Read<u8> for USART<UsartX, init_state::Enabled>
         if stat.rxrdy().bit_is_set() {
             // It's important to read this register all at once, as reading
             // it changes the status flags.
-            let rx_dat_stat = uart.rxdatstat.read();
+            let rx_dat_stat = self.usart.rxdatstat.read();
 
             if rx_dat_stat.framerr().bit_is_set() {
                 return Err(nb::Error::Other(Error::Framing));
