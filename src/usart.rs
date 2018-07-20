@@ -214,46 +214,6 @@ impl<UsartX> USART<UsartX, init_state::Enabled> where UsartX: Peripheral {
         nvic.enable(UsartX::INTERRUPT);
     }
 
-    /// Enable the RXRDY interrupt
-    ///
-    /// The interrupt will not actually work unless the interrupts for this
-    /// peripheral have also been enabled via the NVIC. See
-    /// [`enable_interrupts`].
-    ///
-    /// [`enable_interrupts`]: #method.enable_interrupts
-    pub fn enable_rxrdy_interrupt(&mut self) {
-        self.usart.intenset.write(|w|
-            w.rxrdyen().set_bit()
-       );
-    }
-
-    /// Disable the RXRDY interrupt
-    pub fn disable_rxrdy_interrupt(&mut self) {
-        self.usart.intenclr.write(|w|
-            w.rxrdyclr().set_bit()
-        );
-    }
-
-    /// Enable the TXRDY interrupt
-    ///
-    /// The interrupt will not actually work unless the interrupts for this
-    /// peripheral have also been enabled via the NVIC. See
-    /// [`enable_interrupts`].
-    ///
-    /// [`enable_interrupts`]: #method.enable_interrupts
-    pub fn enable_txrdy_interrupt(&mut self) {
-        self.usart.intenset.write(|w|
-            w.txrdyen().set_bit()
-        );
-    }
-
-    /// Disable the TXRDY interrupt
-    pub fn disable_txrdy_interrupt(&mut self) {
-        self.usart.intenclr.write(|w|
-            w.txrdyclr().set_bit()
-        );
-    }
-
     /// Return USART receiver
     pub fn rx(&self) -> Receiver<UsartX> {
         Receiver(self)
@@ -286,6 +246,28 @@ impl<UsartX, State> USART<UsartX, State> {
 
 /// USART receiver
 pub struct Receiver<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
+
+impl<'usart, UsartX> Receiver<'usart, UsartX> where UsartX: Peripheral {
+    /// Enable the RXRDY interrupt
+    ///
+    /// The interrupt will not actually work unless the interrupts for this
+    /// peripheral have also been enabled via the NVIC. See
+    /// [`enable_interrupts`].
+    ///
+    /// [`enable_interrupts`]: #method.enable_interrupts
+    pub fn enable_rxrdy_interrupt(&mut self) {
+        self.0.usart.intenset.write(|w|
+            w.rxrdyen().set_bit()
+       );
+    }
+
+    /// Disable the RXRDY interrupt
+    pub fn disable_rxrdy_interrupt(&mut self) {
+        self.0.usart.intenclr.write(|w|
+            w.rxrdyclr().set_bit()
+        );
+    }
+}
 
 impl<'usart, UsartX> Read<u8> for Receiver<'usart, UsartX>
     where UsartX: Peripheral,
@@ -331,6 +313,28 @@ impl<'usart, UsartX> Read<u8> for Receiver<'usart, UsartX>
 
 /// USART transmitter
 pub struct Transmitter<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
+
+impl<'usart, UsartX> Transmitter<'usart, UsartX> where UsartX: Peripheral {
+    /// Enable the TXRDY interrupt
+    ///
+    /// The interrupt will not actually work unless the interrupts for this
+    /// peripheral have also been enabled via the NVIC. See
+    /// [`enable_interrupts`].
+    ///
+    /// [`enable_interrupts`]: #method.enable_interrupts
+    pub fn enable_txrdy_interrupt(&mut self) {
+        self.0.usart.intenset.write(|w|
+            w.txrdyen().set_bit()
+        );
+    }
+
+    /// Disable the TXRDY interrupt
+    pub fn disable_txrdy_interrupt(&mut self) {
+        self.0.usart.intenclr.write(|w|
+            w.txrdyclr().set_bit()
+        );
+    }
+}
 
 impl<'usart, UsartX> Write<u8> for Transmitter<'usart, UsartX>
     where UsartX: Peripheral,
