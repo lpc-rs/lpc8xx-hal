@@ -29,7 +29,7 @@ compiletest_rs = { version = "0.3", optional = true }
 
 [dev-dependencies]
 cortex-m-rt = "0.5"
-panic-abort = "0.2"
+panic-abort = "0.3.1"
 
 
 [features]
