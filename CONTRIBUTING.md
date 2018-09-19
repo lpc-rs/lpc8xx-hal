@@ -67,10 +67,7 @@ $ git checkout -b release-x.y.z
 $ git push -u origin release-x.y.z
 ```
 
-3. Update changelog (make manual changes as required)
-```
-$ clog --from-latest-tag -o CHANGELOG.md --major|--minor|--patch
-```
+3. Update changelog
 
 4. Update versions in README.md, if version bump is major or minor
 
