@@ -8,7 +8,8 @@ addons:
     packages:
       - gcc-arm-none-eabi
 
-script:
+install:
   - rustup target add thumbv6m-none-eabi
-  - cargo test --verbose --features="compiletest"
-  - ./scripts/build-examples.sh
+
+script:
+  - ./scripts/build.sh
