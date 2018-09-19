@@ -22,15 +22,12 @@ extern crate panic_abort;
 
 use core::fmt::Write;
 
-use cortex_m_rt::ExceptionFrame;
-
 use lpc82x_hal::Peripherals;
 use lpc82x_hal::prelude::*;
 use lpc82x_hal::usart::BaudRate;
 
 
-entry!(main);
-
+#[entry]
 fn main() -> ! {
     let p = Peripherals::take().unwrap();
 
@@ -123,16 +120,4 @@ fn main() -> ! {
     }
 
     loop {}
-}
-
-
-exception!(*, default_handler);
-exception!(HardFault, handle_hard_fault);
-
-fn default_handler(irqn: i16) {
-    panic!("Unhandled exception or interrupt: {}", irqn);
-}
-
-fn handle_hard_fault(ef: &ExceptionFrame) -> ! {
-    panic!("{:#?}", ef);
 }

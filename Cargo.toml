@@ -28,7 +28,7 @@ void         = { version = "1", default-features = false }
 compiletest_rs = { version = "0.3", optional = true }
 
 [dev-dependencies]
-cortex-m-rt = "0.5"
+cortex-m-rt = "0.6.3"
 panic-abort = "0.3.1"
 
 
