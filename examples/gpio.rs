@@ -8,16 +8,13 @@ extern crate lpc82x_hal;
 extern crate panic_abort;
 
 
-use cortex_m_rt::ExceptionFrame;
-
 use lpc82x_hal::prelude::*;
 use lpc82x_hal::Peripherals;
 use lpc82x_hal::clock::Ticks;
 use lpc82x_hal::sleep;
 
 
-entry!(main);
-
+#[entry]
 fn main() -> ! {
     // Create the struct we're going to use to access all the peripherals. This
     // is unsafe, because we're only allowed to create one instance.
@@ -72,16 +69,4 @@ fn main() -> ! {
         pio0_3.set_low();
         sleep.sleep(low_time);
     }
-}
-
-
-exception!(*, default_handler);
-exception!(HardFault, handle_hard_fault);
-
-fn default_handler(irqn: i16) {
-    panic!("Unhandled exception or interrupt: {}", irqn);
-}
-
-fn handle_hard_fault(ef: &ExceptionFrame) -> ! {
-    panic!("{:#?}", ef);
 }
