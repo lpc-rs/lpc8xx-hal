@@ -1,6 +1,6 @@
 [target.thumbv6m-none-eabi]
 rustflags = [
-    "-C", "link-arg=-Tlink.x",
-    "-C", "linker=arm-none-eabi-ld",
-    "-Z", "linker-flavor=ld"
+    "-C", "linker=arm-none-eabi-gcc",
+    "-C", "link-arg=-Wl,-Tlink.x",
+    "-C", "link-arg=-nostartfiles",
 ]
