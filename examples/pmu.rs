@@ -16,7 +16,10 @@ use cortex_m::interrupt;
 use lpc82x_hal::prelude::*;
 use lpc82x_hal::Peripherals;
 use lpc82x_hal::pmu::LowPowerClock;
-use lpc82x_hal::raw::Interrupt;
+use lpc82x_hal::raw::{
+    Interrupt,
+    NVIC,
+};
 use lpc82x_hal::syscon::WktWakeup;
 use lpc82x_hal::usart::BaudRate;
 
@@ -90,7 +93,7 @@ fn main() -> ! {
         serial.tx().bwrite_all(b"5 seconds of sleep mode...\n")
             .expect("UART write shouldn't fail");
         wkt.start(five_seconds);
-        nvic.clear_pending(Interrupt::WKT);
+        NVIC::unpend(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
             pmu.enter_sleep_mode(&mut scb);
         }
@@ -105,7 +108,7 @@ fn main() -> ! {
         block!(serial.tx().flush())
             .expect("Flush shouldn't fail");
         wkt.start(five_seconds);
-        nvic.clear_pending(Interrupt::WKT);
+        NVIC::unpend(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
             unsafe { pmu.enter_deep_sleep_mode(&mut scb) };
         }
@@ -116,7 +119,7 @@ fn main() -> ! {
         block!(serial.tx().flush())
             .expect("Flush shouldn't fail");
         wkt.start(five_seconds);
-        nvic.clear_pending(Interrupt::WKT);
+        NVIC::unpend(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
             unsafe { pmu.enter_power_down_mode(&mut scb) };
         }
