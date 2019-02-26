@@ -4,3 +4,6 @@
 
 # Sublime Text
 /*.sublime-workspace
+
+# OpenOCD
+/openocd.log
