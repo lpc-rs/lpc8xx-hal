@@ -153,7 +153,7 @@ extern crate cortex_m;
 extern crate embedded_hal;
 extern crate void;
 
-pub extern crate lpc82x as raw;
+pub extern crate lpc82x_pac as raw;
 
 
 #[macro_use] pub(crate) mod reg_proxy;
