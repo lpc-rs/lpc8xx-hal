@@ -34,9 +34,11 @@ use cortex_m::{
     interrupt,
 };
 
-use clock;
-use init_state;
-use raw;
+use crate::{
+    clock,
+    init_state,
+    raw,
+};
 
 
 /// Entry point to the PMU API

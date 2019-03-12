@@ -47,15 +47,17 @@
 
 use embedded_hal::blocking::i2c;
 
-use syscon;
-use init_state;
-use raw;
-use swm::{
-    self,
-    I2C0_SCL,
-    I2C0_SDA,
-    PIO0_10,
-    PIO0_11,
+use crate::{
+    init_state,
+    raw,
+    swm::{
+        self,
+        I2C0_SCL,
+        I2C0_SDA,
+        PIO0_10,
+        PIO0_11,
+    },
+    syscon,
 };
 
 

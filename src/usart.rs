@@ -66,22 +66,24 @@ use embedded_hal::serial::{
 };
 use nb;
 
-use dma;
-use init_state;
-use raw::{
-    self,
-    Interrupt,
-    NVIC,
-};
-use raw::usart0::TXDAT;
-use swm::{
-    self,
-    FunctionTrait,
-    PinTrait,
-};
-use syscon::{
-    self,
-    UARTFRG,
+use crate::{
+    dma,
+    init_state,
+    raw::{
+        self,
+        usart0::TXDAT,
+        Interrupt,
+        NVIC,
+    },
+    swm::{
+        self,
+        FunctionTrait,
+        PinTrait,
+    },
+    syscon::{
+        self,
+        UARTFRG,
+    },
 };
 
 
@@ -372,7 +374,7 @@ impl<'usart, UsartX> fmt::Write for Transmitter<'usart, UsartX>
         UsartX: Peripheral,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        use ::prelude::*;
+        use crate::prelude::*;
 
         self.bwrite_all(s.as_bytes())
             .map_err(|_| fmt::Error)?;

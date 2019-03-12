@@ -17,18 +17,20 @@ use cortex_m::{
 use embedded_hal::prelude::*;
 use nb;
 
-use pmu;
-use clock::{
-    self,
-    Ticks,
-};
-use raw::{
-    self,
-    Interrupt,
-};
-use wkt::{
-    self,
-    WKT,
+use crate::{
+    clock::{
+        self,
+        Ticks,
+    },
+    pmu,
+    raw::{
+        self,
+        Interrupt,
+    },
+    wkt::{
+        self,
+        WKT,
+    },
 };
 
 
