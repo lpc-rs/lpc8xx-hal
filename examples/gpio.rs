@@ -16,13 +16,15 @@ use lpc82x_hal::sleep;
 
 #[entry]
 fn main() -> ! {
-    // Create the struct we're going to use to access all the peripherals. This
-    // is unsafe, because we're only allowed to create one instance.
+    // Get access to the device's peripherals. Since only one instance of this
+    // struct can exist, the call to `take` returns an `Option<Peripherals>`.
+    // If we tried to call the method a second time, it would return `None`, but
+    // we're only calling it the one time here, to we can call safely `unwrap`
+    // the `Option` without causing a panic.
     let p = Peripherals::take().unwrap();
 
-    // Other peripherals need to be initialized. Trying to use the API before
-    // initializing them will actually lead to compile-time errors.
-    let mut swm    = p.SWM.split();
+    // Initialize the APIs for of the peripherals we need.
+    let     swm    = p.SWM.split();
     let mut syscon = p.SYSCON.split();
     let mut wkt    = p.WKT.enable(&mut syscon.handle);
 
@@ -30,21 +32,9 @@ fn main() -> ! {
     // that runs at 750 kHz.
     let clock = syscon.irc_derived_clock;
 
-    // In the next step, we need to configure the pin PIO0_3 and its fixed
-    // function SWCLK. The API tracks the state of both of those, to prevent any
-    // mistakes on our side. However, since we could have changed the state of
-    // the hardware before initializing the API, the API can't know what state
-    // it is currently in.
-    // Let's affirm that we haven't changed anything, and that PIO0_3 and SWCLK
-    // are still in their initial states.
-    let pio0_3 = swm.pins.pio0_3;
-    let swclk  = swm.fixed_functions.swclk;
-
-    // Configure PIO0_3 as GPIO output, so we can use it to blink an LED.
-    let (_, pio0_3) = swclk
-        .unassign(pio0_3, &mut swm.handle);
-    let mut pio0_3 = pio0_3
-        .into_unused_pin()
+    // Configure the PIO0_12 pin. The API tracks the state of pins at
+    // compile-time, to prevent any mistakes.
+    let mut pio0_12 = swm.pins.pio0_12
         .into_gpio_pin(&p.GPIO)
         .into_output();
 
@@ -55,8 +45,8 @@ fn main() -> ! {
     // Each duration also keeps a reference to the clock, as to prevent other
     // parts of the program from accidentally disabling the clock, or changing
     // its settings.
-    let high_time = Ticks { value:  37_500, clock: &clock }; //  50 ms
-    let low_time  = Ticks { value: 712_500, clock: &clock }; // 950 ms
+    let low_time  = Ticks { value:  37_500, clock: &clock }; //  50 ms
+    let high_time = Ticks { value: 712_500, clock: &clock }; // 950 ms
 
     // Since this is a simple example, we don't want to deal with interrupts
     // here. Let's just use busy waiting as a sleeping strategy.
@@ -64,9 +54,9 @@ fn main() -> ! {
 
     // Blink the LED
     loop {
-        pio0_3.set_high();
+        pio0_12.set_high();
         sleep.sleep(high_time);
-        pio0_3.set_low();
+        pio0_12.set_low();
         sleep.sleep(low_time);
     }
 }
