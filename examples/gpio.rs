@@ -21,12 +21,12 @@ fn main() -> ! {
     // If we tried to call the method a second time, it would return `None`, but
     // we're only calling it the one time here, to we can call safely `unwrap`
     // the `Option` without causing a panic.
-    let p = Peripherals::take().unwrap();
+    let mut p = Peripherals::take().unwrap();
 
     // Initialize the APIs for of the peripherals we need.
-    let     swm    = p.SWM.split();
-    let mut syscon = p.SYSCON.split();
-    let mut wkt    = p.WKT.enable(&mut syscon.handle);
+    let     swm    = p.swm.split();
+    let mut syscon = p.syscon.split();
+    let mut wkt    = p.wkt.enable(&mut syscon.handle);
 
     // We're going to need a clock for sleeping. Let's use the IRC-derived clock
     // that runs at 750 kHz.
@@ -35,7 +35,7 @@ fn main() -> ! {
     // Configure the PIO0_12 pin. The API tracks the state of pins at
     // compile-time, to prevent any mistakes.
     let mut pio0_12 = swm.pins.pio0_12
-        .into_gpio_pin(&p.GPIO)
+        .into_gpio_pin(&p.gpio)
         .into_output();
 
     // Let's already initialize the durations that we're going to sleep for
