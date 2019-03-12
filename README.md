@@ -43,7 +43,7 @@ To include LPC82x HAL in you project, add the following to your `Cargo.toml`:
 
 ``` toml
 [dependencies]
-lpc82x-hal = "0.2"
+lpc82x-hal = "0.3"
 ```
 
 If you want to use LPC82x HAL in an application (as opposed to a library), there are additional things that need to be set up. Please refer to the [API Reference] for details.

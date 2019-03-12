@@ -1,6 +1,6 @@
 [package]
 name    = "lpc82x-hal"
-version = "0.2.1-dev"
+version = "0.3.0"
 authors = ["Hanno Braun <hanno@braun-robotics.com>"]
 edition = "2018"
 
