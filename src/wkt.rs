@@ -36,14 +36,18 @@ use embedded_hal::timer;
 use nb;
 use void::Void;
 
-use syscon::{
-    self,
-    IrcDerivedClock,
+use crate::{
+    init_state,
+    pmu::LowPowerClock,
+    raw::{
+        self,
+        wkt::ctrl,
+    },
+    syscon::{
+        self,
+        IrcDerivedClock,
+    },
 };
-use init_state;
-use pmu::LowPowerClock;
-use raw;
-use raw::wkt::ctrl;
 
 
 /// Interface to the self-wake-up timer (WKT)

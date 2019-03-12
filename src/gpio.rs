@@ -35,15 +35,16 @@ use embedded_hal::digital::{
     StatefulOutputPin,
 };
 
-use init_state;
-use raw;
-use swm::{
-    pin_state,
-    Pin,
-    PinTrait,
+use crate::{
+    init_state,
+    raw,
+    swm::{
+        pin_state,
+        Pin,
+        PinTrait,
+    },
+    syscon,
 };
-use syscon;
-
 
 
 /// Interface to the GPIO peripheral

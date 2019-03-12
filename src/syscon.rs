@@ -12,23 +12,27 @@
 
 use core::marker::PhantomData;
 
-use clock;
-use init_state;
-use raw;
-use raw::syscon::{
-    pdruncfg,
-    presetctrl,
-    starterp1,
-    sysahbclkctrl,
-    PDRUNCFG,
-    PRESETCTRL,
-    STARTERP1,
-    SYSAHBCLKCTRL,
-    UARTCLKDIV,
-    UARTFRGDIV,
-    UARTFRGMULT,
+use crate::{
+    clock,
+    init_state,
+    raw::{
+        self,
+        syscon::{
+            pdruncfg,
+            presetctrl,
+            starterp1,
+            sysahbclkctrl,
+            PDRUNCFG,
+            PRESETCTRL,
+            STARTERP1,
+            SYSAHBCLKCTRL,
+            UARTCLKDIV,
+            UARTFRGDIV,
+            UARTFRGMULT,
+        },
+    },
+    reg_proxy::RegProxy,
 };
-use reg_proxy::RegProxy;
 
 
 /// Entry point to the SYSCON API

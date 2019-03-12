@@ -195,9 +195,13 @@ pub use self::wkt::WKT;
 pub mod prelude {
     pub use embedded_hal::prelude::*;
 
-    pub use clock::Enabled as _lpc82x_hal_clock_Enabled;
-    pub use clock::Frequency as _lpc82x_hal_clock_Frequency;
-    pub use sleep::Sleep as _lpc82x_hal_sleep_Sleep;
+    pub use crate::{
+        clock::{
+            Enabled as _lpc82x_hal_clock_Enabled,
+            Frequency as _lpc82x_hal_clock_Frequency,
+        },
+        sleep::Sleep as _lpc82x_hal_sleep_Sleep,
+    };
 }
 
 

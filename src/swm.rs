@@ -7,13 +7,15 @@
 
 use core::marker::PhantomData;
 
-use gpio::{
-    self,
-    GPIO,
+use crate::{
+    gpio::{
+        self,
+        GPIO,
+    },
+    init_state,
+    raw,
+    syscon,
 };
-use init_state;
-use raw;
-use syscon;
 
 use self::pin_state::PinState;
 
@@ -665,12 +667,14 @@ impl<T, F> AssignFunction<F, Adc>
 pub mod pin_state {
     use core::marker::PhantomData;
 
-    use gpio::direction::Direction;
-    use raw::gpio_port::{
-        CLR0,
-        DIRSET0,
-        PIN0,
-        SET0,
+    use crate::{
+        gpio::direction::Direction,
+        raw::gpio_port::{
+            CLR0,
+            DIRSET0,
+            PIN0,
+            SET0,
+        },
     };
 
 

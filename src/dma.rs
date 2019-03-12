@@ -11,20 +11,24 @@ use core::sync::atomic::{
 
 use nb;
 
-use init_state;
-use raw;
-use raw::dma::{
-    ACTIVE0,
-    CFG,
-    ENABLESET0,
-    SETTRIG0,
-    XFERCFG,
+use crate::{
+    init_state,
+    raw::{
+        self,
+        dma::{
+            ACTIVE0,
+            CFG,
+            ENABLESET0,
+            SETTRIG0,
+            XFERCFG,
+        },
+    },
+    reg_proxy::{
+        Reg,
+        RegProxy,
+    },
+    syscon,
 };
-use reg_proxy::{
-    Reg,
-    RegProxy,
-};
-use syscon;
 
 
 /// Entry point to the DMA API
