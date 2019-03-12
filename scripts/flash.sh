@@ -5,7 +5,7 @@
 # fork is known to work: https://github.com/hannobraun/lpc21isp
 #
 # Example:
-# ./scripts/flash.sh blinker /dev/ttyUSB0
+# ./scripts/flash.sh gpio /dev/ttyUSB0
 
 EXAMPLE=$1
 DEVICE=$2
