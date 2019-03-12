@@ -49,25 +49,22 @@ fn main() -> ! {
     syscon.uartfrg.set_frgdiv(0xff);
     let baud_rate = BaudRate::new(&syscon.uartfrg, 0);
 
-    // Prepare PIO0_0 and PIO0_4. The `init` method we call below needs pins to
-    // assign the USART's movable function to. For that, the pins need to be
-    // unused. Since PIO0_0 and PIO0_4 are unused by default, we just have to
-    // promise the API that we didn't change the default state up till now.
-    let pio0_0 = swm.pins.pio0_0.into_swm_pin();
-    let pio0_4 = swm.pins.pio0_4.into_swm_pin();
+    // Make PIO0_7 and PIO0_18 available to the switch matrix API, by changing
+    // their state using `into_swm_pin`. This is required, because we're going
+    // to use the switch matrix to assigne the USART0 functions to those pins.
+    let pio0_7  = swm.pins.pio0_7.into_swm_pin();
+    let pio0_18 = swm.pins.pio0_18.into_swm_pin();
 
-    // We also need to provide USART0's movable functions. Those need to be
-    // unassigned, and since they are unassigned by default, we just need to
-    // promise the API that we didn't change them.
-    let u0_rxd = swm.movable_functions.u0_rxd;
-    let u0_txd = swm.movable_functions.u0_txd;
+    // Assign U0_RXD to PIO0_18 and U0_TXD to PIO0_7. On the LPCXpresso824-MAX
+    // development board, those pins are bridged to the board's USB port. So by
+    // using the pins, we can use them to communicate with a host PC, without
+    // additional hardware.
+    let (u0_rxd, _) = swm.movable_functions.u0_rxd
+        .assign(pio0_18, &mut swm.handle);
+    let (u0_txd, _) = swm.movable_functions.u0_txd
+        .assign(pio0_7,  &mut swm.handle);
 
-    let (u0_rxd, _) = u0_rxd.assign(pio0_0, &mut swm.handle);
-    let (u0_txd, _) = u0_txd.assign(pio0_4, &mut swm.handle);
-
-    // Initialize USART0. This should never fail, as the only reason `init`
-    // returns a `Result::Err` is when the transmitter is busy, which it
-    // shouldn't be right now.
+    // Enable USART0
     let serial = p.USART0.enable(
         &baud_rate,
         &mut syscon.handle,
@@ -75,9 +72,10 @@ fn main() -> ! {
         u0_txd,
     );
 
-    // Write a string, blocking until it has finished writing
+    // Send a string via USART0, blocking until it has been sent
     serial.tx().bwrite_all(b"Hello, world!\n")
         .expect("UART write shouldn't fail");
 
+    // We're done. Let's do nothing until someone resets the microcontroller.
     loop {}
 }
