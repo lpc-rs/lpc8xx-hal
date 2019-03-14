@@ -10,7 +10,7 @@
 //!
 //! ``` toml
 //! [dependencies]
-//! lpc82x-hal = "0.3"
+//! lpc82x-hal = "0.4"
 //! ```
 //!
 //! With that in place, you can just reference the crate in your Rust code, like
@@ -37,7 +37,7 @@
 //!
 //! ``` toml
 //! [dependencies.lpc82x-hal]
-//! version  = "0.3"
+//! version  = "0.4"
 //! features = ["rt"]
 //! ```
 //!
