@@ -17,7 +17,7 @@
 extern crate cortex_m_rt;
 extern crate lpc82x_hal;
 extern crate nb;
-extern crate panic_abort;
+extern crate panic_halt;
 
 
 use core::fmt::Write;
