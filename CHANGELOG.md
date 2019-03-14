@@ -1,3 +1,9 @@
+<a name="v0.4.0"></a>
+## v0.4.0 (2019-03-14)
+
+- Support stable Rust ([#145](https://github.com/lpc-rs/lpc82x-hal/pull/145))
+- Update documentation ([#148](https://github.com/lpc-rs/lpc82x-hal/pull/148))
+
 <a name="v0.3.0"></a>
 ## v0.3.0 (2019-03-12)
 
