@@ -46,6 +46,7 @@
 
 
 use embedded_hal::blocking::i2c;
+use void::Void;
 
 use crate::{
     init_state,
@@ -147,7 +148,7 @@ impl I2C<init_state::Disabled> {
 }
 
 impl i2c::Write for I2C<init_state::Enabled> {
-    type Error = !;
+    type Error = Void;
 
     /// Write to the I2C bus
     ///
@@ -190,7 +191,7 @@ impl i2c::Write for I2C<init_state::Enabled> {
 }
 
 impl i2c::Read for I2C<init_state::Enabled> {
-    type Error = !;
+    type Error = Void;
 
     /// Read from the I2C bus
     ///

@@ -7,6 +7,5 @@ TARGET=x86_64-unknown-linux-gnu
 
 # Need to clean to work around this issue:
 # https://github.com/braun-robotics/rust-lpc82x-hal/issues/105
-cargo clean &&
-cargo test --verbose --features="compiletest" --target=$TARGET &&
+cargo test --verbose --target=$TARGET &&
 cargo build --verbose --features="rt" --examples --release

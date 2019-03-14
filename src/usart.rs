@@ -65,6 +65,7 @@ use embedded_hal::serial::{
     Write,
 };
 use nb;
+use void::Void;
 
 use crate::{
     dma,
@@ -341,7 +342,7 @@ impl<'usart, UsartX> Transmitter<'usart, UsartX> where UsartX: Peripheral {
 impl<'usart, UsartX> Write<u8> for Transmitter<'usart, UsartX>
     where UsartX: Peripheral,
 {
-    type Error = !;
+    type Error = Void;
 
     fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
         if self.0.usart.stat.read().txrdy().bit_is_clear() {
@@ -388,7 +389,7 @@ impl<'usart, UsartX> fmt::Write for Transmitter<'usart, UsartX>
 impl<'usart, UsartX> dma::Dest for Transmitter<'usart, UsartX>
     where UsartX: Peripheral,
 {
-    type Error = !;
+    type Error = Void;
 
     fn wait(&mut self) -> nb::Result<(), Self::Error> {
         self.flush()

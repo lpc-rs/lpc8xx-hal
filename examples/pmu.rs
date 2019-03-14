@@ -8,7 +8,7 @@ extern crate cortex_m_rt;
 extern crate lpc82x_hal;
 #[macro_use]
 extern crate nb;
-extern crate panic_abort;
+extern crate panic_halt;
 
 
 use cortex_m::interrupt;
