@@ -136,7 +136,6 @@
 //! [available from NXP]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
 
 
-#![deny(warnings)]
 #![deny(missing_docs)]
 
 #![no_std]
