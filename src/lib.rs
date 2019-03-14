@@ -10,7 +10,7 @@
 //!
 //! ``` toml
 //! [dependencies]
-//! lpc82x-hal = "0.2"
+//! lpc82x-hal = "0.3"
 //! ```
 //!
 //! With that in place, you can just reference the crate in your Rust code, like
@@ -32,94 +32,45 @@
 //!
 //! ## Using LPC82x HAL in an Application
 //!
-//! To use LPC82x HAL in your application, you need to go through a bit of
-//! additional trouble. This section tries to walk you through some of the
-//! basics, but it's not a complete tutorial. Please refer to
-//! [cortex-m-quickstart] for additional details.
-//!
-//! ### Runtime Support
-//!
-//! Including LPC82x HAL in your application via Cargo is mostly the same as it
-//! is for libraries, but with one addition. You need to enable runtime support
-//! when including the crate in your `Cargo.toml`:
+//! To use LPC82x HAL in an application, you need to enable its `rt` feature.
+//! Add the following to your `Cargo.toml`:
 //!
 //! ``` toml
 //! [dependencies.lpc82x-hal]
-//! version  = "0.2"
+//! version  = "0.3"
 //! features = ["rt"]
 //! ```
 //!
-//! The runtime support will provide you with some basics that are required for
-//! your program to run correctly. However, it needs to know how the memory on
-//! your microcontroller is set up.
+//! How to upload your application to the microcontroller depends on the details
+//! of your specific case. If you happen to be using the LPCXpresso824-MAX
+//! development board, you can use the configuration in this repository to set
+//! up the uploading process. The following configuration files are relevant:
 //!
-//! You can get that information from the user manual. To provide it to LPC82x
-//! HAL, create a file called `memory.x` in your project root (the directory
-//! where `Cargo.toml` is located). `memory.x` should look something like this:
+//! - `memory.x`
+//! - `.cargo/config`
+//! - `openocd.cfg`
+//! - `.gdbinit`
 //!
-//! ``` ignore
-//! MEMORY
-//! {
-//!     FLASH : ORIGIN = 0x00000000, LENGTH = 16K
-//!     RAM   : ORIGIN = 0x10000000, LENGTH = 4K
-//! }
-//! ```
-//!
-//! Runtime support is provided by the [cortex-m-rt] crate. Please refer to the
-//! cortex-m-rt documentation for additional details.
-//!
-//! ### Build System
-//!
-//! The LPC82x is a Cortex-M0+ microcontroller, which means it has an ARMv6-M
-//! core. In order to compile and link a binary for that architecture, we need
-//! to install a precompiled Rust core library.
-//!
-//! The following example assumes you installed Rust using [rustup].
+//! If everything is set up correctly, you should be able to upload your
+//! application to the board using `cargo run`. You can test this out using one
+//! of the example in this repository, by running the following from the
+//! repository root:
 //!
 //! ``` ignore
-//! $ rustup target add thumbv6m-none-eabi
+//! cargo run --release --features=rt --example gpio
 //! ```
-//!
-//! This will install the precompiled core library we need, enabling us to
-//! cross-compile binaries for the LPC82x.
-//!
-//! Additionally, we need to tell Cargo how to link your project. Create the
-//! file `.cargo/config` in your project directory, and add the following
-//! contents:
-//!
-//! ``` toml
-//! [build]
-//! target = "thumbv6m-none-eabi"
-//!
-//! [target.thumbv6m-none-eabi]
-//! rustflags = [
-//!     "-C", "link-arg=-Tlink.x",
-//!     "-C", "linker=arm-none-eabi-ld",
-//!     "-Z", "linker-flavor=ld"
-//! ]
-//! ```
-//!
-//! This tells Cargo to use the arm-none-eabi-gcc toolchain for linking. You
-//! need to install this separately. How to do so is dependent on your platform
-//! and is left as an exercise to the reader.
-//!
-//! If everything is set up correctly, you can build your project with the
-//! following command:
-//!
-//! ``` ignore
-//! $ cargo build --release
-//! ```
-//!
-//! ### Uploading the Binary
-//!
-//! There are many ways to upload the binary to the microcontroller. How to do
-//! this is currently beyond the scope of this documentation, but
-//! [this fork of lpc21isp] is known to work.
 //!
 //! ## Examples
 //!
 //! There are a number of [examples in the repository]. A good place to start is
 //! the [GPIO example].
+//!
+//! If you have an LPCXpresso824-MAX development board connected via USB, you
+//! should be able to run any example like this:
+//!
+//! ``` ignore
+//! cargo run --release --features=rt --example gpio
+//! ```
 //!
 //! # References
 //!
