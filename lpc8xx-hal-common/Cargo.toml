@@ -1,0 +1,25 @@
+[package]
+name = "lpc8xx-hal-common"
+version = "0.1.0"
+authors = ["Hanno Braun <hanno@braun-robotics.com>"]
+edition = "2018"
+
+description   = " Common HAL for the NXP LPC8xx series of ARM Cortex-M0+ microcontroller. More specific HAL crates also exist"
+documentation = "https://docs.rs/lpc82x-hal"
+repository    = "https://github.com/lpc-rs/rust-lpc82x-hal"
+license       = "0BSD"
+categories    = ["embedded", "hardware-support", "no-std"]
+keywords      = ["arm", "cortex-m", "nxp", "lpc", "embedded-hal-impl"]
+
+[dependencies]
+cortex-m     = "0.5.2"
+embedded-hal = { version = "0.2", features = ["unproven"] }
+nb           = "0.1.1"
+void         = { version = "1", default-features = false }
+
+[dependencies.lpc82x-pac]
+optional     = true
+version      = "0.6"
+
+[features]
+82x = ["lpc82x-pac"]
