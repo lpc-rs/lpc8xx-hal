@@ -26,17 +26,6 @@ This crate currently requires a nightly version of the Rust toolchain. If you in
 [rustup]: https://rustup.rs/
 
 
-## Help Wanted
-
-Are you familiar with the LPC82x family? We need your help, even if you are not using LPC82x HAL. Some design issues require feedback from people familiar with the hardware and how it is used. Check out the [help wanted] tag on the issue tracker.
-
-Do you want to contribute to LPC82x HAL? There's a number of [good first issues] on the issue tracker. If you're unsure about anything, check out our documentation on [how to contribute], or just ask!
-
-[help wanted]: https://github.com/braun-robotics/rust-lpc82x-hal/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
-[good first issues]: https://github.com/braun-robotics/rust-lpc82x-hal/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
-[how to contribute]: https://github.com/braun-robotics/rust-lpc82x-hal/blob/master/CONTRIBUTING.md
-
-
 ## Usage
 
 To include LPC82x HAL in you project, add the following to your `Cargo.toml`:
@@ -60,20 +49,3 @@ The authoritative source on the LPC82x family is the **[LPC82x User Manual]**.
 [rust-lpc82x]: https://crates.io/crates/lpc82x
 [rust-lpc82x documentation]: https://docs.rs/lpc82x/
 [LPC82x User Manual]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
-
-
-## License
-
-This project is open source software, licensed under the terms of the [Zero Clause BSD License][] (0BSD, for short). This basically means you can do anything with the software, without any restrictions, but you can't hold the authors liable for problems.
-
-See [LICENSE] for full details.
-
-[Zero Clause BSD License]: https://opensource.org/licenses/FPL-1.0.0
-[LICENSE]: https://github.com/braun-robotics/rust-lpc82x-hal/blob/master/LICENSE
-
-
-**Supported by [Braun Robotics](https://braun-robotics.com/)**
-
-
-[open an issue]: https://github.com/braun-robotics/rust-lpc82x-hal/issues/new
-[API Reference]: https://docs.rs/lpc82x-hal
