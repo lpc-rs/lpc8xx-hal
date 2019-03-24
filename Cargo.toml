@@ -1,6 +1,7 @@
 [workspace]
 members = [
-"lpc82x-hal"
+"lpc82x-hal",
+"lpc845-hal"
 ]
 
 [profile.release]

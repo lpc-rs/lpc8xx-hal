@@ -21,5 +21,10 @@ void         = { version = "1", default-features = false }
 optional     = true
 version      = "0.6"
 
+[dependencies.lpc845-pac]
+optional     = true
+version      = "0.1"
+
 [features]
 82x = ["lpc82x-pac"]
+845 = ["lpc845-pac"]

@@ -14,3 +14,5 @@ TARGET=x86_64-unknown-linux-gnu
 # (see rust-lang/cargo#4463)
 cargo test --manifest-path lpc82x-hal/Cargo.toml --verbose --target=$TARGET &&
 cargo build --manifest-path lpc82x-hal/Cargo.toml --verbose --features="rt" --examples --release
+cargo test --manifest-path lpc845-hal/Cargo.toml --verbose --target=$TARGET &&
+cargo build --manifest-path lpc845-hal/Cargo.toml --verbose --features="rt" --examples --release
