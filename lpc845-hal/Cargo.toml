@@ -7,7 +7,7 @@ authors = [
 ]
 edition = "2018"
 
-description   = "Hardware Abstraction Layer (HAL) for the NXP LPC825 ARM Cortex-M0+ microcontroller"
+description   = "Hardware Abstraction Layer (HAL) for the NXP LPC845 ARM Cortex-M0+ microcontroller"
 documentation = "https://docs.rs/lpc845-hal"
 repository    = "https://github.com/lpc-rs/lpc82x-hal"
 license       = "0BSD"
