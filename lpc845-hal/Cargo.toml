@@ -7,7 +7,7 @@ authors = [
 ]
 edition = "2018"
 
-description   = "Hardware Abstraction Layer (HAL) for the NXP LPC82x series of ARM Cortex-M0+ microcontroller"
+description   = "Hardware Abstraction Layer (HAL) for the NXP LPC825 ARM Cortex-M0+ microcontroller"
 documentation = "https://docs.rs/lpc845-hal"
 repository    = "https://github.com/lpc-rs/lpc82x-hal"
 license       = "0BSD"
@@ -17,7 +17,6 @@ keywords      = ["arm", "cortex-m", "nxp", "lpc", "embedded-hal-impl"]
 
 
 [badges]
-maintenance = { status = "actively-developed" }
 travis-ci   = { repository = "lpc-rs/lpc82x-hal" }
 
 
@@ -33,6 +32,7 @@ compiletest_rs = { version = "0.3", optional = true }
 
 [dependencies.lpc8xx-hal-common]
 path = "../lpc8xx-hal-common"
+version = "0.4.0"
 features = ["845"]
 
 [dev-dependencies]

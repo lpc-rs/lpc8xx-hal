@@ -30,6 +30,7 @@ compiletest_rs = { version = "0.3", optional = true }
 
 [dependencies.lpc8xx-hal-common]
 path = "../lpc8xx-hal-common"
+version = "0.4.0"
 features = ["82x"]
 
 [dev-dependencies]
