@@ -2,7 +2,6 @@
 //!
 //! This module defines types that are helpful for working with system clocks.
 
-
 /// Represents a number of ticks of a given clock
 ///
 /// This struct is used to represent an amount of time, a duration, but in a
@@ -38,7 +37,6 @@ impl<'clock, Clock> Clone for Ticks<'clock, Clock> {
 
 impl<'clock, Clock> Copy for Ticks<'clock, Clock> {}
 
-
 /// Implemented by clocks that can return a frequency
 ///
 /// Implementations of this trait might be very simple, for clocks that run at
@@ -54,7 +52,6 @@ pub trait Frequency {
     /// This method must never return `0`.
     fn hz(&self) -> u32;
 }
-
 
 /// Marker trait that identifies a clock as currently being enabled
 ///

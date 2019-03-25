@@ -8,17 +8,11 @@
 use core::marker::PhantomData;
 
 use crate::{
-    gpio::{
-        self,
-        GPIO,
-    },
-    init_state,
-    raw,
-    syscon,
+    gpio::{self, GPIO},
+    init_state, raw, syscon,
 };
 
 use self::pin_state::PinState;
-
 
 /// Entry point to the switch matrix (SWM) API
 ///
@@ -41,7 +35,7 @@ pub struct SWM {
 }
 
 impl SWM {
-    pub(crate) fn new(swm: raw::SWM) -> Self {
+    pub fn new(swm: raw::SWM) -> Self {
         SWM { swm }
     }
 
@@ -52,10 +46,10 @@ impl SWM {
     /// using [`SWM::free`] after you've called this method.
     pub fn split(self) -> Parts {
         Parts {
-            handle           : Handle::new(self.swm),
-            pins             : Pins::new(),
+            handle: Handle::new(self.swm),
+            pins: Pins::new(),
             movable_functions: MovableFunctions::new(),
-            fixed_functions  : FixedFunctions::new(),
+            fixed_functions: FixedFunctions::new(),
         }
     }
 
@@ -75,7 +69,6 @@ impl SWM {
         self.swm
     }
 }
-
 
 /// The main API for the switch matrix (SWM)
 ///
@@ -97,7 +90,6 @@ pub struct Parts {
     pub fixed_functions: FixedFunctions,
 }
 
-
 /// Handle to the SWM peripheral
 ///
 /// Can be used to enable and disable the switch matrix. It is also required by
@@ -109,14 +101,14 @@ pub struct Parts {
 ///
 /// [module documentation]: index.html
 pub struct Handle<State = init_state::Enabled> {
-    swm   : raw::SWM,
+    swm: raw::SWM,
     _state: State,
 }
 
 impl Handle<init_state::Enabled> {
     pub(crate) fn new(swm: raw::SWM) -> Self {
         Handle {
-            swm   : swm,
+            swm: swm,
             _state: init_state::Enabled(()),
         }
     }
@@ -134,13 +126,11 @@ impl Handle<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(mut self, syscon: &mut syscon::Handle)
-        -> Handle<init_state::Enabled>
-    {
+    pub fn enable(mut self, syscon: &mut syscon::Handle) -> Handle<init_state::Enabled> {
         syscon.enable_clock(&mut self.swm);
 
         Handle {
-            swm   : self.swm,
+            swm: self.swm,
             _state: init_state::Enabled(()),
         }
     }
@@ -158,18 +148,15 @@ impl Handle<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(mut self, syscon: &mut syscon::Handle)
-        -> Handle<init_state::Disabled>
-    {
+    pub fn disable(mut self, syscon: &mut syscon::Handle) -> Handle<init_state::Disabled> {
         syscon.disable_clock(&mut self.swm);
 
         Handle {
-            swm   : self.swm,
+            swm: self.swm,
             _state: init_state::Disabled,
         }
     }
 }
-
 
 /// Implemented by types that identify pins
 ///
@@ -190,7 +177,6 @@ pub trait PinTrait {
     /// `0x00000004` for [`PIO0_2`], and so forth.
     const MASK: u32;
 }
-
 
 macro_rules! pins {
     ($(
@@ -279,7 +265,6 @@ pins!(
     pio0_27, PIO0_27, 0x1b, pin_state::Unused        , pin_state::Unused;
     pio0_28, PIO0_28, 0x1c, pin_state::Unused        , pin_state::Unused;
 );
-
 
 /// Main API to control for controlling pins
 ///
@@ -469,11 +454,14 @@ pins!(
 /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.4.*/lpc82x/struct.IOCON.html
 /// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.4.*/lpc82x/struct.ADC.html
 pub struct Pin<T: PinTrait, S: PinState> {
-    pub(crate) ty   : T,
+    pub(crate) ty: T,
     pub(crate) state: S,
 }
 
-impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
+impl<T> Pin<T, pin_state::Unused>
+where
+    T: PinTrait,
+{
     /// Transition pin to GPIO state
     ///
     /// This method is only available while the pin is in the unused state. Code
@@ -504,16 +492,14 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// ```
     ///
     /// [State Management]: #state-management
-    pub fn into_gpio_pin(self, gpio: &GPIO)
-        -> Pin<T, pin_state::Gpio<gpio::direction::Unknown>>
-    {
+    pub fn into_gpio_pin(self, gpio: &GPIO) -> Pin<T, pin_state::Gpio<gpio::direction::Unknown>> {
         Pin {
-            ty   : self.ty,
+            ty: self.ty,
             state: pin_state::Gpio {
                 dirset0: &gpio.gpio.dirset0,
-                pin0   : &gpio.gpio.pin0,
-                set0   : &gpio.gpio.set0,
-                clr0   : &gpio.gpio.clr0,
+                pin0: &gpio.gpio.pin0,
+                set0: &gpio.gpio.set0,
+                clr0: &gpio.gpio.clr0,
 
                 _direction: gpio::direction::Unknown,
             },
@@ -550,13 +536,16 @@ impl<T> Pin<T, pin_state::Unused> where T: PinTrait {
     /// [State Management]: #state-management
     pub fn into_swm_pin(self) -> Pin<T, pin_state::Swm<(), ()>> {
         Pin {
-            ty   : self.ty,
+            ty: self.ty,
             state: pin_state::Swm::new(),
         }
     }
 }
 
-impl<T> Pin<T, pin_state::Swm<(), ()>> where T: PinTrait {
+impl<T> Pin<T, pin_state::Swm<(), ()>>
+where
+    T: PinTrait,
+{
     /// Transitions this pin from the SWM state to the unused state
     ///
     /// This method is only available, if two conditions are met:
@@ -574,92 +563,86 @@ impl<T> Pin<T, pin_state::Swm<(), ()>> where T: PinTrait {
     /// [State Management]: #state-management
     pub fn into_unused_pin(self) -> Pin<T, pin_state::Unused> {
         Pin {
-            ty   : self.ty,
+            ty: self.ty,
             state: pin_state::Unused,
         }
     }
 }
 
-impl<T, F, O, Is> AssignFunction<F, Input>
-    for Pin<T, pin_state::Swm<O, Is>>
-    where
-        T: PinTrait,
-        F: FunctionTrait<T, Kind=Input>,
+impl<T, F, O, Is> AssignFunction<F, Input> for Pin<T, pin_state::Swm<O, Is>>
+where
+    T: PinTrait,
+    F: FunctionTrait<T, Kind = Input>,
 {
     type Assigned = Pin<T, pin_state::Swm<O, (Is,)>>;
 
     fn assign(self) -> Self::Assigned {
         Pin {
-            ty   : self.ty,
+            ty: self.ty,
             state: pin_state::Swm::new(),
         }
     }
 }
 
-impl<T, F, Is> AssignFunction<F, Output>
-    for Pin<T, pin_state::Swm<(), Is>>
-    where
-        T: PinTrait,
-        F: FunctionTrait<T, Kind=Output>,
+impl<T, F, Is> AssignFunction<F, Output> for Pin<T, pin_state::Swm<(), Is>>
+where
+    T: PinTrait,
+    F: FunctionTrait<T, Kind = Output>,
 {
     type Assigned = Pin<T, pin_state::Swm<((),), Is>>;
 
     fn assign(self) -> Self::Assigned {
         Pin {
-            ty   : self.ty,
+            ty: self.ty,
             state: pin_state::Swm::new(),
         }
     }
 }
 
-impl<T, F, O, Is> UnassignFunction<F, Input>
-     for Pin<T, pin_state::Swm<O, (Is,)>>
-     where
-        T: PinTrait,
-        F: FunctionTrait<T, Kind=Input>,
+impl<T, F, O, Is> UnassignFunction<F, Input> for Pin<T, pin_state::Swm<O, (Is,)>>
+where
+    T: PinTrait,
+    F: FunctionTrait<T, Kind = Input>,
 {
     type Unassigned = Pin<T, pin_state::Swm<O, Is>>;
 
     fn unassign(self) -> Self::Unassigned {
         Pin {
-            ty   : self.ty,
+            ty: self.ty,
             state: pin_state::Swm::new(),
         }
     }
 }
 
-impl<T, F, Is> UnassignFunction<F, Output>
-     for Pin<T, pin_state::Swm<((),), Is>>
-     where
-        T: PinTrait,
-        F: FunctionTrait<T, Kind=Output>,
+impl<T, F, Is> UnassignFunction<F, Output> for Pin<T, pin_state::Swm<((),), Is>>
+where
+    T: PinTrait,
+    F: FunctionTrait<T, Kind = Output>,
 {
     type Unassigned = Pin<T, pin_state::Swm<(), Is>>;
 
     fn unassign(self) -> Self::Unassigned {
         Pin {
-            ty   : self.ty,
+            ty: self.ty,
             state: pin_state::Swm::new(),
         }
     }
 }
 
-impl<T, F> AssignFunction<F, Adc>
-    for Pin<T, pin_state::Swm<(), ()>>
-    where
-        T: PinTrait,
-        F: FunctionTrait<T, Kind=Adc>,
+impl<T, F> AssignFunction<F, Adc> for Pin<T, pin_state::Swm<(), ()>>
+where
+    T: PinTrait,
+    F: FunctionTrait<T, Kind = Adc>,
 {
     type Assigned = Pin<T, pin_state::Adc>;
 
     fn assign(self) -> Self::Assigned {
         Pin {
-            ty   : self.ty,
+            ty: self.ty,
             state: pin_state::Adc,
         }
     }
 }
-
 
 /// Contains types that indicate pin states
 ///
@@ -669,14 +652,8 @@ pub mod pin_state {
 
     use crate::{
         gpio::direction::Direction,
-        raw::gpio_port::{
-            CLR0,
-            DIRSET0,
-            PIN0,
-            SET0,
-        },
+        raw::gpio_port::{CLR0, DIRSET0, PIN0, SET0},
     };
-
 
     /// Implemented by types that indicate pin state
     ///
@@ -688,14 +665,12 @@ pub mod pin_state {
     /// [`Pin`]: ../struct.Pin.html
     pub trait PinState {}
 
-
     /// Marks a [`Pin`] as being unused
     ///
     /// [`Pin`]: ../struct.Pin.html
     pub struct Unused;
 
     impl PinState for Unused {}
-
 
     /// Marks a [`Pin`]  as being assigned to the analog-to-digital converter
     ///
@@ -704,21 +679,19 @@ pub mod pin_state {
 
     impl PinState for Adc {}
 
-
     /// Marks a [`Pin`]  as being assigned to general-purpose I/O
     ///
     /// [`Pin`]: ../struct.Pin.html
     pub struct Gpio<'gpio, D: Direction> {
         pub(crate) dirset0: &'gpio DIRSET0,
-        pub(crate) pin0   : &'gpio PIN0,
-        pub(crate) set0   : &'gpio SET0,
-        pub(crate) clr0   : &'gpio CLR0,
+        pub(crate) pin0: &'gpio PIN0,
+        pub(crate) set0: &'gpio SET0,
+        pub(crate) clr0: &'gpio CLR0,
 
         pub(crate) _direction: D,
     }
 
     impl<'gpio, D> PinState for Gpio<'gpio, D> where D: Direction {}
-
 
     /// Marks a [`Pin`]  as being available for switch matrix function assigment
     ///
@@ -753,14 +726,13 @@ pub mod pin_state {
     impl<Output, Inputs> PinState for Swm<Output, Inputs> {}
 }
 
-
 /// A fixed or movable function that can be assigned to a pin
 ///
 /// The type parameter `T` identifies the fixed or movable function that an
 /// instance of `Function` controls. The other type paramter, `State`, tracks
 /// whether this function is assigned to a pin, and which pin it is assigned to.
 pub struct Function<T, State> {
-    ty    : T,
+    ty: T,
     _state: State,
 }
 
@@ -813,21 +785,24 @@ impl<T> Function<T, state::Unassigned> {
     /// ```
     ///
     /// [`Unassigned`]: state/struct.Unassigned.html
-    pub fn assign<P, S>(mut self, mut pin: Pin<P, S>, swm: &mut Handle)
-        -> (
-            Function<T, state::Assigned<P>>,
-            <Pin<P, S> as AssignFunction<T, T::Kind>>::Assigned,
-        )
-        where
-            T        : FunctionTrait<P>,
-            P        : PinTrait,
-            S        : PinState,
-            Pin<P, S>: AssignFunction<T, T::Kind>,
+    pub fn assign<P, S>(
+        mut self,
+        mut pin: Pin<P, S>,
+        swm: &mut Handle,
+    ) -> (
+        Function<T, state::Assigned<P>>,
+        <Pin<P, S> as AssignFunction<T, T::Kind>>::Assigned,
+    )
+    where
+        T: FunctionTrait<P>,
+        P: PinTrait,
+        S: PinState,
+        Pin<P, S>: AssignFunction<T, T::Kind>,
     {
         self.ty.assign(&mut pin.ty, swm);
 
         let function = Function {
-            ty    : self.ty,
+            ty: self.ty,
             _state: state::Assigned(PhantomData),
         };
 
@@ -882,28 +857,30 @@ impl<T, P> Function<T, state::Assigned<P>> {
     /// ```
     ///
     /// [`Assigned`]: state/struct.Assigned.html
-    pub fn unassign<S>(mut self, mut pin: Pin<P, S>, swm: &mut Handle)
-        -> (
-            Function<T, state::Unassigned>,
-            <Pin<P, S> as UnassignFunction<T, T::Kind>>::Unassigned,
-        )
-        where
-            T        : FunctionTrait<P>,
-            P        : PinTrait,
-            S        : PinState,
-            Pin<P, S>: UnassignFunction<T, T::Kind>,
+    pub fn unassign<S>(
+        mut self,
+        mut pin: Pin<P, S>,
+        swm: &mut Handle,
+    ) -> (
+        Function<T, state::Unassigned>,
+        <Pin<P, S> as UnassignFunction<T, T::Kind>>::Unassigned,
+    )
+    where
+        T: FunctionTrait<P>,
+        P: PinTrait,
+        S: PinState,
+        Pin<P, S>: UnassignFunction<T, T::Kind>,
     {
         self.ty.unassign(&mut pin.ty, swm);
 
         let function = Function {
-            ty    : self.ty,
+            ty: self.ty,
             _state: state::Unassigned,
         };
 
         (function, pin.unassign())
     }
 }
-
 
 /// Implemented for all fixed and movable functions
 ///
@@ -920,14 +897,12 @@ pub trait FunctionTrait<P: PinTrait> {
     /// treated as output functions.
     type Kind: FunctionKind;
 
-
     /// Internal method to assign a function to a pin
     fn assign(&mut self, pin: &mut P, swm: &mut Handle);
 
     /// Internal method to unassign a function from a pin
     fn unassign(&mut self, pin: &mut P, swm: &mut Handle);
 }
-
 
 /// Implemented for types that designate whether a function is input or output
 ///
@@ -947,7 +922,6 @@ impl FunctionKind for Output {}
 /// Designates an SWM function as an ADC function
 pub struct Adc;
 impl FunctionKind for Adc {}
-
 
 /// Internal trait used to assign functions to pins
 ///
@@ -980,7 +954,6 @@ pub trait UnassignFunction<Function, Kind> {
     /// Internal method for unassigning a function from a pin
     fn unassign(self) -> Self::Unassigned;
 }
-
 
 macro_rules! movable_functions {
     (
@@ -1068,20 +1041,19 @@ macro_rules! impl_function {
         impl FunctionTrait<$pin> for $type {
             type Kind = $kind;
 
-
-            fn assign(&mut self, _pin: &mut $pin, swm : &mut Handle) {
-                swm.swm.$reg_name.modify(|_, w|
-                    unsafe { w.$reg_field().bits($pin::ID) }
-                );
+            fn assign(&mut self, _pin: &mut $pin, swm: &mut Handle) {
+                swm.swm
+                    .$reg_name
+                    .modify(|_, w| unsafe { w.$reg_field().bits($pin::ID) });
             }
 
-            fn unassign(&mut self, _pin: &mut $pin, swm : &mut Handle) {
-                swm.swm.$reg_name.modify(|_, w|
-                    unsafe { w.$reg_field().bits(0xff) }
-                );
+            fn unassign(&mut self, _pin: &mut $pin, swm: &mut Handle) {
+                swm.swm
+                    .$reg_name
+                    .modify(|_, w| unsafe { w.$reg_field().bits(0xff) });
             }
         }
-    }
+    };
 }
 
 movable_functions!(
@@ -1134,7 +1106,6 @@ movable_functions!(
     clkout       , CLKOUT       , Output, pinassign11, clkout_o;
     gpio_int_bmat, GPIO_INT_BMAT, Output, pinassign11, gpio_int_bmat_o;
 );
-
 
 macro_rules! fixed_functions {
     ($(
@@ -1221,11 +1192,9 @@ fixed_functions!(
     ADC_11  , Adc   , adc_11  , PIO0_4 , state::Unassigned;
 );
 
-
 /// Contains types that indicate the state of fixed or movable functions
 pub mod state {
     use core::marker::PhantomData;
-
 
     /// Implemented by types that indicate the state of SWM functions
     ///
@@ -1240,19 +1209,21 @@ pub mod state {
         fn new() -> Self;
     }
 
-
     /// Indicates that a function is unassigned
     pub struct Unassigned;
 
     impl State for Unassigned {
-        fn new() -> Self { Unassigned }
+        fn new() -> Self {
+            Unassigned
+        }
     }
-
 
     /// Indicates that a function is assigned to a pin
     pub struct Assigned<Pin>(pub(crate) PhantomData<Pin>);
 
     impl<Pin> State for Assigned<Pin> {
-        fn new() -> Self { Assigned(PhantomData) }
+        fn new() -> Self {
+            Assigned(PhantomData)
+        }
     }
 }
