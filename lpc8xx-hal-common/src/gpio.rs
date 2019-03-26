@@ -32,7 +32,7 @@
 use embedded_hal::digital::{OutputPin, StatefulOutputPin};
 
 use crate::{
-    init_state, raw,
+    init_state, raw_compat,
     swm::{pin_state, Pin, PinTrait},
     syscon,
 };
@@ -50,7 +50,7 @@ use crate::{
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct GPIO<State = init_state::Enabled> {
-    pub(crate) gpio: raw::GPIO_PORT,
+    pub(crate) gpio: raw_compat::GPIO,
     _state: State,
 }
 
@@ -61,7 +61,7 @@ impl GPIO<init_state::Enabled> {
     /// [`Enabled`] state. It's up to the caller to verify this assumption.
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub unsafe fn new(gpio: raw::GPIO_PORT) -> Self {
+    pub unsafe fn new(gpio: raw_compat::GPIO) -> Self {
         GPIO {
             gpio: gpio,
             _state: init_state::Enabled(()),
@@ -126,7 +126,7 @@ impl<State> GPIO<State> {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> raw::GPIO_PORT {
+    pub fn free(self) -> raw_compat::GPIO {
         self.gpio
     }
 }

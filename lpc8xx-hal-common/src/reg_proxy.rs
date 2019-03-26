@@ -8,8 +8,6 @@
 //! This module works around this limitation, by introducing a proxy struct that
 //! provides access to a register.
 
-// TODO Remove when lpc845 functionality is added
-#![allow(dead_code)]
 use core::marker::PhantomData;
 use core::mem::transmute;
 use core::ops::Deref;

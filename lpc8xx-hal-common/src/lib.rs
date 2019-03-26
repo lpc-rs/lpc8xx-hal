@@ -8,11 +8,8 @@ pub use lpc82x_pac as raw;
 pub use lpc845_pac as raw;
 
 pub mod clock;
-#[cfg(feature = "82x")]
 pub mod gpio;
-#[cfg(feature = "82x")]
 pub mod swm;
-#[cfg(feature = "82x")]
 pub mod syscon;
 #[macro_use]
 pub(crate) mod reg_proxy;
@@ -40,4 +37,45 @@ pub mod init_state {
 
     /// Indicates that the hardware component is disabled
     pub struct Disabled;
+}
+
+// Provide common peripheral names
+// When in doubt, use the names from the new svd files
+mod raw_compat {
+    #[cfg(feature = "845")]
+    pub(crate) use crate::raw::gpio;
+    #[cfg(feature = "82x")]
+    pub(crate) use crate::raw::gpio_port as gpio;
+    #[cfg(feature = "845")]
+    pub(crate) use crate::raw::ACOMP;
+    #[cfg(feature = "82x")]
+    pub(crate) use crate::raw::ADC as ADC0;
+    #[cfg(feature = "845")]
+    pub(crate) use crate::raw::ADC0;
+    #[cfg(feature = "82x")]
+    pub(crate) use crate::raw::CMP as ACOMP;
+    #[cfg(feature = "82x")]
+    pub(crate) use crate::raw::DMA as DMA0;
+    #[cfg(feature = "845")]
+    pub(crate) use crate::raw::DMA0;
+    #[cfg(feature = "82x")]
+    pub(crate) use crate::raw::FLASHCTRL as FLASH_CTRL;
+    #[cfg(feature = "845")]
+    pub(crate) use crate::raw::FLASH_CTRL;
+    #[cfg(feature = "845")]
+    pub(crate) use crate::raw::GPIO;
+    #[cfg(feature = "82x")]
+    pub(crate) use crate::raw::GPIO_PORT as GPIO;
+    #[cfg(feature = "82x")]
+    pub(crate) use crate::raw::MRT as MRT0;
+    #[cfg(feature = "845")]
+    pub(crate) use crate::raw::MRT0;
+    #[cfg(feature = "82x")]
+    pub(crate) use crate::raw::SCT as SCT0;
+    #[cfg(feature = "845")]
+    pub(crate) use crate::raw::SCT0;
+    #[cfg(feature = "82x")]
+    pub(crate) use crate::raw::SWM as SWM0;
+    #[cfg(feature = "845")]
+    pub(crate) use crate::raw::SWM0;
 }

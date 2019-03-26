@@ -9,7 +9,7 @@ use core::marker::PhantomData;
 
 use crate::{
     gpio::{self, GPIO},
-    init_state, raw, syscon,
+    init_state, raw_compat, syscon,
 };
 
 use self::pin_state::PinState;
@@ -31,11 +31,11 @@ use self::pin_state::PinState;
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct SWM {
-    swm: raw::SWM,
+    swm: raw_compat::SWM0,
 }
 
 impl SWM {
-    pub fn new(swm: raw::SWM) -> Self {
+    pub fn new(swm: raw_compat::SWM0) -> Self {
         SWM { swm }
     }
 
@@ -65,7 +65,7 @@ impl SWM {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> raw::SWM {
+    pub fn free(self) -> raw_compat::SWM0 {
         self.swm
     }
 }
@@ -101,12 +101,12 @@ pub struct Parts {
 ///
 /// [module documentation]: index.html
 pub struct Handle<State = init_state::Enabled> {
-    swm: raw::SWM,
+    swm: raw_compat::SWM0,
     _state: State,
 }
 
 impl Handle<init_state::Enabled> {
-    pub(crate) fn new(swm: raw::SWM) -> Self {
+    pub(crate) fn new(swm: raw_compat::SWM0) -> Self {
         Handle {
             swm: swm,
             _state: init_state::Enabled(()),
@@ -495,11 +495,22 @@ where
     pub fn into_gpio_pin(self, gpio: &GPIO) -> Pin<T, pin_state::Gpio<gpio::direction::Unknown>> {
         Pin {
             ty: self.ty,
+            #[cfg(feature = "82x")]
             state: pin_state::Gpio {
                 dirset0: &gpio.gpio.dirset0,
                 pin0: &gpio.gpio.pin0,
                 set0: &gpio.gpio.set0,
                 clr0: &gpio.gpio.clr0,
+
+                _direction: gpio::direction::Unknown,
+            },
+            #[cfg(feature = "845")]
+            state: pin_state::Gpio {
+                // TODO gpio1
+                dirset0: &gpio.gpio.dirset[0],
+                pin0: &gpio.gpio.pin[0],
+                set0: &gpio.gpio.set[0],
+                clr0: &gpio.gpio.clr[0],
 
                 _direction: gpio::direction::Unknown,
             },
@@ -650,10 +661,11 @@ where
 pub mod pin_state {
     use core::marker::PhantomData;
 
-    use crate::{
-        gpio::direction::Direction,
-        raw::gpio_port::{CLR0, DIRSET0, PIN0, SET0},
-    };
+    use crate::gpio::direction::Direction;
+    #[cfg(feature = "845")]
+    use crate::raw_compat::gpio::{CLR as CLR0, DIRSET as DIRSET0, PIN as PIN0, SET as SET0};
+    #[cfg(feature = "82x")]
+    use crate::raw_compat::gpio::{CLR0, DIRSET0, PIN0, SET0};
 
     /// Implemented by types that indicate pin state
     ///
