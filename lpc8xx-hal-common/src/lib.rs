@@ -8,8 +8,11 @@ pub use lpc82x_pac as raw;
 pub use lpc845_pac as raw;
 
 pub mod clock;
+#[cfg(feature = "82x")]
 pub mod gpio;
+#[cfg(feature = "82x")]
 pub mod swm;
+#[cfg(feature = "82x")]
 pub mod syscon;
 #[macro_use]
 pub(crate) mod reg_proxy;
