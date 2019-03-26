@@ -55,6 +55,12 @@ pub struct GPIO<State = init_state::Enabled> {
 }
 
 impl GPIO<init_state::Enabled> {
+    /// Create an enabled gpio peripheral
+    ///
+    /// This method creates an `GPIO` instance that it assumes is already in the
+    /// [`Enabled`] state. It's up to the caller to verify this assumption.
+    ///
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub unsafe fn new(gpio: raw::GPIO_PORT) -> Self {
         GPIO {
             gpio: gpio,
