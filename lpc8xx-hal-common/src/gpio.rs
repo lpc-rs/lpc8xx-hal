@@ -61,7 +61,7 @@ impl GPIO<init_state::Enabled> {
     /// [`Enabled`] state. It's up to the caller to verify this assumption.
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub unsafe fn new(gpio: raw_compat::GPIO) -> Self {
+    pub unsafe fn new_enabled(gpio: raw_compat::GPIO) -> Self {
         GPIO {
             gpio: gpio,
             _state: init_state::Enabled(()),
@@ -70,6 +70,20 @@ impl GPIO<init_state::Enabled> {
 }
 
 impl GPIO<init_state::Disabled> {
+    /// Create an disabled gpio peripheral
+    ///
+    /// This method creates an `GPIO` instance that it assumes is in the
+    /// [`Disabled`] state. As it's only possible to enable a [`Disabled`] `GPIO`
+    /// instance, it's also safe to pass an already [`Enabled`] instance.
+    ///
+    /// [`Disabled`]: ../init_state/struct.Enabled.html
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    pub fn new(gpio: raw_compat::GPIO) -> Self {
+        GPIO {
+            gpio: gpio,
+            _state: init_state::Disabled,
+        }
+    }
     /// Enable the GPIO peripheral
     ///
     /// This method is only available, if `GPIO` is in the [`Disabled`] state.
