@@ -16,13 +16,16 @@ use crate::raw::syscon::{
     pdruncfg, presetctrl, starterp1, sysahbclkctrl, PDRUNCFG, PRESETCTRL, STARTERP1, SYSAHBCLKCTRL,
     UARTCLKDIV, UARTFRGDIV, UARTFRGMULT,
 };
+
 #[cfg(feature = "845")]
 use crate::raw::syscon::{
-    pdruncfg, presetctrl0 as presetctrl, starterp1, sysahbclkctrl0 as sysahbclkctrl, CLKOUTDIV,
-    FRG, PDRUNCFG, PRESETCTRL0 as PRESETCTRL, STARTERP1, SYSAHBCLKCTRL0 as SYSAHBCLKCTRL,
+    pdruncfg, presetctrl0 as presetctrl, starterp1, sysahbclkctrl0 as sysahbclkctrl, PDRUNCFG,
+    PRESETCTRL0 as PRESETCTRL, STARTERP1, SYSAHBCLKCTRL0 as SYSAHBCLKCTRL,
 };
 
 use crate::reg;
+// TODO Remove when FRO is implemented for lpc845
+#[allow(unused_imports)]
 use crate::{clock, init_state, raw, raw_compat, reg_proxy::RegProxy};
 
 /// Entry point to the SYSCON API
@@ -75,12 +78,14 @@ impl SYSCON {
             sysosc: SYSOSC(PhantomData),
             syspll: SYSPLL(PhantomData),
 
+            #[cfg(feature = "82x")]
             uartfrg: UARTFRG {
                 uartclkdiv: RegProxy::new(),
                 uartfrgdiv: RegProxy::new(),
                 uartfrgmult: RegProxy::new(),
             },
 
+            #[cfg(feature = "82x")]
             irc_derived_clock: IrcDerivedClock::new(),
         }
     }
@@ -139,9 +144,11 @@ pub struct Parts {
     /// PLL
     pub syspll: SYSPLL,
 
+    #[cfg(feature = "82x")]
     /// UART Fractional Baud Rate Generator
     pub uartfrg: UARTFRG,
 
+    #[cfg(feature = "82x")]
     /// The 750 kHz IRC-derived clock
     pub irc_derived_clock: IrcDerivedClock<init_state::Enabled>,
 }
@@ -298,6 +305,7 @@ pub struct SYSOSC(PhantomData<*const ()>);
 /// [`syscon::Handle`]: struct.Handle.html
 pub struct SYSPLL(PhantomData<*const ()>);
 
+#[cfg(feature = "82x")]
 /// UART Fractional Baud Rate Generator
 ///
 /// Controls the common clock for all UART peripherals (U_PCLK).
@@ -312,6 +320,7 @@ pub struct UARTFRG {
     uartfrgmult: RegProxy<UARTFRGMULT>,
 }
 
+#[cfg(feature = "82x")]
 impl UARTFRG {
     /// Set UART clock divider value (UARTCLKDIV)
     ///
@@ -435,6 +444,7 @@ macro_rules! impl_reset_control {
 
 impl_reset_control!(raw::SPI0, spi0_rst_n);
 impl_reset_control!(raw::SPI1, spi1_rst_n);
+#[cfg(feature = "82x")]
 impl_reset_control!(UARTFRG, uartfrg_rst_n);
 impl_reset_control!(raw::USART0, uart0_rst_n);
 impl_reset_control!(raw::USART1, uart1_rst_n);
@@ -489,7 +499,9 @@ macro_rules! impl_analog_block {
     };
 }
 
+#[cfg(feature = "82x")]
 impl_analog_block!(IRCOUT, ircout_pd);
+#[cfg(feature = "82x")]
 impl_analog_block!(IRC, irc_pd);
 impl_analog_block!(FLASH, flash_pd);
 impl_analog_block!(BOD, bod_pd);
@@ -499,6 +511,7 @@ impl_analog_block!(raw::WWDT, wdtosc_pd);
 impl_analog_block!(SYSPLL, syspll_pd);
 impl_analog_block!(raw_compat::ACOMP, acmp);
 
+#[cfg(feature = "82x")]
 /// The 750 kHz IRC-derived clock
 ///
 /// This is one of the clocks that can be used to run the self-wake-up timer
@@ -507,6 +520,7 @@ pub struct IrcDerivedClock<State = init_state::Enabled> {
     _state: State,
 }
 
+#[cfg(feature = "82x")]
 impl IrcDerivedClock<init_state::Enabled> {
     pub(crate) fn new() -> Self {
         IrcDerivedClock {
@@ -515,6 +529,7 @@ impl IrcDerivedClock<init_state::Enabled> {
     }
 }
 
+#[cfg(feature = "82x")]
 impl IrcDerivedClock<init_state::Disabled> {
     /// Enable the IRC-derived clock
     ///
@@ -548,12 +563,14 @@ impl IrcDerivedClock<init_state::Disabled> {
     }
 }
 
+#[cfg(feature = "82x")]
 impl<State> clock::Frequency for IrcDerivedClock<State> {
     fn hz(&self) -> u32 {
         750_000
     }
 }
 
+#[cfg(feature = "82x")]
 impl clock::Enabled for IrcDerivedClock<init_state::Enabled> {}
 
 /// Internal trait used to configure interrupt wake-up
@@ -623,6 +640,9 @@ reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, raw::SYSCON, sysahbclkctrl);
 #[cfg(feature = "845")]
 reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, raw::SYSCON, sysahbclkctrl0);
 
+#[cfg(feature = "82x")]
 reg!(UARTCLKDIV, UARTCLKDIV, raw::SYSCON, uartclkdiv);
+#[cfg(feature = "82x")]
 reg!(UARTFRGDIV, UARTFRGDIV, raw::SYSCON, uartfrgdiv);
+#[cfg(feature = "82x")]
 reg!(UARTFRGMULT, UARTFRGMULT, raw::SYSCON, uartfrgmult);
