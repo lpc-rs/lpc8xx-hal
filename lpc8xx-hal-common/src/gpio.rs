@@ -29,23 +29,13 @@
 //! [`swm`]: ../swm/index.html
 //! [examples in the repository]: https://github.com/braun-robotics/rust-lpc82x-hal/tree/master/examples
 
-
-use embedded_hal::digital::{
-    OutputPin,
-    StatefulOutputPin,
-};
+use embedded_hal::digital::{OutputPin, StatefulOutputPin};
 
 use crate::{
-    init_state,
-    raw,
-    swm::{
-        pin_state,
-        Pin,
-        PinTrait,
-    },
+    init_state, raw,
+    swm::{pin_state, Pin, PinTrait},
     syscon,
 };
-
 
 /// Interface to the GPIO peripheral
 ///
@@ -60,14 +50,20 @@ use crate::{
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct GPIO<State = init_state::Enabled> {
-    pub(crate) gpio  : raw::GPIO_PORT,
-               _state: State,
+    pub(crate) gpio: raw::GPIO_PORT,
+    _state: State,
 }
 
 impl GPIO<init_state::Enabled> {
-    pub(crate) fn new(gpio: raw::GPIO_PORT) -> Self {
+    /// Create an enabled gpio peripheral
+    ///
+    /// This method creates an `GPIO` instance that it assumes is already in the
+    /// [`Enabled`] state. It's up to the caller to verify this assumption.
+    ///
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    pub unsafe fn new(gpio: raw::GPIO_PORT) -> Self {
         GPIO {
-            gpio  : gpio,
+            gpio: gpio,
             _state: init_state::Enabled(()),
         }
     }
@@ -85,13 +81,11 @@ impl GPIO<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(mut self, syscon: &mut syscon::Handle)
-        -> GPIO<init_state::Enabled>
-    {
+    pub fn enable(mut self, syscon: &mut syscon::Handle) -> GPIO<init_state::Enabled> {
         syscon.enable_clock(&mut self.gpio);
 
         GPIO {
-            gpio  : self.gpio,
+            gpio: self.gpio,
             _state: init_state::Enabled(()),
         }
     }
@@ -109,13 +103,11 @@ impl GPIO<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(mut self, syscon: &mut syscon::Handle)
-        -> GPIO<init_state::Disabled>
-    {
+    pub fn disable(mut self, syscon: &mut syscon::Handle) -> GPIO<init_state::Disabled> {
         syscon.disable_clock(&mut self.gpio);
 
         GPIO {
-            gpio  : self.gpio,
+            gpio: self.gpio,
             _state: init_state::Disabled,
         }
     }
@@ -139,11 +131,10 @@ impl<State> GPIO<State> {
     }
 }
 
-
 impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
-    where
-        T: PinTrait,
-        D: direction::NotOutput,
+where
+    T: PinTrait,
+    D: direction::NotOutput,
 {
     /// Set pin direction to output
     ///
@@ -173,30 +164,29 @@ impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
     /// pin.set_high();
     /// pin.set_low();
     /// ```
-    pub fn into_output(self)
-        -> Pin<T, pin_state::Gpio<'gpio, direction::Output>>
-    {
-        self.state.dirset0.write(|w|
-            unsafe { w.dirsetp().bits(T::MASK) }
-        );
+    pub fn into_output(self) -> Pin<T, pin_state::Gpio<'gpio, direction::Output>> {
+        self.state
+            .dirset0
+            .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
 
         Pin {
             ty: self.ty,
 
             state: pin_state::Gpio {
                 dirset0: self.state.dirset0,
-                pin0   : self.state.pin0,
-                set0   : self.state.set0,
-                clr0   : self.state.clr0,
+                pin0: self.state.pin0,
+                set0: self.state.set0,
+                clr0: self.state.clr0,
 
                 _direction: direction::Output,
-            }
+            },
         }
     }
 }
 
 impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
-    where T: PinTrait
+where
+    T: PinTrait,
 {
     /// Set the pin output to HIGH
     ///
@@ -210,9 +200,7 @@ impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_high(&mut self) {
-        self.state.set0.write(|w|
-            unsafe { w.setp().bits(T::MASK) }
-        )
+        self.state.set0.write(|w| unsafe { w.setp().bits(T::MASK) })
     }
 
     /// Set the pin output to LOW
@@ -227,15 +215,13 @@ impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_low(&mut self) {
-        self.state.clr0.write(|w|
-            unsafe { w.clrp().bits(T::MASK) }
-        );
+        self.state.clr0.write(|w| unsafe { w.clrp().bits(T::MASK) });
     }
 }
 
-impl<'gpio, T> StatefulOutputPin
-    for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
-    where T: PinTrait
+impl<'gpio, T> StatefulOutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
+where
+    T: PinTrait,
 {
     /// Indicates whether the pin output is currently set to HIGH
     ///
@@ -267,7 +253,6 @@ impl<'gpio, T> StatefulOutputPin
         !self.state.pin0.read().port().bits() & T::MASK == T::MASK
     }
 }
-
 
 /// Contains types to indicate the direction of GPIO pins
 ///
@@ -318,7 +303,6 @@ pub mod direction {
     /// [`Pin`]: ../../swm/struct.Pin.html
     pub struct Output;
     impl Direction for Output {}
-
 
     /// Marks a direction as not being output (i.e. being unknown or input)
     ///

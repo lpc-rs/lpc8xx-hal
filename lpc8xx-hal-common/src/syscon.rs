@@ -9,31 +9,21 @@
 //!
 //! The SYSCON peripheral is described in the user manual, chapter 5.
 
-
 use core::marker::PhantomData;
 
 use crate::{
-    clock,
-    init_state,
+    clock, init_state,
     raw::{
         self,
         syscon::{
-            pdruncfg,
-            presetctrl,
-            starterp1,
-            sysahbclkctrl,
-            PDRUNCFG,
-            PRESETCTRL,
-            STARTERP1,
-            SYSAHBCLKCTRL,
-            UARTCLKDIV,
-            UARTFRGDIV,
-            UARTFRGMULT,
+            pdruncfg, presetctrl, starterp1, sysahbclkctrl, PDRUNCFG, PRESETCTRL, STARTERP1,
+            SYSAHBCLKCTRL, UARTCLKDIV, UARTFRGDIV, UARTFRGMULT,
         },
     },
     reg_proxy::RegProxy,
 };
 
+use crate::reg;
 
 /// Entry point to the SYSCON API
 ///
@@ -57,7 +47,7 @@ pub struct SYSCON {
 }
 
 impl SYSCON {
-    pub(crate) fn new(syscon: raw::SYSCON) -> Self {
+    pub fn new(syscon: raw::SYSCON) -> Self {
         SYSCON { syscon }
     }
 
@@ -69,25 +59,25 @@ impl SYSCON {
     pub fn split(self) -> Parts {
         Parts {
             handle: Handle {
-                pdruncfg     : RegProxy::new(),
-                presetctrl   : RegProxy::new(),
-                starterp1    : RegProxy::new(),
+                pdruncfg: RegProxy::new(),
+                presetctrl: RegProxy::new(),
+                starterp1: RegProxy::new(),
                 sysahbclkctrl: RegProxy::new(),
             },
 
-            bod   : BOD(PhantomData),
-            flash : FLASH(PhantomData),
-            irc   : IRC(PhantomData),
+            bod: BOD(PhantomData),
+            flash: FLASH(PhantomData),
+            irc: IRC(PhantomData),
             ircout: IRCOUT(PhantomData),
-            mtb   : MTB(PhantomData),
+            mtb: MTB(PhantomData),
             ram0_1: RAM0_1(PhantomData),
-            rom   : ROM(PhantomData),
+            rom: ROM(PhantomData),
             sysosc: SYSOSC(PhantomData),
             syspll: SYSPLL(PhantomData),
 
             uartfrg: UARTFRG {
-                uartclkdiv : RegProxy::new(),
-                uartfrgdiv : RegProxy::new(),
+                uartclkdiv: RegProxy::new(),
+                uartfrgdiv: RegProxy::new(),
                 uartfrgmult: RegProxy::new(),
             },
 
@@ -111,7 +101,6 @@ impl SYSCON {
         self.syscon
     }
 }
-
 
 /// The main API for the SYSCON peripheral
 ///
@@ -157,7 +146,6 @@ pub struct Parts {
     pub irc_derived_clock: IrcDerivedClock<init_state::Enabled>,
 }
 
-
 /// Handle to the SYSCON peripheral
 ///
 /// This handle to the SYSCON peripheral provides access to the main part of the
@@ -169,9 +157,9 @@ pub struct Parts {
 ///
 /// [module documentation]: index.html
 pub struct Handle {
-    pdruncfg     : RegProxy<PDRUNCFG>,
-    presetctrl   : RegProxy<PRESETCTRL>,
-    starterp1    : RegProxy<STARTERP1>,
+    pdruncfg: RegProxy<PDRUNCFG>,
+    presetctrl: RegProxy<PRESETCTRL>,
+    starterp1: RegProxy<STARTERP1>,
     sysahbclkctrl: RegProxy<SYSAHBCLKCTRL>,
 }
 
@@ -187,7 +175,8 @@ impl Handle {
 
     /// Disable peripheral clock
     pub fn disable_clock<P: ClockControl>(&mut self, peripheral: &P) {
-        self.sysahbclkctrl.modify(|_, w| peripheral.disable_clock(w));
+        self.sysahbclkctrl
+            .modify(|_, w| peripheral.disable_clock(w));
     }
 
     /// Assert peripheral reset
@@ -224,16 +213,21 @@ impl Handle {
     /// to being enabled in the NVIC.
     ///
     /// This method is not required when using the regular sleep mode.
-    pub fn enable_interrupt_wakeup<I>(&mut self) where I: WakeUpInterrupt {
+    pub fn enable_interrupt_wakeup<I>(&mut self)
+    where
+        I: WakeUpInterrupt,
+    {
         self.starterp1.modify(|_, w| I::enable(w));
     }
 
     /// Disable interrupt wake-up from deep-sleep and power-down modes
-    pub fn disable_interrupt_wakeup<I>(&mut self) where I: WakeUpInterrupt {
+    pub fn disable_interrupt_wakeup<I>(&mut self)
+    where
+        I: WakeUpInterrupt,
+    {
         self.starterp1.modify(|_, w| I::disable(w));
     }
 }
-
 
 /// Brown-out detection
 ///
@@ -313,8 +307,8 @@ pub struct SYSPLL(PhantomData<*const ()>);
 ///
 /// [`syscon::Handle`]: struct.Handle.html
 pub struct UARTFRG {
-    uartclkdiv : RegProxy<UARTCLKDIV>,
-    uartfrgdiv : RegProxy<UARTFRGDIV>,
+    uartclkdiv: RegProxy<UARTCLKDIV>,
+    uartfrgdiv: RegProxy<UARTFRGDIV>,
     uartfrgmult: RegProxy<UARTFRGMULT>,
 }
 
@@ -323,30 +317,23 @@ impl UARTFRG {
     ///
     /// See user manual, section 5.6.15.
     pub fn set_clkdiv(&mut self, value: u8) {
-        self.uartclkdiv.write(|w|
-            unsafe { w.div().bits(value) }
-        );
+        self.uartclkdiv.write(|w| unsafe { w.div().bits(value) });
     }
 
     /// Set UART fractional generator multiplier value (UARTFRGMULT)
     ///
     /// See user manual, section 5.6.20.
     pub fn set_frgmult(&mut self, value: u8) {
-        self.uartfrgmult.write(|w|
-            unsafe { w.mult().bits(value) }
-        );
+        self.uartfrgmult.write(|w| unsafe { w.mult().bits(value) });
     }
 
     /// Set UART fractional generator divider value (UARTFRGDIV)
     ///
     /// See user manual, section 5.6.19.
     pub fn set_frgdiv(&mut self, value: u8) {
-        self.uartfrgdiv.write(|w|
-            unsafe { w.div().bits(value) }
-        );
+        self.uartfrgdiv.write(|w| unsafe { w.div().bits(value) });
     }
 }
-
 
 /// Internal trait for controlling peripheral clocks
 ///
@@ -361,58 +348,51 @@ impl UARTFRG {
 /// [`syscon::Handle::disable_clock`]: struct.Handle.html#method.disable_clock
 pub trait ClockControl {
     /// Internal method to enable a peripheral clock
-    fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W)
-        -> &'w mut sysahbclkctrl::W;
+    fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W;
 
     /// Internal method to disable a peripheral clock
-    fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W)
-        -> &'w mut sysahbclkctrl::W;
+    fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W;
 }
 
 macro_rules! impl_clock_control {
     ($clock_control:ty, $clock:ident) => {
         impl ClockControl for $clock_control {
-            fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W)
-                -> &'w mut sysahbclkctrl::W
-            {
+            fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
                 w.$clock().enable()
             }
 
-            fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W)
-                -> &'w mut sysahbclkctrl::W
-            {
+            fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
                 w.$clock().disable()
             }
         }
-    }
+    };
 }
 
-impl_clock_control!(ROM           , rom     );
-impl_clock_control!(RAM0_1        , ram0_1  );
+impl_clock_control!(ROM, rom);
+impl_clock_control!(RAM0_1, ram0_1);
 impl_clock_control!(raw::FLASHCTRL, flashreg);
-impl_clock_control!(FLASH         , flash   );
-impl_clock_control!(raw::I2C0     , i2c0    );
-impl_clock_control!(raw::GPIO_PORT, gpio    );
-impl_clock_control!(raw::SWM      , swm     );
-impl_clock_control!(raw::SCT      , sct     );
-impl_clock_control!(raw::WKT      , wkt     );
-impl_clock_control!(raw::MRT      , mrt     );
-impl_clock_control!(raw::SPI0     , spi0    );
-impl_clock_control!(raw::SPI1     , spi1    );
-impl_clock_control!(raw::CRC      , crc     );
-impl_clock_control!(raw::USART0   , uart0   );
-impl_clock_control!(raw::USART1   , uart1   );
-impl_clock_control!(raw::USART2   , uart2   );
-impl_clock_control!(raw::WWDT     , wwdt    );
-impl_clock_control!(raw::IOCON    , iocon   );
-impl_clock_control!(raw::CMP      , acmp    );
-impl_clock_control!(raw::I2C1     , i2c1    );
-impl_clock_control!(raw::I2C2     , i2c2    );
-impl_clock_control!(raw::I2C3     , i2c3    );
-impl_clock_control!(raw::ADC      , adc     );
-impl_clock_control!(MTB           , mtb     );
-impl_clock_control!(raw::DMA      , dma     );
-
+impl_clock_control!(FLASH, flash);
+impl_clock_control!(raw::I2C0, i2c0);
+impl_clock_control!(raw::GPIO_PORT, gpio);
+impl_clock_control!(raw::SWM, swm);
+impl_clock_control!(raw::SCT, sct);
+impl_clock_control!(raw::WKT, wkt);
+impl_clock_control!(raw::MRT, mrt);
+impl_clock_control!(raw::SPI0, spi0);
+impl_clock_control!(raw::SPI1, spi1);
+impl_clock_control!(raw::CRC, crc);
+impl_clock_control!(raw::USART0, uart0);
+impl_clock_control!(raw::USART1, uart1);
+impl_clock_control!(raw::USART2, uart2);
+impl_clock_control!(raw::WWDT, wwdt);
+impl_clock_control!(raw::IOCON, iocon);
+impl_clock_control!(raw::CMP, acmp);
+impl_clock_control!(raw::I2C1, i2c1);
+impl_clock_control!(raw::I2C2, i2c2);
+impl_clock_control!(raw::I2C3, i2c3);
+impl_clock_control!(raw::ADC, adc);
+impl_clock_control!(MTB, mtb);
+impl_clock_control!(raw::DMA, dma);
 
 /// Internal trait for controlling peripheral reset
 ///
@@ -427,51 +407,44 @@ impl_clock_control!(raw::DMA      , dma     );
 /// [`syscon::Handle::clear_reset`]: struct.Handle.html#method.clear_reset
 pub trait ResetControl {
     /// Internal method to assert peripheral reset
-    fn assert_reset<'w>(&self, w: &'w mut presetctrl::W)
-        -> &'w mut presetctrl::W;
+    fn assert_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W;
 
     /// Internal method to clear peripheral reset
-    fn clear_reset<'w>(&self, w: &'w mut presetctrl::W)
-        -> &'w mut presetctrl::W;
+    fn clear_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W;
 }
 
 macro_rules! impl_reset_control {
     ($reset_control:ty, $field:ident) => {
         impl<'a> ResetControl for $reset_control {
-            fn assert_reset<'w>(&self, w: &'w mut presetctrl::W)
-                -> &'w mut presetctrl::W
-            {
+            fn assert_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W {
                 w.$field().clear_bit()
             }
 
-            fn clear_reset<'w>(&self, w: &'w mut presetctrl::W)
-                -> &'w mut presetctrl::W
-            {
+            fn clear_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W {
                 w.$field().set_bit()
             }
         }
-    }
+    };
 }
 
-impl_reset_control!(raw::SPI0     , spi0_rst_n   );
-impl_reset_control!(raw::SPI1     , spi1_rst_n   );
-impl_reset_control!(UARTFRG       , uartfrg_rst_n);
-impl_reset_control!(raw::USART0   , uart0_rst_n  );
-impl_reset_control!(raw::USART1   , uart1_rst_n  );
-impl_reset_control!(raw::USART2   , uart2_rst_n  );
-impl_reset_control!(raw::I2C0     , i2c0_rst_n   );
-impl_reset_control!(raw::MRT      , mrt_rst_n    );
-impl_reset_control!(raw::SCT      , sct_rst_n    );
-impl_reset_control!(raw::WKT      , wkt_rst_n    );
-impl_reset_control!(raw::GPIO_PORT, gpio_rst_n   );
-impl_reset_control!(raw::FLASHCTRL, flash_rst_n  );
-impl_reset_control!(raw::CMP      , acmp_rst_n   );
-impl_reset_control!(raw::I2C1     , i2c1_rst_n   );
-impl_reset_control!(raw::I2C2     , i2c2_rst_n   );
-impl_reset_control!(raw::I2C3     , i2c3_rst_n   );
-impl_reset_control!(raw::ADC      , adc_rst_n    );
-impl_reset_control!(raw::DMA      , dma_rst_n    );
-
+impl_reset_control!(raw::SPI0, spi0_rst_n);
+impl_reset_control!(raw::SPI1, spi1_rst_n);
+impl_reset_control!(UARTFRG, uartfrg_rst_n);
+impl_reset_control!(raw::USART0, uart0_rst_n);
+impl_reset_control!(raw::USART1, uart1_rst_n);
+impl_reset_control!(raw::USART2, uart2_rst_n);
+impl_reset_control!(raw::I2C0, i2c0_rst_n);
+impl_reset_control!(raw::MRT, mrt_rst_n);
+impl_reset_control!(raw::SCT, sct_rst_n);
+impl_reset_control!(raw::WKT, wkt_rst_n);
+impl_reset_control!(raw::GPIO_PORT, gpio_rst_n);
+impl_reset_control!(raw::FLASHCTRL, flash_rst_n);
+impl_reset_control!(raw::CMP, acmp_rst_n);
+impl_reset_control!(raw::I2C1, i2c1_rst_n);
+impl_reset_control!(raw::I2C2, i2c2_rst_n);
+impl_reset_control!(raw::I2C3, i2c3_rst_n);
+impl_reset_control!(raw::ADC, adc_rst_n);
+impl_reset_control!(raw::DMA, dma_rst_n);
 
 /// Internal trait for powering analog blocks
 ///
@@ -495,31 +468,26 @@ pub trait AnalogBlock {
 macro_rules! impl_analog_block {
     ($analog_block:ty, $field:ident) => {
         impl<'a> AnalogBlock for $analog_block {
-            fn power_up<'w>(&self, w: &'w mut pdruncfg::W)
-                -> &'w mut pdruncfg::W
-            {
+            fn power_up<'w>(&self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W {
                 w.$field().powered()
             }
 
-            fn power_down<'w>(&self, w: &'w mut pdruncfg::W)
-                -> &'w mut pdruncfg::W
-            {
+            fn power_down<'w>(&self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W {
                 w.$field().powered_down()
             }
         }
-    }
+    };
 }
 
-impl_analog_block!(IRCOUT   , ircout_pd );
-impl_analog_block!(IRC      , irc_pd    );
-impl_analog_block!(FLASH    , flash_pd  );
-impl_analog_block!(BOD      , bod_pd    );
-impl_analog_block!(raw::ADC , adc_pd    );
-impl_analog_block!(SYSOSC   , sysosc_pd );
-impl_analog_block!(raw::WWDT, wdtosc_pd );
-impl_analog_block!(SYSPLL   , syspll_pd );
-impl_analog_block!(raw::CMP , acmp      );
-
+impl_analog_block!(IRCOUT, ircout_pd);
+impl_analog_block!(IRC, irc_pd);
+impl_analog_block!(FLASH, flash_pd);
+impl_analog_block!(BOD, bod_pd);
+impl_analog_block!(raw::ADC, adc_pd);
+impl_analog_block!(SYSOSC, sysosc_pd);
+impl_analog_block!(raw::WWDT, wdtosc_pd);
+impl_analog_block!(SYSPLL, syspll_pd);
+impl_analog_block!(raw::CMP, acmp);
 
 /// The 750 kHz IRC-derived clock
 ///
@@ -555,9 +523,12 @@ impl IrcDerivedClock<init_state::Disabled> {
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
-    pub fn enable(self, syscon: &mut Handle, mut irc: IRC, mut ircout: IRCOUT)
-        -> IrcDerivedClock<init_state::Enabled>
-    {
+    pub fn enable(
+        self,
+        syscon: &mut Handle,
+        mut irc: IRC,
+        mut ircout: IRCOUT,
+    ) -> IrcDerivedClock<init_state::Enabled> {
         syscon.power_up(&mut irc);
         syscon.power_up(&mut ircout);
 
@@ -568,11 +539,12 @@ impl IrcDerivedClock<init_state::Disabled> {
 }
 
 impl<State> clock::Frequency for IrcDerivedClock<State> {
-    fn hz(&self) -> u32 { 750_000 }
+    fn hz(&self) -> u32 {
+        750_000
+    }
 }
 
 impl clock::Enabled for IrcDerivedClock<init_state::Enabled> {}
-
 
 /// Internal trait used to configure interrupt wake-up
 ///
@@ -614,28 +586,27 @@ macro_rules! wakeup_interrupt {
                 w.$field().disabled()
             }
         }
-    }
+    };
 }
 
-wakeup_interrupt!(Spi0Wakeup  , spi0);
-wakeup_interrupt!(Spi1Wakeup  , spi1);
+wakeup_interrupt!(Spi0Wakeup, spi0);
+wakeup_interrupt!(Spi1Wakeup, spi1);
 wakeup_interrupt!(Usart0Wakeup, usart0);
 wakeup_interrupt!(Usart1Wakeup, usart1);
 wakeup_interrupt!(Usart2Wakeup, usart2);
-wakeup_interrupt!(I2c1Wakeup  , i2c1  );
-wakeup_interrupt!(I2c0Wakeup  , i2c0  );
-wakeup_interrupt!(WwdtWakeup  , wwdt  );
-wakeup_interrupt!(BodWakeup   , bod   );
-wakeup_interrupt!(WktWakeup   , wkt   );
-wakeup_interrupt!(I2c2Wakeup  , i2c2  );
-wakeup_interrupt!(I2c3Wakeup  , i2c3  );
+wakeup_interrupt!(I2c1Wakeup, i2c1);
+wakeup_interrupt!(I2c0Wakeup, i2c0);
+wakeup_interrupt!(WwdtWakeup, wwdt);
+wakeup_interrupt!(BodWakeup, bod);
+wakeup_interrupt!(WktWakeup, wkt);
+wakeup_interrupt!(I2c2Wakeup, i2c2);
+wakeup_interrupt!(I2c3Wakeup, i2c3);
 
-
-reg!(PDRUNCFG     , PDRUNCFG     , raw::SYSCON, pdruncfg     );
-reg!(PRESETCTRL   , PRESETCTRL   , raw::SYSCON, presetctrl   );
-reg!(STARTERP1    , STARTERP1    , raw::SYSCON, starterp1    );
+reg!(PDRUNCFG, PDRUNCFG, raw::SYSCON, pdruncfg);
+reg!(PRESETCTRL, PRESETCTRL, raw::SYSCON, presetctrl);
+reg!(STARTERP1, STARTERP1, raw::SYSCON, starterp1);
 reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, raw::SYSCON, sysahbclkctrl);
 
-reg!(UARTCLKDIV , UARTCLKDIV   , raw::SYSCON, uartclkdiv );
-reg!(UARTFRGDIV , UARTFRGDIV   , raw::SYSCON, uartfrgdiv );
-reg!(UARTFRGMULT, UARTFRGMULT  , raw::SYSCON, uartfrgmult);
+reg!(UARTCLKDIV, UARTCLKDIV, raw::SYSCON, uartclkdiv);
+reg!(UARTFRGDIV, UARTFRGDIV, raw::SYSCON, uartfrgdiv);
+reg!(UARTFRGMULT, UARTFRGMULT, raw::SYSCON, uartfrgmult);

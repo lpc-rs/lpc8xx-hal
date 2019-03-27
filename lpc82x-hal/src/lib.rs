@@ -101,18 +101,16 @@ extern crate embedded_hal;
 extern crate void;
 
 pub extern crate lpc82x_pac as raw;
+extern crate lpc8xx_hal_common;
+pub use lpc8xx_hal_common::*;
 
 
 #[macro_use] pub(crate) mod reg_proxy;
 
-pub mod clock;
 pub mod dma;
-pub mod gpio;
 pub mod i2c;
 pub mod pmu;
 pub mod sleep;
-pub mod swm;
-pub mod syscon;
 pub mod usart;
 pub mod wkt;
 
@@ -140,33 +138,11 @@ pub use self::wkt::WKT;
 /// The traits in this module have been renamed, to avoid collisions with other
 /// imports.
 pub mod prelude {
-    pub use embedded_hal::prelude::*;
+    pub use lpc8xx_hal_common::prelude::*;
 
     pub use crate::{
-        clock::{
-            Enabled as _lpc82x_hal_clock_Enabled,
-            Frequency as _lpc82x_hal_clock_Frequency,
-        },
         sleep::Sleep as _lpc82x_hal_sleep_Sleep,
     };
-}
-
-
-/// Contains types that encode the state of hardware initialization
-///
-/// The types in this module are used by structs representing peripherals or
-/// other hardware components, to encode the initialization state of the
-/// underlying hardware as part of the type.
-pub mod init_state {
-    /// Indicates that the hardware component is enabled
-    ///
-    /// This usually indicates that the hardware has been initialized and can be
-    /// used for its intended purpose. Contains an optional payload that APIs
-    /// can use to keep data that is only available while enabled.
-    pub struct Enabled<T = ()>(pub T);
-
-    /// Indicates that the hardware component is disabled
-    pub struct Disabled;
 }
 
 
@@ -472,7 +448,9 @@ impl Peripherals {
         Peripherals {
             // HAL peripherals
             DMA   : DMA::new(p.DMA),
-            GPIO  : GPIO::new(p.GPIO_PORT),
+            // NOTE(unsafe) The init state of the gpio peripheral is enabled,
+            // thus it's safe to create an already initialized gpio port
+            GPIO  : unsafe { GPIO::new(p.GPIO_PORT) },
             I2C0  : I2C::new(p.I2C0),
             PMU   : PMU::new(p.PMU),
             SWM   : SWM::new(p.SWM),
