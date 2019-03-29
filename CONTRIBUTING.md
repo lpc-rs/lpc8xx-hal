@@ -52,6 +52,6 @@ git push --tag upstream master
 
 That's it! If anything about this document is unclear, feel free to open an issue. If you have questions regarding a pull request that you're working on, just open the pull request and ask your questions there.
 
-[GitHub repository]: https://github.com/lpc-rs/lpc82x-hal
+[GitHub repository]: https://github.com/lpc-rs/lpc8xx-hal
 [clog]: https://crates.io/crates/clog-cli
 [GitCop]: https://gitcop.com/

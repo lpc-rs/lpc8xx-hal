@@ -53,7 +53,7 @@
 //!
 //! Please refer to the [examples in the repository] for more example code.
 //!
-//! [examples in the repository]: https://github.com/braun-robotics/rust-lpc82x-hal/tree/master/examples
+//! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/lpc82x-hal/examples
 
 
 use core::fmt;
@@ -240,7 +240,7 @@ impl<UsartX, State> USART<UsartX, State> {
     /// request already exists, comment on the existing issue, so we can
     /// prioritize it accordingly.
     ///
-    /// [open an issue]: https://github.com/braun-robotics/rust-lpc82x-hal/issues
+    /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
     pub fn free(self) -> UsartX {
         self.usart
     }

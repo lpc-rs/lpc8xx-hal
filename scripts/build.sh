@@ -10,7 +10,7 @@ export RUSTFLAGS="-D warnings"
 TARGET=x86_64-unknown-linux-gnu
 
 # Need to clean to work around this issue:
-# https://github.com/braun-robotics/rust-lpc82x-hal/issues/105
+# https://github.com/lpc-rs/lpc8xx-hal/issues/105
 # We can't just compile the workspace, because features are currently additive
 # (see rust-lang/cargo#4463)
 cargo test --manifest-path lpc82x-hal/Cargo.toml --verbose --target=$TARGET

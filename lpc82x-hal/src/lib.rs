@@ -82,8 +82,8 @@
 //! [cortex-m-rt]: https://crates.io/crates/cortex-m-rt
 //! [rustup]: https://rustup.rs/
 //! [This fork of lpc21isp]: https://github.com/hannobraun/lpc21isp
-//! [examples in the repository]: https://github.com/braun-robotics/rust-lpc82x-hal/tree/master/examples
-//! [GPIO example]: https://github.com/braun-robotics/rust-lpc82x-hal/blob/master/examples/gpio.rs
+//! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/lpc82x-hal/examples
+//! [GPIO example]: https://github.com/lpc-rs/lpc8xx-hal/blob/master/lpc82x-hal/examples/gpio.rs
 //! [available from NXP]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
 
 

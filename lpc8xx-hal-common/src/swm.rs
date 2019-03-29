@@ -64,7 +64,7 @@ impl SWM {
     /// request already exists, comment on the existing issue, so we can
     /// prioritize it accordingly.
     ///
-    /// [open an issue]: https://github.com/braun-robotics/rust-lpc82x-hal/issues
+    /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
     pub fn free(self) -> raw::SWM {
         self.swm
     }
@@ -384,7 +384,7 @@ pins!(
 /// ```
 ///
 /// Using pins for digital input is currently not supported by the API. If you
-/// need this feature, [please speak up](https://github.com/braun-robotics/rust-lpc82x-hal/issues/50).
+/// need this feature, [please speak up](https://github.com/lpc-rs/lpc8xx-hal/issues/50).
 ///
 /// # Fixed and Movable Functions
 ///
@@ -418,7 +418,7 @@ pins!(
 /// just another kind of function, or if they don't apply to it. Currently, this
 /// API treats GPIO as something entirely different from the switch matrix
 /// functions, which may be too restrictive. If you have any insight on this
-/// topic, [please help us figure this out](https://github.com/braun-robotics/rust-lpc82x-hal/issues/44).
+/// topic, [please help us figure this out](https://github.com/lpc-rs/lpc8xx-hal/issues/44).
 ///
 /// Once a pin is in the SWM state, you can assign functions to it. Please refer
 /// to [`Function`] for more information on how to do that.
@@ -442,7 +442,7 @@ pins!(
 /// ```
 ///
 /// Using the pin for analog input once it is in the ADC state is currently not
-/// supported by this API. If you need this feature, [please let us know](https://github.com/braun-robotics/rust-lpc82x-hal/issues/51)!
+/// supported by this API. If you need this feature, [please let us know](https://github.com/lpc-rs/lpc8xx-hal/issues/51)!
 ///
 /// As a woraround, you can use the raw register mappings from the lpc82x crate,
 /// [`lpc82x::IOCON`] and [`lpc82x::ADC`], after you have put the pin into the
