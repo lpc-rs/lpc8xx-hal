@@ -42,3 +42,8 @@ panic-halt  = "0.2.0"
 
 [features]
 rt          = ["lpc845-pac/rt"]
+
+[profile.release]
+incremental = false
+lto         = true
+opt-level   = "z"

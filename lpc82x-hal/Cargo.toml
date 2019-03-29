@@ -37,6 +37,10 @@ features = ["82x"]
 cortex-m-rt = "0.6.3"
 panic-halt  = "0.2.0"
 
+[profile.release]
+incremental = false
+lto         = true
+opt-level   = "z"
 
 [features]
 # This is needed to make the compiletest stuff optional. It requires std, which
