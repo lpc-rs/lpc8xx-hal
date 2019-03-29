@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-# Fail build, if there are any warnings.
-export RUSTFLAGS="-D warnings"
-
 # `.cargo/config` defaults us to the microcontroller's target triple. We need
 # to override this here, to run `cargo test`. You may need to adapt this,
 # depending on you platform.
