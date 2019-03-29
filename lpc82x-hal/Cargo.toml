@@ -14,8 +14,7 @@ keywords      = ["arm", "cortex-m", "nxp", "lpc", "embedded-hal-impl"]
 
 
 [badges]
-maintenance = { status = "actively-developed" }
-travis-ci   = { repository = "lpc-rs/lpc8xx-hal" }
+travis-ci = { repository = "lpc-rs/lpc8xx-hal" }
 
 
 [dependencies]
