@@ -10,9 +10,9 @@ Are you familiar with the LPC8xx family? We need your help, even if you are not 
 
 Do you want to contribute to LPC8xx HAL? There's a number of [good first issues] on the issue tracker. If you're unsure about anything, check out our documentation on [how to contribute], or just ask!
 
-[help wanted]: https://github.com/lpc-rs/lpc82x-hal/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
-[good first issues]: https://github.com/lpc-rs/lpc82x-hal/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
-[how to contribute]: https://github.com/lpc-rs/lpc82x-hal/blob/master/CONTRIBUTING.md
+[help wanted]: https://github.com/lpc-rs/lpc8xx-hal/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22
+[good first issues]: https://github.com/lpc-rs/lpc8xx-hal/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22
+[how to contribute]: https://github.com/lpc-rs/lpc8xx-hal/blob/master/CONTRIBUTING.md
 
 
 ## License
@@ -22,10 +22,10 @@ This project is open source software, licensed under the terms of the [Zero Clau
 See [LICENSE] for full details.
 
 [Zero Clause BSD License]: https://opensource.org/licenses/FPL-1.0.0
-[LICENSE]: https://github.com/lpc-rs/lpc82x-hal/blob/master/LICENSE
+[LICENSE]: https://github.com/lpc-rs/lpc8xx-hal/blob/master/LICENSE
 
 
 **Supported by [Braun Robotics](https://braun-robotics.com/)**
 
 
-[open an issue]: https://github.com/lpc-rs/lpc82x-hal/issues/new
+[open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues/new

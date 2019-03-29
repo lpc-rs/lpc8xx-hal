@@ -6,7 +6,7 @@ edition = "2018"
 
 description   = "Hardware Abstraction Layer (HAL) for the NXP LPC82x series of ARM Cortex-M0+ microcontroller"
 documentation = "https://docs.rs/lpc82x-hal"
-repository    = "https://github.com/braun-robotics/rust-lpc82x-hal"
+repository    = "https://github.com/lpc-rs/lpc8xx-hal"
 license       = "0BSD"
 readme        = "README.md"
 categories    = ["embedded", "hardware-support", "no-std"]
@@ -15,7 +15,7 @@ keywords      = ["arm", "cortex-m", "nxp", "lpc", "embedded-hal-impl"]
 
 [badges]
 maintenance = { status = "actively-developed" }
-travis-ci   = { repository = "braun-robotics/rust-lpc82x-hal" }
+travis-ci   = { repository = "lpc-rs/lpc8xx-hal" }
 
 
 [dependencies]

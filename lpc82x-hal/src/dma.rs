@@ -66,7 +66,7 @@ impl DMA {
     /// request already exists, comment on the existing issue, so we can
     /// prioritize it accordingly.
     ///
-    /// [open an issue]: https://github.com/braun-robotics/rust-lpc82x-hal/issues
+    /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
     pub fn free(self) -> raw::DMA {
         self.dma
     }

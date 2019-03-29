@@ -9,7 +9,7 @@ edition = "2018"
 
 description   = "Hardware Abstraction Layer (HAL) for the NXP LPC845 ARM Cortex-M0+ microcontroller"
 documentation = "https://docs.rs/lpc845-hal"
-repository    = "https://github.com/lpc-rs/lpc82x-hal"
+repository    = "https://github.com/lpc-rs/lpc8xx-hal"
 license       = "0BSD"
 readme        = "README.md"
 categories    = ["embedded", "hardware-support", "no-std"]
@@ -17,7 +17,7 @@ keywords      = ["arm", "cortex-m", "nxp", "lpc", "embedded-hal-impl"]
 
 
 [badges]
-travis-ci   = { repository = "lpc-rs/lpc82x-hal" }
+travis-ci   = { repository = "lpc-rs/lpc8xx-hal" }
 
 
 [dependencies]

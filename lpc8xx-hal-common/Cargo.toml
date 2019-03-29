@@ -9,7 +9,7 @@ edition = "2018"
 
 description   = "Common HAL code for the NXP LPC8xx series of ARM Cortex-M0+ microcontrollers. Microcontroller specific HAL crates should be used"
 documentation = "https://docs.rs/lpc8xx-hal-common"
-repository    = "https://github.com/lpc-rs/lpc82x-hal"
+repository    = "https://github.com/lpc-rs/lpc8xx-hal"
 license       = "0BSD"
 categories    = ["embedded", "hardware-support", "no-std"]
 keywords      = ["arm", "cortex-m", "nxp", "lpc", "embedded-hal-impl"]
