@@ -11,9 +11,8 @@ TARGET=x86_64-unknown-linux-gnu
 
 # Need to clean to work around this issue:
 # https://github.com/lpc-rs/lpc8xx-hal/issues/105
-# We can't just compile the workspace, because features are currently additive
-# (see rust-lang/cargo#4463)
 cargo test --manifest-path lpc82x-hal/Cargo.toml --verbose --target=$TARGET
-cargo build --manifest-path lpc82x-hal/Cargo.toml --verbose --features="rt" --examples --release
+# We need to add the linker file here, since `.cargo/config` gets overwritten by `RUSTFLAGS`
+RUSTFLAGS="${RUSTFLAGS} -C link-arg=-Tlink.x" cargo build --manifest-path lpc82x-hal/Cargo.toml --verbose --features="rt" --examples --release
 cargo test --manifest-path lpc845-hal/Cargo.toml --verbose --target=$TARGET
-cargo build --manifest-path lpc845-hal/Cargo.toml --verbose --features="rt" --examples --release
+RUSTFLAGS="${RUSTFLAGS} -C link-arg=-Tlink.x" cargo build --manifest-path lpc845-hal/Cargo.toml --verbose --features="rt" --examples --release
