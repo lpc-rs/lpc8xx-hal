@@ -24,19 +24,19 @@ fn main() -> ! {
     // let mut wkt = p.WKT.enable(&mut syscon.handle);
     let gpio = p.GPIO.enable(&mut syscon.handle);
 
-    // Configure the PIO0_0 pin. The API tracks the state of pins at
+    // Configure the PIO1_1 pin. The API tracks the state of pins at
     // compile-time, to prevent any mistakes.
-    let mut pio0_0 = swm.pins.pio0_0.into_gpio_pin(&gpio).into_output();
+    let mut pio1_1 = swm.pins.pio1_1.into_gpio_pin(&gpio).into_output();
 
     // Blink the LED
     loop {
         // For this simple demo accurate timing isn't required and this is the
         // simplest Method to delay
         for _ in 0..1000000 {
-            pio0_0.set_high();
+            pio1_1.set_high();
         }
         for _ in 0..1000000 {
-            pio0_0.set_low();
+            pio1_1.set_low();
         }
     }
 }

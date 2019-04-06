@@ -387,8 +387,6 @@ impl_clock_control!(FLASH, flash);
 impl_clock_control!(raw::I2C0, i2c0);
 #[cfg(feature = "82x")]
 impl_clock_control!(raw_compat::GPIO, gpio);
-#[cfg(feature = "845")]
-impl_clock_control!(raw_compat::GPIO, gpio0);
 impl_clock_control!(raw_compat::SWM0, swm);
 impl_clock_control!(raw_compat::SCT0, sct);
 impl_clock_control!(raw::WKT, wkt);
@@ -408,6 +406,16 @@ impl_clock_control!(raw::I2C3, i2c3);
 impl_clock_control!(raw_compat::ADC0, adc);
 impl_clock_control!(MTB, mtb);
 impl_clock_control!(raw_compat::DMA0, dma);
+#[cfg(feature = "845")]
+impl ClockControl for raw_compat::GPIO {
+    fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
+        w.gpio0().enable().gpio1().enable()
+    }
+
+    fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
+        w.gpio0().disable().gpio1().disable()
+    }
+}
 
 /// Internal trait for controlling peripheral reset
 ///
@@ -455,9 +463,6 @@ impl_reset_control!(raw_compat::SCT0, sct_rst_n);
 impl_reset_control!(raw::WKT, wkt_rst_n);
 #[cfg(feature = "82x")]
 impl_reset_control!(raw_compat::GPIO, gpio_rst_n);
-#[cfg(feature = "845")]
-// TODO gpio1
-impl_reset_control!(raw_compat::GPIO, gpio0_rst_n);
 impl_reset_control!(raw_compat::FLASH_CTRL, flash_rst_n);
 impl_reset_control!(raw_compat::ACOMP, acmp_rst_n);
 impl_reset_control!(raw::I2C1, i2c1_rst_n);
@@ -465,6 +470,17 @@ impl_reset_control!(raw::I2C2, i2c2_rst_n);
 impl_reset_control!(raw::I2C3, i2c3_rst_n);
 impl_reset_control!(raw_compat::ADC0, adc_rst_n);
 impl_reset_control!(raw_compat::DMA0, dma_rst_n);
+
+#[cfg(feature = "845")]
+impl<'a> ResetControl for raw_compat::GPIO {
+    fn assert_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W {
+        w.gpio0_rst_n().clear_bit().gpio1_rst_n().clear_bit()
+    }
+
+    fn clear_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W {
+        w.gpio0_rst_n().set_bit().gpio1_rst_n().set_bit()
+    }
+}
 
 /// Internal trait for powering analog blocks
 ///

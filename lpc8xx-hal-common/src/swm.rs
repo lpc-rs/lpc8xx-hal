@@ -166,6 +166,10 @@ impl Handle<init_state::Enabled> {
 ///
 /// Please refer to [`Pin`] for the public API used to control pins.
 pub trait PinTrait {
+    /// A number that indentifies the port
+    ///
+    /// This is `0` for [`PIO0_0`] and `1` for [`PIO1_0`]
+    const PORT: usize;
     /// A number that identifies the pin
     ///
     /// This is `0` for [`PIO0_0`], `1` for [`PIO0_1`] and so forth.
@@ -182,6 +186,7 @@ macro_rules! pins {
     ($(
         $field:ident,
         $type:ident,
+        $port:expr,
         $id:expr,
         $default_state_ty:ty,
         $default_state_val:expr;
@@ -227,8 +232,9 @@ macro_rules! pins {
             pub struct $type(());
 
             impl PinTrait for $type {
-                const ID  : u8  = $id;
-                const MASK: u32 = 0x1 << $id;
+                const PORT: usize = $port;
+                const ID  : u8    = $id;
+                const MASK: u32   = 0x1 << $id;
             }
         )*
     }
@@ -236,94 +242,93 @@ macro_rules! pins {
 
 #[cfg(feature = "82x")]
 pins!(
-    pio0_0 , PIO0_0 , 0x00, pin_state::Unused        , pin_state::Unused;
-    pio0_1 , PIO0_1 , 0x01, pin_state::Unused        , pin_state::Unused;
-    pio0_2 , PIO0_2 , 0x02, pin_state::Swm<((),), ()>, pin_state::Swm::new();
-    pio0_3 , PIO0_3 , 0x03, pin_state::Swm<((),), ()>, pin_state::Swm::new();
-    pio0_4 , PIO0_4 , 0x04, pin_state::Unused        , pin_state::Unused;
-    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<(), ((),)>, pin_state::Swm::new();
-    pio0_6 , PIO0_6 , 0x06, pin_state::Unused        , pin_state::Unused;
-    pio0_7 , PIO0_7 , 0x07, pin_state::Unused        , pin_state::Unused;
-    pio0_8 , PIO0_8 , 0x08, pin_state::Unused        , pin_state::Unused;
-    pio0_9 , PIO0_9 , 0x09, pin_state::Unused        , pin_state::Unused;
-    pio0_10, PIO0_10, 0x0a, pin_state::Unused        , pin_state::Unused;
-    pio0_11, PIO0_11, 0x0b, pin_state::Unused        , pin_state::Unused;
-    pio0_12, PIO0_12, 0x0c, pin_state::Unused        , pin_state::Unused;
-    pio0_13, PIO0_13, 0x0d, pin_state::Unused        , pin_state::Unused;
-    pio0_14, PIO0_14, 0x0e, pin_state::Unused        , pin_state::Unused;
-    pio0_15, PIO0_15, 0x0f, pin_state::Unused        , pin_state::Unused;
-    pio0_16, PIO0_16, 0x10, pin_state::Unused        , pin_state::Unused;
-    pio0_17, PIO0_17, 0x11, pin_state::Unused        , pin_state::Unused;
-    pio0_18, PIO0_18, 0x12, pin_state::Unused        , pin_state::Unused;
-    pio0_19, PIO0_19, 0x13, pin_state::Unused        , pin_state::Unused;
-    pio0_20, PIO0_20, 0x14, pin_state::Unused        , pin_state::Unused;
-    pio0_21, PIO0_21, 0x15, pin_state::Unused        , pin_state::Unused;
-    pio0_22, PIO0_22, 0x16, pin_state::Unused        , pin_state::Unused;
-    pio0_23, PIO0_23, 0x17, pin_state::Unused        , pin_state::Unused;
-    pio0_24, PIO0_24, 0x18, pin_state::Unused        , pin_state::Unused;
-    pio0_25, PIO0_25, 0x19, pin_state::Unused        , pin_state::Unused;
-    pio0_26, PIO0_26, 0x1a, pin_state::Unused        , pin_state::Unused;
-    pio0_27, PIO0_27, 0x1b, pin_state::Unused        , pin_state::Unused;
-    pio0_28, PIO0_28, 0x1c, pin_state::Unused        , pin_state::Unused;
+    pio0_0 , PIO0_0 , 0, 0x00, pin_state::Unused        , pin_state::Unused;
+    pio0_1 , PIO0_1 , 0, 0x01, pin_state::Unused        , pin_state::Unused;
+    pio0_2 , PIO0_2 , 0, 0x02, pin_state::Swm<((),), ()>, pin_state::Swm::new();
+    pio0_3 , PIO0_3 , 0, 0x03, pin_state::Swm<((),), ()>, pin_state::Swm::new();
+    pio0_4 , PIO0_4 , 0, 0x04, pin_state::Unused        , pin_state::Unused;
+    pio0_5 , PIO0_5 , 0, 0x05, pin_state::Swm<(), ((),)>, pin_state::Swm::new();
+    pio0_6 , PIO0_6 , 0, 0x06, pin_state::Unused        , pin_state::Unused;
+    pio0_7 , PIO0_7 , 0, 0x07, pin_state::Unused        , pin_state::Unused;
+    pio0_8 , PIO0_8 , 0, 0x08, pin_state::Unused        , pin_state::Unused;
+    pio0_9 , PIO0_9 , 0, 0x09, pin_state::Unused        , pin_state::Unused;
+    pio0_10, PIO0_10, 0, 0x0a, pin_state::Unused        , pin_state::Unused;
+    pio0_11, PIO0_11, 0, 0x0b, pin_state::Unused        , pin_state::Unused;
+    pio0_12, PIO0_12, 0, 0x0c, pin_state::Unused        , pin_state::Unused;
+    pio0_13, PIO0_13, 0, 0x0d, pin_state::Unused        , pin_state::Unused;
+    pio0_14, PIO0_14, 0, 0x0e, pin_state::Unused        , pin_state::Unused;
+    pio0_15, PIO0_15, 0, 0x0f, pin_state::Unused        , pin_state::Unused;
+    pio0_16, PIO0_16, 0, 0x10, pin_state::Unused        , pin_state::Unused;
+    pio0_17, PIO0_17, 0, 0x11, pin_state::Unused        , pin_state::Unused;
+    pio0_18, PIO0_18, 0, 0x12, pin_state::Unused        , pin_state::Unused;
+    pio0_19, PIO0_19, 0, 0x13, pin_state::Unused        , pin_state::Unused;
+    pio0_20, PIO0_20, 0, 0x14, pin_state::Unused        , pin_state::Unused;
+    pio0_21, PIO0_21, 0, 0x15, pin_state::Unused        , pin_state::Unused;
+    pio0_22, PIO0_22, 0, 0x16, pin_state::Unused        , pin_state::Unused;
+    pio0_23, PIO0_23, 0, 0x17, pin_state::Unused        , pin_state::Unused;
+    pio0_24, PIO0_24, 0, 0x18, pin_state::Unused        , pin_state::Unused;
+    pio0_25, PIO0_25, 0, 0x19, pin_state::Unused        , pin_state::Unused;
+    pio0_26, PIO0_26, 0, 0x1a, pin_state::Unused        , pin_state::Unused;
+    pio0_27, PIO0_27, 0, 0x1b, pin_state::Unused        , pin_state::Unused;
+    pio0_28, PIO0_28, 0, 0x1c, pin_state::Unused        , pin_state::Unused;
 );
 
 #[cfg(feature = "845")]
 pins!(
-    pio0_0 , PIO0_0 , 0x00, pin_state::Unused        , pin_state::Unused;
-    pio0_1 , PIO0_1 , 0x01, pin_state::Unused        , pin_state::Unused;
-    pio0_2 , PIO0_2 , 0x02, pin_state::Swm<((),), ()>, pin_state::Swm::new();
-    pio0_3 , PIO0_3 , 0x03, pin_state::Swm<((),), ()>, pin_state::Swm::new();
-    pio0_4 , PIO0_4 , 0x04, pin_state::Unused        , pin_state::Unused;
-    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<(), ((),)>, pin_state::Swm::new();
-    pio0_6 , PIO0_6 , 0x06, pin_state::Unused        , pin_state::Unused;
-    pio0_7 , PIO0_7 , 0x07, pin_state::Unused        , pin_state::Unused;
-    pio0_8 , PIO0_8 , 0x08, pin_state::Unused        , pin_state::Unused;
-    pio0_9 , PIO0_9 , 0x09, pin_state::Unused        , pin_state::Unused;
-    pio0_10, PIO0_10, 0x0a, pin_state::Unused        , pin_state::Unused;
-    pio0_11, PIO0_11, 0x0b, pin_state::Unused        , pin_state::Unused;
-    pio0_12, PIO0_12, 0x0c, pin_state::Unused        , pin_state::Unused;
-    pio0_13, PIO0_13, 0x0d, pin_state::Unused        , pin_state::Unused;
-    pio0_14, PIO0_14, 0x0e, pin_state::Unused        , pin_state::Unused;
-    pio0_15, PIO0_15, 0x0f, pin_state::Unused        , pin_state::Unused;
-    pio0_16, PIO0_16, 0x10, pin_state::Unused        , pin_state::Unused;
-    pio0_17, PIO0_17, 0x11, pin_state::Unused        , pin_state::Unused;
-    pio0_18, PIO0_18, 0x12, pin_state::Unused        , pin_state::Unused;
-    pio0_19, PIO0_19, 0x13, pin_state::Unused        , pin_state::Unused;
-    pio0_20, PIO0_20, 0x14, pin_state::Unused        , pin_state::Unused;
-    pio0_21, PIO0_21, 0x15, pin_state::Unused        , pin_state::Unused;
-    pio0_22, PIO0_22, 0x16, pin_state::Unused        , pin_state::Unused;
-    pio0_23, PIO0_23, 0x17, pin_state::Unused        , pin_state::Unused;
-    pio0_24, PIO0_24, 0x18, pin_state::Unused        , pin_state::Unused;
-    pio0_25, PIO0_25, 0x19, pin_state::Unused        , pin_state::Unused;
-    pio0_26, PIO0_26, 0x1a, pin_state::Unused        , pin_state::Unused;
-    pio0_27, PIO0_27, 0x1b, pin_state::Unused        , pin_state::Unused;
-    pio0_28, PIO0_28, 0x1c, pin_state::Unused        , pin_state::Unused;
-    pio0_29, PIO0_29, 0x1d, pin_state::Unused        , pin_state::Unused;
-    pio0_30, PIO0_30, 0x1e, pin_state::Unused        , pin_state::Unused;
-    pio0_31, PIO0_31, 0x1f, pin_state::Unused        , pin_state::Unused;
-    // TODO this is on gpio1
-    // pio1_0 , PIO1_0 , 0x00, pin_state::Unused        , pin_state::Unused;
-    // pio1_1 , PIO1_1 , 0x01, pin_state::Unused        , pin_state::Unused;
-    // pio1_2 , PIO1_2 , 0x02, pin_state::Unusetd       , pin_state::Unused;
-    // pio1_3 , PIO1_3 , 0x03, pin_state::Unusetd       , pin_state::Unused;
-    // pio1_4 , PIO1_4 , 0x04, pin_state::Unused        , pin_state::Unused;
-    // pio1_5 , PIO1_5 , 0x05, pin_state::Unusetd       , pin_state::Unused;
-    // pio1_6 , PIO1_6 , 0x06, pin_state::Unused        , pin_state::Unused;
-    // pio1_7 , PIO1_7 , 0x07, pin_state::Unused        , pin_state::Unused;
-    // pio1_8 , PIO1_8 , 0x08, pin_state::Unused        , pin_state::Unused;
-    // pio1_9 , PIO1_9 , 0x09, pin_state::Unused        , pin_state::Unused;
-    // pio1_10, PIO1_10, 0x0a, pin_state::Unused        , pin_state::Unused;
-    // pio1_11, PIO1_11, 0x0b, pin_state::Unused        , pin_state::Unused;
-    // pio1_12, PIO1_12, 0x0c, pin_state::Unused        , pin_state::Unused;
-    // pio1_13, PIO1_13, 0x0d, pin_state::Unused        , pin_state::Unused;
-    // pio1_14, PIO1_14, 0x0e, pin_state::Unused        , pin_state::Unused;
-    // pio1_15, PIO1_15, 0x0f, pin_state::Unused        , pin_state::Unused;
-    // pio1_16, PIO1_16, 0x10, pin_state::Unused        , pin_state::Unused;
-    // pio1_17, PIO1_17, 0x11, pin_state::Unused        , pin_state::Unused;
-    // pio1_18, PIO1_18, 0x12, pin_state::Unused        , pin_state::Unused;
-    // pio1_19, PIO1_19, 0x13, pin_state::Unused        , pin_state::Unused;
-    // pio1_20, PIO1_20, 0x14, pin_state::Unused        , pin_state::Unused;
-    // pio1_21, PIO1_21, 0x15, pin_state::Unused        , pin_state::Unused;
+    pio0_0 , PIO0_0 , 0, 0x00, pin_state::Unused        , pin_state::Unused;
+    pio0_1 , PIO0_1 , 0, 0x01, pin_state::Unused        , pin_state::Unused;
+    pio0_2 , PIO0_2 , 0, 0x02, pin_state::Swm<((),), ()>, pin_state::Swm::new();
+    pio0_3 , PIO0_3 , 0, 0x03, pin_state::Swm<((),), ()>, pin_state::Swm::new();
+    pio0_4 , PIO0_4 , 0, 0x04, pin_state::Unused        , pin_state::Unused;
+    pio0_5 , PIO0_5 , 0, 0x05, pin_state::Swm<(), ((),)>, pin_state::Swm::new();
+    pio0_6 , PIO0_6 , 0, 0x06, pin_state::Unused        , pin_state::Unused;
+    pio0_7 , PIO0_7 , 0, 0x07, pin_state::Unused        , pin_state::Unused;
+    pio0_8 , PIO0_8 , 0, 0x08, pin_state::Unused        , pin_state::Unused;
+    pio0_9 , PIO0_9 , 0, 0x09, pin_state::Unused        , pin_state::Unused;
+    pio0_10, PIO0_10, 0, 0x0a, pin_state::Unused        , pin_state::Unused;
+    pio0_11, PIO0_11, 0, 0x0b, pin_state::Unused        , pin_state::Unused;
+    pio0_12, PIO0_12, 0, 0x0c, pin_state::Unused        , pin_state::Unused;
+    pio0_13, PIO0_13, 0, 0x0d, pin_state::Unused        , pin_state::Unused;
+    pio0_14, PIO0_14, 0, 0x0e, pin_state::Unused        , pin_state::Unused;
+    pio0_15, PIO0_15, 0, 0x0f, pin_state::Unused        , pin_state::Unused;
+    pio0_16, PIO0_16, 0, 0x10, pin_state::Unused        , pin_state::Unused;
+    pio0_17, PIO0_17, 0, 0x11, pin_state::Unused        , pin_state::Unused;
+    pio0_18, PIO0_18, 0, 0x12, pin_state::Unused        , pin_state::Unused;
+    pio0_19, PIO0_19, 0, 0x13, pin_state::Unused        , pin_state::Unused;
+    pio0_20, PIO0_20, 0, 0x14, pin_state::Unused        , pin_state::Unused;
+    pio0_21, PIO0_21, 0, 0x15, pin_state::Unused        , pin_state::Unused;
+    pio0_22, PIO0_22, 0, 0x16, pin_state::Unused        , pin_state::Unused;
+    pio0_23, PIO0_23, 0, 0x17, pin_state::Unused        , pin_state::Unused;
+    pio0_24, PIO0_24, 0, 0x18, pin_state::Unused        , pin_state::Unused;
+    pio0_25, PIO0_25, 0, 0x19, pin_state::Unused        , pin_state::Unused;
+    pio0_26, PIO0_26, 0, 0x1a, pin_state::Unused        , pin_state::Unused;
+    pio0_27, PIO0_27, 0, 0x1b, pin_state::Unused        , pin_state::Unused;
+    pio0_28, PIO0_28, 0, 0x1c, pin_state::Unused        , pin_state::Unused;
+    pio0_29, PIO0_29, 0, 0x1d, pin_state::Unused        , pin_state::Unused;
+    pio0_30, PIO0_30, 0, 0x1e, pin_state::Unused        , pin_state::Unused;
+    pio0_31, PIO0_31, 0, 0x1f, pin_state::Unused        , pin_state::Unused;
+    pio1_0 , PIO1_0 , 1, 0x00, pin_state::Unused        , pin_state::Unused;
+    pio1_1 , PIO1_1 , 1, 0x01, pin_state::Unused        , pin_state::Unused;
+    pio1_2 , PIO1_2 , 1, 0x02, pin_state::Unused        , pin_state::Unused;
+    pio1_3 , PIO1_3 , 1, 0x03, pin_state::Unused        , pin_state::Unused;
+    pio1_4 , PIO1_4 , 1, 0x04, pin_state::Unused        , pin_state::Unused;
+    pio1_5 , PIO1_5 , 1, 0x05, pin_state::Unused        , pin_state::Unused;
+    pio1_6 , PIO1_6 , 1, 0x06, pin_state::Unused        , pin_state::Unused;
+    pio1_7 , PIO1_7 , 1, 0x07, pin_state::Unused        , pin_state::Unused;
+    pio1_8 , PIO1_8 , 1, 0x08, pin_state::Unused        , pin_state::Unused;
+    pio1_9 , PIO1_9 , 1, 0x09, pin_state::Unused        , pin_state::Unused;
+    pio1_10, PIO1_10, 1, 0x0a, pin_state::Unused        , pin_state::Unused;
+    pio1_11, PIO1_11, 1, 0x0b, pin_state::Unused        , pin_state::Unused;
+    pio1_12, PIO1_12, 1, 0x0c, pin_state::Unused        , pin_state::Unused;
+    pio1_13, PIO1_13, 1, 0x0d, pin_state::Unused        , pin_state::Unused;
+    pio1_14, PIO1_14, 1, 0x0e, pin_state::Unused        , pin_state::Unused;
+    pio1_15, PIO1_15, 1, 0x0f, pin_state::Unused        , pin_state::Unused;
+    pio1_16, PIO1_16, 1, 0x10, pin_state::Unused        , pin_state::Unused;
+    pio1_17, PIO1_17, 1, 0x11, pin_state::Unused        , pin_state::Unused;
+    pio1_18, PIO1_18, 1, 0x12, pin_state::Unused        , pin_state::Unused;
+    pio1_19, PIO1_19, 1, 0x13, pin_state::Unused        , pin_state::Unused;
+    pio1_20, PIO1_20, 1, 0x14, pin_state::Unused        , pin_state::Unused;
+    pio1_21, PIO1_21, 1, 0x15, pin_state::Unused        , pin_state::Unused;
 );
 
 /// Main API to control for controlling pins
@@ -553,24 +558,26 @@ where
     ///
     /// [State Management]: #state-management
     pub fn into_gpio_pin(self, gpio: &GPIO) -> Pin<T, pin_state::Gpio<gpio::direction::Unknown>> {
+        // Isn't used for lpc845
+        #[allow(unused_imports)]
+        use core::slice;
         Pin {
             ty: self.ty,
             #[cfg(feature = "82x")]
             state: pin_state::Gpio {
-                dirset0: &gpio.gpio.dirset0,
-                pin0: &gpio.gpio.pin0,
-                set0: &gpio.gpio.set0,
-                clr0: &gpio.gpio.clr0,
+                dirset: slice::from_ref(&gpio.gpio.dirset0),
+                pin: slice::from_ref(&gpio.gpio.pin0),
+                set: slice::from_ref(&gpio.gpio.set0),
+                clr: slice::from_ref(&gpio.gpio.clr0),
 
                 _direction: gpio::direction::Unknown,
             },
             #[cfg(feature = "845")]
             state: pin_state::Gpio {
-                // TODO gpio1
-                dirset0: &gpio.gpio.dirset[0],
-                pin0: &gpio.gpio.pin[0],
-                set0: &gpio.gpio.set[0],
-                clr0: &gpio.gpio.clr[0],
+                dirset: &gpio.gpio.dirset,
+                pin: &gpio.gpio.pin,
+                set: &gpio.gpio.set,
+                clr: &gpio.gpio.clr,
 
                 _direction: gpio::direction::Unknown,
             },
@@ -723,9 +730,9 @@ pub mod pin_state {
 
     use crate::gpio::direction::Direction;
     #[cfg(feature = "845")]
-    use crate::raw_compat::gpio::{CLR as CLR0, DIRSET as DIRSET0, PIN as PIN0, SET as SET0};
+    use crate::raw_compat::gpio::{CLR, DIRSET, PIN, SET};
     #[cfg(feature = "82x")]
-    use crate::raw_compat::gpio::{CLR0, DIRSET0, PIN0, SET0};
+    use crate::raw_compat::gpio::{CLR0 as CLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET};
 
     /// Implemented by types that indicate pin state
     ///
@@ -755,10 +762,10 @@ pub mod pin_state {
     ///
     /// [`Pin`]: ../struct.Pin.html
     pub struct Gpio<'gpio, D: Direction> {
-        pub(crate) dirset0: &'gpio DIRSET0,
-        pub(crate) pin0: &'gpio PIN0,
-        pub(crate) set0: &'gpio SET0,
-        pub(crate) clr0: &'gpio CLR0,
+        pub(crate) dirset: &'gpio [DIRSET],
+        pub(crate) pin: &'gpio [PIN],
+        pub(crate) set: &'gpio [SET],
+        pub(crate) clr: &'gpio [CLR],
 
         pub(crate) _direction: D,
     }
@@ -1101,29 +1108,28 @@ macro_rules! movable_functions {
             #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO0_29);
             #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO0_30);
             #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO0_31);
-            // TODO This is on gpio1
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_0 );
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_1 );
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_2 );
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_3 );
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_4 );
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_5 );
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_6 );
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_7 );
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_8 );
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_9 );
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_10);
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_11);
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_12);
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_13);
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_14);
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_15);
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_16);
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_17);
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_18);
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_19);
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_20);
-            // #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_21);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_0 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_1 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_2 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_3 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_4 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_5 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_6 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_7 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_8 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_9 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_10);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_11);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_12);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_13);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_14);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_15);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_16);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_17);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_18);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_19);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_20);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_21);
         )*
     }
 }
@@ -1140,9 +1146,9 @@ macro_rules! impl_function {
             type Kind = $kind;
 
             fn assign(&mut self, _pin: &mut $pin, swm: &mut Handle) {
-                swm.swm
-                    .$reg_name
-                    .modify(|_, w| unsafe { w.$reg_field().bits($pin::ID) });
+                swm.swm.$reg_name.modify(|_, w| unsafe {
+                    w.$reg_field().bits($pin::ID | ($pin::PORT as u8) << 5)
+                });
             }
 
             fn unassign(&mut self, _pin: &mut $pin, swm: &mut Handle) {
@@ -1387,17 +1393,16 @@ fixed_functions!(
     DACOUT0 , Analog, pinenable0, dacout0 , PIO0_17, state::Unassigned;
     DACOUT1 , Analog, pinenable0, dacout1 , PIO0_29, state::Unassigned;
     CAPT_X0 , Analog, pinenable0, capt_x0 , PIO0_31, state::Unassigned;
-    // TODO GPIO1
-    // CAPT_X1 , Analog, pinenable0, capt_x1 , PIO1_0 , state::Unassigned;
-    // CAPT_X2 , Analog, pinenable0, capt_x2 , PIO1_1 , state::Unassigned;
-    // CAPT_X3 , Analog, pinenable0, capt_x3 , PIO1_2 , state::Unassigned;
-    // CAPT_X4 , Analog, pinenable1, capt_x4 , PIO1_3 , state::Unassigned;
-    // CAPT_X5 , Analog, pinenable1, capt_x5 , PIO1_4 , state::Unassigned;
-    // CAPT_X6 , Analog, pinenable1, capt_x6 , PIO1_5 , state::Unassigned;
-    // CAPT_X7 , Analog, pinenable1, capt_x7 , PIO1_6 , state::Unassigned;
-    // CAPT_X8 , Analog, pinenable1, capt_x8 , PIO1_7 , state::Unassigned;
-    // CAPT_YL , Analog, pinenable1, capt_yl , PIO1_8 , state::Unassigned;
-    // CAPT_YH , Analog, pinenable1, capt_yh , PIO1_8 , state::Unassigned;
+    CAPT_X1 , Analog, pinenable0, capt_x1 , PIO1_0 , state::Unassigned;
+    CAPT_X2 , Analog, pinenable0, capt_x2 , PIO1_1 , state::Unassigned;
+    CAPT_X3 , Analog, pinenable0, capt_x3 , PIO1_2 , state::Unassigned;
+    CAPT_X4 , Analog, pinenable1, capt_x4 , PIO1_3 , state::Unassigned;
+    CAPT_X5 , Analog, pinenable1, capt_x5 , PIO1_4 , state::Unassigned;
+    CAPT_X6 , Analog, pinenable1, capt_x6 , PIO1_5 , state::Unassigned;
+    CAPT_X7 , Analog, pinenable1, capt_x7 , PIO1_6 , state::Unassigned;
+    CAPT_X8 , Analog, pinenable1, capt_x8 , PIO1_7 , state::Unassigned;
+    CAPT_YL , Analog, pinenable1, capt_yl , PIO1_8 , state::Unassigned;
+    CAPT_YH , Analog, pinenable1, capt_yh , PIO1_8 , state::Unassigned;
 );
 
 /// Contains types that indicate the state of fixed or movable functions

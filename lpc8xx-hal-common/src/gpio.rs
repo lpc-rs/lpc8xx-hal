@@ -179,18 +179,16 @@ where
     /// pin.set_low();
     /// ```
     pub fn into_output(self) -> Pin<T, pin_state::Gpio<'gpio, direction::Output>> {
-        self.state
-            .dirset0
-            .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
+        self.state.dirset[T::PORT].write(|w| unsafe { w.dirsetp().bits(T::MASK) });
 
         Pin {
             ty: self.ty,
 
             state: pin_state::Gpio {
-                dirset0: self.state.dirset0,
-                pin0: self.state.pin0,
-                set0: self.state.set0,
-                clr0: self.state.clr0,
+                dirset: self.state.dirset,
+                pin: self.state.pin,
+                set: self.state.set,
+                clr: self.state.clr,
 
                 _direction: direction::Output,
             },
@@ -214,7 +212,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_high(&mut self) {
-        self.state.set0.write(|w| unsafe { w.setp().bits(T::MASK) })
+        self.state.set[T::PORT].write(|w| unsafe { w.setp().bits(T::MASK) })
     }
 
     /// Set the pin output to LOW
@@ -229,7 +227,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_low(&mut self) {
-        self.state.clr0.write(|w| unsafe { w.clrp().bits(T::MASK) });
+        self.state.clr[T::PORT].write(|w| unsafe { w.clrp().bits(T::MASK) });
     }
 }
 
@@ -249,7 +247,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_high(&self) -> bool {
-        self.state.pin0.read().port().bits() & T::MASK == T::MASK
+        self.state.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
     }
 
     /// Indicates whether the pin output is currently set to LOW
@@ -264,7 +262,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_low(&self) -> bool {
-        !self.state.pin0.read().port().bits() & T::MASK == T::MASK
+        !self.state.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
     }
 }
 
