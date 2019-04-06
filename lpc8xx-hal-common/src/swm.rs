@@ -1274,6 +1274,7 @@ macro_rules! fixed_functions {
     ($(
         $type:ident,
         $kind:ident,
+        $register:ident,
         $field:ident,
         $pin:ident,
         $default_state:ty;
@@ -1315,12 +1316,12 @@ macro_rules! fixed_functions {
 
 
                 fn assign(&mut self, _: &mut $pin, swm : &mut Handle) {
-                    swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
+                    swm.swm.$register.modify(|_, w| w.$field().clear_bit());
                 }
 
                 fn unassign(&mut self, _: &mut $pin, swm : &mut Handle)
                 {
-                    swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
+                    swm.swm.$register.modify(|_, w| w.$field().set_bit());
                 }
             }
         )*
@@ -1329,75 +1330,74 @@ macro_rules! fixed_functions {
 
 #[cfg(feature = "82x")]
 fixed_functions!(
-    ACMP_I1 , Input , acmp_i1 , PIO0_0 , state::Unassigned;
-    ACMP_I2 , Input , acmp_i2 , PIO0_1 , state::Unassigned;
-    ACMP_I3 , Input , acmp_i3 , PIO0_14, state::Unassigned;
-    ACMP_I4 , Input , acmp_i4 , PIO0_23, state::Unassigned;
-    SWCLK   , Output, swclk   , PIO0_3 , state::Assigned<PIO0_3>;
-    SWDIO   , Output, swdio   , PIO0_2 , state::Assigned<PIO0_2>;
-    XTALIN  , Input , xtalin  , PIO0_8 , state::Unassigned;
-    XTALOUT , Output, xtalout , PIO0_9 , state::Unassigned;
-    RESETN  , Input , resetn  , PIO0_5 , state::Assigned<PIO0_5>;
-    CLKIN   , Input , clkin   , PIO0_1 , state::Unassigned;
-    VDDCMP  , Input , vddcmp  , PIO0_6 , state::Unassigned;
-    I2C0_SDA, Output, i2c0_sda, PIO0_11, state::Unassigned;
-    I2C0_SCL, Output, i2c0_scl, PIO0_10, state::Unassigned;
-    ADC_0   , Analog, adc_0   , PIO0_7 , state::Unassigned;
-    ADC_1   , Analog, adc_1   , PIO0_6 , state::Unassigned;
-    ADC_2   , Analog, adc_2   , PIO0_14, state::Unassigned;
-    ADC_3   , Analog, adc_3   , PIO0_23, state::Unassigned;
-    ADC_4   , Analog, adc_4   , PIO0_22, state::Unassigned;
-    ADC_5   , Analog, adc_5   , PIO0_21, state::Unassigned;
-    ADC_6   , Analog, adc_6   , PIO0_20, state::Unassigned;
-    ADC_7   , Analog, adc_7   , PIO0_19, state::Unassigned;
-    ADC_8   , Analog, adc_8   , PIO0_18, state::Unassigned;
-    ADC_9   , Analog, adc_9   , PIO0_17, state::Unassigned;
-    ADC_10  , Analog, adc_10  , PIO0_13, state::Unassigned;
-    ADC_11  , Analog, adc_11  , PIO0_4 , state::Unassigned;
+    ACMP_I1 , Input , pinenable0, acmp_i1 , PIO0_0 , state::Unassigned;
+    ACMP_I2 , Input , pinenable0, acmp_i2 , PIO0_1 , state::Unassigned;
+    ACMP_I3 , Input , pinenable0, acmp_i3 , PIO0_14, state::Unassigned;
+    ACMP_I4 , Input , pinenable0, acmp_i4 , PIO0_23, state::Unassigned;
+    SWCLK   , Output, pinenable0, swclk   , PIO0_3 , state::Assigned<PIO0_3>;
+    SWDIO   , Output, pinenable0, swdio   , PIO0_2 , state::Assigned<PIO0_2>;
+    XTALIN  , Input , pinenable0, xtalin  , PIO0_8 , state::Unassigned;
+    XTALOUT , Output, pinenable0, xtalout , PIO0_9 , state::Unassigned;
+    RESETN  , Input , pinenable0, resetn  , PIO0_5 , state::Assigned<PIO0_5>;
+    CLKIN   , Input , pinenable0, clkin   , PIO0_1 , state::Unassigned;
+    VDDCMP  , Input , pinenable0, vddcmp  , PIO0_6 , state::Unassigned;
+    I2C0_SDA, Output, pinenable0, i2c0_sda, PIO0_11, state::Unassigned;
+    I2C0_SCL, Output, pinenable0, i2c0_scl, PIO0_10, state::Unassigned;
+    ADC_0   , Analog, pinenable0, adc_0   , PIO0_7 , state::Unassigned;
+    ADC_1   , Analog, pinenable0, adc_1   , PIO0_6 , state::Unassigned;
+    ADC_2   , Analog, pinenable0, adc_2   , PIO0_14, state::Unassigned;
+    ADC_3   , Analog, pinenable0, adc_3   , PIO0_23, state::Unassigned;
+    ADC_4   , Analog, pinenable0, adc_4   , PIO0_22, state::Unassigned;
+    ADC_5   , Analog, pinenable0, adc_5   , PIO0_21, state::Unassigned;
+    ADC_6   , Analog, pinenable0, adc_6   , PIO0_20, state::Unassigned;
+    ADC_7   , Analog, pinenable0, adc_7   , PIO0_19, state::Unassigned;
+    ADC_8   , Analog, pinenable0, adc_8   , PIO0_18, state::Unassigned;
+    ADC_9   , Analog, pinenable0, adc_9   , PIO0_17, state::Unassigned;
+    ADC_10  , Analog, pinenable0, adc_10  , PIO0_13, state::Unassigned;
+    ADC_11  , Analog, pinenable0, adc_11  , PIO0_4 , state::Unassigned;
 );
 
 #[cfg(feature = "845")]
 fixed_functions!(
-    // pinenable0
-    ACMP_I1 , Input , acmp_i1 , PIO0_0 , state::Unassigned;
-    ACMP_I2 , Input , acmp_i2 , PIO0_1 , state::Unassigned;
-    ACMP_I3 , Input , acmp_i3 , PIO0_14, state::Unassigned;
-    ACMP_I4 , Input , acmp_i4 , PIO0_23, state::Unassigned;
-    SWCLK   , Output, swclk   , PIO0_3 , state::Assigned<PIO0_3>;
-    SWDIO   , Output, swdio   , PIO0_2 , state::Assigned<PIO0_2>;
-    XTALIN  , Input , xtalin  , PIO0_8 , state::Unassigned;
-    XTALOUT , Output, xtalout , PIO0_9 , state::Unassigned;
-    RESETN  , Input , resetn  , PIO0_5 , state::Assigned<PIO0_5>;
-    CLKIN   , Input , clkin   , PIO0_1 , state::Unassigned;
-    VDDCMP  , Input , vddcmp  , PIO0_6 , state::Unassigned;
-    I2C0_SDA, Output, i2c0_sda, PIO0_11, state::Unassigned;
-    I2C0_SCL, Output, i2c0_scl, PIO0_10, state::Unassigned;
-    ADC_0   , Analog, adc_0   , PIO0_7 , state::Unassigned;
-    ADC_1   , Analog, adc_1   , PIO0_6 , state::Unassigned;
-    ADC_2   , Analog, adc_2   , PIO0_14, state::Unassigned;
-    ADC_3   , Analog, adc_3   , PIO0_23, state::Unassigned;
-    ADC_4   , Analog, adc_4   , PIO0_22, state::Unassigned;
-    ADC_5   , Analog, adc_5   , PIO0_21, state::Unassigned;
-    ADC_6   , Analog, adc_6   , PIO0_20, state::Unassigned;
-    ADC_7   , Analog, adc_7   , PIO0_19, state::Unassigned;
-    ADC_8   , Analog, adc_8   , PIO0_18, state::Unassigned;
-    ADC_9   , Analog, adc_9   , PIO0_17, state::Unassigned;
-    ADC_10  , Analog, adc_10  , PIO0_13, state::Unassigned;
-    ADC_11  , Analog, adc_11  , PIO0_4 , state::Unassigned;
-    DACOUT0 , Analog, dacout0 , PIO0_17, state::Unassigned;
-    DACOUT1 , Analog, dacout1 , PIO0_29, state::Unassigned;
-    CAPT_X0 , Analog, capt_x0 , PIO0_31, state::Unassigned;
-    // CAPT_X1 , Analog, capt_x1 , PIO1_0 , state::Unassigned;
-    // CAPT_X2 , Analog, capt_x2 , PIO1_1 , state::Unassigned;
-    // CAPT_X3 , Analog, capt_x3 , PIO1_2 , state::Unassigned;
-    // TODO pinenable1
-    // CAPT_X4 , Analog, capt_x4 , PIO1_3 , state::Unassigned;
-    // CAPT_X5 , Analog, capt_x5 , PIO1_4 , state::Unassigned;
-    // CAPT_X6 , Analog, capt_x6 , PIO1_5 , state::Unassigned;
-    // CAPT_X7 , Analog, capt_x7 , PIO1_6 , state::Unassigned;
-    // CAPT_X8 , Analog, capt_x8 , PIO1_7 , state::Unassigned;
-    // CAPT_YL , Analog, capt_yl , PIO1_8 , state::Unassigned;
-    // CAPT_YH , Analog, capt_yh , PIO1_8 , state::Unassigned;
+    ACMP_I1 , Input , pinenable0, acmp_i1 , PIO0_0 , state::Unassigned;
+    ACMP_I2 , Input , pinenable0, acmp_i2 , PIO0_1 , state::Unassigned;
+    ACMP_I3 , Input , pinenable0, acmp_i3 , PIO0_14, state::Unassigned;
+    ACMP_I4 , Input , pinenable0, acmp_i4 , PIO0_23, state::Unassigned;
+    SWCLK   , Output, pinenable0, swclk   , PIO0_3 , state::Assigned<PIO0_3>;
+    SWDIO   , Output, pinenable0, swdio   , PIO0_2 , state::Assigned<PIO0_2>;
+    XTALIN  , Input , pinenable0, xtalin  , PIO0_8 , state::Unassigned;
+    XTALOUT , Output, pinenable0, xtalout , PIO0_9 , state::Unassigned;
+    RESETN  , Input , pinenable0, resetn  , PIO0_5 , state::Assigned<PIO0_5>;
+    CLKIN   , Input , pinenable0, clkin   , PIO0_1 , state::Unassigned;
+    VDDCMP  , Input , pinenable0, vddcmp  , PIO0_6 , state::Unassigned;
+    I2C0_SDA, Output, pinenable0, i2c0_sda, PIO0_11, state::Unassigned;
+    I2C0_SCL, Output, pinenable0, i2c0_scl, PIO0_10, state::Unassigned;
+    ADC_0   , Analog, pinenable0, adc_0   , PIO0_7 , state::Unassigned;
+    ADC_1   , Analog, pinenable0, adc_1   , PIO0_6 , state::Unassigned;
+    ADC_2   , Analog, pinenable0, adc_2   , PIO0_14, state::Unassigned;
+    ADC_3   , Analog, pinenable0, adc_3   , PIO0_23, state::Unassigned;
+    ADC_4   , Analog, pinenable0, adc_4   , PIO0_22, state::Unassigned;
+    ADC_5   , Analog, pinenable0, adc_5   , PIO0_21, state::Unassigned;
+    ADC_6   , Analog, pinenable0, adc_6   , PIO0_20, state::Unassigned;
+    ADC_7   , Analog, pinenable0, adc_7   , PIO0_19, state::Unassigned;
+    ADC_8   , Analog, pinenable0, adc_8   , PIO0_18, state::Unassigned;
+    ADC_9   , Analog, pinenable0, adc_9   , PIO0_17, state::Unassigned;
+    ADC_10  , Analog, pinenable0, adc_10  , PIO0_13, state::Unassigned;
+    ADC_11  , Analog, pinenable0, adc_11  , PIO0_4 , state::Unassigned;
+    DACOUT0 , Analog, pinenable0, dacout0 , PIO0_17, state::Unassigned;
+    DACOUT1 , Analog, pinenable0, dacout1 , PIO0_29, state::Unassigned;
+    CAPT_X0 , Analog, pinenable0, capt_x0 , PIO0_31, state::Unassigned;
+    // TODO GPIO1
+    // CAPT_X1 , Analog, pinenable0, capt_x1 , PIO1_0 , state::Unassigned;
+    // CAPT_X2 , Analog, pinenable0, capt_x2 , PIO1_1 , state::Unassigned;
+    // CAPT_X3 , Analog, pinenable0, capt_x3 , PIO1_2 , state::Unassigned;
+    // CAPT_X4 , Analog, pinenable1, capt_x4 , PIO1_3 , state::Unassigned;
+    // CAPT_X5 , Analog, pinenable1, capt_x5 , PIO1_4 , state::Unassigned;
+    // CAPT_X6 , Analog, pinenable1, capt_x6 , PIO1_5 , state::Unassigned;
+    // CAPT_X7 , Analog, pinenable1, capt_x7 , PIO1_6 , state::Unassigned;
+    // CAPT_X8 , Analog, pinenable1, capt_x8 , PIO1_7 , state::Unassigned;
+    // CAPT_YL , Analog, pinenable1, capt_yl , PIO1_8 , state::Unassigned;
+    // CAPT_YH , Analog, pinenable1, capt_yh , PIO1_8 , state::Unassigned;
 );
 
 /// Contains types that indicate the state of fixed or movable functions
