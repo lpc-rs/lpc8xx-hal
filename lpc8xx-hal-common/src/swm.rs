@@ -339,7 +339,7 @@ pins!(
 ///   general-purpose I/O
 /// - [`pin_state::Swm`], to indicate that the pin is available for switch
 ///   matrix function assignment
-/// - [`pin_state::Adc`], to indicate that the pin is being used for analog
+/// - [`pin_state::Analog`], to indicate that the pin is being used for analog
 ///   input
 ///
 /// # State Management
@@ -700,17 +700,17 @@ where
     }
 }
 
-impl<T, F> AssignFunction<F, Adc> for Pin<T, pin_state::Swm<(), ()>>
+impl<T, F> AssignFunction<F, Analog> for Pin<T, pin_state::Swm<(), ()>>
 where
     T: PinTrait,
-    F: FunctionTrait<T, Kind = Adc>,
+    F: FunctionTrait<T, Kind = Analog>,
 {
-    type Assigned = Pin<T, pin_state::Adc>;
+    type Assigned = Pin<T, pin_state::Analog>;
 
     fn assign(self) -> Self::Assigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Adc,
+            state: pin_state::Analog,
         }
     }
 }
@@ -747,9 +747,9 @@ pub mod pin_state {
     /// Marks a [`Pin`]  as being assigned to the analog-to-digital converter
     ///
     /// [`Pin`]: ../struct.Pin.html
-    pub struct Adc;
+    pub struct Analog;
 
-    impl PinState for Adc {}
+    impl PinState for Analog {}
 
     /// Marks a [`Pin`]  as being assigned to general-purpose I/O
     ///
@@ -991,9 +991,9 @@ impl FunctionKind for Input {}
 pub struct Output;
 impl FunctionKind for Output {}
 
-/// Designates an SWM function as an ADC function
-pub struct Adc;
-impl FunctionKind for Adc {}
+/// Designates an SWM function as an analog function
+pub struct Analog;
+impl FunctionKind for Analog {}
 
 /// Internal trait used to assign functions to pins
 ///
@@ -1342,18 +1342,18 @@ fixed_functions!(
     VDDCMP  , Input , vddcmp  , PIO0_6 , state::Unassigned;
     I2C0_SDA, Output, i2c0_sda, PIO0_11, state::Unassigned;
     I2C0_SCL, Output, i2c0_scl, PIO0_10, state::Unassigned;
-    ADC_0   , Adc   , adc_0   , PIO0_7 , state::Unassigned;
-    ADC_1   , Adc   , adc_1   , PIO0_6 , state::Unassigned;
-    ADC_2   , Adc   , adc_2   , PIO0_14, state::Unassigned;
-    ADC_3   , Adc   , adc_3   , PIO0_23, state::Unassigned;
-    ADC_4   , Adc   , adc_4   , PIO0_22, state::Unassigned;
-    ADC_5   , Adc   , adc_5   , PIO0_21, state::Unassigned;
-    ADC_6   , Adc   , adc_6   , PIO0_20, state::Unassigned;
-    ADC_7   , Adc   , adc_7   , PIO0_19, state::Unassigned;
-    ADC_8   , Adc   , adc_8   , PIO0_18, state::Unassigned;
-    ADC_9   , Adc   , adc_9   , PIO0_17, state::Unassigned;
-    ADC_10  , Adc   , adc_10  , PIO0_13, state::Unassigned;
-    ADC_11  , Adc   , adc_11  , PIO0_4 , state::Unassigned;
+    ADC_0   , Analog, adc_0   , PIO0_7 , state::Unassigned;
+    ADC_1   , Analog, adc_1   , PIO0_6 , state::Unassigned;
+    ADC_2   , Analog, adc_2   , PIO0_14, state::Unassigned;
+    ADC_3   , Analog, adc_3   , PIO0_23, state::Unassigned;
+    ADC_4   , Analog, adc_4   , PIO0_22, state::Unassigned;
+    ADC_5   , Analog, adc_5   , PIO0_21, state::Unassigned;
+    ADC_6   , Analog, adc_6   , PIO0_20, state::Unassigned;
+    ADC_7   , Analog, adc_7   , PIO0_19, state::Unassigned;
+    ADC_8   , Analog, adc_8   , PIO0_18, state::Unassigned;
+    ADC_9   , Analog, adc_9   , PIO0_17, state::Unassigned;
+    ADC_10  , Analog, adc_10  , PIO0_13, state::Unassigned;
+    ADC_11  , Analog, adc_11  , PIO0_4 , state::Unassigned;
 );
 
 #[cfg(feature = "845")]
@@ -1372,33 +1372,32 @@ fixed_functions!(
     VDDCMP  , Input , vddcmp  , PIO0_6 , state::Unassigned;
     I2C0_SDA, Output, i2c0_sda, PIO0_11, state::Unassigned;
     I2C0_SCL, Output, i2c0_scl, PIO0_10, state::Unassigned;
-    ADC_0   , Adc   , adc_0   , PIO0_7 , state::Unassigned;
-    ADC_1   , Adc   , adc_1   , PIO0_6 , state::Unassigned;
-    ADC_2   , Adc   , adc_2   , PIO0_14, state::Unassigned;
-    ADC_3   , Adc   , adc_3   , PIO0_23, state::Unassigned;
-    ADC_4   , Adc   , adc_4   , PIO0_22, state::Unassigned;
-    ADC_5   , Adc   , adc_5   , PIO0_21, state::Unassigned;
-    ADC_6   , Adc   , adc_6   , PIO0_20, state::Unassigned;
-    ADC_7   , Adc   , adc_7   , PIO0_19, state::Unassigned;
-    ADC_8   , Adc   , adc_8   , PIO0_18, state::Unassigned;
-    ADC_9   , Adc   , adc_9   , PIO0_17, state::Unassigned;
-    ADC_10  , Adc   , adc_10  , PIO0_13, state::Unassigned;
-    ADC_11  , Adc   , adc_11  , PIO0_4 , state::Unassigned;
-    DACOUT0 , Adc   , dacout0 , PIO0_17, state::Unassigned;
-    DACOUT1 , Adc   , dacout1 , PIO0_29, state::Unassigned;
-    // TODO Is it input or output?
-    CAPT_X0 , Adc   , capt_x0 , PIO0_31, state::Unassigned;
-    // CAPT_X1 , Adc   , capt_x1 , PIO1_0 , state::Unassigned;
-    // CAPT_X2 , Adc   , capt_x2 , PIO1_1 , state::Unassigned;
-    // CAPT_X3 , Adc   , capt_x3 , PIO1_2 , state::Unassigned;
-    // pinenable1
-    // CAPT_X4 , Adc   , capt_x4 , PIO1_3 , state::Unassigned;
-    // CAPT_X5 , Adc   , capt_x5 , PIO1_4 , state::Unassigned;
-    // CAPT_X6 , Adc   , capt_x6 , PIO1_5 , state::Unassigned;
-    // CAPT_X7 , Adc   , capt_x7 , PIO1_6 , state::Unassigned;
-    // CAPT_X8 , Adc   , capt_x8 , PIO1_7 , state::Unassigned;
-    // CAPT_YL , Adc   , capt_yl , PIO1_8 , state::Unassigned;
-    // CAPT_YH , Adc   , capt_yh , PIO1_8 , state::Unassigned;
+    ADC_0   , Analog, adc_0   , PIO0_7 , state::Unassigned;
+    ADC_1   , Analog, adc_1   , PIO0_6 , state::Unassigned;
+    ADC_2   , Analog, adc_2   , PIO0_14, state::Unassigned;
+    ADC_3   , Analog, adc_3   , PIO0_23, state::Unassigned;
+    ADC_4   , Analog, adc_4   , PIO0_22, state::Unassigned;
+    ADC_5   , Analog, adc_5   , PIO0_21, state::Unassigned;
+    ADC_6   , Analog, adc_6   , PIO0_20, state::Unassigned;
+    ADC_7   , Analog, adc_7   , PIO0_19, state::Unassigned;
+    ADC_8   , Analog, adc_8   , PIO0_18, state::Unassigned;
+    ADC_9   , Analog, adc_9   , PIO0_17, state::Unassigned;
+    ADC_10  , Analog, adc_10  , PIO0_13, state::Unassigned;
+    ADC_11  , Analog, adc_11  , PIO0_4 , state::Unassigned;
+    DACOUT0 , Analog, dacout0 , PIO0_17, state::Unassigned;
+    DACOUT1 , Analog, dacout1 , PIO0_29, state::Unassigned;
+    CAPT_X0 , Analog, capt_x0 , PIO0_31, state::Unassigned;
+    // CAPT_X1 , Analog, capt_x1 , PIO1_0 , state::Unassigned;
+    // CAPT_X2 , Analog, capt_x2 , PIO1_1 , state::Unassigned;
+    // CAPT_X3 , Analog, capt_x3 , PIO1_2 , state::Unassigned;
+    // TODO pinenable1
+    // CAPT_X4 , Analog, capt_x4 , PIO1_3 , state::Unassigned;
+    // CAPT_X5 , Analog, capt_x5 , PIO1_4 , state::Unassigned;
+    // CAPT_X6 , Analog, capt_x6 , PIO1_5 , state::Unassigned;
+    // CAPT_X7 , Analog, capt_x7 , PIO1_6 , state::Unassigned;
+    // CAPT_X8 , Analog, capt_x8 , PIO1_7 , state::Unassigned;
+    // CAPT_YL , Analog, capt_yl , PIO1_8 , state::Unassigned;
+    // CAPT_YH , Analog, capt_yh , PIO1_8 , state::Unassigned;
 );
 
 /// Contains types that indicate the state of fixed or movable functions
