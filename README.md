@@ -1,5 +1,6 @@
 # `lpc8xx-hal`
 > [HAL] for the lpc8xx family of microcontrollers
+
 [HAL]: https://crates.io/crates/embedded-hal
 
 Refer to the `README.md` files in the hal folders for more information.
