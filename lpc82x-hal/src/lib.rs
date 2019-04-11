@@ -450,7 +450,7 @@ impl Peripherals {
             DMA   : DMA::new(p.DMA),
             // NOTE(unsafe) The init state of the gpio peripheral is enabled,
             // thus it's safe to create an already initialized gpio port
-            GPIO  : unsafe { GPIO::new(p.GPIO_PORT) },
+            GPIO  : unsafe { GPIO::new_enabled(p.GPIO_PORT) },
             I2C0  : I2C::new(p.I2C0),
             PMU   : PMU::new(p.PMU),
             SWM   : SWM::new(p.SWM),

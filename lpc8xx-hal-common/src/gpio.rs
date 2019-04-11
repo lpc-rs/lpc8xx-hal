@@ -32,7 +32,7 @@
 use embedded_hal::digital::{OutputPin, StatefulOutputPin};
 
 use crate::{
-    init_state, raw,
+    init_state, raw_compat,
     swm::{pin_state, Pin, PinTrait},
     syscon,
 };
@@ -50,7 +50,7 @@ use crate::{
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct GPIO<State = init_state::Enabled> {
-    pub(crate) gpio: raw::GPIO_PORT,
+    pub(crate) gpio: raw_compat::GPIO,
     _state: State,
 }
 
@@ -61,7 +61,7 @@ impl GPIO<init_state::Enabled> {
     /// [`Enabled`] state. It's up to the caller to verify this assumption.
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub unsafe fn new(gpio: raw::GPIO_PORT) -> Self {
+    pub unsafe fn new_enabled(gpio: raw_compat::GPIO) -> Self {
         GPIO {
             gpio: gpio,
             _state: init_state::Enabled(()),
@@ -70,6 +70,20 @@ impl GPIO<init_state::Enabled> {
 }
 
 impl GPIO<init_state::Disabled> {
+    /// Create an disabled gpio peripheral
+    ///
+    /// This method creates an `GPIO` instance that it assumes is in the
+    /// [`Disabled`] state. As it's only possible to enable a [`Disabled`] `GPIO`
+    /// instance, it's also safe to pass an already [`Enabled`] instance.
+    ///
+    /// [`Disabled`]: ../init_state/struct.Enabled.html
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    pub fn new(gpio: raw_compat::GPIO) -> Self {
+        GPIO {
+            gpio: gpio,
+            _state: init_state::Disabled,
+        }
+    }
     /// Enable the GPIO peripheral
     ///
     /// This method is only available, if `GPIO` is in the [`Disabled`] state.
@@ -126,7 +140,7 @@ impl<State> GPIO<State> {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> raw::GPIO_PORT {
+    pub fn free(self) -> raw_compat::GPIO {
         self.gpio
     }
 }
@@ -165,18 +179,16 @@ where
     /// pin.set_low();
     /// ```
     pub fn into_output(self) -> Pin<T, pin_state::Gpio<'gpio, direction::Output>> {
-        self.state
-            .dirset0
-            .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
+        self.state.dirset[T::PORT].write(|w| unsafe { w.dirsetp().bits(T::MASK) });
 
         Pin {
             ty: self.ty,
 
             state: pin_state::Gpio {
-                dirset0: self.state.dirset0,
-                pin0: self.state.pin0,
-                set0: self.state.set0,
-                clr0: self.state.clr0,
+                dirset: self.state.dirset,
+                pin: self.state.pin,
+                set: self.state.set,
+                clr: self.state.clr,
 
                 _direction: direction::Output,
             },
@@ -200,7 +212,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_high(&mut self) {
-        self.state.set0.write(|w| unsafe { w.setp().bits(T::MASK) })
+        self.state.set[T::PORT].write(|w| unsafe { w.setp().bits(T::MASK) })
     }
 
     /// Set the pin output to LOW
@@ -215,7 +227,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_low(&mut self) {
-        self.state.clr0.write(|w| unsafe { w.clrp().bits(T::MASK) });
+        self.state.clr[T::PORT].write(|w| unsafe { w.clrp().bits(T::MASK) });
     }
 }
 
@@ -235,7 +247,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_high(&self) -> bool {
-        self.state.pin0.read().port().bits() & T::MASK == T::MASK
+        self.state.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
     }
 
     /// Indicates whether the pin output is currently set to LOW
@@ -250,7 +262,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_low(&self) -> bool {
-        !self.state.pin0.read().port().bits() & T::MASK == T::MASK
+        !self.state.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
     }
 }
 

@@ -9,7 +9,7 @@ use core::marker::PhantomData;
 
 use crate::{
     gpio::{self, GPIO},
-    init_state, raw, syscon,
+    init_state, raw_compat, syscon,
 };
 
 use self::pin_state::PinState;
@@ -31,11 +31,11 @@ use self::pin_state::PinState;
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct SWM {
-    swm: raw::SWM,
+    swm: raw_compat::SWM0,
 }
 
 impl SWM {
-    pub fn new(swm: raw::SWM) -> Self {
+    pub fn new(swm: raw_compat::SWM0) -> Self {
         SWM { swm }
     }
 
@@ -65,7 +65,7 @@ impl SWM {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> raw::SWM {
+    pub fn free(self) -> raw_compat::SWM0 {
         self.swm
     }
 }
@@ -101,12 +101,12 @@ pub struct Parts {
 ///
 /// [module documentation]: index.html
 pub struct Handle<State = init_state::Enabled> {
-    swm: raw::SWM,
+    swm: raw_compat::SWM0,
     _state: State,
 }
 
 impl Handle<init_state::Enabled> {
-    pub(crate) fn new(swm: raw::SWM) -> Self {
+    pub(crate) fn new(swm: raw_compat::SWM0) -> Self {
         Handle {
             swm: swm,
             _state: init_state::Enabled(()),
@@ -166,6 +166,10 @@ impl Handle<init_state::Enabled> {
 ///
 /// Please refer to [`Pin`] for the public API used to control pins.
 pub trait PinTrait {
+    /// A number that indentifies the port
+    ///
+    /// This is `0` for [`PIO0_0`] and `1` for [`PIO1_0`]
+    const PORT: usize;
     /// A number that identifies the pin
     ///
     /// This is `0` for [`PIO0_0`], `1` for [`PIO0_1`] and so forth.
@@ -182,6 +186,7 @@ macro_rules! pins {
     ($(
         $field:ident,
         $type:ident,
+        $port:expr,
         $id:expr,
         $default_state_ty:ty,
         $default_state_val:expr;
@@ -227,43 +232,103 @@ macro_rules! pins {
             pub struct $type(());
 
             impl PinTrait for $type {
-                const ID  : u8  = $id;
-                const MASK: u32 = 0x1 << $id;
+                const PORT: usize = $port;
+                const ID  : u8    = $id;
+                const MASK: u32   = 0x1 << $id;
             }
         )*
     }
 }
 
+#[cfg(feature = "82x")]
 pins!(
-    pio0_0 , PIO0_0 , 0x00, pin_state::Unused        , pin_state::Unused;
-    pio0_1 , PIO0_1 , 0x01, pin_state::Unused        , pin_state::Unused;
-    pio0_2 , PIO0_2 , 0x02, pin_state::Swm<((),), ()>, pin_state::Swm::new();
-    pio0_3 , PIO0_3 , 0x03, pin_state::Swm<((),), ()>, pin_state::Swm::new();
-    pio0_4 , PIO0_4 , 0x04, pin_state::Unused        , pin_state::Unused;
-    pio0_5 , PIO0_5 , 0x05, pin_state::Swm<(), ((),)>, pin_state::Swm::new();
-    pio0_6 , PIO0_6 , 0x06, pin_state::Unused        , pin_state::Unused;
-    pio0_7 , PIO0_7 , 0x07, pin_state::Unused        , pin_state::Unused;
-    pio0_8 , PIO0_8 , 0x08, pin_state::Unused        , pin_state::Unused;
-    pio0_9 , PIO0_9 , 0x09, pin_state::Unused        , pin_state::Unused;
-    pio0_10, PIO0_10, 0x0a, pin_state::Unused        , pin_state::Unused;
-    pio0_11, PIO0_11, 0x0b, pin_state::Unused        , pin_state::Unused;
-    pio0_12, PIO0_12, 0x0c, pin_state::Unused        , pin_state::Unused;
-    pio0_13, PIO0_13, 0x0d, pin_state::Unused        , pin_state::Unused;
-    pio0_14, PIO0_14, 0x0e, pin_state::Unused        , pin_state::Unused;
-    pio0_15, PIO0_15, 0x0f, pin_state::Unused        , pin_state::Unused;
-    pio0_16, PIO0_16, 0x10, pin_state::Unused        , pin_state::Unused;
-    pio0_17, PIO0_17, 0x11, pin_state::Unused        , pin_state::Unused;
-    pio0_18, PIO0_18, 0x12, pin_state::Unused        , pin_state::Unused;
-    pio0_19, PIO0_19, 0x13, pin_state::Unused        , pin_state::Unused;
-    pio0_20, PIO0_20, 0x14, pin_state::Unused        , pin_state::Unused;
-    pio0_21, PIO0_21, 0x15, pin_state::Unused        , pin_state::Unused;
-    pio0_22, PIO0_22, 0x16, pin_state::Unused        , pin_state::Unused;
-    pio0_23, PIO0_23, 0x17, pin_state::Unused        , pin_state::Unused;
-    pio0_24, PIO0_24, 0x18, pin_state::Unused        , pin_state::Unused;
-    pio0_25, PIO0_25, 0x19, pin_state::Unused        , pin_state::Unused;
-    pio0_26, PIO0_26, 0x1a, pin_state::Unused        , pin_state::Unused;
-    pio0_27, PIO0_27, 0x1b, pin_state::Unused        , pin_state::Unused;
-    pio0_28, PIO0_28, 0x1c, pin_state::Unused        , pin_state::Unused;
+    pio0_0 , PIO0_0 , 0, 0x00, pin_state::Unused        , pin_state::Unused;
+    pio0_1 , PIO0_1 , 0, 0x01, pin_state::Unused        , pin_state::Unused;
+    pio0_2 , PIO0_2 , 0, 0x02, pin_state::Swm<((),), ()>, pin_state::Swm::new();
+    pio0_3 , PIO0_3 , 0, 0x03, pin_state::Swm<((),), ()>, pin_state::Swm::new();
+    pio0_4 , PIO0_4 , 0, 0x04, pin_state::Unused        , pin_state::Unused;
+    pio0_5 , PIO0_5 , 0, 0x05, pin_state::Swm<(), ((),)>, pin_state::Swm::new();
+    pio0_6 , PIO0_6 , 0, 0x06, pin_state::Unused        , pin_state::Unused;
+    pio0_7 , PIO0_7 , 0, 0x07, pin_state::Unused        , pin_state::Unused;
+    pio0_8 , PIO0_8 , 0, 0x08, pin_state::Unused        , pin_state::Unused;
+    pio0_9 , PIO0_9 , 0, 0x09, pin_state::Unused        , pin_state::Unused;
+    pio0_10, PIO0_10, 0, 0x0a, pin_state::Unused        , pin_state::Unused;
+    pio0_11, PIO0_11, 0, 0x0b, pin_state::Unused        , pin_state::Unused;
+    pio0_12, PIO0_12, 0, 0x0c, pin_state::Unused        , pin_state::Unused;
+    pio0_13, PIO0_13, 0, 0x0d, pin_state::Unused        , pin_state::Unused;
+    pio0_14, PIO0_14, 0, 0x0e, pin_state::Unused        , pin_state::Unused;
+    pio0_15, PIO0_15, 0, 0x0f, pin_state::Unused        , pin_state::Unused;
+    pio0_16, PIO0_16, 0, 0x10, pin_state::Unused        , pin_state::Unused;
+    pio0_17, PIO0_17, 0, 0x11, pin_state::Unused        , pin_state::Unused;
+    pio0_18, PIO0_18, 0, 0x12, pin_state::Unused        , pin_state::Unused;
+    pio0_19, PIO0_19, 0, 0x13, pin_state::Unused        , pin_state::Unused;
+    pio0_20, PIO0_20, 0, 0x14, pin_state::Unused        , pin_state::Unused;
+    pio0_21, PIO0_21, 0, 0x15, pin_state::Unused        , pin_state::Unused;
+    pio0_22, PIO0_22, 0, 0x16, pin_state::Unused        , pin_state::Unused;
+    pio0_23, PIO0_23, 0, 0x17, pin_state::Unused        , pin_state::Unused;
+    pio0_24, PIO0_24, 0, 0x18, pin_state::Unused        , pin_state::Unused;
+    pio0_25, PIO0_25, 0, 0x19, pin_state::Unused        , pin_state::Unused;
+    pio0_26, PIO0_26, 0, 0x1a, pin_state::Unused        , pin_state::Unused;
+    pio0_27, PIO0_27, 0, 0x1b, pin_state::Unused        , pin_state::Unused;
+    pio0_28, PIO0_28, 0, 0x1c, pin_state::Unused        , pin_state::Unused;
+);
+
+#[cfg(feature = "845")]
+pins!(
+    pio0_0 , PIO0_0 , 0, 0x00, pin_state::Unused        , pin_state::Unused;
+    pio0_1 , PIO0_1 , 0, 0x01, pin_state::Unused        , pin_state::Unused;
+    pio0_2 , PIO0_2 , 0, 0x02, pin_state::Swm<((),), ()>, pin_state::Swm::new();
+    pio0_3 , PIO0_3 , 0, 0x03, pin_state::Swm<((),), ()>, pin_state::Swm::new();
+    pio0_4 , PIO0_4 , 0, 0x04, pin_state::Unused        , pin_state::Unused;
+    pio0_5 , PIO0_5 , 0, 0x05, pin_state::Swm<(), ((),)>, pin_state::Swm::new();
+    pio0_6 , PIO0_6 , 0, 0x06, pin_state::Unused        , pin_state::Unused;
+    pio0_7 , PIO0_7 , 0, 0x07, pin_state::Unused        , pin_state::Unused;
+    pio0_8 , PIO0_8 , 0, 0x08, pin_state::Unused        , pin_state::Unused;
+    pio0_9 , PIO0_9 , 0, 0x09, pin_state::Unused        , pin_state::Unused;
+    pio0_10, PIO0_10, 0, 0x0a, pin_state::Unused        , pin_state::Unused;
+    pio0_11, PIO0_11, 0, 0x0b, pin_state::Unused        , pin_state::Unused;
+    pio0_12, PIO0_12, 0, 0x0c, pin_state::Unused        , pin_state::Unused;
+    pio0_13, PIO0_13, 0, 0x0d, pin_state::Unused        , pin_state::Unused;
+    pio0_14, PIO0_14, 0, 0x0e, pin_state::Unused        , pin_state::Unused;
+    pio0_15, PIO0_15, 0, 0x0f, pin_state::Unused        , pin_state::Unused;
+    pio0_16, PIO0_16, 0, 0x10, pin_state::Unused        , pin_state::Unused;
+    pio0_17, PIO0_17, 0, 0x11, pin_state::Unused        , pin_state::Unused;
+    pio0_18, PIO0_18, 0, 0x12, pin_state::Unused        , pin_state::Unused;
+    pio0_19, PIO0_19, 0, 0x13, pin_state::Unused        , pin_state::Unused;
+    pio0_20, PIO0_20, 0, 0x14, pin_state::Unused        , pin_state::Unused;
+    pio0_21, PIO0_21, 0, 0x15, pin_state::Unused        , pin_state::Unused;
+    pio0_22, PIO0_22, 0, 0x16, pin_state::Unused        , pin_state::Unused;
+    pio0_23, PIO0_23, 0, 0x17, pin_state::Unused        , pin_state::Unused;
+    pio0_24, PIO0_24, 0, 0x18, pin_state::Unused        , pin_state::Unused;
+    pio0_25, PIO0_25, 0, 0x19, pin_state::Unused        , pin_state::Unused;
+    pio0_26, PIO0_26, 0, 0x1a, pin_state::Unused        , pin_state::Unused;
+    pio0_27, PIO0_27, 0, 0x1b, pin_state::Unused        , pin_state::Unused;
+    pio0_28, PIO0_28, 0, 0x1c, pin_state::Unused        , pin_state::Unused;
+    pio0_29, PIO0_29, 0, 0x1d, pin_state::Unused        , pin_state::Unused;
+    pio0_30, PIO0_30, 0, 0x1e, pin_state::Unused        , pin_state::Unused;
+    pio0_31, PIO0_31, 0, 0x1f, pin_state::Unused        , pin_state::Unused;
+    pio1_0 , PIO1_0 , 1, 0x00, pin_state::Unused        , pin_state::Unused;
+    pio1_1 , PIO1_1 , 1, 0x01, pin_state::Unused        , pin_state::Unused;
+    pio1_2 , PIO1_2 , 1, 0x02, pin_state::Unused        , pin_state::Unused;
+    pio1_3 , PIO1_3 , 1, 0x03, pin_state::Unused        , pin_state::Unused;
+    pio1_4 , PIO1_4 , 1, 0x04, pin_state::Unused        , pin_state::Unused;
+    pio1_5 , PIO1_5 , 1, 0x05, pin_state::Unused        , pin_state::Unused;
+    pio1_6 , PIO1_6 , 1, 0x06, pin_state::Unused        , pin_state::Unused;
+    pio1_7 , PIO1_7 , 1, 0x07, pin_state::Unused        , pin_state::Unused;
+    pio1_8 , PIO1_8 , 1, 0x08, pin_state::Unused        , pin_state::Unused;
+    pio1_9 , PIO1_9 , 1, 0x09, pin_state::Unused        , pin_state::Unused;
+    pio1_10, PIO1_10, 1, 0x0a, pin_state::Unused        , pin_state::Unused;
+    pio1_11, PIO1_11, 1, 0x0b, pin_state::Unused        , pin_state::Unused;
+    pio1_12, PIO1_12, 1, 0x0c, pin_state::Unused        , pin_state::Unused;
+    pio1_13, PIO1_13, 1, 0x0d, pin_state::Unused        , pin_state::Unused;
+    pio1_14, PIO1_14, 1, 0x0e, pin_state::Unused        , pin_state::Unused;
+    pio1_15, PIO1_15, 1, 0x0f, pin_state::Unused        , pin_state::Unused;
+    pio1_16, PIO1_16, 1, 0x10, pin_state::Unused        , pin_state::Unused;
+    pio1_17, PIO1_17, 1, 0x11, pin_state::Unused        , pin_state::Unused;
+    pio1_18, PIO1_18, 1, 0x12, pin_state::Unused        , pin_state::Unused;
+    pio1_19, PIO1_19, 1, 0x13, pin_state::Unused        , pin_state::Unused;
+    pio1_20, PIO1_20, 1, 0x14, pin_state::Unused        , pin_state::Unused;
+    pio1_21, PIO1_21, 1, 0x15, pin_state::Unused        , pin_state::Unused;
 );
 
 /// Main API to control for controlling pins
@@ -279,7 +344,7 @@ pins!(
 ///   general-purpose I/O
 /// - [`pin_state::Swm`], to indicate that the pin is available for switch
 ///   matrix function assignment
-/// - [`pin_state::Adc`], to indicate that the pin is being used for analog
+/// - [`pin_state::Analog`], to indicate that the pin is being used for analog
 ///   input
 ///
 /// # State Management
@@ -493,13 +558,26 @@ where
     ///
     /// [State Management]: #state-management
     pub fn into_gpio_pin(self, gpio: &GPIO) -> Pin<T, pin_state::Gpio<gpio::direction::Unknown>> {
+        // Isn't used for lpc845
+        #[allow(unused_imports)]
+        use core::slice;
         Pin {
             ty: self.ty,
+            #[cfg(feature = "82x")]
             state: pin_state::Gpio {
-                dirset0: &gpio.gpio.dirset0,
-                pin0: &gpio.gpio.pin0,
-                set0: &gpio.gpio.set0,
-                clr0: &gpio.gpio.clr0,
+                dirset: slice::from_ref(&gpio.gpio.dirset0),
+                pin: slice::from_ref(&gpio.gpio.pin0),
+                set: slice::from_ref(&gpio.gpio.set0),
+                clr: slice::from_ref(&gpio.gpio.clr0),
+
+                _direction: gpio::direction::Unknown,
+            },
+            #[cfg(feature = "845")]
+            state: pin_state::Gpio {
+                dirset: &gpio.gpio.dirset,
+                pin: &gpio.gpio.pin,
+                set: &gpio.gpio.set,
+                clr: &gpio.gpio.clr,
 
                 _direction: gpio::direction::Unknown,
             },
@@ -629,17 +707,17 @@ where
     }
 }
 
-impl<T, F> AssignFunction<F, Adc> for Pin<T, pin_state::Swm<(), ()>>
+impl<T, F> AssignFunction<F, Analog> for Pin<T, pin_state::Swm<(), ()>>
 where
     T: PinTrait,
-    F: FunctionTrait<T, Kind = Adc>,
+    F: FunctionTrait<T, Kind = Analog>,
 {
-    type Assigned = Pin<T, pin_state::Adc>;
+    type Assigned = Pin<T, pin_state::Analog>;
 
     fn assign(self) -> Self::Assigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Adc,
+            state: pin_state::Analog,
         }
     }
 }
@@ -650,10 +728,11 @@ where
 pub mod pin_state {
     use core::marker::PhantomData;
 
-    use crate::{
-        gpio::direction::Direction,
-        raw::gpio_port::{CLR0, DIRSET0, PIN0, SET0},
-    };
+    use crate::gpio::direction::Direction;
+    #[cfg(feature = "845")]
+    use crate::raw_compat::gpio::{CLR, DIRSET, PIN, SET};
+    #[cfg(feature = "82x")]
+    use crate::raw_compat::gpio::{CLR0 as CLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET};
 
     /// Implemented by types that indicate pin state
     ///
@@ -675,18 +754,18 @@ pub mod pin_state {
     /// Marks a [`Pin`]  as being assigned to the analog-to-digital converter
     ///
     /// [`Pin`]: ../struct.Pin.html
-    pub struct Adc;
+    pub struct Analog;
 
-    impl PinState for Adc {}
+    impl PinState for Analog {}
 
     /// Marks a [`Pin`]  as being assigned to general-purpose I/O
     ///
     /// [`Pin`]: ../struct.Pin.html
     pub struct Gpio<'gpio, D: Direction> {
-        pub(crate) dirset0: &'gpio DIRSET0,
-        pub(crate) pin0: &'gpio PIN0,
-        pub(crate) set0: &'gpio SET0,
-        pub(crate) clr0: &'gpio CLR0,
+        pub(crate) dirset: &'gpio [DIRSET],
+        pub(crate) pin: &'gpio [PIN],
+        pub(crate) set: &'gpio [SET],
+        pub(crate) clr: &'gpio [CLR],
 
         pub(crate) _direction: D,
     }
@@ -919,9 +998,9 @@ impl FunctionKind for Input {}
 pub struct Output;
 impl FunctionKind for Output {}
 
-/// Designates an SWM function as an ADC function
-pub struct Adc;
-impl FunctionKind for Adc {}
+/// Designates an SWM function as an analog function
+pub struct Analog;
+impl FunctionKind for Analog {}
 
 /// Internal trait used to assign functions to pins
 ///
@@ -1026,6 +1105,31 @@ macro_rules! movable_functions {
             impl_function!($type, $kind, $reg_name, $reg_field, PIO0_26);
             impl_function!($type, $kind, $reg_name, $reg_field, PIO0_27);
             impl_function!($type, $kind, $reg_name, $reg_field, PIO0_28);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO0_29);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO0_30);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO0_31);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_0 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_1 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_2 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_3 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_4 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_5 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_6 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_7 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_8 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_9 );
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_10);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_11);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_12);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_13);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_14);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_15);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_16);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_17);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_18);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_19);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_20);
+            #[cfg(feature = "845")] impl_function!($type, $kind, $reg_name, $reg_field, PIO1_21);
         )*
     }
 }
@@ -1042,9 +1146,9 @@ macro_rules! impl_function {
             type Kind = $kind;
 
             fn assign(&mut self, _pin: &mut $pin, swm: &mut Handle) {
-                swm.swm
-                    .$reg_name
-                    .modify(|_, w| unsafe { w.$reg_field().bits($pin::ID) });
+                swm.swm.$reg_name.modify(|_, w| unsafe {
+                    w.$reg_field().bits($pin::ID | ($pin::PORT as u8) << 5)
+                });
             }
 
             fn unassign(&mut self, _pin: &mut $pin, swm: &mut Handle) {
@@ -1056,6 +1160,7 @@ macro_rules! impl_function {
     };
 }
 
+#[cfg(feature = "82x")]
 movable_functions!(
     u0_txd       , U0_TXD       , Output, pinassign0 , u0_txd_o;
     u0_rxd       , U0_RXD       , Input , pinassign0 , u0_rxd_i;
@@ -1107,10 +1212,75 @@ movable_functions!(
     gpio_int_bmat, GPIO_INT_BMAT, Output, pinassign11, gpio_int_bmat_o;
 );
 
+#[cfg(feature = "845")]
+movable_functions!(
+    u0_txd       , U0_TXD       , Output, pinassign0 , u0_txd_o;
+    u0_rxd       , U0_RXD       , Input , pinassign0 , u0_rxd_i;
+    u0_rts       , U0_RTS       , Output, pinassign0 , u0_rts_o;
+    u0_cts       , U0_CTS       , Input , pinassign0 , u0_cts_i;
+    u0_sclk      , U0_SCLK      , Output, pinassign1 , u0_sclk_io;
+    u1_txd       , U1_TXD       , Output, pinassign1 , u1_txd_o;
+    u1_rxd       , U1_RXD       , Input , pinassign1 , u1_rxd_i;
+    u1_rts       , U1_RTS       , Output, pinassign1 , u1_rts_o;
+    u1_cts       , U1_CTS       , Input , pinassign2 , u1_cts_i;
+    u1_sclk      , U1_SCLK      , Output, pinassign2 , u1_sclk_io;
+    u2_txd       , U2_TXD       , Output, pinassign2 , u2_txd_o;
+    u2_rxd       , U2_RXD       , Input , pinassign2 , u2_rxd_i;
+    u2_rts       , U2_RTS       , Output, pinassign3 , u2_rts_o;
+    u2_cts       , U2_CTS       , Input , pinassign3 , u2_cts_i;
+    u2_sclk      , U2_SCLK      , Output, pinassign3 , u2_sclk_io;
+    spi0_sck     , SPI0_SCK     , Output, pinassign3 , spi0_sck_io;
+    spi0_mosi    , SPI0_MOSI    , Output, pinassign4 , spi0_mosi_io;
+    spi0_miso    , SPI0_MISO    , Output, pinassign4 , spi0_miso_io;
+    spi0_ssel0   , SPI0_SSEL0   , Output, pinassign4 , spi0_ssel0_io;
+    spi0_ssel1   , SPI0_SSEL1   , Output, pinassign4 , spi0_ssel1_io;
+    spi0_ssel2   , SPI0_SSEL2   , Output, pinassign5 , spi0_ssel2_io;
+    spi0_ssel3   , SPI0_SSEL3   , Output, pinassign5 , spi0_ssel3_io;
+    spi1_sck     , SPI1_SCK     , Output, pinassign5 , spi1_sck_io;
+    spi1_mosi    , SPI1_MOSI    , Output, pinassign5 , spi1_mosi_io;
+    spi1_miso    , SPI1_MISO    , Output, pinassign6 , spi1_miso_io;
+    spi1_ssel0   , SPI1_SSEL0   , Output, pinassign6 , spi1_ssel0_io;
+    spi1_ssel1   , SPI1_SSEL1   , Output, pinassign6 , spi1_ssel1_io;
+    sct_pin0     , SCT_PIN0     , Input , pinassign6 , sct0_gpio_in_a_i;
+    sct_pin1     , SCT_PIN1     , Input , pinassign7 , sct0_gpio_in_b_i;
+    sct_pin2     , SCT_PIN2     , Input , pinassign7 , sct0_gpio_in_c_i;
+    sct_pin3     , SCT_PIN3     , Input , pinassign7 , sct0_gpio_in_d_i;
+    sct_out0     , SCT_OUT0     , Output, pinassign7 , sct_out0_o;
+    sct_out1     , SCT_OUT1     , Output, pinassign8 , sct_out1_o;
+    sct_out2     , SCT_OUT2     , Output, pinassign8 , sct_out2_o;
+    sct_out3     , SCT_OUT3     , Output, pinassign8 , sct_out3_o;
+    sct_out4     , SCT_OUT4     , Output, pinassign8 , sct_out4_o;
+    sct_out5     , SCT_OUT5     , Output, pinassign9 , sct_out5_o;
+    sct_out6     , SCT_OUT6     , Output, pinassign9 , sct_out6_o;
+    i2c1_sda     , I2C1_SDA     , Output, pinassign9 , i2c1_sda_io;
+    i2c1_scl     , I2C1_SCL     , Output, pinassign9 , i2c1_scl_io;
+    i2c2_sda     , I2C2_SDA     , Output, pinassign10, i2c2_sda_io;
+    i2c2_scl     , I2C2_SCL     , Output, pinassign10, i2c2_scl_io;
+    i2c3_sda     , I2C3_SDA     , Output, pinassign10, i2c3_sda_io;
+    i2c3_scl     , I2C3_SCL     , Output, pinassign10, i2c3_scl_io;
+    acmp_o       , ACMP_O       , Output, pinassign11, comp0_out_o;
+    clkout       , CLKOUT       , Output, pinassign11, clkout_o;
+    gpio_int_bmat, GPIO_INT_BMAT, Output, pinassign11, gpio_int_bmat_o;
+    uart3_txd    , UART3_TXD    , Output, pinassign11, uart3_txd;
+    uart3_rxd    , UART3_RXD    , Input , pinassign12, uart3_rxd;
+    uart3_sclk   , UART3_SCLK   , Output, pinassign12, uart3_sclk;
+    uart4_txd    , UART4_TXD    , Output, pinassign12, uart4_txd;
+    uart4_rxd    , UART4_RXD    , Input , pinassign12, uart4_rxd;
+    uart4_sclk   , UART4_SCLK   , Output, pinassign13, uart4_sclk;
+    t0_mat0      , T0_MAT0      , Output, pinassign13, t0_mat0;
+    t0_mat1      , T0_MAT1      , Output, pinassign13, t0_mat1;
+    t0_mat2      , T0_MAT2      , Output, pinassign13, t0_mat2;
+    t0_mat3      , T0_MAT3      , Output, pinassign14, t0_mat3;
+    t0_cap0      , T0_CAP0      , Output, pinassign14, t0_cap0;
+    t0_cap1      , T0_CAP1      , Output, pinassign14, t0_cap1;
+    t0_cap2      , T0_CAP2      , Output, pinassign14, t0_cap2;
+);
+
 macro_rules! fixed_functions {
     ($(
         $type:ident,
         $kind:ident,
+        $register:ident,
         $field:ident,
         $pin:ident,
         $default_state:ty;
@@ -1152,44 +1322,87 @@ macro_rules! fixed_functions {
 
 
                 fn assign(&mut self, _: &mut $pin, swm : &mut Handle) {
-                    swm.swm.pinenable0.modify(|_, w| w.$field().clear_bit());
+                    swm.swm.$register.modify(|_, w| w.$field().clear_bit());
                 }
 
                 fn unassign(&mut self, _: &mut $pin, swm : &mut Handle)
                 {
-                    swm.swm.pinenable0.modify(|_, w| w.$field().set_bit());
+                    swm.swm.$register.modify(|_, w| w.$field().set_bit());
                 }
             }
         )*
     }
 }
 
+#[cfg(feature = "82x")]
 fixed_functions!(
-    ACMP_I1 , Input , acmp_i1 , PIO0_0 , state::Unassigned;
-    ACMP_I2 , Input , acmp_i2 , PIO0_1 , state::Unassigned;
-    ACMP_I3 , Input , acmp_i3 , PIO0_14, state::Unassigned;
-    ACMP_I4 , Input , acmp_i4 , PIO0_23, state::Unassigned;
-    SWCLK   , Output, swclk   , PIO0_3 , state::Assigned<PIO0_3>;
-    SWDIO   , Output, swdio   , PIO0_2 , state::Assigned<PIO0_2>;
-    XTALIN  , Input , xtalin  , PIO0_8 , state::Unassigned;
-    XTALOUT , Output, xtalout , PIO0_9 , state::Unassigned;
-    RESETN  , Input , resetn  , PIO0_5 , state::Assigned<PIO0_5>;
-    CLKIN   , Input , clkin   , PIO0_1 , state::Unassigned;
-    VDDCMP  , Input , vddcmp  , PIO0_6 , state::Unassigned;
-    I2C0_SDA, Output, i2c0_sda, PIO0_11, state::Unassigned;
-    I2C0_SCL, Output, i2c0_scl, PIO0_10, state::Unassigned;
-    ADC_0   , Adc   , adc_0   , PIO0_7 , state::Unassigned;
-    ADC_1   , Adc   , adc_1   , PIO0_6 , state::Unassigned;
-    ADC_2   , Adc   , adc_2   , PIO0_14, state::Unassigned;
-    ADC_3   , Adc   , adc_3   , PIO0_23, state::Unassigned;
-    ADC_4   , Adc   , adc_4   , PIO0_22, state::Unassigned;
-    ADC_5   , Adc   , adc_5   , PIO0_21, state::Unassigned;
-    ADC_6   , Adc   , adc_6   , PIO0_20, state::Unassigned;
-    ADC_7   , Adc   , adc_7   , PIO0_19, state::Unassigned;
-    ADC_8   , Adc   , adc_8   , PIO0_18, state::Unassigned;
-    ADC_9   , Adc   , adc_9   , PIO0_17, state::Unassigned;
-    ADC_10  , Adc   , adc_10  , PIO0_13, state::Unassigned;
-    ADC_11  , Adc   , adc_11  , PIO0_4 , state::Unassigned;
+    ACMP_I1 , Input , pinenable0, acmp_i1 , PIO0_0 , state::Unassigned;
+    ACMP_I2 , Input , pinenable0, acmp_i2 , PIO0_1 , state::Unassigned;
+    ACMP_I3 , Input , pinenable0, acmp_i3 , PIO0_14, state::Unassigned;
+    ACMP_I4 , Input , pinenable0, acmp_i4 , PIO0_23, state::Unassigned;
+    SWCLK   , Output, pinenable0, swclk   , PIO0_3 , state::Assigned<PIO0_3>;
+    SWDIO   , Output, pinenable0, swdio   , PIO0_2 , state::Assigned<PIO0_2>;
+    XTALIN  , Input , pinenable0, xtalin  , PIO0_8 , state::Unassigned;
+    XTALOUT , Output, pinenable0, xtalout , PIO0_9 , state::Unassigned;
+    RESETN  , Input , pinenable0, resetn  , PIO0_5 , state::Assigned<PIO0_5>;
+    CLKIN   , Input , pinenable0, clkin   , PIO0_1 , state::Unassigned;
+    VDDCMP  , Input , pinenable0, vddcmp  , PIO0_6 , state::Unassigned;
+    I2C0_SDA, Output, pinenable0, i2c0_sda, PIO0_11, state::Unassigned;
+    I2C0_SCL, Output, pinenable0, i2c0_scl, PIO0_10, state::Unassigned;
+    ADC_0   , Analog, pinenable0, adc_0   , PIO0_7 , state::Unassigned;
+    ADC_1   , Analog, pinenable0, adc_1   , PIO0_6 , state::Unassigned;
+    ADC_2   , Analog, pinenable0, adc_2   , PIO0_14, state::Unassigned;
+    ADC_3   , Analog, pinenable0, adc_3   , PIO0_23, state::Unassigned;
+    ADC_4   , Analog, pinenable0, adc_4   , PIO0_22, state::Unassigned;
+    ADC_5   , Analog, pinenable0, adc_5   , PIO0_21, state::Unassigned;
+    ADC_6   , Analog, pinenable0, adc_6   , PIO0_20, state::Unassigned;
+    ADC_7   , Analog, pinenable0, adc_7   , PIO0_19, state::Unassigned;
+    ADC_8   , Analog, pinenable0, adc_8   , PIO0_18, state::Unassigned;
+    ADC_9   , Analog, pinenable0, adc_9   , PIO0_17, state::Unassigned;
+    ADC_10  , Analog, pinenable0, adc_10  , PIO0_13, state::Unassigned;
+    ADC_11  , Analog, pinenable0, adc_11  , PIO0_4 , state::Unassigned;
+);
+
+#[cfg(feature = "845")]
+fixed_functions!(
+    ACMP_I1 , Input , pinenable0, acmp_i1 , PIO0_0 , state::Unassigned;
+    ACMP_I2 , Input , pinenable0, acmp_i2 , PIO0_1 , state::Unassigned;
+    ACMP_I3 , Input , pinenable0, acmp_i3 , PIO0_14, state::Unassigned;
+    ACMP_I4 , Input , pinenable0, acmp_i4 , PIO0_23, state::Unassigned;
+    SWCLK   , Output, pinenable0, swclk   , PIO0_3 , state::Assigned<PIO0_3>;
+    SWDIO   , Output, pinenable0, swdio   , PIO0_2 , state::Assigned<PIO0_2>;
+    XTALIN  , Input , pinenable0, xtalin  , PIO0_8 , state::Unassigned;
+    XTALOUT , Output, pinenable0, xtalout , PIO0_9 , state::Unassigned;
+    RESETN  , Input , pinenable0, resetn  , PIO0_5 , state::Assigned<PIO0_5>;
+    CLKIN   , Input , pinenable0, clkin   , PIO0_1 , state::Unassigned;
+    VDDCMP  , Input , pinenable0, vddcmp  , PIO0_6 , state::Unassigned;
+    I2C0_SDA, Output, pinenable0, i2c0_sda, PIO0_11, state::Unassigned;
+    I2C0_SCL, Output, pinenable0, i2c0_scl, PIO0_10, state::Unassigned;
+    ADC_0   , Analog, pinenable0, adc_0   , PIO0_7 , state::Unassigned;
+    ADC_1   , Analog, pinenable0, adc_1   , PIO0_6 , state::Unassigned;
+    ADC_2   , Analog, pinenable0, adc_2   , PIO0_14, state::Unassigned;
+    ADC_3   , Analog, pinenable0, adc_3   , PIO0_23, state::Unassigned;
+    ADC_4   , Analog, pinenable0, adc_4   , PIO0_22, state::Unassigned;
+    ADC_5   , Analog, pinenable0, adc_5   , PIO0_21, state::Unassigned;
+    ADC_6   , Analog, pinenable0, adc_6   , PIO0_20, state::Unassigned;
+    ADC_7   , Analog, pinenable0, adc_7   , PIO0_19, state::Unassigned;
+    ADC_8   , Analog, pinenable0, adc_8   , PIO0_18, state::Unassigned;
+    ADC_9   , Analog, pinenable0, adc_9   , PIO0_17, state::Unassigned;
+    ADC_10  , Analog, pinenable0, adc_10  , PIO0_13, state::Unassigned;
+    ADC_11  , Analog, pinenable0, adc_11  , PIO0_4 , state::Unassigned;
+    DACOUT0 , Analog, pinenable0, dacout0 , PIO0_17, state::Unassigned;
+    DACOUT1 , Analog, pinenable0, dacout1 , PIO0_29, state::Unassigned;
+    CAPT_X0 , Analog, pinenable0, capt_x0 , PIO0_31, state::Unassigned;
+    CAPT_X1 , Analog, pinenable0, capt_x1 , PIO1_0 , state::Unassigned;
+    CAPT_X2 , Analog, pinenable0, capt_x2 , PIO1_1 , state::Unassigned;
+    CAPT_X3 , Analog, pinenable0, capt_x3 , PIO1_2 , state::Unassigned;
+    CAPT_X4 , Analog, pinenable1, capt_x4 , PIO1_3 , state::Unassigned;
+    CAPT_X5 , Analog, pinenable1, capt_x5 , PIO1_4 , state::Unassigned;
+    CAPT_X6 , Analog, pinenable1, capt_x6 , PIO1_5 , state::Unassigned;
+    CAPT_X7 , Analog, pinenable1, capt_x7 , PIO1_6 , state::Unassigned;
+    CAPT_X8 , Analog, pinenable1, capt_x8 , PIO1_7 , state::Unassigned;
+    CAPT_YL , Analog, pinenable1, capt_yl , PIO1_8 , state::Unassigned;
+    CAPT_YH , Analog, pinenable1, capt_yh , PIO1_8 , state::Unassigned;
 );
 
 /// Contains types that indicate the state of fixed or movable functions

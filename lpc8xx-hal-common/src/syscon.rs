@@ -11,19 +11,22 @@
 
 use core::marker::PhantomData;
 
-use crate::{
-    clock, init_state,
-    raw::{
-        self,
-        syscon::{
-            pdruncfg, presetctrl, starterp1, sysahbclkctrl, PDRUNCFG, PRESETCTRL, STARTERP1,
-            SYSAHBCLKCTRL, UARTCLKDIV, UARTFRGDIV, UARTFRGMULT,
-        },
-    },
-    reg_proxy::RegProxy,
+#[cfg(feature = "82x")]
+use crate::raw::syscon::{
+    pdruncfg, presetctrl, starterp1, sysahbclkctrl, PDRUNCFG, PRESETCTRL, STARTERP1, SYSAHBCLKCTRL,
+    UARTCLKDIV, UARTFRGDIV, UARTFRGMULT,
+};
+
+#[cfg(feature = "845")]
+use crate::raw::syscon::{
+    pdruncfg, presetctrl0 as presetctrl, starterp1, sysahbclkctrl0 as sysahbclkctrl, PDRUNCFG,
+    PRESETCTRL0 as PRESETCTRL, STARTERP1, SYSAHBCLKCTRL0 as SYSAHBCLKCTRL,
 };
 
 use crate::reg;
+// TODO Remove when FRO is implemented for lpc845
+#[allow(unused_imports)]
+use crate::{clock, init_state, raw, raw_compat, reg_proxy::RegProxy};
 
 /// Entry point to the SYSCON API
 ///
@@ -75,12 +78,14 @@ impl SYSCON {
             sysosc: SYSOSC(PhantomData),
             syspll: SYSPLL(PhantomData),
 
+            #[cfg(feature = "82x")]
             uartfrg: UARTFRG {
                 uartclkdiv: RegProxy::new(),
                 uartfrgdiv: RegProxy::new(),
                 uartfrgmult: RegProxy::new(),
             },
 
+            #[cfg(feature = "82x")]
             irc_derived_clock: IrcDerivedClock::new(),
         }
     }
@@ -139,9 +144,11 @@ pub struct Parts {
     /// PLL
     pub syspll: SYSPLL,
 
+    #[cfg(feature = "82x")]
     /// UART Fractional Baud Rate Generator
     pub uartfrg: UARTFRG,
 
+    #[cfg(feature = "82x")]
     /// The 750 kHz IRC-derived clock
     pub irc_derived_clock: IrcDerivedClock<init_state::Enabled>,
 }
@@ -298,6 +305,7 @@ pub struct SYSOSC(PhantomData<*const ()>);
 /// [`syscon::Handle`]: struct.Handle.html
 pub struct SYSPLL(PhantomData<*const ()>);
 
+#[cfg(feature = "82x")]
 /// UART Fractional Baud Rate Generator
 ///
 /// Controls the common clock for all UART peripherals (U_PCLK).
@@ -312,6 +320,7 @@ pub struct UARTFRG {
     uartfrgmult: RegProxy<UARTFRGMULT>,
 }
 
+#[cfg(feature = "82x")]
 impl UARTFRG {
     /// Set UART clock divider value (UARTCLKDIV)
     ///
@@ -370,14 +379,18 @@ macro_rules! impl_clock_control {
 
 impl_clock_control!(ROM, rom);
 impl_clock_control!(RAM0_1, ram0_1);
-impl_clock_control!(raw::FLASHCTRL, flashreg);
+#[cfg(feature = "82x")]
+impl_clock_control!(raw_compat::FLASH_CTRL, flashreg);
+#[cfg(feature = "845")]
+impl_clock_control!(raw_compat::FLASH_CTRL, flash);
 impl_clock_control!(FLASH, flash);
 impl_clock_control!(raw::I2C0, i2c0);
-impl_clock_control!(raw::GPIO_PORT, gpio);
-impl_clock_control!(raw::SWM, swm);
-impl_clock_control!(raw::SCT, sct);
+#[cfg(feature = "82x")]
+impl_clock_control!(raw_compat::GPIO, gpio);
+impl_clock_control!(raw_compat::SWM0, swm);
+impl_clock_control!(raw_compat::SCT0, sct);
 impl_clock_control!(raw::WKT, wkt);
-impl_clock_control!(raw::MRT, mrt);
+impl_clock_control!(raw_compat::MRT0, mrt);
 impl_clock_control!(raw::SPI0, spi0);
 impl_clock_control!(raw::SPI1, spi1);
 impl_clock_control!(raw::CRC, crc);
@@ -386,13 +399,23 @@ impl_clock_control!(raw::USART1, uart1);
 impl_clock_control!(raw::USART2, uart2);
 impl_clock_control!(raw::WWDT, wwdt);
 impl_clock_control!(raw::IOCON, iocon);
-impl_clock_control!(raw::CMP, acmp);
+impl_clock_control!(raw_compat::ACOMP, acmp);
 impl_clock_control!(raw::I2C1, i2c1);
 impl_clock_control!(raw::I2C2, i2c2);
 impl_clock_control!(raw::I2C3, i2c3);
-impl_clock_control!(raw::ADC, adc);
+impl_clock_control!(raw_compat::ADC0, adc);
 impl_clock_control!(MTB, mtb);
-impl_clock_control!(raw::DMA, dma);
+impl_clock_control!(raw_compat::DMA0, dma);
+#[cfg(feature = "845")]
+impl ClockControl for raw_compat::GPIO {
+    fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
+        w.gpio0().enable().gpio1().enable()
+    }
+
+    fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
+        w.gpio0().disable().gpio1().disable()
+    }
+}
 
 /// Internal trait for controlling peripheral reset
 ///
@@ -429,22 +452,35 @@ macro_rules! impl_reset_control {
 
 impl_reset_control!(raw::SPI0, spi0_rst_n);
 impl_reset_control!(raw::SPI1, spi1_rst_n);
+#[cfg(feature = "82x")]
 impl_reset_control!(UARTFRG, uartfrg_rst_n);
 impl_reset_control!(raw::USART0, uart0_rst_n);
 impl_reset_control!(raw::USART1, uart1_rst_n);
 impl_reset_control!(raw::USART2, uart2_rst_n);
 impl_reset_control!(raw::I2C0, i2c0_rst_n);
-impl_reset_control!(raw::MRT, mrt_rst_n);
-impl_reset_control!(raw::SCT, sct_rst_n);
+impl_reset_control!(raw_compat::MRT0, mrt_rst_n);
+impl_reset_control!(raw_compat::SCT0, sct_rst_n);
 impl_reset_control!(raw::WKT, wkt_rst_n);
-impl_reset_control!(raw::GPIO_PORT, gpio_rst_n);
-impl_reset_control!(raw::FLASHCTRL, flash_rst_n);
-impl_reset_control!(raw::CMP, acmp_rst_n);
+#[cfg(feature = "82x")]
+impl_reset_control!(raw_compat::GPIO, gpio_rst_n);
+impl_reset_control!(raw_compat::FLASH_CTRL, flash_rst_n);
+impl_reset_control!(raw_compat::ACOMP, acmp_rst_n);
 impl_reset_control!(raw::I2C1, i2c1_rst_n);
 impl_reset_control!(raw::I2C2, i2c2_rst_n);
 impl_reset_control!(raw::I2C3, i2c3_rst_n);
-impl_reset_control!(raw::ADC, adc_rst_n);
-impl_reset_control!(raw::DMA, dma_rst_n);
+impl_reset_control!(raw_compat::ADC0, adc_rst_n);
+impl_reset_control!(raw_compat::DMA0, dma_rst_n);
+
+#[cfg(feature = "845")]
+impl<'a> ResetControl for raw_compat::GPIO {
+    fn assert_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W {
+        w.gpio0_rst_n().clear_bit().gpio1_rst_n().clear_bit()
+    }
+
+    fn clear_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W {
+        w.gpio0_rst_n().set_bit().gpio1_rst_n().set_bit()
+    }
+}
 
 /// Internal trait for powering analog blocks
 ///
@@ -469,26 +505,29 @@ macro_rules! impl_analog_block {
     ($analog_block:ty, $field:ident) => {
         impl<'a> AnalogBlock for $analog_block {
             fn power_up<'w>(&self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W {
-                w.$field().powered()
+                w.$field().clear_bit()
             }
 
             fn power_down<'w>(&self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W {
-                w.$field().powered_down()
+                w.$field().set_bit()
             }
         }
     };
 }
 
+#[cfg(feature = "82x")]
 impl_analog_block!(IRCOUT, ircout_pd);
+#[cfg(feature = "82x")]
 impl_analog_block!(IRC, irc_pd);
 impl_analog_block!(FLASH, flash_pd);
 impl_analog_block!(BOD, bod_pd);
-impl_analog_block!(raw::ADC, adc_pd);
+impl_analog_block!(raw_compat::ADC0, adc_pd);
 impl_analog_block!(SYSOSC, sysosc_pd);
 impl_analog_block!(raw::WWDT, wdtosc_pd);
 impl_analog_block!(SYSPLL, syspll_pd);
-impl_analog_block!(raw::CMP, acmp);
+impl_analog_block!(raw_compat::ACOMP, acmp);
 
+#[cfg(feature = "82x")]
 /// The 750 kHz IRC-derived clock
 ///
 /// This is one of the clocks that can be used to run the self-wake-up timer
@@ -497,6 +536,7 @@ pub struct IrcDerivedClock<State = init_state::Enabled> {
     _state: State,
 }
 
+#[cfg(feature = "82x")]
 impl IrcDerivedClock<init_state::Enabled> {
     pub(crate) fn new() -> Self {
         IrcDerivedClock {
@@ -505,6 +545,7 @@ impl IrcDerivedClock<init_state::Enabled> {
     }
 }
 
+#[cfg(feature = "82x")]
 impl IrcDerivedClock<init_state::Disabled> {
     /// Enable the IRC-derived clock
     ///
@@ -538,12 +579,14 @@ impl IrcDerivedClock<init_state::Disabled> {
     }
 }
 
+#[cfg(feature = "82x")]
 impl<State> clock::Frequency for IrcDerivedClock<State> {
     fn hz(&self) -> u32 {
         750_000
     }
 }
 
+#[cfg(feature = "82x")]
 impl clock::Enabled for IrcDerivedClock<init_state::Enabled> {}
 
 /// Internal trait used to configure interrupt wake-up
@@ -603,10 +646,19 @@ wakeup_interrupt!(I2c2Wakeup, i2c2);
 wakeup_interrupt!(I2c3Wakeup, i2c3);
 
 reg!(PDRUNCFG, PDRUNCFG, raw::SYSCON, pdruncfg);
+#[cfg(feature = "82x")]
 reg!(PRESETCTRL, PRESETCTRL, raw::SYSCON, presetctrl);
+#[cfg(feature = "845")]
+reg!(PRESETCTRL, PRESETCTRL, raw::SYSCON, presetctrl0);
 reg!(STARTERP1, STARTERP1, raw::SYSCON, starterp1);
+#[cfg(feature = "82x")]
 reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, raw::SYSCON, sysahbclkctrl);
+#[cfg(feature = "845")]
+reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, raw::SYSCON, sysahbclkctrl0);
 
+#[cfg(feature = "82x")]
 reg!(UARTCLKDIV, UARTCLKDIV, raw::SYSCON, uartclkdiv);
+#[cfg(feature = "82x")]
 reg!(UARTFRGDIV, UARTFRGDIV, raw::SYSCON, uartfrgdiv);
+#[cfg(feature = "82x")]
 reg!(UARTFRGMULT, UARTFRGMULT, raw::SYSCON, uartfrgmult);
