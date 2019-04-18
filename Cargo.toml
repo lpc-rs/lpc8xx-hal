@@ -1,0 +1,6 @@
+[workspace]
+members = [
+  "lpc8xx-hal-common",
+  "lpc82x-hal",
+  "lpc845-hal",
+]
