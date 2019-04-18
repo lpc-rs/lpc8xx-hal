@@ -5,6 +5,9 @@
 
 Refer to the `README.md` files in the hal folders for more information.
 
+**Please note that running `cargo build` in the top-level directory won't work.** Please go into one of the subdirectories and run `cargo build` there, if you want to build a specific crate. To build all crates, run `./scripts/build.sh`.
+
+
 ## Help Wanted
 
 Are you familiar with the LPC8xx family? We need your help, even if you are not using LPC8xx HAL. Some design issues require feedback from people familiar with the hardware and how it is used. Check out the [help wanted] tag on the issue tracker.
