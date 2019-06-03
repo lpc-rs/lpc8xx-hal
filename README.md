@@ -26,7 +26,7 @@ See [LICENSE] for full details.
 [LICENSE]: https://github.com/lpc-rs/lpc8xx-hal/blob/master/LICENSE
 
 
-**Supported by [Braun Robotics](https://braun-robotics.com/)**
+**Supported by [Braun Embedded](https://braun-embedded.com/)**
 
 
 [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues/new
