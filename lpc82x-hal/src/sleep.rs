@@ -218,6 +218,7 @@ impl<'r, Clock> Sleep<Clock> for Regular<'r>
         // method can use the alarm flag, which would otherwise need to be reset
         // to exit the interrupt handler.
         interrupt::free(|_| {
+            #[allow(deprecated)]
             self.nvic.enable(Interrupt::WKT);
 
             while let Err(nb::Error::WouldBlock) = self.wkt.wait() {
@@ -226,6 +227,7 @@ impl<'r, Clock> Sleep<Clock> for Regular<'r>
 
             // If we don't do this, the (possibly non-existing) interrupt
             // handler will be called as soon as we exit this closure.
+            #[allow(deprecated)]
             self.nvic.disable(Interrupt::WKT);
         });
     }

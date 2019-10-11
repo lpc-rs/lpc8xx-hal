@@ -160,22 +160,22 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
         self.usart.cfg.modify(|_, w|
             w
                 .enable().enabled()
-                .datalen()._8_bit_data_length()
+                .datalen().bit_8()
                 .paritysel().no_parity()
-                .stoplen()._1_stop_bit()
-                .ctsen().no_flow_control()
-                .syncen().asynchronous_mode_is()
-                .loop_().normal_operation()
+                .stoplen().bit_1()
+                .ctsen().disabled()
+                .syncen().asynchronous_mode()
+                .loop_().normal()
                 .autoaddr().disabled()
-                .rxpol().not_changed()
-                .txpol().not_changed()
+                .rxpol().standard()
+                .txpol().standard()
         );
 
         self.usart.ctl.modify(|_, w|
             w
-                .txbrken().normal_operation()
+                .txbrken().normal()
                 .addrdet().disabled()
-                .txdis().not_disabled()
+                .txdis().enabled()
                 .autobaud().disabled()
         );
 
@@ -214,6 +214,7 @@ impl<UsartX> USART<UsartX, init_state::Enabled> where UsartX: Peripheral {
     /// Enable the interrupts for this USART peripheral. This only enables the
     /// interrupts via the NVIC. It doesn't enable any specific interrupt.
     pub fn enable_interrupts(&mut self, nvic: &mut NVIC) {
+        #[allow(deprecated)]
         nvic.enable(UsartX::INTERRUPT);
     }
 
@@ -422,21 +423,21 @@ pub trait Peripheral:
 }
 
 impl Peripheral for raw::USART0 {
-    const INTERRUPT: Interrupt = Interrupt::UART0;
+    const INTERRUPT: Interrupt = Interrupt::USART0;
 
     type Rx = swm::U0_RXD;
     type Tx = swm::U0_TXD;
 }
 
 impl Peripheral for raw::USART1 {
-    const INTERRUPT: Interrupt = Interrupt::UART1;
+    const INTERRUPT: Interrupt = Interrupt::USART1;
 
     type Rx = swm::U1_RXD;
     type Tx = swm::U1_TXD;
 }
 
 impl Peripheral for raw::USART2 {
-    const INTERRUPT: Interrupt = Interrupt::UART2;
+    const INTERRUPT: Interrupt = Interrupt::USART2;
 
     type Rx = swm::U2_RXD;
     type Tx = swm::U2_TXD;

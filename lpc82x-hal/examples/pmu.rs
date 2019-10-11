@@ -73,6 +73,7 @@ fn main() -> ! {
         // `interrupt::free` will allow the interrupt to wake up the system, if
         // it's sleeping. But the interrupt handler won't run, which means we
         // don't have to define one.
+        #[allow(deprecated)]
         nvic.enable(Interrupt::WKT);
 
         // Busy Waiting

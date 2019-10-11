@@ -103,3 +103,15 @@ macro_rules! reg {
         }
     }
 }
+
+macro_rules! reg_cluster {
+    ($ty:ident, $target:ty, $peripheral:path, $cluster:ident, $field:ident) => {
+        unsafe impl $crate::reg_proxy::Reg for $ty {
+            type Target = $target;
+
+            fn get() -> *const Self::Target {
+                unsafe { &(*<$peripheral>::ptr()).$cluster.$field as *const _ }
+            }
+        }
+    }
+}

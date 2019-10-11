@@ -15,12 +15,14 @@ use crate::{
     init_state,
     raw::{
         self,
-        dma::{
+        dma0::{
             ACTIVE0,
-            CFG,
             ENABLESET0,
             SETTRIG0,
-            XFERCFG,
+            channel::{
+                CFG,
+                XFERCFG,
+            },
         },
     },
     reg_proxy::{
@@ -33,11 +35,11 @@ use crate::{
 
 /// Entry point to the DMA API
 pub struct DMA {
-    dma: raw::DMA,
+    dma: raw::DMA0,
 }
 
 impl DMA {
-    pub(crate) fn new(dma: raw::DMA) -> Self {
+    pub(crate) fn new(dma: raw::DMA0) -> Self {
         DMA { dma }
     }
 
@@ -67,7 +69,7 @@ impl DMA {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> raw::DMA {
+    pub fn free(self) -> raw::DMA0 {
         self.dma
     }
 }
@@ -90,12 +92,12 @@ pub struct Parts {
 /// Handle to the DMA controller
 pub struct Handle<State = init_state::Enabled> {
     _state  : State,
-    dma     : raw::DMA,
+    dma     : raw::DMA0,
     srambase: u32,
 }
 
 impl Handle<init_state::Disabled> {
-    pub(crate) fn new(dma: raw::DMA, srambase: u32) -> Self {
+    pub(crate) fn new(dma: raw::DMA0, srambase: u32) -> Self {
         Handle {
             _state  : init_state::Disabled,
             dma     : dma,
@@ -276,7 +278,7 @@ impl<'dma, T> Channel<T, init_state::Enabled<&'dma Handle>>
             let w = w
                 .periphreqen().enabled()
                 .hwtrigen().disabled()
-                .trigburst().single_transfer();
+                .trigburst().single();
             unsafe { w.chpriority().bits(0) }
         });
 
@@ -286,12 +288,12 @@ impl<'dma, T> Channel<T, init_state::Enabled<&'dma Handle>>
             let w = w
                 .cfgvalid().valid()
                 .reload().disabled()
-                .swtrig().notset()
+                .swtrig().not_set()
                 .clrtrig().cleared()
                 .setinta().no_effect()
                 .setintb().no_effect()
-                .width()._8_bit_transfers_are()
-                .srcinc()._1_x_width()
+                .width().bit_8()
+                .srcinc().width_x_1()
                 .dstinc().no_increment();
             unsafe { w.xfercount().bits(source.len() as u16 - 1) }
         });
@@ -585,44 +587,44 @@ pub struct XFERCFG16;
 pub struct XFERCFG17;
 
 
-reg!(CFG0 , CFG, raw::DMA, cfg0 );
-reg!(CFG1 , CFG, raw::DMA, cfg1 );
-reg!(CFG2 , CFG, raw::DMA, cfg2 );
-reg!(CFG3 , CFG, raw::DMA, cfg3 );
-reg!(CFG4 , CFG, raw::DMA, cfg4 );
-reg!(CFG5 , CFG, raw::DMA, cfg5 );
-reg!(CFG6 , CFG, raw::DMA, cfg6 );
-reg!(CFG7 , CFG, raw::DMA, cfg7 );
-reg!(CFG8 , CFG, raw::DMA, cfg8 );
-reg!(CFG9 , CFG, raw::DMA, cfg9 );
-reg!(CFG10, CFG, raw::DMA, cfg10);
-reg!(CFG11, CFG, raw::DMA, cfg11);
-reg!(CFG12, CFG, raw::DMA, cfg12);
-reg!(CFG13, CFG, raw::DMA, cfg13);
-reg!(CFG14, CFG, raw::DMA, cfg14);
-reg!(CFG15, CFG, raw::DMA, cfg15);
-reg!(CFG16, CFG, raw::DMA, cfg16);
-reg!(CFG17, CFG, raw::DMA, cfg17);
+reg_cluster!(CFG0 , CFG, raw::DMA0, channel0,  cfg);
+reg_cluster!(CFG1 , CFG, raw::DMA0, channel1,  cfg);
+reg_cluster!(CFG2 , CFG, raw::DMA0, channel2,  cfg);
+reg_cluster!(CFG3 , CFG, raw::DMA0, channel3,  cfg);
+reg_cluster!(CFG4 , CFG, raw::DMA0, channel4,  cfg);
+reg_cluster!(CFG5 , CFG, raw::DMA0, channel5,  cfg);
+reg_cluster!(CFG6 , CFG, raw::DMA0, channel6,  cfg);
+reg_cluster!(CFG7 , CFG, raw::DMA0, channel7,  cfg);
+reg_cluster!(CFG8 , CFG, raw::DMA0, channel8,  cfg);
+reg_cluster!(CFG9 , CFG, raw::DMA0, channel9,  cfg);
+reg_cluster!(CFG10, CFG, raw::DMA0, channel10, cfg);
+reg_cluster!(CFG11, CFG, raw::DMA0, channel11, cfg);
+reg_cluster!(CFG12, CFG, raw::DMA0, channel12, cfg);
+reg_cluster!(CFG13, CFG, raw::DMA0, channel13, cfg);
+reg_cluster!(CFG14, CFG, raw::DMA0, channel14, cfg);
+reg_cluster!(CFG15, CFG, raw::DMA0, channel15, cfg);
+reg_cluster!(CFG16, CFG, raw::DMA0, channel16, cfg);
+reg_cluster!(CFG17, CFG, raw::DMA0, channel17, cfg);
 
-reg!(XFERCFG0 , XFERCFG, raw::DMA, xfercfg0 );
-reg!(XFERCFG1 , XFERCFG, raw::DMA, xfercfg1 );
-reg!(XFERCFG2 , XFERCFG, raw::DMA, xfercfg2 );
-reg!(XFERCFG3 , XFERCFG, raw::DMA, xfercfg3 );
-reg!(XFERCFG4 , XFERCFG, raw::DMA, xfercfg4 );
-reg!(XFERCFG5 , XFERCFG, raw::DMA, xfercfg5 );
-reg!(XFERCFG6 , XFERCFG, raw::DMA, xfercfg6 );
-reg!(XFERCFG7 , XFERCFG, raw::DMA, xfercfg7 );
-reg!(XFERCFG8 , XFERCFG, raw::DMA, xfercfg8 );
-reg!(XFERCFG9 , XFERCFG, raw::DMA, xfercfg9 );
-reg!(XFERCFG10, XFERCFG, raw::DMA, xfercfg10);
-reg!(XFERCFG11, XFERCFG, raw::DMA, xfercfg11);
-reg!(XFERCFG12, XFERCFG, raw::DMA, xfercfg12);
-reg!(XFERCFG13, XFERCFG, raw::DMA, xfercfg13);
-reg!(XFERCFG14, XFERCFG, raw::DMA, xfercfg14);
-reg!(XFERCFG15, XFERCFG, raw::DMA, xfercfg15);
-reg!(XFERCFG16, XFERCFG, raw::DMA, xfercfg16);
-reg!(XFERCFG17, XFERCFG, raw::DMA, xfercfg17);
+reg_cluster!(XFERCFG0 , XFERCFG, raw::DMA0, channel0,  xfercfg);
+reg_cluster!(XFERCFG1 , XFERCFG, raw::DMA0, channel1,  xfercfg);
+reg_cluster!(XFERCFG2 , XFERCFG, raw::DMA0, channel2,  xfercfg);
+reg_cluster!(XFERCFG3 , XFERCFG, raw::DMA0, channel3,  xfercfg);
+reg_cluster!(XFERCFG4 , XFERCFG, raw::DMA0, channel4,  xfercfg);
+reg_cluster!(XFERCFG5 , XFERCFG, raw::DMA0, channel5,  xfercfg);
+reg_cluster!(XFERCFG6 , XFERCFG, raw::DMA0, channel6,  xfercfg);
+reg_cluster!(XFERCFG7 , XFERCFG, raw::DMA0, channel7,  xfercfg);
+reg_cluster!(XFERCFG8 , XFERCFG, raw::DMA0, channel8,  xfercfg);
+reg_cluster!(XFERCFG9 , XFERCFG, raw::DMA0, channel9,  xfercfg);
+reg_cluster!(XFERCFG10, XFERCFG, raw::DMA0, channel10, xfercfg);
+reg_cluster!(XFERCFG11, XFERCFG, raw::DMA0, channel11, xfercfg);
+reg_cluster!(XFERCFG12, XFERCFG, raw::DMA0, channel12, xfercfg);
+reg_cluster!(XFERCFG13, XFERCFG, raw::DMA0, channel13, xfercfg);
+reg_cluster!(XFERCFG14, XFERCFG, raw::DMA0, channel14, xfercfg);
+reg_cluster!(XFERCFG15, XFERCFG, raw::DMA0, channel15, xfercfg);
+reg_cluster!(XFERCFG16, XFERCFG, raw::DMA0, channel16, xfercfg);
+reg_cluster!(XFERCFG17, XFERCFG, raw::DMA0, channel17, xfercfg);
 
-reg!(ACTIVE0   , ACTIVE0   , raw::DMA, active0   );
-reg!(ENABLESET0, ENABLESET0, raw::DMA, enableset0);
-reg!(SETTRIG0  , SETTRIG0  , raw::DMA, settrig0  );
+reg!(ACTIVE0   , ACTIVE0   , raw::DMA0, active0   );
+reg!(ENABLESET0, ENABLESET0, raw::DMA0, enableset0);
+reg!(SETTRIG0  , SETTRIG0  , raw::DMA0, settrig0  );

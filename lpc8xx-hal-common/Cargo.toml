@@ -15,18 +15,18 @@ categories    = ["embedded", "hardware-support", "no-std"]
 keywords      = ["arm", "cortex-m", "nxp", "lpc", "embedded-hal-impl"]
 
 [dependencies]
-cortex-m     = "0.5.2"
-embedded-hal = { version = "0.2", features = ["unproven"] }
-nb           = "0.1.1"
-void         = { version = "1", default-features = false }
+cortex-m     = "0.6.1"
+embedded-hal = { version = "0.2.3", features = ["unproven"] }
+nb           = "0.1.2"
+void         = { version = "1.0.2", default-features = false }
 
 [dependencies.lpc82x-pac]
-optional     = true
-version      = "0.6"
+optional = true
+version  = "0.7"
 
 [dependencies.lpc845-pac]
-optional     = true
-version      = "0.1"
+optional = true
+version  = "0.2"
 
 [features]
 82x = ["lpc82x-pac"]

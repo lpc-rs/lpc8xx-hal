@@ -54,8 +54,10 @@ fn main() -> ! {
 
     // Blink the LED
     loop {
+        #[allow(deprecated)]
         pio0_12.set_high();
         sleep.sleep(high_time);
+        #[allow(deprecated)]
         pio0_12.set_low();
         sleep.sleep(low_time);
     }

@@ -367,11 +367,11 @@ macro_rules! impl_clock_control {
     ($clock_control:ty, $clock:ident) => {
         impl ClockControl for $clock_control {
             fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
-                w.$clock().enable()
+                w.$clock().set_bit()
             }
 
             fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
-                w.$clock().disable()
+                w.$clock().clear_bit()
             }
         }
     };
