@@ -2,7 +2,7 @@
 target = "thumbv6m-none-eabi"
 
 [target.thumbv6m-none-eabi]
-runner = "arm-none-eabi-gdb"
+runner = "arm-none-eabi-gdb -tui -q -x openocd.gdb"
 rustflags = [
     # This parameter is duplicated in `scripts/build.sh`.
     # If needed, adjust it there as well.
