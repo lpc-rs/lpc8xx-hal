@@ -1189,10 +1189,10 @@ movable_functions!(
     spi1_miso    , SPI1_MISO    , Output, pinassign6 , spi1_miso_io;
     spi1_ssel0   , SPI1_SSEL0   , Output, pinassign6 , spi1_ssel0_io;
     spi1_ssel1   , SPI1_SSEL1   , Output, pinassign6 , spi1_ssel1_io;
-    sct_pin0     , SCT_PIN0     , Input , pinassign6 , sct_in0_i;
-    sct_pin1     , SCT_PIN1     , Input , pinassign7 , sct_in1_i;
-    sct_pin2     , SCT_PIN2     , Input , pinassign7 , sct_in2_i;
-    sct_pin3     , SCT_PIN3     , Input , pinassign7 , sct_in3_i;
+    sct_pin0     , SCT_PIN0     , Input , pinassign6 , sct_pin0_i;
+    sct_pin1     , SCT_PIN1     , Input , pinassign7 , sct_pin1_i;
+    sct_pin2     , SCT_PIN2     , Input , pinassign7 , sct_pin2_i;
+    sct_pin3     , SCT_PIN3     , Input , pinassign7 , sct_pin3_i;
     sct_out0     , SCT_OUT0     , Output, pinassign7 , sct_out0_o;
     sct_out1     , SCT_OUT1     , Output, pinassign8 , sct_out1_o;
     sct_out2     , SCT_OUT2     , Output, pinassign8 , sct_out2_o;

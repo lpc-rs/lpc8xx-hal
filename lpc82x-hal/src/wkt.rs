@@ -202,7 +202,7 @@ impl<State> Clock for IrcDerivedClock<State> {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
         w
             .sel_extclk().internal()
-            .clksel().divided_irc_clock_t()
+            .clksel().divided_irc_clock()
     }
 }
 
@@ -210,6 +210,6 @@ impl<State> Clock for LowPowerClock<State> {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
         w
             .sel_extclk().internal()
-            .clksel().low_power_clock_thi()
+            .clksel().low_power_clock()
     }
 }

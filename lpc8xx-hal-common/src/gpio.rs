@@ -29,6 +29,7 @@
 //! [`swm`]: ../swm/index.html
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/lpc82x-hal/examples
 
+#[allow(deprecated)]
 use embedded_hal::digital::{OutputPin, StatefulOutputPin};
 
 use crate::{
@@ -196,6 +197,7 @@ where
     }
 }
 
+#[allow(deprecated)]
 impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
 where
     T: PinTrait,
@@ -231,6 +233,7 @@ where
     }
 }
 
+#[allow(deprecated)]
 impl<'gpio, T> StatefulOutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
 where
     T: PinTrait,

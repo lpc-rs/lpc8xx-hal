@@ -217,14 +217,14 @@ pub struct Peripherals {
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub ADC: raw::ADC,
+    pub ADC: raw::ADC0,
 
     /// Analog comparator
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub CMP: raw::CMP,
+    pub CMP: raw::ACOMP,
 
     /// CRC engine
     ///
@@ -233,19 +233,12 @@ pub struct Peripherals {
     /// allow you full, unprotected access to the peripheral.
     pub CRC: raw::CRC,
 
-    /// DMA trigger mux
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub DMATRIGMUX: raw::DMATRIGMUX,
-
     /// Flash controller
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub FLASHCTRL: raw::FLASHCTRL,
+    pub FLASHCTRL: raw::FLASH_CTRL,
 
     /// I2C0-bus interface
     ///
@@ -287,21 +280,21 @@ pub struct Peripherals {
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub MRT: raw::MRT,
+    pub MRT: raw::MRT0,
 
     /// Pin interrupt and pattern match engine
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub PIN_INT: raw::PIN_INT,
+    pub PIN_INT: raw::PINT,
 
     /// State Configurable Timer (SCT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub SCT: raw::SCT,
+    pub SCT: raw::SCT0,
 
     /// SPI0
     ///
@@ -447,13 +440,13 @@ impl Peripherals {
     fn new(p: raw::Peripherals, cp: raw::CorePeripherals) -> Self {
         Peripherals {
             // HAL peripherals
-            DMA   : DMA::new(p.DMA),
+            DMA   : DMA::new(p.DMA0),
             // NOTE(unsafe) The init state of the gpio peripheral is enabled,
             // thus it's safe to create an already initialized gpio port
-            GPIO  : unsafe { GPIO::new_enabled(p.GPIO_PORT) },
+            GPIO  : unsafe { GPIO::new_enabled(p.GPIO) },
             I2C0  : I2C::new(p.I2C0),
             PMU   : PMU::new(p.PMU),
-            SWM   : SWM::new(p.SWM),
+            SWM   : SWM::new(p.SWM0),
             SYSCON: SYSCON::new(p.SYSCON),
             USART0: USART::new(p.USART0),
             USART1: USART::new(p.USART1),
@@ -461,19 +454,18 @@ impl Peripherals {
             WKT   : WKT::new(p.WKT),
 
             // Raw peripherals
-            ADC       : p.ADC,
-            CMP       : p.CMP,
+            ADC       : p.ADC0,
+            CMP       : p.ACOMP,
             CRC       : p.CRC,
-            DMATRIGMUX: p.DMATRIGMUX,
-            FLASHCTRL : p.FLASHCTRL,
+            FLASHCTRL : p.FLASH_CTRL,
             I2C1      : p.I2C1,
             I2C2      : p.I2C2,
             I2C3      : p.I2C3,
             INPUTMUX  : p.INPUTMUX,
             IOCON     : p.IOCON,
-            MRT       : p.MRT,
-            PIN_INT   : p.PIN_INT,
-            SCT       : p.SCT,
+            MRT       : p.MRT0,
+            PIN_INT   : p.PINT,
+            SCT       : p.SCT0,
             SPI0      : p.SPI0,
             SPI1      : p.SPI1,
             WWDT      : p.WWDT,
