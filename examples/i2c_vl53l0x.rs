@@ -13,18 +13,16 @@
 #![no_std]
 
 
-#[macro_use]
-extern crate cortex_m_rt;
-extern crate lpc82x_hal;
-extern crate nb;
 extern crate panic_halt;
 
 
 use core::fmt::Write;
 
-use lpc82x_hal::Peripherals;
-use lpc82x_hal::prelude::*;
-use lpc82x_hal::usart::BaudRate;
+use lpc8xx_hal::Peripherals;
+use lpc8xx_hal::prelude::*;
+use lpc8xx_hal::usart::BaudRate;
+
+use cortex_m_rt::entry;
 
 
 #[entry]

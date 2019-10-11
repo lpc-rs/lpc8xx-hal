@@ -1,16 +1,21 @@
 [package]
-name    = "lpc82x-hal"
+name    = "lpc8xx-hal"
 version = "0.4.0"
-authors = ["Hanno Braun <hanno@braun-robotics.com>"]
 edition = "2018"
 
-description   = "Hardware Abstraction Layer (HAL) for the NXP LPC82x series of ARM Cortex-M0+ microcontroller"
-documentation = "https://docs.rs/lpc82x-hal"
+authors = [
+    "David Sawatzke <david@sawatzke.de>",
+    "Hanno Braun <hanno@braun-embedded.com>"
+]
+
+description   = "Hardware Abstraction Layer (HAL) for the NXP LPC800 series of ARM Cortex-M0+ microcontrollers"
+documentation = "https://docs.rs/lpc8xx-hal"
 repository    = "https://github.com/lpc-rs/lpc8xx-hal"
 license       = "0BSD"
 readme        = "README.md"
-categories    = ["embedded", "hardware-support", "no-std"]
-keywords      = ["arm", "cortex-m", "nxp", "lpc", "embedded-hal-impl"]
+
+categories = ["embedded", "hardware-support", "no-std"]
+keywords   = ["nxp", "lpc", "lpc82x", "lpc845"]
 
 
 [badges]
@@ -20,17 +25,20 @@ travis-ci = { repository = "lpc-rs/lpc8xx-hal" }
 [dependencies]
 cortex-m     = "0.6.1"
 embedded-hal = { version = "0.2.3", features = ["unproven"] }
-lpc82x-pac   = "0.7"
 nb           = "0.1.2"
 void         = { version = "1.0.2", default-features = false }
 # This should be in [dev-dependencies], but those can't be optional. Issue:
 # https://github.com/rust-lang/cargo/issues/1596
 compiletest_rs = { version = "0.3.23", optional = true }
 
-[dependencies.lpc8xx-hal-common]
-path = "../lpc8xx-hal-common"
-version = "0.4.0"
-features = ["82x"]
+[dependencies.lpc82x-pac]
+optional     = true
+version      = "0.7"
+
+[dependencies.lpc845-pac]
+optional     = true
+version      = "0.2"
+
 
 [dev-dependencies]
 cortex-m-rt = "0.6.10"
@@ -38,33 +46,29 @@ panic-halt  = "0.2.0"
 
 
 [features]
+
+# Target platforms. One of these must be selected for the crate to work.
+82x = ["lpc82x-pac"]
+845 = ["lpc845-pac"]
+
 # This is needed to make the compiletest stuff optional. It requires std, which
 # means we can't build it together with the examples.
 compiletest = ["compiletest_rs"]
-rt          = ["lpc82x-pac/rt"]
+rt          = ["lpc82x-pac/rt", "lpc845-pac/rt"]
 
 
 [[example]]
 name              = "gpio"
-required-features = ["rt"]
+required-features = ["rt", "82x"]
 
 [[example]]
 name              = "i2c_vl53l0x"
-required-features = ["rt"]
+required-features = ["rt", "82x"]
 
 [[example]]
 name              = "pmu"
-required-features = ["rt"]
+required-features = ["rt", "82x"]
 
 [[example]]
 name              = "usart"
-required-features = ["rt"]
-
-
-[package.metadata.release]
-pre-release-commit-message = "chore: Release version {{version}}"
-pro-release-commit-message = "chore: Bump version to {{version}}"
-tag-prefix                 = "v"
-tag-message                = "Version {{version}}"
-dev-version-ext            = "dev"
-
+required-features = ["rt", "82x"]

@@ -2,26 +2,23 @@
 #![no_std]
 
 
-extern crate cortex_m;
-#[macro_use]
-extern crate cortex_m_rt;
-extern crate lpc82x_hal;
-#[macro_use]
-extern crate nb;
 extern crate panic_halt;
 
 
 use cortex_m::interrupt;
 
-use lpc82x_hal::prelude::*;
-use lpc82x_hal::Peripherals;
-use lpc82x_hal::pmu::LowPowerClock;
-use lpc82x_hal::raw::{
+use lpc8xx_hal::prelude::*;
+use lpc8xx_hal::Peripherals;
+use lpc8xx_hal::pmu::LowPowerClock;
+use lpc8xx_hal::raw::{
     Interrupt,
     NVIC,
 };
-use lpc82x_hal::syscon::WktWakeup;
-use lpc82x_hal::usart::BaudRate;
+use lpc8xx_hal::syscon::WktWakeup;
+use lpc8xx_hal::usart::BaudRate;
+
+use cortex_m_rt::entry;
+use nb::block;
 
 
 #[entry]

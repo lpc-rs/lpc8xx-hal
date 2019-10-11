@@ -1,9 +1,52 @@
-# `lpc8xx-hal`
-> [HAL] for the lpc8xx family of microcontrollers
+# LPC8xx HAL [![crates.io](https://img.shields.io/crates/v/lpc8xx-hal.svg)](https://crates.io/crates/lpc8xx-hal) [![Documentation](https://docs.rs/lpc8xx-hal/badge.svg)](https://docs.rs/lpc8xx-hal) [![Build Status](https://travis-ci.com/lpc-rs/lpc8xx-hal.svg?branch=master)](https://travis-ci.com/lpc-rs/lpc8xx-hal)
 
-[HAL]: https://crates.io/crates/embedded-hal
+## Introduction
 
-Refer to the `README.md` files in the hal folders for more information.
+Hardware Abstraction Layer (HAL) for the [NXP LPC800] series of microcontrollers, written in the [Rust] programming language. The [LPC82x] and [LPC845] are currently supported. LPC8xx HAL provides a high-level interface to the features of LPC800 MCUs, that is safe, convenient, and efficient.
+
+LPC8xx HAL leverages Rust's type system to prevent common mistakes. Things like attempting to use a peripheral that has not been properly initialized, or attempting to assign conflicting functions to the same pin, will all result in compile-time errors.
+
+This crate is an implementation of [embedded-hal]. Please consider if you can make your code platform-independent, by depending on [embedded-hal] instead of this library.
+
+[NXP LPC800]: https://www.nxp.com/products/processors-and-microcontrollers/arm-microcontrollers/general-purpose-mcus/lpc800-cortex-m0-plus-:MC_71785
+[LPC82x]: https://www.nxp.com/products/processors-and-microcontrollers/arm-based-processors-and-mcus/lpc-cortex-m-mcus/lpc800-series-cortex-m0-plus-mcus/low-cost-microcontrollers-mcus-based-on-arm-cortex-m0-plus-cores:LPC82X
+[LPC845]: https://www.nxp.com/products/processors-and-microcontrollers/arm-based-processors-and-mcus/lpc-cortex-m-mcus/lpc800-series-cortex-m0-plus-mcus/low-cost-microcontrollers-mcus-based-on-arm-cortex-m0-plus-cores:LPC84x
+[Rust]: https://www.rust-lang.org/
+[embedded-hal]: https://crates.io/crates/embedded-hal
+
+
+## Status
+
+LPC82x HAL is still under heavy development. It is lacking APIs for many peripherals, and the APIs that already exist are mostly incomplete.
+
+**Do you need a feature that is currently missing? Please [open an issue]!**
+
+The existing APIs are expected to evolve significantly in the future. API stability is *not* guaranteed, which means future versions might not be compatible with code using the current version.
+
+
+## Usage
+
+To include LPC8xx HAL in you project, add the following to your `Cargo.toml`:
+
+``` toml
+[dependencies]
+lpc8xx-hal = "0.4"
+```
+
+If you want to use LPC8xx HAL in an application (as opposed to a library), there are additional things that need to be set up. Please refer to the [API Reference] for details.
+
+
+## Documentation
+
+The **[API Reference]** should contain everything you need to use this library. If you think that anything's missing, please [open an issue].
+
+For functionality that is not yet covered by this crate, you may need to fall back to [`lpc82x-pac`]/[`lpc845-pac`]. Please refer to their respective documentation if necessary.
+
+The authoritative source on the supported MCUs are their respective user manuals, available from NXP.
+
+[lpc82x-pac]: https://crates.io/crates/lpc82x-pac
+[lpc845-pac]: https://crates.io/crates/lpc84x-pac
+
 
 ## Help Wanted
 
