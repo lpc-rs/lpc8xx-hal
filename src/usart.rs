@@ -64,7 +64,10 @@ use embedded_hal::serial::{
     Read,
     Write,
 };
-use nb;
+use nb::{
+    self,
+    block,
+};
 use void::Void;
 
 use crate::{

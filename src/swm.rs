@@ -35,7 +35,7 @@ pub struct SWM {
 }
 
 impl SWM {
-    pub fn new(swm: raw_compat::SWM0) -> Self {
+    pub(crate) fn new(swm: raw_compat::SWM0) -> Self {
         SWM { swm }
     }
 

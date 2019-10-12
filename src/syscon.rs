@@ -23,7 +23,7 @@ use crate::raw::syscon::{
     PRESETCTRL0 as PRESETCTRL, STARTERP1, SYSAHBCLKCTRL0 as SYSAHBCLKCTRL,
 };
 
-use crate::reg;
+
 // TODO Remove when FRO is implemented for lpc845
 #[allow(unused_imports)]
 use crate::{clock, init_state, raw, raw_compat, reg_proxy::RegProxy};
@@ -50,7 +50,7 @@ pub struct SYSCON {
 }
 
 impl SYSCON {
-    pub fn new(syscon: raw::SYSCON) -> Self {
+    pub(crate) fn new(syscon: raw::SYSCON) -> Self {
         SYSCON { syscon }
     }
 

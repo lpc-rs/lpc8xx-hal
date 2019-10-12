@@ -8,22 +8,26 @@
 //! This module works around this limitation, by introducing a proxy struct that
 //! provides access to a register.
 
-
 use core::marker::PhantomData;
 use core::mem::transmute;
 use core::ops::Deref;
-
 
 /// A proxy object for a register
 ///
 /// This proxy can be moved and owned, then provide access to the register it
 /// proxies from wherever it is. Access to the register is provided by
 /// implementing `Deref`.
-pub struct RegProxy<T> where T: Reg {
+pub struct RegProxy<T>
+where
+    T: Reg,
+{
     _marker: PhantomData<*const T>,
 }
 
-impl<T> RegProxy<T> where T: Reg {
+impl<T> RegProxy<T>
+where
+    T: Reg,
+{
     /// Create a new proxy object
     ///
     /// If this method is used to create multiple proxies for the same register,
@@ -55,7 +59,10 @@ impl<T> RegProxy<T> where T: Reg {
 
 unsafe impl<T> Send for RegProxy<T> where T: Reg {}
 
-impl<T> Deref for RegProxy<T> where T: Reg {
+impl<T> Deref for RegProxy<T>
+where
+    T: Reg,
+{
     type Target = T::Target;
 
     fn deref(&self) -> &Self::Target {
@@ -67,7 +74,6 @@ impl<T> Deref for RegProxy<T> where T: Reg {
         unsafe { transmute(T::get()) }
     }
 }
-
 
 /// Implemented for registers that `RegProxy` can proxy
 ///
@@ -92,6 +98,7 @@ pub unsafe trait Reg {
     fn get() -> *const Self::Target;
 }
 
+
 macro_rules! reg {
     ($ty:ident, $target:ty, $peripheral:path, $field:ident) => {
         unsafe impl $crate::reg_proxy::Reg for $ty {
@@ -101,9 +108,10 @@ macro_rules! reg {
                 unsafe { &(*<$peripheral>::ptr()).$field as *const _ }
             }
         }
-    }
+    };
 }
 
+#[cfg(feature = "82x")]
 macro_rules! reg_cluster {
     ($ty:ident, $target:ty, $peripheral:path, $cluster:ident, $field:ident) => {
         unsafe impl $crate::reg_proxy::Reg for $ty {
