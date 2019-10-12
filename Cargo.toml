@@ -1,6 +1,6 @@
 [package]
 name    = "lpc8xx-hal"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2018"
 
 authors = [
@@ -50,6 +50,8 @@ panic-halt  = "0.2.0"
 # Target platforms. One of these must be selected for the crate to work.
 82x = ["lpc82x-pac"]
 845 = ["lpc845-pac"]
+
+default = ["82x"]
 
 # This is needed to make the compiletest stuff optional. It requires std, which
 # means we can't build it together with the examples.

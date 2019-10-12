@@ -1,8 +1,23 @@
+<a name="v0.5.0"></a>
+## v0.5.0 (2019-10-12)
+
+- Add initial support for LPC845; rename to `lpc8xx-hal` ([#150], [#151], [#152], [#155], [#161])
+- Update dependencies ([#160])
+
+[#150]: https://github.com/lpc-rs/lpc8xx-hal/pull/150
+[#151]: https://github.com/lpc-rs/lpc8xx-hal/pull/151
+[#152]: https://github.com/lpc-rs/lpc8xx-hal/pull/152
+[#155]: https://github.com/lpc-rs/lpc8xx-hal/pull/155
+[#160]: https://github.com/lpc-rs/lpc8xx-hal/pull/160
+[#161]: https://github.com/lpc-rs/lpc8xx-hal/pull/161
+
+
 <a name="v0.4.0"></a>
 ## v0.4.0 (2019-03-14)
 
 - Support stable Rust ([#145](https://github.com/lpc-rs/lpc8xx-hal/pull/145))
 - Update documentation ([#148](https://github.com/lpc-rs/lpc8xx-hal/pull/148))
+
 
 <a name="v0.3.0"></a>
 ## v0.3.0 (2019-03-12)
