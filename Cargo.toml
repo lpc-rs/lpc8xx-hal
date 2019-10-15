@@ -64,6 +64,10 @@ name              = "gpio"
 required-features = ["rt", "82x"]
 
 [[example]]
+name              = "845_gpio"
+required-features = ["rt", "845"]
+
+[[example]]
 name              = "i2c_vl53l0x"
 required-features = ["rt", "82x"]
 
