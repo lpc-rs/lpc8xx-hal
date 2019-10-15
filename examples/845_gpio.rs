@@ -33,9 +33,11 @@ fn main() -> ! {
         // For this simple demo accurate timing isn't required and this is the
         // simplest Method to delay
         for _ in 0..1000000 {
+            #[allow(deprecated)]
             pio1_1.set_high();
         }
         for _ in 0..1000000 {
+            #[allow(deprecated)]
             pio1_1.set_low();
         }
     }
