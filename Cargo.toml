@@ -51,8 +51,6 @@ panic-halt = "0.2.0"
 82x = ["lpc82x-pac"]
 845 = ["lpc845-pac"]
 
-default = ["82x"]
-
 # This is needed to make the compiletest stuff optional. It requires std, which
 # means we can't build it together with the examples.
 compiletest = ["compiletest_rs"]
