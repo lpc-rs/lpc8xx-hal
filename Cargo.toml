@@ -63,11 +63,11 @@ rt_845      = ["cortex-m-rt", "lpc845-pac/rt"]
 
 
 [[example]]
-name              = "gpio"
+name              = "gpio_sleep"
 required-features = ["rt", "82x"]
 
 [[example]]
-name              = "845_gpio"
+name              = "gpio_simple"
 required-features = ["rt_845", "845"]
 
 [[example]]
