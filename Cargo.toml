@@ -45,6 +45,10 @@ version      = "0.2"
 panic-halt = "0.2.0"
 
 
+[build-dependencies]
+termion = "1.5.3"
+
+
 [features]
 
 # Target platforms. One of these must be selected for the crate to work.
