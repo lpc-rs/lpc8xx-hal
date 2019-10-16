@@ -92,12 +92,6 @@
 #![deny(missing_docs)]
 
 
-#[cfg(all(not(feature = "82x"), not(feature = "845")))]
-compile_error!(
-    "No platform specified. Pass `--feature=82x` or `--feature=845`."
-);
-
-
 #[cfg(test)]
 extern crate std;
 
