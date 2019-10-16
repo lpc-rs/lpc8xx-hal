@@ -100,7 +100,13 @@ compile_error!(
 
 #[cfg(test)]
 extern crate std;
-extern crate nb;
+
+
+pub extern crate cortex_m;
+#[cfg(feature = "rt")]
+pub extern crate cortex_m_rt;
+pub extern crate embedded_hal;
+pub extern crate nb;
 
 
 #[macro_use]
