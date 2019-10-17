@@ -24,6 +24,7 @@ travis-ci = { repository = "lpc-rs/lpc8xx-hal" }
 
 [dependencies]
 cortex-m     = "0.6.1"
+cortex-m-rt  = { version = "0.6.10", optional = true }
 embedded-hal = { version = "0.2.3", features = ["unproven"] }
 nb           = "0.1.2"
 void         = { version = "1.0.2", default-features = false }
@@ -41,8 +42,7 @@ version      = "0.2"
 
 
 [dev-dependencies]
-cortex-m-rt = "0.6.10"
-panic-halt  = "0.2.0"
+panic-halt = "0.2.0"
 
 
 [features]
@@ -56,7 +56,7 @@ default = ["82x"]
 # This is needed to make the compiletest stuff optional. It requires std, which
 # means we can't build it together with the examples.
 compiletest = ["compiletest_rs"]
-rt          = ["lpc82x-pac/rt", "lpc845-pac/rt"]
+rt          = ["cortex-m-rt", "lpc82x-pac/rt", "lpc845-pac/rt"]
 
 
 [[example]]

@@ -5,20 +5,20 @@
 extern crate panic_halt;
 
 
-use cortex_m::interrupt;
-
-use lpc8xx_hal::prelude::*;
-use lpc8xx_hal::Peripherals;
-use lpc8xx_hal::pmu::LowPowerClock;
-use lpc8xx_hal::raw::{
-    Interrupt,
-    NVIC,
+use lpc8xx_hal::{
+    prelude::*,
+    Peripherals,
+    cortex_m::interrupt,
+    cortex_m_rt::entry,
+    nb::block,
+    pmu::LowPowerClock,
+    raw::{
+        Interrupt,
+        NVIC,
+    },
+    syscon::WktWakeup,
+    usart::BaudRate,
 };
-use lpc8xx_hal::syscon::WktWakeup;
-use lpc8xx_hal::usart::BaudRate;
-
-use cortex_m_rt::entry;
-use nb::block;
 
 
 #[entry]
