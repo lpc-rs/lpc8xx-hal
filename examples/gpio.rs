@@ -5,12 +5,13 @@
 extern crate panic_halt;
 
 
-use lpc8xx_hal::prelude::*;
-use lpc8xx_hal::Peripherals;
-use lpc8xx_hal::clock::Ticks;
-use lpc8xx_hal::sleep;
-
-use cortex_m_rt::entry;
+use lpc8xx_hal::{
+    prelude::*,
+    Peripherals,
+    clock::Ticks,
+    cortex_m_rt::entry,
+    sleep,
+};
 
 
 #[entry]

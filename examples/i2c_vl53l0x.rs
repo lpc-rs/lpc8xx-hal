@@ -18,11 +18,12 @@ extern crate panic_halt;
 
 use core::fmt::Write;
 
-use lpc8xx_hal::Peripherals;
-use lpc8xx_hal::prelude::*;
-use lpc8xx_hal::usart::BaudRate;
-
-use cortex_m_rt::entry;
+use lpc8xx_hal::{
+    prelude::*,
+    Peripherals,
+    cortex_m_rt::entry,
+    usart::BaudRate,
+};
 
 
 #[entry]
