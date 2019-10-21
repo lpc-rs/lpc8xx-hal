@@ -56,7 +56,8 @@ default = ["82x"]
 # This is needed to make the compiletest stuff optional. It requires std, which
 # means we can't build it together with the examples.
 compiletest = ["compiletest_rs"]
-rt          = ["cortex-m-rt", "lpc82x-pac/rt", "lpc845-pac/rt"]
+rt          = ["cortex-m-rt", "lpc82x-pac/rt"]
+rt_845      = ["cortex-m-rt", "lpc845-pac/rt"]
 
 
 [[example]]
@@ -65,7 +66,7 @@ required-features = ["rt", "82x"]
 
 [[example]]
 name              = "845_gpio"
-required-features = ["rt", "845"]
+required-features = ["rt_845", "845"]
 
 [[example]]
 name              = "i2c_vl53l0x"
