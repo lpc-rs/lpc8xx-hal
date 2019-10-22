@@ -1,13 +1,16 @@
 #![no_main]
 #![no_std]
 
-#[allow(unused_imports)]
-use panic_halt;
 
-use lpc8xx_hal::prelude::*;
-use lpc8xx_hal::Peripherals;
+extern crate panic_halt;
 
-use cortex_m_rt::entry;
+
+use lpc8xx_hal::{
+    prelude::*,
+    Peripherals,
+    cortex_m_rt::entry,
+};
+
 
 #[entry]
 fn main() -> ! {
@@ -20,25 +23,37 @@ fn main() -> ! {
 
     // Initialize the APIs of the peripherals we need.
     let swm = p.SWM.split();
-    let mut syscon = p.SYSCON.split();
-    // let mut wkt = p.WKT.enable(&mut syscon.handle);
-    let gpio = p.GPIO.enable(&mut syscon.handle);
+    #[cfg(feature = "82x")]
+    let gpio = p.GPIO; // GPIO is initialized by default on LPC82x.
+    #[cfg(feature = "845")]
+    let gpio = {
+        let mut syscon = p.SYSCON.split();
+        p.GPIO.enable(&mut syscon.handle)
+    };
 
-    // Configure the PIO1_1 pin. The API tracks the state of pins at
-    // compile-time, to prevent any mistakes.
-    let mut pio1_1 = swm.pins.pio1_1.into_gpio_pin(&gpio).into_output();
+    // Select pin for LED
+    #[cfg(feature = "82x")]
+    let led = swm.pins.pio0_12;
+    #[cfg(feature = "845")]
+    let led = swm.pins.pio1_1;
+
+    // Configure the LED pin. The API tracks the state of pins at compile time,
+    // to prevent any mistakes.
+    let mut led = led.into_gpio_pin(&gpio).into_output();
 
     // Blink the LED
+    //
+    // For this simple demo accurate timing isn't required and this is the
+    // simplest method to delay. The values are chosen to give a nice blinking
+    // pattern in release mode.
     loop {
-        // For this simple demo accurate timing isn't required and this is the
-        // simplest Method to delay
-        for _ in 0..1000000 {
+        for _ in 0..1_000_000 {
             #[allow(deprecated)]
-            pio1_1.set_high();
+            led.set_high();
         }
-        for _ in 0..1000000 {
+        for _ in 0..100_000 {
             #[allow(deprecated)]
-            pio1_1.set_low();
+            led.set_low();
         }
     }
 }
