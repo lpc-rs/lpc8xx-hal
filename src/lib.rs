@@ -97,7 +97,7 @@ extern crate std;
 
 
 pub extern crate cortex_m;
-#[cfg(feature = "rt")]
+#[cfg(feature = "rt-selected")]
 pub extern crate cortex_m_rt;
 pub extern crate embedded_hal;
 pub extern crate nb;
