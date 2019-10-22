@@ -1,3 +1,5 @@
+use std::fs;
+
 use termion::{
     color,
     style,
@@ -5,9 +7,9 @@ use termion::{
 
 
 fn main() {
-    match (cfg!(feature = "82x"), cfg!(feature = "845")) {
-        (true, false) => (),
-        (false, true) => (),
+    let openocd_cfg = match (cfg!(feature = "82x"), cfg!(feature = "845")) {
+        (true, false) => "openocd_82x.cfg",
+        (false, true) => "openocd_84x.cfg",
 
         _ => {
             panic!(
@@ -18,5 +20,8 @@ fn main() {
                 style::Reset,
             );
         }
-    }
+    };
+
+    fs::copy(openocd_cfg, "target/openocd.cfg")
+        .expect("Failed to copy OpenOCD configuration");
 }

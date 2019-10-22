@@ -1,3 +1,3 @@
-target remote | openocd
+target remote | openocd -f target/openocd.cfg
 load
 continue
