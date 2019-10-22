@@ -5,4 +5,4 @@ set -e
 export RUSTFLAGS="-D warnings"
 
 cargo build --verbose --no-default-features --features=rt,82x --examples
-cargo build --verbose --no-default-features --features=rt,845 --examples
+cargo build --verbose --no-default-features --features=rt_845,845 --examples
