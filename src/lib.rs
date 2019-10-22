@@ -107,6 +107,7 @@ pub extern crate nb;
 pub(crate) mod reg_proxy;
 
 pub mod clock;
+pub mod delay;
 #[cfg(feature = "82x")]
 pub mod dma;
 #[cfg(feature = "82x")]
@@ -141,6 +142,7 @@ pub mod prelude {
         Enabled as _lpc82x_hal_clock_Enabled, Frequency as _lpc82x_hal_clock_Frequency,
     };
     pub use crate::hal::prelude::*;
+    pub use crate::delay::SystDelay;
     #[cfg(feature = "82x")]
     pub use crate::sleep::Sleep as _;
 }
