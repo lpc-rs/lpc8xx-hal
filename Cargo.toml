@@ -55,6 +55,13 @@ termion = "1.5.3"
 82x = ["lpc82x-pac"]
 845 = ["lpc845-pac"]
 
+# Runtime support. Required when building an application, not a library.
+#
+# That these features depend on the `82x`/`845` features looks redundant, but is
+# actually required by the build script to check the target selection.
+82x-rt = ["82x", "cortex-m-rt", "lpc82x-pac/rt", "rt-selected"]
+845-rt = ["845", "cortex-m-rt", "lpc845-pac/rt", "rt-selected"]
+
 # Internal implementation detail. Used by other code to determine whether a
 # runtime feature was selected.
 rt-selected = []
@@ -62,8 +69,6 @@ rt-selected = []
 # This is needed to make the compiletest stuff optional. It requires std, which
 # means we can't build it together with the examples.
 compiletest = ["compiletest_rs"]
-82x-rt      = ["82x", "cortex-m-rt", "lpc82x-pac/rt", "rt-selected"]
-845-rt      = ["845", "cortex-m-rt", "lpc845-pac/rt", "rt-selected"]
 
 
 [[example]]
