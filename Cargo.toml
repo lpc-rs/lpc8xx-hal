@@ -62,8 +62,8 @@ rt-selected = []
 # This is needed to make the compiletest stuff optional. It requires std, which
 # means we can't build it together with the examples.
 compiletest = ["compiletest_rs"]
-rt          = ["cortex-m-rt", "lpc82x-pac/rt", "rt-selected"]
-rt_845      = ["cortex-m-rt", "lpc845-pac/rt", "rt-selected"]
+82x-rt      = ["cortex-m-rt", "lpc82x-pac/rt", "rt-selected"]
+845-rt      = ["cortex-m-rt", "lpc845-pac/rt", "rt-selected"]
 
 
 [[example]]
