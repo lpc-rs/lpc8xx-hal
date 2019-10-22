@@ -94,3 +94,11 @@ required-features = ["rt-selected", "82x"]
 [[example]]
 name              = "usart"
 required-features = ["rt-selected", "82x"]
+
+[profile.dev]
+debug = true
+
+[profile.release]
+debug = true
+lto = true
+opt-level = "s"
