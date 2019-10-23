@@ -12,13 +12,13 @@
 use core::marker::PhantomData;
 
 #[cfg(feature = "82x")]
-use crate::raw::syscon::{
+use crate::pac::syscon::{
     pdruncfg, presetctrl, starterp1, sysahbclkctrl, PDRUNCFG, PRESETCTRL, STARTERP1, SYSAHBCLKCTRL,
     UARTCLKDIV, UARTFRGDIV, UARTFRGMULT,
 };
 
 #[cfg(feature = "845")]
-use crate::raw::syscon::{
+use crate::pac::syscon::{
     pdruncfg, presetctrl0 as presetctrl, starterp1, sysahbclkctrl0 as sysahbclkctrl, PDRUNCFG,
     PRESETCTRL0 as PRESETCTRL, STARTERP1, SYSAHBCLKCTRL0 as SYSAHBCLKCTRL,
 };
@@ -26,7 +26,7 @@ use crate::raw::syscon::{
 
 // TODO Remove when FRO is implemented for lpc845
 #[allow(unused_imports)]
-use crate::{clock, init_state, raw, raw_compat, reg_proxy::RegProxy};
+use crate::{clock, init_state, pac, raw_compat, reg_proxy::RegProxy};
 
 /// Entry point to the SYSCON API
 ///
@@ -46,11 +46,11 @@ use crate::{clock, init_state, raw, raw_compat, reg_proxy::RegProxy};
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct SYSCON {
-    syscon: raw::SYSCON,
+    syscon: pac::SYSCON,
 }
 
 impl SYSCON {
-    pub(crate) fn new(syscon: raw::SYSCON) -> Self {
+    pub(crate) fn new(syscon: pac::SYSCON) -> Self {
         SYSCON { syscon }
     }
 
@@ -102,7 +102,7 @@ impl SYSCON {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> raw::SYSCON {
+    pub fn free(self) -> pac::SYSCON {
         self.syscon
     }
 }
@@ -384,25 +384,25 @@ impl_clock_control!(raw_compat::FLASH_CTRL, flashreg);
 #[cfg(feature = "845")]
 impl_clock_control!(raw_compat::FLASH_CTRL, flash);
 impl_clock_control!(FLASH, flash);
-impl_clock_control!(raw::I2C0, i2c0);
+impl_clock_control!(pac::I2C0, i2c0);
 #[cfg(feature = "82x")]
 impl_clock_control!(raw_compat::GPIO, gpio);
 impl_clock_control!(raw_compat::SWM0, swm);
 impl_clock_control!(raw_compat::SCT0, sct);
-impl_clock_control!(raw::WKT, wkt);
+impl_clock_control!(pac::WKT, wkt);
 impl_clock_control!(raw_compat::MRT0, mrt);
-impl_clock_control!(raw::SPI0, spi0);
-impl_clock_control!(raw::SPI1, spi1);
-impl_clock_control!(raw::CRC, crc);
-impl_clock_control!(raw::USART0, uart0);
-impl_clock_control!(raw::USART1, uart1);
-impl_clock_control!(raw::USART2, uart2);
-impl_clock_control!(raw::WWDT, wwdt);
-impl_clock_control!(raw::IOCON, iocon);
+impl_clock_control!(pac::SPI0, spi0);
+impl_clock_control!(pac::SPI1, spi1);
+impl_clock_control!(pac::CRC, crc);
+impl_clock_control!(pac::USART0, uart0);
+impl_clock_control!(pac::USART1, uart1);
+impl_clock_control!(pac::USART2, uart2);
+impl_clock_control!(pac::WWDT, wwdt);
+impl_clock_control!(pac::IOCON, iocon);
 impl_clock_control!(raw_compat::ACOMP, acmp);
-impl_clock_control!(raw::I2C1, i2c1);
-impl_clock_control!(raw::I2C2, i2c2);
-impl_clock_control!(raw::I2C3, i2c3);
+impl_clock_control!(pac::I2C1, i2c1);
+impl_clock_control!(pac::I2C2, i2c2);
+impl_clock_control!(pac::I2C3, i2c3);
 impl_clock_control!(raw_compat::ADC0, adc);
 impl_clock_control!(MTB, mtb);
 impl_clock_control!(raw_compat::DMA0, dma);
@@ -450,24 +450,24 @@ macro_rules! impl_reset_control {
     };
 }
 
-impl_reset_control!(raw::SPI0, spi0_rst_n);
-impl_reset_control!(raw::SPI1, spi1_rst_n);
+impl_reset_control!(pac::SPI0, spi0_rst_n);
+impl_reset_control!(pac::SPI1, spi1_rst_n);
 #[cfg(feature = "82x")]
 impl_reset_control!(UARTFRG, uartfrg_rst_n);
-impl_reset_control!(raw::USART0, uart0_rst_n);
-impl_reset_control!(raw::USART1, uart1_rst_n);
-impl_reset_control!(raw::USART2, uart2_rst_n);
-impl_reset_control!(raw::I2C0, i2c0_rst_n);
+impl_reset_control!(pac::USART0, uart0_rst_n);
+impl_reset_control!(pac::USART1, uart1_rst_n);
+impl_reset_control!(pac::USART2, uart2_rst_n);
+impl_reset_control!(pac::I2C0, i2c0_rst_n);
 impl_reset_control!(raw_compat::MRT0, mrt_rst_n);
 impl_reset_control!(raw_compat::SCT0, sct_rst_n);
-impl_reset_control!(raw::WKT, wkt_rst_n);
+impl_reset_control!(pac::WKT, wkt_rst_n);
 #[cfg(feature = "82x")]
 impl_reset_control!(raw_compat::GPIO, gpio_rst_n);
 impl_reset_control!(raw_compat::FLASH_CTRL, flash_rst_n);
 impl_reset_control!(raw_compat::ACOMP, acmp_rst_n);
-impl_reset_control!(raw::I2C1, i2c1_rst_n);
-impl_reset_control!(raw::I2C2, i2c2_rst_n);
-impl_reset_control!(raw::I2C3, i2c3_rst_n);
+impl_reset_control!(pac::I2C1, i2c1_rst_n);
+impl_reset_control!(pac::I2C2, i2c2_rst_n);
+impl_reset_control!(pac::I2C3, i2c3_rst_n);
 impl_reset_control!(raw_compat::ADC0, adc_rst_n);
 impl_reset_control!(raw_compat::DMA0, dma_rst_n);
 
@@ -523,7 +523,7 @@ impl_analog_block!(FLASH, flash_pd);
 impl_analog_block!(BOD, bod_pd);
 impl_analog_block!(raw_compat::ADC0, adc_pd);
 impl_analog_block!(SYSOSC, sysosc_pd);
-impl_analog_block!(raw::WWDT, wdtosc_pd);
+impl_analog_block!(pac::WWDT, wdtosc_pd);
 impl_analog_block!(SYSPLL, syspll_pd);
 impl_analog_block!(raw_compat::ACOMP, acmp);
 
@@ -645,20 +645,20 @@ wakeup_interrupt!(WktWakeup, wkt);
 wakeup_interrupt!(I2c2Wakeup, i2c2);
 wakeup_interrupt!(I2c3Wakeup, i2c3);
 
-reg!(PDRUNCFG, PDRUNCFG, raw::SYSCON, pdruncfg);
+reg!(PDRUNCFG, PDRUNCFG, pac::SYSCON, pdruncfg);
 #[cfg(feature = "82x")]
-reg!(PRESETCTRL, PRESETCTRL, raw::SYSCON, presetctrl);
+reg!(PRESETCTRL, PRESETCTRL, pac::SYSCON, presetctrl);
 #[cfg(feature = "845")]
-reg!(PRESETCTRL, PRESETCTRL, raw::SYSCON, presetctrl0);
-reg!(STARTERP1, STARTERP1, raw::SYSCON, starterp1);
+reg!(PRESETCTRL, PRESETCTRL, pac::SYSCON, presetctrl0);
+reg!(STARTERP1, STARTERP1, pac::SYSCON, starterp1);
 #[cfg(feature = "82x")]
-reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, raw::SYSCON, sysahbclkctrl);
+reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, pac::SYSCON, sysahbclkctrl);
 #[cfg(feature = "845")]
-reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, raw::SYSCON, sysahbclkctrl0);
+reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, pac::SYSCON, sysahbclkctrl0);
 
 #[cfg(feature = "82x")]
-reg!(UARTCLKDIV, UARTCLKDIV, raw::SYSCON, uartclkdiv);
+reg!(UARTCLKDIV, UARTCLKDIV, pac::SYSCON, uartclkdiv);
 #[cfg(feature = "82x")]
-reg!(UARTFRGDIV, UARTFRGDIV, raw::SYSCON, uartfrgdiv);
+reg!(UARTFRGDIV, UARTFRGDIV, pac::SYSCON, uartfrgdiv);
 #[cfg(feature = "82x")]
-reg!(UARTFRGMULT, UARTFRGMULT, raw::SYSCON, uartfrgmult);
+reg!(UARTFRGMULT, UARTFRGMULT, pac::SYSCON, uartfrgmult);

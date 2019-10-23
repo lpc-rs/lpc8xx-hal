@@ -50,7 +50,7 @@ use void::Void;
 
 use crate::{
     init_state,
-    raw,
+    pac,
     swm::{
         self,
         I2C0_SCL,
@@ -78,12 +78,12 @@ use crate::{
 ///
 /// [module documentation]: index.html
 pub struct I2C<State = init_state::Enabled> {
-    i2c   : raw::I2C0,
+    i2c   : pac::I2C0,
     _state: State,
 }
 
 impl I2C<init_state::Disabled> {
-    pub(crate) fn new(i2c: raw::I2C0) -> Self {
+    pub(crate) fn new(i2c: pac::I2C0) -> Self {
         I2C {
             i2c   : i2c,
             _state: init_state::Disabled,
@@ -239,7 +239,7 @@ impl<State> I2C<State> {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> raw::I2C0 {
+    pub fn free(self) -> pac::I2C0 {
         self.i2c
     }
 }

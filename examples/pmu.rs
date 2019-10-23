@@ -11,11 +11,11 @@ use lpc8xx_hal::{
     cortex_m::interrupt,
     cortex_m_rt::entry,
     nb::block,
-    pmu::LowPowerClock,
-    raw::{
+    pac::{
         Interrupt,
         NVIC,
     },
+    pmu::LowPowerClock,
     syscon::WktWakeup,
     usart::BaudRate,
 };

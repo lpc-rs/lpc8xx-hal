@@ -38,11 +38,11 @@ use void::Void;
 
 use crate::{
     init_state,
-    pmu::LowPowerClock,
-    raw::{
+    pac::{
         self,
         wkt::ctrl,
     },
+    pmu::LowPowerClock,
     syscon::{
         self,
         IrcDerivedClock,
@@ -60,12 +60,12 @@ use crate::{
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct WKT<State = init_state::Enabled> {
-    wkt   : raw::WKT,
+    wkt   : pac::WKT,
     _state: State,
 }
 
 impl WKT<init_state::Disabled> {
-    pub(crate) fn new(wkt: raw::WKT) -> Self {
+    pub(crate) fn new(wkt: pac::WKT) -> Self {
         WKT {
             wkt   : wkt,
             _state: init_state::Disabled,
@@ -179,7 +179,7 @@ impl<State> WKT<State> {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> raw::WKT {
+    pub fn free(self) -> pac::WKT {
         self.wkt
     }
 }

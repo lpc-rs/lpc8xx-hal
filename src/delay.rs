@@ -19,7 +19,7 @@
 
 use cortex_m::peripheral::syst::SystClkSource;
 
-use crate::raw::SYST;
+use crate::pac::SYST;
 use embedded_hal::blocking::delay::{DelayMs, DelayUs};
 
 /// System timer (SysTick) as a delay provider
