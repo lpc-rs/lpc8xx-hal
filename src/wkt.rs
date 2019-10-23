@@ -36,6 +36,10 @@ use embedded_hal::timer;
 use nb;
 use void::Void;
 
+#[cfg(feature = "845")]
+use crate::syscon::FroDerivedClock;
+#[cfg(feature = "82x")]
+use crate::syscon::IrcDerivedClock;
 use crate::{
     init_state,
     pac::{
@@ -43,12 +47,8 @@ use crate::{
         wkt::ctrl,
     },
     pmu::LowPowerClock,
-    syscon::{
-        self,
-        IrcDerivedClock,
-    },
+    syscon::self,
 };
-
 
 /// Interface to the self-wake-up timer (WKT)
 ///
@@ -198,8 +198,19 @@ pub trait Clock {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W;
 }
 
+#[cfg(feature = "82x")]
 impl<State> Clock for IrcDerivedClock<State> {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
+        w
+            .sel_extclk().internal()
+            .clksel().divided_irc_clock()
+    }
+}
+
+#[cfg(feature = "845")]
+impl<State> Clock for FroDerivedClock<State> {
+    fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
+        // TODO svd bug, wrong value name
         w
             .sel_extclk().internal()
             .clksel().divided_irc_clock()
