@@ -26,6 +26,7 @@ use crate::{
     raw::{
         self,
         Interrupt,
+        NVIC,
     },
     wkt::{
         self,
@@ -161,7 +162,6 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// sleep.sleep(delay);
 /// ```
 pub struct Regular<'r> {
-    nvic: &'r mut raw::NVIC,
     pmu : &'r mut pmu::Handle,
     scb : &'r mut raw::SCB,
     wkt : &'r mut WKT,
@@ -177,7 +177,6 @@ impl<'r> Regular<'r> {
     /// as long as the `sleep::Regular` instance exists, as they will be needed
     /// for every call to [`Sleep::sleep`].
     pub fn prepare(
-        nvic: &'r mut raw::NVIC,
         pmu : &'r mut pmu::Handle,
         scb : &'r mut raw::SCB,
         wkt : &'r mut WKT,
@@ -185,7 +184,6 @@ impl<'r> Regular<'r> {
         -> Self
     {
         Regular {
-            nvic: nvic,
             pmu : pmu,
             scb : scb,
             wkt : wkt,
@@ -218,8 +216,9 @@ impl<'r, Clock> Sleep<Clock> for Regular<'r>
         // method can use the alarm flag, which would otherwise need to be reset
         // to exit the interrupt handler.
         interrupt::free(|_| {
-            #[allow(deprecated)]
-            self.nvic.enable(Interrupt::WKT);
+            // Safe, because this is not going to interfere with the critical
+            // section.
+            unsafe { NVIC::unmask(Interrupt::WKT) };
 
             while let Err(nb::Error::WouldBlock) = self.wkt.wait() {
                 self.pmu.enter_sleep_mode(self.scb);
@@ -227,8 +226,7 @@ impl<'r, Clock> Sleep<Clock> for Regular<'r>
 
             // If we don't do this, the (possibly non-existing) interrupt
             // handler will be called as soon as we exit this closure.
-            #[allow(deprecated)]
-            self.nvic.disable(Interrupt::WKT);
+            NVIC::mask(Interrupt::WKT);
         });
     }
 }
