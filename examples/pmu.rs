@@ -60,7 +60,6 @@ fn main() -> ! {
 
     // Need to re-assign some stuff that's needed inside the closure. Otherwise
     // it will try to move stuff that's still borrowed outside of it.
-    let mut nvic   = p.NVIC;
     let mut pmu    = pmu.handle;
     let mut scb    = p.SCB;
     let mut syscon = syscon.handle;
@@ -70,8 +69,9 @@ fn main() -> ! {
         // `interrupt::free` will allow the interrupt to wake up the system, if
         // it's sleeping. But the interrupt handler won't run, which means we
         // don't have to define one.
-        #[allow(deprecated)]
-        nvic.enable(Interrupt::WKT);
+        //
+        // This is safe, as this won't interfere with the critical section.
+        unsafe { NVIC::unmask(Interrupt::WKT) }
 
         // Busy Waiting
         serial.tx().bwrite_all(b"5 seconds of busy waiting...\n")

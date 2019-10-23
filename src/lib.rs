@@ -141,7 +141,10 @@ pub mod prelude {
     pub use crate::clock::{
         Enabled as _lpc82x_hal_clock_Enabled, Frequency as _lpc82x_hal_clock_Frequency,
     };
-    pub use crate::hal::prelude::*;
+    pub use crate::hal::{
+        prelude::*,
+        digital::v2::*,
+    };
     #[cfg(feature = "82x")]
     pub use crate::sleep::Sleep as _;
 }

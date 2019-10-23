@@ -9,43 +9,31 @@
 //! [`sleep::Busy`]: struct.Busy.html
 //! [`sleep::Regular`]: struct.Regular.html
 
-
-use cortex_m::{
-    asm,
-    interrupt,
-};
+use cortex_m::{asm, interrupt};
 use embedded_hal::prelude::*;
 use nb;
 
 use crate::{
-    clock::{
-        self,
-        Ticks,
-    },
-    pac::{
-        self,
-        Interrupt,
-    },
+    clock::{self, Ticks},
+    pac::{self, Interrupt, NVIC},
     pmu,
-    wkt::{
-        self,
-        WKT,
-    },
+    wkt::{self, WKT},
 };
-
 
 /// Trait for putting the processor to sleep
 ///
 /// There will typically one implementation of `Sleep` per sleep mode that is
 /// available on a given microcontroller.
-pub trait Sleep<Clock> where Clock: clock::Enabled {
+pub trait Sleep<Clock>
+where
+    Clock: clock::Enabled,
+{
     /// Puts the processor to sleep for the given number of ticks of the clock
     fn sleep<'clock, T>(&mut self, ticks: T)
-        where
-            Clock: 'clock,
-            T    : Into<Ticks<'clock, Clock>>;
+    where
+        Clock: 'clock,
+        T: Into<Ticks<'clock, Clock>>;
 }
-
 
 /// Sleep mode based on busy waiting
 ///
@@ -94,19 +82,18 @@ impl<'wkt> Busy<'wkt> {
     /// for as long as the `sleep::Busy` instance exists, as it will be needed
     /// to count down the time in every call to [`Sleep::sleep`].
     pub fn prepare(wkt: &'wkt mut WKT) -> Self {
-        Busy {
-            wkt: wkt,
-        }
+        Busy { wkt: wkt }
     }
 }
 
 impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
-    where Clock: clock::Enabled + wkt::Clock
+where
+    Clock: clock::Enabled + wkt::Clock,
 {
     fn sleep<'clock, T>(&mut self, ticks: T)
-        where
-            Clock: 'clock,
-            T    : Into<Ticks<'clock, Clock>>
+    where
+        Clock: 'clock,
+        T: Into<Ticks<'clock, Clock>>,
     {
         let ticks: Ticks<Clock> = ticks.into();
 
@@ -121,7 +108,6 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
         }
     }
 }
-
 
 /// Regular sleep mode
 ///
@@ -161,10 +147,9 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// sleep.sleep(delay);
 /// ```
 pub struct Regular<'r> {
-    nvic: &'r mut pac::NVIC,
-    pmu : &'r mut pmu::Handle,
-    scb : &'r mut pac::SCB,
-    wkt : &'r mut WKT,
+    pmu: &'r mut pmu::Handle,
+    scb: &'r mut pac::SCB,
+    wkt: &'r mut WKT,
 }
 
 impl<'r> Regular<'r> {
@@ -176,30 +161,23 @@ impl<'r> Regular<'r> {
     /// Requires references to various peripherals, which will be borrowed for
     /// as long as the `sleep::Regular` instance exists, as they will be needed
     /// for every call to [`Sleep::sleep`].
-    pub fn prepare(
-        nvic: &'r mut pac::NVIC,
-        pmu : &'r mut pmu::Handle,
-        scb : &'r mut pac::SCB,
-        wkt : &'r mut WKT,
-    )
-        -> Self
-    {
+    pub fn prepare(pmu: &'r mut pmu::Handle, scb: &'r mut pac::SCB, wkt: &'r mut WKT) -> Self {
         Regular {
-            nvic: nvic,
-            pmu : pmu,
-            scb : scb,
-            wkt : wkt,
+            pmu: pmu,
+            scb: scb,
+            wkt: wkt,
         }
     }
 }
 
 impl<'r, Clock> Sleep<Clock> for Regular<'r>
-    where Clock: clock::Enabled + wkt::Clock
+where
+    Clock: clock::Enabled + wkt::Clock,
 {
     fn sleep<'clock, T>(&mut self, ticks: T)
-        where
-            Clock: 'clock,
-            T: Into<Ticks<'clock, Clock>>
+    where
+        Clock: 'clock,
+        T: Into<Ticks<'clock, Clock>>,
     {
         let ticks: Ticks<Clock> = ticks.into();
 
@@ -218,8 +196,9 @@ impl<'r, Clock> Sleep<Clock> for Regular<'r>
         // method can use the alarm flag, which would otherwise need to be reset
         // to exit the interrupt handler.
         interrupt::free(|_| {
-            #[allow(deprecated)]
-            self.nvic.enable(Interrupt::WKT);
+            // Safe, because this is not going to interfere with the critical
+            // section.
+            unsafe { NVIC::unmask(Interrupt::WKT) };
 
             while let Err(nb::Error::WouldBlock) = self.wkt.wait() {
                 self.pmu.enter_sleep_mode(self.scb);
@@ -227,8 +206,7 @@ impl<'r, Clock> Sleep<Clock> for Regular<'r>
 
             // If we don't do this, the (possibly non-existing) interrupt
             // handler will be called as soon as we exit this closure.
-            #[allow(deprecated)]
-            self.nvic.disable(Interrupt::WKT);
+            NVIC::mask(Interrupt::WKT);
         });
     }
 }

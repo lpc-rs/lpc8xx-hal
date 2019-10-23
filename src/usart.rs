@@ -216,9 +216,10 @@ impl<UsartX> USART<UsartX, init_state::Enabled> where UsartX: Peripheral {
     ///
     /// Enable the interrupts for this USART peripheral. This only enables the
     /// interrupts via the NVIC. It doesn't enable any specific interrupt.
-    pub fn enable_interrupts(&mut self, nvic: &mut NVIC) {
-        #[allow(deprecated)]
-        nvic.enable(UsartX::INTERRUPT);
+    pub fn enable_interrupts(&mut self) {
+        // Safe, because there's no critical section here that this could
+        // interfere with.
+        unsafe { NVIC::unmask(UsartX::INTERRUPT) };
     }
 
     /// Return USART receiver
