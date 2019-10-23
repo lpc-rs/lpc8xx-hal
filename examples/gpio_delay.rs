@@ -3,7 +3,7 @@
 
 extern crate panic_halt;
 
-use lpc8xx_hal::{cortex_m_rt::entry, prelude::*, Peripherals};
+use lpc8xx_hal::{cortex_m_rt::entry, delay::Delay, prelude::*, Peripherals};
 
 #[entry]
 fn main() -> ! {
@@ -16,7 +16,7 @@ fn main() -> ! {
 
     // Initialize the APIs of the peripherals we need.
     let swm = p.SWM.split();
-    let mut delay = p.SYST.enable_delay();
+    let mut delay = Delay::new(p.SYST);
     #[cfg(feature = "82x")]
     let gpio = p.GPIO; // GPIO is initialized by default on LPC82x.
     #[cfg(feature = "845")]
