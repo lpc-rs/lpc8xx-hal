@@ -22,29 +22,27 @@ use cortex_m::peripheral::syst::SystClkSource;
 use crate::raw::SYST;
 use embedded_hal::blocking::delay::{DelayMs, DelayUs};
 
+
+const SYSTICK_RANGE: u32 = 0x0100_0000;
+const SYSTEM_CLOCK: u32 = 12_000_000;
+
+
 /// System timer (SysTick) as a delay provider
 #[derive(Clone)]
 pub struct Delay {
     scale: u32,
 }
 
-const SYSTICK_RANGE: u32 = 0x0100_0000;
-const SYSTEM_CLOCK: u32 = 12_000_000;
-/// Helper trait to add methods to `SYST`
-pub trait SystDelay {
-    /// Turn the Systick into a delay istance
-    fn enable_delay(self) -> Delay;
-}
-impl SystDelay for SYST {
+impl Delay {
     /// Configures the system timer (SysTick) as a delay provider
-    fn enable_delay(mut self) -> Delay {
+    pub fn new(mut syst: SYST) -> Self {
         assert!(SYSTEM_CLOCK >= 1_000_000);
         let scale = SYSTEM_CLOCK / 1_000_000;
-        self.set_clock_source(SystClkSource::Core);
+        syst.set_clock_source(SystClkSource::Core);
 
-        self.set_reload(SYSTICK_RANGE - 1);
-        self.clear_current();
-        self.enable_counter();
+        syst.set_reload(SYSTICK_RANGE - 1);
+        syst.clear_current();
+        syst.enable_counter();
 
         Delay { scale }
         // As access to the count register is possible without a reference to the systick, we can
