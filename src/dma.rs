@@ -13,7 +13,7 @@ use nb;
 
 use crate::{
     init_state,
-    raw::{
+    pac::{
         self,
         dma0::{
             ACTIVE0,
@@ -35,11 +35,11 @@ use crate::{
 
 /// Entry point to the DMA API
 pub struct DMA {
-    dma: raw::DMA0,
+    dma: pac::DMA0,
 }
 
 impl DMA {
-    pub(crate) fn new(dma: raw::DMA0) -> Self {
+    pub(crate) fn new(dma: pac::DMA0) -> Self {
         DMA { dma }
     }
 
@@ -69,7 +69,7 @@ impl DMA {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> raw::DMA0 {
+    pub fn free(self) -> pac::DMA0 {
         self.dma
     }
 }
@@ -92,12 +92,12 @@ pub struct Parts {
 /// Handle to the DMA controller
 pub struct Handle<State = init_state::Enabled> {
     _state  : State,
-    dma     : raw::DMA0,
+    dma     : pac::DMA0,
     srambase: u32,
 }
 
 impl Handle<init_state::Disabled> {
-    pub(crate) fn new(dma: raw::DMA0, srambase: u32) -> Self {
+    pub(crate) fn new(dma: pac::DMA0, srambase: u32) -> Self {
         Handle {
             _state  : init_state::Disabled,
             dma     : dma,
@@ -587,44 +587,44 @@ pub struct XFERCFG16;
 pub struct XFERCFG17;
 
 
-reg_cluster!(CFG0 , CFG, raw::DMA0, channel0,  cfg);
-reg_cluster!(CFG1 , CFG, raw::DMA0, channel1,  cfg);
-reg_cluster!(CFG2 , CFG, raw::DMA0, channel2,  cfg);
-reg_cluster!(CFG3 , CFG, raw::DMA0, channel3,  cfg);
-reg_cluster!(CFG4 , CFG, raw::DMA0, channel4,  cfg);
-reg_cluster!(CFG5 , CFG, raw::DMA0, channel5,  cfg);
-reg_cluster!(CFG6 , CFG, raw::DMA0, channel6,  cfg);
-reg_cluster!(CFG7 , CFG, raw::DMA0, channel7,  cfg);
-reg_cluster!(CFG8 , CFG, raw::DMA0, channel8,  cfg);
-reg_cluster!(CFG9 , CFG, raw::DMA0, channel9,  cfg);
-reg_cluster!(CFG10, CFG, raw::DMA0, channel10, cfg);
-reg_cluster!(CFG11, CFG, raw::DMA0, channel11, cfg);
-reg_cluster!(CFG12, CFG, raw::DMA0, channel12, cfg);
-reg_cluster!(CFG13, CFG, raw::DMA0, channel13, cfg);
-reg_cluster!(CFG14, CFG, raw::DMA0, channel14, cfg);
-reg_cluster!(CFG15, CFG, raw::DMA0, channel15, cfg);
-reg_cluster!(CFG16, CFG, raw::DMA0, channel16, cfg);
-reg_cluster!(CFG17, CFG, raw::DMA0, channel17, cfg);
+reg_cluster!(CFG0 , CFG, pac::DMA0, channel0,  cfg);
+reg_cluster!(CFG1 , CFG, pac::DMA0, channel1,  cfg);
+reg_cluster!(CFG2 , CFG, pac::DMA0, channel2,  cfg);
+reg_cluster!(CFG3 , CFG, pac::DMA0, channel3,  cfg);
+reg_cluster!(CFG4 , CFG, pac::DMA0, channel4,  cfg);
+reg_cluster!(CFG5 , CFG, pac::DMA0, channel5,  cfg);
+reg_cluster!(CFG6 , CFG, pac::DMA0, channel6,  cfg);
+reg_cluster!(CFG7 , CFG, pac::DMA0, channel7,  cfg);
+reg_cluster!(CFG8 , CFG, pac::DMA0, channel8,  cfg);
+reg_cluster!(CFG9 , CFG, pac::DMA0, channel9,  cfg);
+reg_cluster!(CFG10, CFG, pac::DMA0, channel10, cfg);
+reg_cluster!(CFG11, CFG, pac::DMA0, channel11, cfg);
+reg_cluster!(CFG12, CFG, pac::DMA0, channel12, cfg);
+reg_cluster!(CFG13, CFG, pac::DMA0, channel13, cfg);
+reg_cluster!(CFG14, CFG, pac::DMA0, channel14, cfg);
+reg_cluster!(CFG15, CFG, pac::DMA0, channel15, cfg);
+reg_cluster!(CFG16, CFG, pac::DMA0, channel16, cfg);
+reg_cluster!(CFG17, CFG, pac::DMA0, channel17, cfg);
 
-reg_cluster!(XFERCFG0 , XFERCFG, raw::DMA0, channel0,  xfercfg);
-reg_cluster!(XFERCFG1 , XFERCFG, raw::DMA0, channel1,  xfercfg);
-reg_cluster!(XFERCFG2 , XFERCFG, raw::DMA0, channel2,  xfercfg);
-reg_cluster!(XFERCFG3 , XFERCFG, raw::DMA0, channel3,  xfercfg);
-reg_cluster!(XFERCFG4 , XFERCFG, raw::DMA0, channel4,  xfercfg);
-reg_cluster!(XFERCFG5 , XFERCFG, raw::DMA0, channel5,  xfercfg);
-reg_cluster!(XFERCFG6 , XFERCFG, raw::DMA0, channel6,  xfercfg);
-reg_cluster!(XFERCFG7 , XFERCFG, raw::DMA0, channel7,  xfercfg);
-reg_cluster!(XFERCFG8 , XFERCFG, raw::DMA0, channel8,  xfercfg);
-reg_cluster!(XFERCFG9 , XFERCFG, raw::DMA0, channel9,  xfercfg);
-reg_cluster!(XFERCFG10, XFERCFG, raw::DMA0, channel10, xfercfg);
-reg_cluster!(XFERCFG11, XFERCFG, raw::DMA0, channel11, xfercfg);
-reg_cluster!(XFERCFG12, XFERCFG, raw::DMA0, channel12, xfercfg);
-reg_cluster!(XFERCFG13, XFERCFG, raw::DMA0, channel13, xfercfg);
-reg_cluster!(XFERCFG14, XFERCFG, raw::DMA0, channel14, xfercfg);
-reg_cluster!(XFERCFG15, XFERCFG, raw::DMA0, channel15, xfercfg);
-reg_cluster!(XFERCFG16, XFERCFG, raw::DMA0, channel16, xfercfg);
-reg_cluster!(XFERCFG17, XFERCFG, raw::DMA0, channel17, xfercfg);
+reg_cluster!(XFERCFG0 , XFERCFG, pac::DMA0, channel0,  xfercfg);
+reg_cluster!(XFERCFG1 , XFERCFG, pac::DMA0, channel1,  xfercfg);
+reg_cluster!(XFERCFG2 , XFERCFG, pac::DMA0, channel2,  xfercfg);
+reg_cluster!(XFERCFG3 , XFERCFG, pac::DMA0, channel3,  xfercfg);
+reg_cluster!(XFERCFG4 , XFERCFG, pac::DMA0, channel4,  xfercfg);
+reg_cluster!(XFERCFG5 , XFERCFG, pac::DMA0, channel5,  xfercfg);
+reg_cluster!(XFERCFG6 , XFERCFG, pac::DMA0, channel6,  xfercfg);
+reg_cluster!(XFERCFG7 , XFERCFG, pac::DMA0, channel7,  xfercfg);
+reg_cluster!(XFERCFG8 , XFERCFG, pac::DMA0, channel8,  xfercfg);
+reg_cluster!(XFERCFG9 , XFERCFG, pac::DMA0, channel9,  xfercfg);
+reg_cluster!(XFERCFG10, XFERCFG, pac::DMA0, channel10, xfercfg);
+reg_cluster!(XFERCFG11, XFERCFG, pac::DMA0, channel11, xfercfg);
+reg_cluster!(XFERCFG12, XFERCFG, pac::DMA0, channel12, xfercfg);
+reg_cluster!(XFERCFG13, XFERCFG, pac::DMA0, channel13, xfercfg);
+reg_cluster!(XFERCFG14, XFERCFG, pac::DMA0, channel14, xfercfg);
+reg_cluster!(XFERCFG15, XFERCFG, pac::DMA0, channel15, xfercfg);
+reg_cluster!(XFERCFG16, XFERCFG, pac::DMA0, channel16, xfercfg);
+reg_cluster!(XFERCFG17, XFERCFG, pac::DMA0, channel17, xfercfg);
 
-reg!(ACTIVE0   , ACTIVE0   , raw::DMA0, active0   );
-reg!(ENABLESET0, ENABLESET0, raw::DMA0, enableset0);
-reg!(SETTRIG0  , SETTRIG0  , raw::DMA0, settrig0  );
+reg!(ACTIVE0   , ACTIVE0   , pac::DMA0, active0   );
+reg!(ENABLESET0, ENABLESET0, pac::DMA0, enableset0);
+reg!(SETTRIG0  , SETTRIG0  , pac::DMA0, settrig0  );

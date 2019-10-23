@@ -148,9 +148,9 @@ pub mod prelude {
 
 
 #[cfg(feature = "82x")]
-pub use lpc82x_pac as raw;
+pub use lpc82x_pac as pac;
 #[cfg(feature = "845")]
-pub use lpc845_pac as raw;
+pub use lpc845_pac as pac;
 
 #[cfg(feature = "82x")]
 pub use self::dma::DMA;
@@ -225,13 +225,13 @@ pub struct Peripherals {
     pub SYSCON: SYSCON,
 
     /// USART0
-    pub USART0: USART<raw::USART0, init_state::Disabled>,
+    pub USART0: USART<pac::USART0, init_state::Disabled>,
 
     /// USART1
-    pub USART1: USART<raw::USART1, init_state::Disabled>,
+    pub USART1: USART<pac::USART1, init_state::Disabled>,
 
     /// USART2
-    pub USART2: USART<raw::USART2, init_state::Disabled>,
+    pub USART2: USART<pac::USART2, init_state::Disabled>,
 
     /// Self-wake-up timer (WKT)
     pub WKT: WKT<init_state::Disabled>,
@@ -242,140 +242,140 @@ pub struct Peripherals {
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub ADC: raw::ADC0,
+    pub ADC: pac::ADC0,
 
     /// Analog comparator
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub CMP: raw::ACOMP,
+    pub CMP: pac::ACOMP,
 
     /// CRC engine
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub CRC: raw::CRC,
+    pub CRC: pac::CRC,
 
     /// Flash controller
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub FLASHCTRL: raw::FLASH_CTRL,
+    pub FLASHCTRL: pac::FLASH_CTRL,
 
     /// I2C0-bus interface
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub I2C1: raw::I2C1,
+    pub I2C1: pac::I2C1,
 
     /// I2C0-bus interface
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub I2C2: raw::I2C2,
+    pub I2C2: pac::I2C2,
 
     /// I2C0-bus interface
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub I2C3: raw::I2C3,
+    pub I2C3: pac::I2C3,
 
     /// Input multiplexing
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub INPUTMUX: raw::INPUTMUX,
+    pub INPUTMUX: pac::INPUTMUX,
 
     /// I/O configuration
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub IOCON: raw::IOCON,
+    pub IOCON: pac::IOCON,
 
     /// Multi-Rate Timer (MRT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub MRT: raw::MRT0,
+    pub MRT: pac::MRT0,
 
     /// Pin interrupt and pattern match engine
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub PIN_INT: raw::PINT,
+    pub PIN_INT: pac::PINT,
 
     /// State Configurable Timer (SCT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub SCT: raw::SCT0,
+    pub SCT: pac::SCT0,
 
     /// SPI0
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub SPI0: raw::SPI0,
+    pub SPI0: pac::SPI0,
 
     /// SPI1
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub SPI1: raw::SPI1,
+    pub SPI1: pac::SPI1,
 
     /// Windowed Watchdog Timer (WWDT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub WWDT: raw::WWDT,
+    pub WWDT: pac::WWDT,
 
     /// CPUID
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub CPUID: raw::CPUID,
+    pub CPUID: pac::CPUID,
 
     /// Debug Control Block (DCB)
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub DCB: raw::DCB,
+    pub DCB: pac::DCB,
 
     /// Data Watchpoint and Trace unit (DWT)
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub DWT: raw::DWT,
+    pub DWT: pac::DWT,
 
     /// Memory Protection Unit (MPU)
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub MPU: raw::MPU,
+    pub MPU: pac::MPU,
 
     /// Nested Vector Interrupt Controller (NVIC)
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub NVIC: raw::NVIC,
+    pub NVIC: pac::NVIC,
 
     /// System Control Block (SCB)
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub SCB: raw::SCB,
+    pub SCB: pac::SCB,
 
     /// SysTick: System Timer
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub SYST: raw::SYST,
+    pub SYST: pac::SYST,
 }
 
 #[cfg(feature = "82x")]
@@ -411,8 +411,8 @@ impl Peripherals {
     /// ```
     pub fn take() -> Option<Self> {
         Some(Self::new(
-            raw::Peripherals::take()?,
-            raw::CorePeripherals::take()?,
+            pac::Peripherals::take()?,
+            pac::CorePeripherals::take()?,
         ))
     }
 
@@ -458,12 +458,12 @@ impl Peripherals {
     /// you will need to resort to something like [`core::mem::transmute`].
     pub unsafe fn steal() -> Self {
         Self::new(
-            raw::Peripherals::steal(),
-            raw::CorePeripherals::steal(),
+            pac::Peripherals::steal(),
+            pac::CorePeripherals::steal(),
         )
     }
 
-    fn new(p: raw::Peripherals, cp: raw::CorePeripherals) -> Self {
+    fn new(p: pac::Peripherals, cp: pac::CorePeripherals) -> Self {
         Peripherals {
             // HAL peripherals
             DMA   : DMA::new(p.DMA0),
@@ -559,231 +559,231 @@ pub struct Peripherals {
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub WKT: raw::WKT,
+    pub WKT: pac::WKT,
 
     /// Analog comparator
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub ACOMP: raw::ACOMP,
+    pub ACOMP: pac::ACOMP,
 
     /// Analog-to-Digital Converter (ADC)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub ADC0: raw::ADC0,
+    pub ADC0: pac::ADC0,
 
     /// Capacitive Touch (CAPT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub CAPT: raw::CAPT,
+    pub CAPT: pac::CAPT,
 
     /// CRC engine
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub CRC: raw::CRC,
+    pub CRC: pac::CRC,
 
     /// Standard counter/timer (CTIMER)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub CTIMER0: raw::CTIMER0,
+    pub CTIMER0: pac::CTIMER0,
 
     /// Digital-to-Analog Converter 0 (DAC0)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub DAC0: raw::DAC0,
+    pub DAC0: pac::DAC0,
 
     /// Digital-to-Analog Converter 1 (DAC1)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub DAC1: raw::DAC1,
+    pub DAC1: pac::DAC1,
 
     /// DMA controller
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub DMA0: raw::DMA0,
+    pub DMA0: pac::DMA0,
 
     /// Flash controller
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub FLASH_CTRL: raw::FLASH_CTRL,
+    pub FLASH_CTRL: pac::FLASH_CTRL,
 
     /// I2C0-bus interface
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub I2C0: raw::I2C0,
+    pub I2C0: pac::I2C0,
 
     /// I2C1-bus interface
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub I2C1: raw::I2C1,
+    pub I2C1: pac::I2C1,
 
     /// I2C2-bus interface
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub I2C2: raw::I2C2,
+    pub I2C2: pac::I2C2,
 
     /// I2C3-bus interface
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub I2C3: raw::I2C3,
+    pub I2C3: pac::I2C3,
 
     /// Input multiplexing
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub INPUTMUX: raw::INPUTMUX,
+    pub INPUTMUX: pac::INPUTMUX,
 
     /// I/O configuration
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub IOCON: raw::IOCON,
+    pub IOCON: pac::IOCON,
 
     /// Multi-Rate Timer (MRT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub MRT0: raw::MRT0,
+    pub MRT0: pac::MRT0,
 
     /// Pin interrupt and pattern match engine
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub PINT: raw::PINT,
+    pub PINT: pac::PINT,
 
     /// Power Management Unit
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub PMU: raw::PMU,
+    pub PMU: pac::PMU,
 
     /// State Configurable Timer (SCT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub SCT0: raw::SCT0,
+    pub SCT0: pac::SCT0,
 
     /// SPI0
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub SPI0: raw::SPI0,
+    pub SPI0: pac::SPI0,
 
     /// SPI1
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub SPI1: raw::SPI1,
+    pub SPI1: pac::SPI1,
 
     /// USART0
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub USART0: raw::USART0,
+    pub USART0: pac::USART0,
 
     /// USART1
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub USART1: raw::USART1,
+    pub USART1: pac::USART1,
 
     /// USART2
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub USART2: raw::USART2,
+    pub USART2: pac::USART2,
 
     /// USART3
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub USART3: raw::USART3,
+    pub USART3: pac::USART3,
 
     /// USART4
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub USART4: raw::USART4,
+    pub USART4: pac::USART4,
 
     /// Windowed Watchdog Timer (WWDT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
-    pub WWDT: raw::WWDT,
+    pub WWDT: pac::WWDT,
 
     /// CPUID
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub CPUID: raw::CPUID,
+    pub CPUID: pac::CPUID,
 
     /// Debug Control Block (DCB)
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub DCB: raw::DCB,
+    pub DCB: pac::DCB,
 
     /// Data Watchpoint and Trace unit (DWT)
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub DWT: raw::DWT,
+    pub DWT: pac::DWT,
 
     /// Memory Protection Unit (MPU)
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub MPU: raw::MPU,
+    pub MPU: pac::MPU,
 
     /// Nested Vector Interrupt Controller (NVIC)
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub NVIC: raw::NVIC,
+    pub NVIC: pac::NVIC,
 
     /// System Control Block (SCB)
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub SCB: raw::SCB,
+    pub SCB: pac::SCB,
 
     /// SysTick: System Timer
     ///
     /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub SYST: raw::SYST,
+    pub SYST: pac::SYST,
 }
 
 #[cfg(feature = "845")]
@@ -819,8 +819,8 @@ impl Peripherals {
     /// ```
     pub fn take() -> Option<Self> {
         Some(Self::new(
-            raw::Peripherals::take()?,
-            raw::CorePeripherals::take()?,
+            pac::Peripherals::take()?,
+            pac::CorePeripherals::take()?,
         ))
     }
 
@@ -865,10 +865,10 @@ impl Peripherals {
     /// Since there are no means within this API to forcibly change type state,
     /// you will need to resort to something like [`core::mem::transmute`].
     pub unsafe fn steal() -> Self {
-        Self::new(raw::Peripherals::steal(), raw::CorePeripherals::steal())
+        Self::new(pac::Peripherals::steal(), pac::CorePeripherals::steal())
     }
 
-    fn new(p: raw::Peripherals, cp: raw::CorePeripherals) -> Self {
+    fn new(p: pac::Peripherals, cp: pac::CorePeripherals) -> Self {
         Peripherals {
             // HAL peripherals
             // NOTE(unsafe) The init state of the gpio peripheral is enabled,
@@ -935,18 +935,4 @@ pub mod init_state {
 
     /// Indicates that the hardware component is disabled
     pub struct Disabled;
-}
-
-// Provide common peripheral names
-// When in doubt, use the names from the new svd files
-mod raw_compat {
-    pub(crate) use crate::raw::gpio;
-    pub(crate) use crate::raw::ACOMP;
-    pub(crate) use crate::raw::ADC0;
-    pub(crate) use crate::raw::DMA0;
-    pub(crate) use crate::raw::FLASH_CTRL;
-    pub(crate) use crate::raw::GPIO;
-    pub(crate) use crate::raw::MRT0;
-    pub(crate) use crate::raw::SCT0;
-    pub(crate) use crate::raw::SWM0;
 }

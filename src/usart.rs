@@ -73,7 +73,7 @@ use void::Void;
 use crate::{
     dma,
     init_state,
-    raw::{
+    pac::{
         self,
         usart0::TXDAT,
         Interrupt,
@@ -411,7 +411,7 @@ impl<'usart, UsartX> dma::Dest for Transmitter<'usart, UsartX>
 /// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
 /// be considered breaking changes.
 pub trait Peripheral:
-    Deref<Target = raw::usart0::RegisterBlock>
+    Deref<Target = pac::usart0::RegisterBlock>
     + syscon::ClockControl
     + syscon::ResetControl
 {
@@ -425,21 +425,21 @@ pub trait Peripheral:
     type Tx;
 }
 
-impl Peripheral for raw::USART0 {
+impl Peripheral for pac::USART0 {
     const INTERRUPT: Interrupt = Interrupt::USART0;
 
     type Rx = swm::U0_RXD;
     type Tx = swm::U0_TXD;
 }
 
-impl Peripheral for raw::USART1 {
+impl Peripheral for pac::USART1 {
     const INTERRUPT: Interrupt = Interrupt::USART1;
 
     type Rx = swm::U1_RXD;
     type Tx = swm::U1_TXD;
 }
 
-impl Peripheral for raw::USART2 {
+impl Peripheral for pac::USART2 {
     const INTERRUPT: Interrupt = Interrupt::USART2;
 
     type Rx = swm::U2_RXD;

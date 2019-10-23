@@ -37,7 +37,7 @@ use cortex_m::{
 use crate::{
     clock,
     init_state,
-    raw,
+    pac,
 };
 
 
@@ -58,11 +58,11 @@ use crate::{
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct PMU {
-    pmu: raw::PMU,
+    pmu: pac::PMU,
 }
 
 impl PMU {
-    pub(crate) fn new(pmu: raw::PMU) -> Self {
+    pub(crate) fn new(pmu: pac::PMU) -> Self {
         PMU { pmu }
     }
 
@@ -92,7 +92,7 @@ impl PMU {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> raw::PMU {
+    pub fn free(self) -> pac::PMU {
         self.pmu
     }
 }
@@ -124,7 +124,7 @@ pub struct Parts {
 ///
 /// [module documentation]: index.html
 pub struct Handle {
-    pmu: raw::PMU,
+    pmu: pac::PMU,
 }
 
 impl Handle {
@@ -132,7 +132,7 @@ impl Handle {
     ///
     /// The microcontroller will wake up from sleep mode, if an NVIC-enabled
     /// interrupt occurs. See user manual, section 6.7.4.3.
-    pub fn enter_sleep_mode(&mut self, scb: &mut raw::SCB) {
+    pub fn enter_sleep_mode(&mut self, scb: &mut pac::SCB) {
         interrupt::free(|_| {
             // Default power mode indicates active or sleep mode.
             self.pmu.pcon.modify(|_, w|
@@ -173,7 +173,7 @@ impl Handle {
     /// Please make sure that the peripheral states configured in PDAWAKECFG
     /// match the peripheral states as tracked by the API before calling this
     /// method.
-    pub unsafe fn enter_deep_sleep_mode(&mut self, scb: &mut raw::SCB) {
+    pub unsafe fn enter_deep_sleep_mode(&mut self, scb: &mut pac::SCB) {
         interrupt::free(|_| {
             self.pmu.pcon.modify(|_, w|
                 w.pm().deep_sleep_mode()
@@ -213,7 +213,7 @@ impl Handle {
     /// Please make sure that the peripheral states configured in PDAWAKECFG
     /// match the peripheral states as tracked by the API before calling this
     /// method.
-    pub unsafe fn enter_power_down_mode(&mut self, scb: &mut raw::SCB) {
+    pub unsafe fn enter_power_down_mode(&mut self, scb: &mut pac::SCB) {
         interrupt::free(|_| {
             self.pmu.pcon.modify(|_, w|
                 w.pm().power_down_mode()

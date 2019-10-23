@@ -22,11 +22,11 @@ use crate::{
         self,
         Ticks,
     },
-    pmu,
-    raw::{
+    pac::{
         self,
         Interrupt,
     },
+    pmu,
     wkt::{
         self,
         WKT,
@@ -161,9 +161,9 @@ impl<'wkt, Clock> Sleep<Clock> for Busy<'wkt>
 /// sleep.sleep(delay);
 /// ```
 pub struct Regular<'r> {
-    nvic: &'r mut raw::NVIC,
+    nvic: &'r mut pac::NVIC,
     pmu : &'r mut pmu::Handle,
-    scb : &'r mut raw::SCB,
+    scb : &'r mut pac::SCB,
     wkt : &'r mut WKT,
 }
 
@@ -177,9 +177,9 @@ impl<'r> Regular<'r> {
     /// as long as the `sleep::Regular` instance exists, as they will be needed
     /// for every call to [`Sleep::sleep`].
     pub fn prepare(
-        nvic: &'r mut raw::NVIC,
+        nvic: &'r mut pac::NVIC,
         pmu : &'r mut pmu::Handle,
-        scb : &'r mut raw::SCB,
+        scb : &'r mut pac::SCB,
         wkt : &'r mut WKT,
     )
         -> Self
