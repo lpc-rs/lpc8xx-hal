@@ -29,8 +29,8 @@
 //! [`swm`]: ../swm/index.html
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/lpc82x-hal/examples
 
-#[allow(deprecated)]
-use embedded_hal::digital::{OutputPin, StatefulOutputPin};
+use embedded_hal::digital::v2::{OutputPin, StatefulOutputPin};
+use void::Void;
 
 use crate::{
     init_state, raw_compat,
@@ -197,11 +197,12 @@ where
     }
 }
 
-#[allow(deprecated)]
 impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
 where
     T: PinTrait,
 {
+    type Error = Void;
+
     /// Set the pin output to HIGH
     ///
     /// This method is only available, if two conditions are met:
@@ -213,8 +214,8 @@ where
     ///
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
-    fn set_high(&mut self) {
-        self.state.set[T::PORT].write(|w| unsafe { w.setp().bits(T::MASK) })
+    fn set_high(&mut self) -> Result<(), Self::Error> {
+        Ok(self.state.set[T::PORT].write(|w| unsafe { w.setp().bits(T::MASK) }))
     }
 
     /// Set the pin output to LOW
@@ -228,12 +229,11 @@ where
     ///
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
-    fn set_low(&mut self) {
-        self.state.clr[T::PORT].write(|w| unsafe { w.clrp().bits(T::MASK) });
+    fn set_low(&mut self) -> Result<(), Self::Error> {
+        Ok(self.state.clr[T::PORT].write(|w| unsafe { w.clrp().bits(T::MASK) }))
     }
 }
 
-#[allow(deprecated)]
 impl<'gpio, T> StatefulOutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
 where
     T: PinTrait,
@@ -249,8 +249,8 @@ where
     ///
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
-    fn is_set_high(&self) -> bool {
-        self.state.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
+    fn is_set_high(&self) -> Result<bool, Self::Error> {
+        Ok(self.state.pin[T::PORT].read().port().bits() & T::MASK == T::MASK)
     }
 
     /// Indicates whether the pin output is currently set to LOW
@@ -264,8 +264,8 @@ where
     ///
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
-    fn is_set_low(&self) -> bool {
-        !self.state.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
+    fn is_set_low(&self) -> Result<bool, Self::Error> {
+        Ok(!self.state.pin[T::PORT].read().port().bits() & T::MASK == T::MASK)
     }
 }
 

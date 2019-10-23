@@ -48,12 +48,10 @@ fn main() -> ! {
     // pattern in release mode.
     loop {
         for _ in 0..1_000_000 {
-            #[allow(deprecated)]
-            led.set_high();
+            led.set_high().unwrap();
         }
         for _ in 0..100_000 {
-            #[allow(deprecated)]
-            led.set_low();
+            led.set_low().unwrap();
         }
     }
 }
