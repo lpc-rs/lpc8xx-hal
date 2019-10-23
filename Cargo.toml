@@ -73,7 +73,7 @@ compiletest = ["compiletest_rs"]
 
 [[example]]
 name              = "gpio_sleep"
-required-features = ["rt-selected", "82x"]
+required-features = ["rt-selected"]
 
 [[example]]
 name              = "gpio_simple"

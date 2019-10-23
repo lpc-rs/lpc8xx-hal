@@ -113,15 +113,12 @@ pub mod dma;
 #[cfg(feature = "82x")]
 pub mod i2c;
 pub mod gpio;
-#[cfg(feature = "82x")]
 pub mod pmu;
-#[cfg(feature = "82x")]
 pub mod sleep;
 pub mod swm;
 pub mod syscon;
 #[cfg(feature = "82x")]
 pub mod usart;
-#[cfg(feature = "82x")]
 pub mod wkt;
 
 
@@ -145,7 +142,6 @@ pub mod prelude {
         prelude::*,
         digital::v2::*,
     };
-    #[cfg(feature = "82x")]
     pub use crate::sleep::Sleep as _;
 }
 
@@ -160,13 +156,11 @@ pub use self::dma::DMA;
 pub use self::gpio::GPIO;
 #[cfg(feature = "82x")]
 pub use self::i2c::I2C;
-#[cfg(feature = "82x")]
 pub use self::pmu::PMU;
 pub use self::swm::SWM;
 pub use self::syscon::SYSCON;
 #[cfg(feature = "82x")]
 pub use self::usart::USART;
-#[cfg(feature = "82x")]
 pub use self::wkt::WKT;
 
 
@@ -558,11 +552,7 @@ pub struct Peripherals {
     pub SYSCON: SYSCON,
 
     /// Self-wake-up timer (WKT)
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub WKT: pac::WKT,
+    pub WKT: WKT<init_state::Disabled>,
 
     /// Analog comparator
     ///
@@ -684,11 +674,7 @@ pub struct Peripherals {
     pub PINT: pac::PINT,
 
     /// Power Management Unit
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub PMU: pac::PMU,
+    pub PMU: PMU,
 
     /// State Configurable Timer (SCT)
     ///
@@ -877,8 +863,10 @@ impl Peripherals {
             // NOTE(unsafe) The init state of the gpio peripheral is enabled,
             // thus it's safe to create an already initialized gpio port
             GPIO: GPIO::new(p.GPIO),
+            PMU   : PMU::new(p.PMU),
             SWM: SWM::new(p.SWM0),
             SYSCON: SYSCON::new(p.SYSCON),
+            WKT   : WKT::new(p.WKT),
 
             // Raw peripherals
             ACOMP: p.ACOMP,
@@ -898,7 +886,6 @@ impl Peripherals {
             IOCON: p.IOCON,
             MRT0: p.MRT0,
             PINT: p.PINT,
-            PMU: p.PMU,
             SCT0: p.SCT0,
             SPI0: p.SPI0,
             SPI1: p.SPI1,
@@ -907,7 +894,6 @@ impl Peripherals {
             USART2: p.USART2,
             USART3: p.USART3,
             USART4: p.USART4,
-            WKT: p.WKT,
             WWDT: p.WWDT,
 
             // Core peripherals

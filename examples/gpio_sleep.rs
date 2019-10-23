@@ -27,16 +27,27 @@ fn main() -> ! {
     let     swm    = p.SWM.split();
     let mut syscon = p.SYSCON.split();
     let mut wkt    = p.WKT.enable(&mut syscon.handle);
+    #[cfg(feature = "82x")]
+    let     gpio   = p.GPIO; // GPIO is initialized by default on LPC82x.
+    #[cfg(feature = "845")]
+    let     gpio   = p.GPIO.enable(&mut syscon.handle);
 
     // We're going to need a clock for sleeping. Let's use the IRC-derived clock
     // that runs at 750 kHz.
+    #[cfg(feature = "82x")]
     let clock = syscon.irc_derived_clock;
+    #[cfg(feature = "845")]
+    let clock = syscon.fro_derived_clock;
 
-    // Configure the PIO0_12 pin. The API tracks the state of pins at
-    // compile-time, to prevent any mistakes.
-    let mut pio0_12 = swm.pins.pio0_12
-        .into_gpio_pin(&p.GPIO)
-        .into_output();
+    // Select pin for LED
+    #[cfg(feature = "82x")]
+    let led = swm.pins.pio0_12;
+    #[cfg(feature = "845")]
+    let led = swm.pins.pio1_1;
+
+    // Configure the LED pin. The API tracks the state of pins at compile time,
+    // to prevent any mistakes.
+    let mut led = led.into_gpio_pin(&gpio).into_output();
 
     // Let's already initialize the durations that we're going to sleep for
     // between changing the LED state. We do this by specifying the number of
@@ -54,9 +65,9 @@ fn main() -> ! {
 
     // Blink the LED
     loop {
-        pio0_12.set_high().unwrap();
+        led.set_high().unwrap();
         sleep.sleep(high_time);
-        pio0_12.set_low().unwrap();
+        led.set_low().unwrap();
         sleep.sleep(low_time);
     }
 }
