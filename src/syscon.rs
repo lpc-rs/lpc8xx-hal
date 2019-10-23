@@ -26,7 +26,7 @@ use crate::pac::syscon::{
 
 // TODO Remove when FRO is implemented for lpc845
 #[allow(unused_imports)]
-use crate::{clock, init_state, pac, raw_compat, reg_proxy::RegProxy};
+use crate::{clock, init_state, pac, reg_proxy::RegProxy};
 
 /// Entry point to the SYSCON API
 ///
@@ -380,17 +380,17 @@ macro_rules! impl_clock_control {
 impl_clock_control!(ROM, rom);
 impl_clock_control!(RAM0_1, ram0_1);
 #[cfg(feature = "82x")]
-impl_clock_control!(raw_compat::FLASH_CTRL, flashreg);
+impl_clock_control!(pac::FLASH_CTRL, flashreg);
 #[cfg(feature = "845")]
-impl_clock_control!(raw_compat::FLASH_CTRL, flash);
+impl_clock_control!(pac::FLASH_CTRL, flash);
 impl_clock_control!(FLASH, flash);
 impl_clock_control!(pac::I2C0, i2c0);
 #[cfg(feature = "82x")]
-impl_clock_control!(raw_compat::GPIO, gpio);
-impl_clock_control!(raw_compat::SWM0, swm);
-impl_clock_control!(raw_compat::SCT0, sct);
+impl_clock_control!(pac::GPIO, gpio);
+impl_clock_control!(pac::SWM0, swm);
+impl_clock_control!(pac::SCT0, sct);
 impl_clock_control!(pac::WKT, wkt);
-impl_clock_control!(raw_compat::MRT0, mrt);
+impl_clock_control!(pac::MRT0, mrt);
 impl_clock_control!(pac::SPI0, spi0);
 impl_clock_control!(pac::SPI1, spi1);
 impl_clock_control!(pac::CRC, crc);
@@ -399,15 +399,15 @@ impl_clock_control!(pac::USART1, uart1);
 impl_clock_control!(pac::USART2, uart2);
 impl_clock_control!(pac::WWDT, wwdt);
 impl_clock_control!(pac::IOCON, iocon);
-impl_clock_control!(raw_compat::ACOMP, acmp);
+impl_clock_control!(pac::ACOMP, acmp);
 impl_clock_control!(pac::I2C1, i2c1);
 impl_clock_control!(pac::I2C2, i2c2);
 impl_clock_control!(pac::I2C3, i2c3);
-impl_clock_control!(raw_compat::ADC0, adc);
+impl_clock_control!(pac::ADC0, adc);
 impl_clock_control!(MTB, mtb);
-impl_clock_control!(raw_compat::DMA0, dma);
+impl_clock_control!(pac::DMA0, dma);
 #[cfg(feature = "845")]
-impl ClockControl for raw_compat::GPIO {
+impl ClockControl for pac::GPIO {
     fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
         w.gpio0().enable().gpio1().enable()
     }
@@ -458,21 +458,21 @@ impl_reset_control!(pac::USART0, uart0_rst_n);
 impl_reset_control!(pac::USART1, uart1_rst_n);
 impl_reset_control!(pac::USART2, uart2_rst_n);
 impl_reset_control!(pac::I2C0, i2c0_rst_n);
-impl_reset_control!(raw_compat::MRT0, mrt_rst_n);
-impl_reset_control!(raw_compat::SCT0, sct_rst_n);
+impl_reset_control!(pac::MRT0, mrt_rst_n);
+impl_reset_control!(pac::SCT0, sct_rst_n);
 impl_reset_control!(pac::WKT, wkt_rst_n);
 #[cfg(feature = "82x")]
-impl_reset_control!(raw_compat::GPIO, gpio_rst_n);
-impl_reset_control!(raw_compat::FLASH_CTRL, flash_rst_n);
-impl_reset_control!(raw_compat::ACOMP, acmp_rst_n);
+impl_reset_control!(pac::GPIO, gpio_rst_n);
+impl_reset_control!(pac::FLASH_CTRL, flash_rst_n);
+impl_reset_control!(pac::ACOMP, acmp_rst_n);
 impl_reset_control!(pac::I2C1, i2c1_rst_n);
 impl_reset_control!(pac::I2C2, i2c2_rst_n);
 impl_reset_control!(pac::I2C3, i2c3_rst_n);
-impl_reset_control!(raw_compat::ADC0, adc_rst_n);
-impl_reset_control!(raw_compat::DMA0, dma_rst_n);
+impl_reset_control!(pac::ADC0, adc_rst_n);
+impl_reset_control!(pac::DMA0, dma_rst_n);
 
 #[cfg(feature = "845")]
-impl<'a> ResetControl for raw_compat::GPIO {
+impl<'a> ResetControl for pac::GPIO {
     fn assert_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W {
         w.gpio0_rst_n().clear_bit().gpio1_rst_n().clear_bit()
     }
@@ -521,11 +521,11 @@ impl_analog_block!(IRCOUT, ircout_pd);
 impl_analog_block!(IRC, irc_pd);
 impl_analog_block!(FLASH, flash_pd);
 impl_analog_block!(BOD, bod_pd);
-impl_analog_block!(raw_compat::ADC0, adc_pd);
+impl_analog_block!(pac::ADC0, adc_pd);
 impl_analog_block!(SYSOSC, sysosc_pd);
 impl_analog_block!(pac::WWDT, wdtosc_pd);
 impl_analog_block!(SYSPLL, syspll_pd);
-impl_analog_block!(raw_compat::ACOMP, acmp);
+impl_analog_block!(pac::ACOMP, acmp);
 
 #[cfg(feature = "82x")]
 /// The 750 kHz IRC-derived clock

@@ -937,17 +937,3 @@ pub mod init_state {
     /// Indicates that the hardware component is disabled
     pub struct Disabled;
 }
-
-// Provide common peripheral names
-// When in doubt, use the names from the new svd files
-mod raw_compat {
-    pub(crate) use crate::pac::gpio;
-    pub(crate) use crate::pac::ACOMP;
-    pub(crate) use crate::pac::ADC0;
-    pub(crate) use crate::pac::DMA0;
-    pub(crate) use crate::pac::FLASH_CTRL;
-    pub(crate) use crate::pac::GPIO;
-    pub(crate) use crate::pac::MRT0;
-    pub(crate) use crate::pac::SCT0;
-    pub(crate) use crate::pac::SWM0;
-}

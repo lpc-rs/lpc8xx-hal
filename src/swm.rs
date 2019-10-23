@@ -9,7 +9,8 @@ use core::marker::PhantomData;
 
 use crate::{
     gpio::{self, GPIO},
-    init_state, raw_compat, syscon,
+    init_state, syscon,
+    pac,
 };
 
 use self::pin_state::PinState;
@@ -31,11 +32,11 @@ use self::pin_state::PinState;
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct SWM {
-    swm: raw_compat::SWM0,
+    swm: pac::SWM0,
 }
 
 impl SWM {
-    pub(crate) fn new(swm: raw_compat::SWM0) -> Self {
+    pub(crate) fn new(swm: pac::SWM0) -> Self {
         SWM { swm }
     }
 
@@ -65,7 +66,7 @@ impl SWM {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> raw_compat::SWM0 {
+    pub fn free(self) -> pac::SWM0 {
         self.swm
     }
 }
@@ -101,12 +102,12 @@ pub struct Parts {
 ///
 /// [module documentation]: index.html
 pub struct Handle<State = init_state::Enabled> {
-    swm: raw_compat::SWM0,
+    swm: pac::SWM0,
     _state: State,
 }
 
 impl Handle<init_state::Enabled> {
-    pub(crate) fn new(swm: raw_compat::SWM0) -> Self {
+    pub(crate) fn new(swm: pac::SWM0) -> Self {
         Handle {
             swm: swm,
             _state: init_state::Enabled(()),
@@ -730,9 +731,9 @@ pub mod pin_state {
 
     use crate::gpio::direction::Direction;
     #[cfg(feature = "845")]
-    use crate::raw_compat::gpio::{CLR, DIRSET, PIN, SET};
+    use crate::pac::gpio::{CLR, DIRSET, PIN, SET};
     #[cfg(feature = "82x")]
-    use crate::raw_compat::gpio::{CLR0 as CLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET};
+    use crate::pac::gpio::{CLR0 as CLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET};
 
     /// Implemented by types that indicate pin state
     ///
