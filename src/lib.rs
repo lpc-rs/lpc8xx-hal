@@ -86,15 +86,11 @@
 //! [GPIO example]: https://github.com/lpc-rs/lpc8xx-hal/blob/master/lpc82x-hal/examples/gpio.rs
 //! [available from NXP]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
 
-
 #![no_std]
-
 #![deny(missing_docs)]
-
 
 #[cfg(test)]
 extern crate std;
-
 
 pub extern crate cortex_m;
 #[cfg(feature = "rt-selected")]
@@ -102,17 +98,15 @@ pub extern crate cortex_m_rt;
 pub extern crate embedded_hal;
 pub extern crate nb;
 
-
 #[macro_use]
 pub(crate) mod reg_proxy;
 
 pub mod clock;
 pub mod delay;
-#[cfg(feature = "82x")]
 pub mod dma;
+pub mod gpio;
 #[cfg(feature = "82x")]
 pub mod i2c;
-pub mod gpio;
 pub mod pmu;
 pub mod sleep;
 pub mod swm;
@@ -120,7 +114,6 @@ pub mod syscon;
 #[cfg(feature = "82x")]
 pub mod usart;
 pub mod wkt;
-
 
 /// Re-exports various traits that are required to use lpc82x-hal
 ///
@@ -138,20 +131,15 @@ pub mod prelude {
     pub use crate::clock::{
         Enabled as _lpc82x_hal_clock_Enabled, Frequency as _lpc82x_hal_clock_Frequency,
     };
-    pub use crate::hal::{
-        prelude::*,
-        digital::v2::*,
-    };
+    pub use crate::hal::{digital::v2::*, prelude::*};
     pub use crate::sleep::Sleep as _;
 }
-
 
 #[cfg(feature = "82x")]
 pub use lpc82x_pac as pac;
 #[cfg(feature = "845")]
 pub use lpc845_pac as pac;
 
-#[cfg(feature = "82x")]
 pub use self::dma::DMA;
 pub use self::gpio::GPIO;
 #[cfg(feature = "82x")]
@@ -163,9 +151,7 @@ pub use self::syscon::SYSCON;
 pub use self::usart::USART;
 pub use self::wkt::WKT;
 
-
 use embedded_hal as hal;
-
 
 /// Provides access to all peripherals
 ///
@@ -242,7 +228,6 @@ pub struct Peripherals {
     /// Self-wake-up timer (WKT)
     pub WKT: WKT<init_state::Disabled>,
 
-
     /// Analog comparator
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
@@ -297,12 +282,8 @@ pub struct Peripherals {
     pub DAC1: pac::DAC1,
 
     /// DMA controller
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
     #[cfg(feature = "845")]
-    pub DMA0: pac::DMA0,
+    pub DMA: DMA,
 
     /// Flash controller
     ///
@@ -550,27 +531,23 @@ impl Peripherals {
     /// Since there are no means within this API to forcibly change type state,
     /// you will need to resort to something like [`core::mem::transmute`].
     pub unsafe fn steal() -> Self {
-        Self::new(
-            pac::Peripherals::steal(),
-            pac::CorePeripherals::steal(),
-        )
+        Self::new(pac::Peripherals::steal(), pac::CorePeripherals::steal())
     }
 
     fn new(p: pac::Peripherals, cp: pac::CorePeripherals) -> Self {
         Peripherals {
             // HAL peripherals
-            #[cfg(feature = "82x")]
-            DMA   : DMA::new(p.DMA0),
+            DMA: DMA::new(p.DMA0),
             // NOTE(unsafe) The init state of the gpio peripheral is enabled,
             // thus it's safe to create an already initialized gpio port
             #[cfg(feature = "82x")]
-            GPIO  : unsafe { GPIO::new_enabled(p.GPIO) },
+            GPIO: unsafe { GPIO::new_enabled(p.GPIO) },
             #[cfg(feature = "845")]
             GPIO: GPIO::new(p.GPIO),
             #[cfg(feature = "82x")]
-            I2C0  : I2C::new(p.I2C0),
-            PMU   : PMU::new(p.PMU),
-            SWM   : SWM::new(p.SWM0),
+            I2C0: I2C::new(p.I2C0),
+            PMU: PMU::new(p.PMU),
+            SWM: SWM::new(p.SWM0),
             SYSCON: SYSCON::new(p.SYSCON),
             #[cfg(feature = "82x")]
             USART0: USART::new(p.USART0),
@@ -578,59 +555,56 @@ impl Peripherals {
             USART1: USART::new(p.USART1),
             #[cfg(feature = "82x")]
             USART2: USART::new(p.USART2),
-            WKT   : WKT::new(p.WKT),
+            WKT: WKT::new(p.WKT),
 
             // Raw peripherals
-            ACOMP     : p.ACOMP,
-            ADC0      : p.ADC0,
+            ACOMP: p.ACOMP,
+            ADC0: p.ADC0,
             #[cfg(feature = "845")]
-            CAPT      : p.CAPT,
-            CRC       : p.CRC,
+            CAPT: p.CAPT,
+            CRC: p.CRC,
             #[cfg(feature = "845")]
-            CTIMER0   : p.CTIMER0,
+            CTIMER0: p.CTIMER0,
             #[cfg(feature = "845")]
-            DAC0      : p.DAC0,
+            DAC0: p.DAC0,
             #[cfg(feature = "845")]
-            DAC1      : p.DAC1,
-            #[cfg(feature = "845")]
-            DMA0      : p.DMA0,
+            DAC1: p.DAC1,
             FLASH_CTRL: p.FLASH_CTRL,
             #[cfg(feature = "845")]
-            I2C0      : p.I2C0,
-            I2C1      : p.I2C1,
-            I2C2      : p.I2C2,
-            I2C3      : p.I2C3,
-            INPUTMUX  : p.INPUTMUX,
-            IOCON     : p.IOCON,
-            MRT0      : p.MRT0,
-            PINT      : p.PINT,
-            SCT0      : p.SCT0,
-            SPI0      : p.SPI0,
-            SPI1      : p.SPI1,
+            I2C0: p.I2C0,
+            I2C1: p.I2C1,
+            I2C2: p.I2C2,
+            I2C3: p.I2C3,
+            INPUTMUX: p.INPUTMUX,
+            IOCON: p.IOCON,
+            MRT0: p.MRT0,
+            PINT: p.PINT,
+            SCT0: p.SCT0,
+            SPI0: p.SPI0,
+            SPI1: p.SPI1,
             #[cfg(feature = "845")]
-            USART0    : p.USART0,
+            USART0: p.USART0,
             #[cfg(feature = "845")]
-            USART1    : p.USART1,
+            USART1: p.USART1,
             #[cfg(feature = "845")]
-            USART2    : p.USART2,
+            USART2: p.USART2,
             #[cfg(feature = "845")]
-            USART3    : p.USART3,
+            USART3: p.USART3,
             #[cfg(feature = "845")]
-            USART4    : p.USART4,
-            WWDT      : p.WWDT,
+            USART4: p.USART4,
+            WWDT: p.WWDT,
 
             // Core peripherals
             CPUID: cp.CPUID,
-            DCB  : cp.DCB,
-            DWT  : cp.DWT,
-            MPU  : cp.MPU,
-            NVIC : cp.NVIC,
-            SCB  : cp.SCB,
-            SYST : cp.SYST,
+            DCB: cp.DCB,
+            DWT: cp.DWT,
+            MPU: cp.MPU,
+            NVIC: cp.NVIC,
+            SCB: cp.SCB,
+            SYST: cp.SYST,
         }
     }
 }
-
 
 /// Contains types that encode the state of hardware initialization
 ///
