@@ -32,12 +32,9 @@ fn main() -> ! {
     #[cfg(feature = "845")]
     let     gpio   = p.GPIO.enable(&mut syscon.handle);
 
-    // We're going to need a clock for sleeping. Let's use the IRC-derived clock
+    // We're going to need a clock for sleeping. Let's use the internal oscillator/IRC/FRO-derived clock
     // that runs at 750 kHz.
-    #[cfg(feature = "82x")]
-    let clock = syscon.irc_derived_clock;
-    #[cfg(feature = "845")]
-    let clock = syscon.fro_derived_clock;
+    let clock = syscon.iosc_derived_clock;
 
     // Select pin for LED
     #[cfg(feature = "82x")]
