@@ -219,7 +219,6 @@ pub struct Peripherals {
     pub I2C0: I2C<init_state::Disabled>,
 
     /// Power Management Unit
-    #[cfg(feature = "82x")]
     pub PMU: PMU,
 
     /// Switch matrix
@@ -368,10 +367,6 @@ pub struct Peripherals {
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
     pub PINT: pac::PINT,
-
-    /// Power Management Unit
-    #[cfg(feature = "845")]
-    pub PMU: PMU,
 
     /// State Configurable Timer (SCT)
     ///
