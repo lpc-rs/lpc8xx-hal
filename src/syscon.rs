@@ -11,16 +11,30 @@
 
 use core::marker::PhantomData;
 
+use crate::pac::syscon::{
+    pdruncfg,
+    starterp1,
+    PDRUNCFG,
+    STARTERP1,
+};
+
 #[cfg(feature = "82x")]
 use crate::pac::syscon::{
-    pdruncfg, presetctrl, starterp1, sysahbclkctrl, PDRUNCFG, PRESETCTRL, STARTERP1, SYSAHBCLKCTRL,
-    UARTCLKDIV, UARTFRGDIV, UARTFRGMULT,
+    presetctrl,
+    sysahbclkctrl,
+    PRESETCTRL,
+    SYSAHBCLKCTRL,
+    UARTCLKDIV,
+    UARTFRGDIV,
+    UARTFRGMULT,
 };
 
 #[cfg(feature = "845")]
 use crate::pac::syscon::{
-    pdruncfg, presetctrl0 as presetctrl, starterp1, sysahbclkctrl0 as sysahbclkctrl, PDRUNCFG,
-    PRESETCTRL0 as PRESETCTRL, STARTERP1, SYSAHBCLKCTRL0 as SYSAHBCLKCTRL,
+    presetctrl0 as presetctrl,
+    sysahbclkctrl0 as sysahbclkctrl,
+    PRESETCTRL0 as PRESETCTRL,
+    SYSAHBCLKCTRL0 as SYSAHBCLKCTRL,
 };
 
 use crate::{clock, init_state, pac, reg_proxy::RegProxy};
