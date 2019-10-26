@@ -18,7 +18,7 @@
 //! let mut syscon = p.SYSCON.split();
 //! let mut timer  = p.WKT.enable(&mut syscon.handle);
 //!
-//! // Start the timer at 750000. Sine the IRC-derived clock runs at 750 kHz,
+//! // Start the timer at 750000. Sine the IRC/FRO-derived clock runs at 750 kHz,
 //! // this translates to a one second wait.
 //! timer.start(750_000u32);
 //!
@@ -31,23 +31,15 @@
 //!
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/lpc82x-hal/examples
 
-
 use embedded_hal::timer;
 use nb;
 use void::Void;
 
-#[cfg(feature = "845")]
-use crate::syscon::FroDerivedClock;
-#[cfg(feature = "82x")]
-use crate::syscon::IrcDerivedClock;
 use crate::{
     init_state,
-    pac::{
-        self,
-        wkt::ctrl,
-    },
+    pac::{self, wkt::ctrl},
     pmu::LowPowerClock,
-    syscon::self,
+    syscon::{self, IoscDerivedClock},
 };
 
 /// Interface to the self-wake-up timer (WKT)
@@ -198,22 +190,10 @@ pub trait Clock {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W;
 }
 
-#[cfg(feature = "82x")]
-impl<State> Clock for IrcDerivedClock<State> {
+impl<State> Clock for IoscDerivedClock<State> {
     fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
-        w
-            .sel_extclk().internal()
-            .clksel().divided_irc_clock()
-    }
-}
-
-#[cfg(feature = "845")]
-impl<State> Clock for FroDerivedClock<State> {
-    fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
-        // TODO svd bug, wrong value name
-        w
-            .sel_extclk().internal()
-            .clksel().divided_irc_clock()
+        // TODO svd bug, wrong value name for lpc845, add switch
+        w.sel_extclk().internal().clksel().divided_irc_clock()
     }
 }
 

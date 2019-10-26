@@ -23,9 +23,6 @@ use crate::pac::syscon::{
     PRESETCTRL0 as PRESETCTRL, STARTERP1, SYSAHBCLKCTRL0 as SYSAHBCLKCTRL,
 };
 
-
-// TODO Remove when FRO is implemented for lpc845
-#[allow(unused_imports)]
 use crate::{clock, init_state, pac, reg_proxy::RegProxy};
 
 /// Entry point to the SYSCON API
@@ -70,14 +67,8 @@ impl SYSCON {
 
             bod: BOD(PhantomData),
             flash: FLASH(PhantomData),
-            #[cfg(feature = "82x")]
-            irc: IRC(PhantomData),
-            #[cfg(feature = "82x")]
-            ircout: IRCOUT(PhantomData),
-            #[cfg(feature = "845")]
-            fro: FRO(PhantomData),
-            #[cfg(feature = "845")]
-            froout: FROOUT(PhantomData),
+            iosc: IOSC(PhantomData),
+            ioscout: IOSCOUT(PhantomData),
             mtb: MTB(PhantomData),
             ram0_1: RAM0_1(PhantomData),
             rom: ROM(PhantomData),
@@ -91,11 +82,7 @@ impl SYSCON {
                 uartfrgmult: RegProxy::new(),
             },
 
-            #[cfg(feature = "82x")]
-            irc_derived_clock: IrcDerivedClock::new(),
-
-            #[cfg(feature = "845")]
-            fro_derived_clock: FroDerivedClock::new(),
+            iosc_derived_clock: IoscDerivedClock::new(),
         }
     }
 
@@ -132,21 +119,11 @@ pub struct Parts {
     /// Flash memory
     pub flash: FLASH,
 
-    #[cfg(feature = "82x")]
-    /// IRC
-    pub irc: IRC,
+    /// IRC/FRO
+    pub iosc: IOSC,
 
-    #[cfg(feature = "82x")]
-    /// IRC output
-    pub ircout: IRCOUT,
-
-    #[cfg(feature = "845")]
-    /// FRO
-    pub fro: FRO,
-
-    #[cfg(feature = "845")]
-    /// FRO output
-    pub froout: FROOUT,
+    /// IRC/FRO output
+    pub ioscout: IOSCOUT,
 
     /// Micro Trace Buffer
     pub mtb: MTB,
@@ -167,13 +144,8 @@ pub struct Parts {
     /// UART Fractional Baud Rate Generator
     pub uartfrg: UARTFRG,
 
-    #[cfg(feature = "82x")]
-    /// The 750 kHz IRC-derived clock
-    pub irc_derived_clock: IrcDerivedClock<init_state::Enabled>,
-
-    #[cfg(feature = "845")]
-    /// The 750 kHz FRO-derived clock
-    pub fro_derived_clock: FroDerivedClock<init_state::Enabled>,
+    /// The 750 kHz internal oscillator/IRC/FRO-derived clock
+    pub iosc_derived_clock: IoscDerivedClock<init_state::Enabled>,
 }
 
 /// Handle to the SYSCON peripheral
@@ -275,39 +247,20 @@ pub struct BOD(PhantomData<*const ()>);
 /// [`syscon::Handle`]: struct.Handle.html
 pub struct FLASH(PhantomData<*const ()>);
 
-#[cfg(feature = "82x")]
-/// IRC
+/// IOSC
 ///
-/// Can be used to control the IRC using various methods on [`syscon::Handle`].
+/// Can be used to control the IRC/FRO using various methods on [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
-pub struct IRC(PhantomData<*const ()>);
+pub struct IOSC(PhantomData<*const ()>);
 
-#[cfg(feature = "82x")]
-/// IRC output
+/// IOSC output
 ///
-/// Can be used to control IRC output using various methods on
+/// Can be used to control IRC/FRO output using various methods on
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
-pub struct IRCOUT(PhantomData<*const ()>);
-
-#[cfg(feature = "845")]
-/// FRO
-///
-/// Can be used to control the FRO using various methods on [`syscon::Handle`].
-///
-/// [`syscon::Handle`]: struct.Handle.html
-pub struct FRO(PhantomData<*const ()>);
-
-#[cfg(feature = "845")]
-/// FRO output
-///
-/// Can be used to control FRO output using various methods on
-/// [`syscon::Handle`].
-///
-/// [`syscon::Handle`]: struct.Handle.html
-pub struct FROOUT(PhantomData<*const ()>);
+pub struct IOSCOUT(PhantomData<*const ()>);
 
 /// Micro Trace Buffer
 ///
@@ -558,13 +511,13 @@ macro_rules! impl_analog_block {
 }
 
 #[cfg(feature = "82x")]
-impl_analog_block!(IRCOUT, ircout_pd);
+impl_analog_block!(IOSCOUT, ircout_pd);
 #[cfg(feature = "82x")]
-impl_analog_block!(IRC, irc_pd);
+impl_analog_block!(IOSC, irc_pd);
 #[cfg(feature = "845")]
-impl_analog_block!(FROOUT, froout_pd);
+impl_analog_block!(IOSCOUT, froout_pd);
 #[cfg(feature = "845")]
-impl_analog_block!(FRO, fro_pd);
+impl_analog_block!(IOSC, fro_pd);
 impl_analog_block!(FLASH, flash_pd);
 impl_analog_block!(BOD, bod_pd);
 impl_analog_block!(pac::ADC0, adc_pd);
@@ -573,38 +526,35 @@ impl_analog_block!(pac::WWDT, wdtosc_pd);
 impl_analog_block!(SYSPLL, syspll_pd);
 impl_analog_block!(pac::ACOMP, acmp);
 
-#[cfg(feature = "82x")]
-/// The 750 kHz IRC-derived clock
+/// The 750 kHz IRC/FRO-derived clock
 ///
 /// This is one of the clocks that can be used to run the self-wake-up timer
 /// (WKT). See user manual, section 18.5.1.
-pub struct IrcDerivedClock<State = init_state::Enabled> {
+pub struct IoscDerivedClock<State = init_state::Enabled> {
     _state: State,
 }
 
-#[cfg(feature = "82x")]
-impl IrcDerivedClock<init_state::Enabled> {
+impl IoscDerivedClock<init_state::Enabled> {
     pub(crate) fn new() -> Self {
-        IrcDerivedClock {
+        Self {
             _state: init_state::Enabled(()),
         }
     }
 }
 
-#[cfg(feature = "82x")]
-impl IrcDerivedClock<init_state::Disabled> {
-    /// Enable the IRC-derived clock
+impl IoscDerivedClock<init_state::Disabled> {
+    /// Enable the IRC/FRO-derived clock
     ///
-    /// This method is only available, if `IrcDerivedClock` is in the
+    /// This method is only available, if `IoscDerivedClock` is in the
     /// [`Disabled`] state. Code that attempts to call this method when the
     /// clock is already enabled will not compile.
     ///
-    /// Consumes this instance of `IrcDerivedClock` and returns another instance
+    /// Consumes this instance of `IoscDerivedClock` and returns another instance
     /// that has its `State` type parameter set to [`Enabled`]. That new
     /// instance implements [`clock::Enabled`], which might be required by APIs
     /// that need an enabled clock.
     ///
-    /// Also consumes the handles to [`IRC`] and [`IRCOUT`], to make it
+    /// Also consumes the handles to [`IOSC`] and [`IOSCOUT`], to make it
     /// impossible (outside of unsafe code) to break API guarantees.
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
@@ -613,89 +563,25 @@ impl IrcDerivedClock<init_state::Disabled> {
     pub fn enable(
         self,
         syscon: &mut Handle,
-        mut irc: IRC,
-        mut ircout: IRCOUT,
-    ) -> IrcDerivedClock<init_state::Enabled> {
-        syscon.power_up(&mut irc);
-        syscon.power_up(&mut ircout);
+        mut iosc: IOSC,
+        mut ioscout: IOSCOUT,
+    ) -> IoscDerivedClock<init_state::Enabled> {
+        syscon.power_up(&mut iosc);
+        syscon.power_up(&mut ioscout);
 
-        IrcDerivedClock {
+        IoscDerivedClock {
             _state: init_state::Enabled(()),
         }
     }
 }
 
-#[cfg(feature = "82x")]
-impl<State> clock::Frequency for IrcDerivedClock<State> {
+impl<State> clock::Frequency for IoscDerivedClock<State> {
     fn hz(&self) -> u32 {
         750_000
     }
 }
 
-#[cfg(feature = "82x")]
-impl clock::Enabled for IrcDerivedClock<init_state::Enabled> {}
-
-#[cfg(feature = "845")]
-/// The 750 kHz FRO-derived clock
-///
-/// This is one of the clocks that can be used to run the self-wake-up timer
-/// (WKT). See user manual, section 18.5.1.
-pub struct FroDerivedClock<State = init_state::Enabled> {
-    _state: State,
-}
-
-#[cfg(feature = "845")]
-impl FroDerivedClock<init_state::Enabled> {
-    pub(crate) fn new() -> Self {
-        FroDerivedClock {
-            _state: init_state::Enabled(()),
-        }
-    }
-}
-
-#[cfg(feature = "845")]
-impl FroDerivedClock<init_state::Disabled> {
-    /// Enable the FRO-derived clock
-    ///
-    /// This method is only available, if `FroDerivedClock` is in the
-    /// [`Disabled`] state. Code that attempts to call this method when the
-    /// clock is already enabled will not compile.
-    ///
-    /// Consumes this instance of `FroDerivedClock` and returns another instance
-    /// that has its `State` type parameter set to [`Enabled`]. That new
-    /// instance implements [`clock::Enabled`], which might be required by APIs
-    /// that need an enabled clock.
-    ///
-    /// Also consumes the handles to [`FRO`] and [`FROOUT`], to make it
-    /// impossible (outside of unsafe code) to break API guarantees.
-    ///
-    /// [`Disabled`]: ../init_state/struct.Disabled.html
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
-    /// [`clock::Enabled`]: ../clock/trait.Enabled.html
-    pub fn enable(
-        self,
-        syscon: &mut Handle,
-        mut fro: FRO,
-        mut froout: FROOUT,
-    ) -> FroDerivedClock<init_state::Enabled> {
-        syscon.power_up(&mut fro);
-        syscon.power_up(&mut froout);
-
-        FroDerivedClock {
-            _state: init_state::Enabled(()),
-        }
-    }
-}
-
-#[cfg(feature = "845")]
-impl<State> clock::Frequency for FroDerivedClock<State> {
-    fn hz(&self) -> u32 {
-        750_000
-    }
-}
-
-#[cfg(feature = "845")]
-impl clock::Enabled for FroDerivedClock<init_state::Enabled> {}
+impl clock::Enabled for IoscDerivedClock<init_state::Enabled> {}
 
 /// Internal trait used to configure interrupt wake-up
 ///
