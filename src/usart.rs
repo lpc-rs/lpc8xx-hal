@@ -84,12 +84,14 @@ use crate::{
         FunctionTrait,
         PinTrait,
     },
-    syscon::{
-        self,
-        UARTFRG,
-    },
+    syscon,
 };
 
+#[cfg(feature = "82x")]
+use crate::syscon::UARTFRG;
+
+#[cfg(feature = "845")]
+use crate::syscon::FRG0;
 
 /// Interface to a USART peripheral
 ///
@@ -138,21 +140,23 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<Rx, Tx>(mut self,
-        baud_rate: &BaudRate,
-        syscon   : &mut syscon::Handle,
-        _        : swm::Function<UsartX::Rx, swm::state::Assigned<Rx>>,
-        _        : swm::Function<UsartX::Tx, swm::state::Assigned<Tx>>,
-    )
-        -> USART<UsartX, init_state::Enabled>
-        where
-            Rx        : PinTrait,
-            Tx        : PinTrait,
-            UsartX::Rx: FunctionTrait<Rx>,
-            UsartX::Tx: FunctionTrait<Tx>,
+    pub fn enable<'a, Rx, Tx, FRG>(
+        mut self,
+        baud_rate: &'a BaudRate<FRG>,
+        syscon: &mut syscon::Handle,
+        _: swm::Function<UsartX::Rx, swm::state::Assigned<Rx>>,
+        _: swm::Function<UsartX::Tx, swm::state::Assigned<Tx>>,
+    ) -> USART<UsartX, init_state::Enabled>
+    where
+        Rx: PinTrait,
+        Tx: PinTrait,
+        UsartX::Rx: FunctionTrait<Rx>,
+        UsartX::Tx: FunctionTrait<Tx>,
+        BaudRate<'a, FRG>: UsartClockSelector<UsartX>,
     {
         syscon.enable_clock(&mut self.usart);
 
+        baud_rate.select_clock(&self.usart, syscon);
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 
         // According to the user manual, section 13.6.1, we need to make sure
@@ -288,8 +292,12 @@ impl<'usart, UsartX> Read<u8> for Receiver<'usart, UsartX>
         if stat.rxbrk().bit_is_set() {
             return Err(nb::Error::WouldBlock);
         }
-        if stat.overrunint().bit_is_set() {
-            return Err(nb::Error::Other(Error::Overrun));
+        // TODO Due to SVD bug not available
+        #[cfg(feature = "82x")]
+        {
+            if stat.overrunint().bit_is_set() {
+                return Err(nb::Error::Other(Error::Overrun));
+            }
         }
 
         if stat.rxrdy().bit_is_set() {
@@ -469,12 +477,22 @@ impl Peripheral for pac::USART4 {
     type Tx = swm::U4_TXD;
 }
 
+/// Internal trait for USART peripherals
+///
+/// This trait is an internal implementation detail and should neither be
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
+/// be considered breaking changes.
+pub trait UsartClockSelector<UsartX> {
+    /// Select the clock for the peripheral
+    fn select_clock(&self, _: &UsartX, syscon: &mut syscon::Handle);
+}
+
 /// Represents a UART baud rate
 ///
 /// Can be passed to [`USART::enable`] to configure the baud rate for a USART
 /// peripheral.
-pub struct BaudRate<'frg> {
-    _uartfrg: &'frg UARTFRG,
+pub struct BaudRate<'frg, FRG> {
+    _frg: &'frg FRG,
 
     /// USART Baud Rate Generator divider value
     ///
@@ -482,7 +500,8 @@ pub struct BaudRate<'frg> {
     brgval: u16,
 }
 
-impl<'frg> BaudRate<'frg> {
+#[cfg(feature = "82x")]
+impl<'frg> BaudRate<'frg, UARTFRG> {
     /// Create a `BaudRate` instance
     ///
     /// Creates a `BaudRate` instance from two components: A reference to the
@@ -499,14 +518,48 @@ impl<'frg> BaudRate<'frg> {
     /// is divided by 2 before using it, `2` means it's divided by 3, and so on.
     ///
     /// Please refer to the user manual, section 13.3.1, for further details.
-    pub fn new(uartfrg : &'frg UARTFRG, brgval : u16) -> Self {
+    pub fn new(uartfrg: &'frg UARTFRG, brgval: u16) -> Self {
         Self {
-            _uartfrg: uartfrg,
-            brgval  : brgval,
+            _frg: uartfrg,
+            brgval: brgval,
         }
     }
 }
+#[cfg(feature = "82x")]
+impl<'frg, UsartX> UsartClockSelector<UsartX> for BaudRate<'frg, UARTFRG>
+where
+    UsartX: Peripheral,
+{
+    fn select_clock(&self, _: &UsartX, _: &mut syscon::Handle) {
+        // NOOP, this clock is always selected
+    }
+}
 
+#[cfg(feature = "845")]
+impl<'frg> BaudRate<'frg, FRG0> {
+    /// Create a `BaudRate` instance
+    ///
+    /// Creates a `BaudRate` instance from two components: A reference to the
+    /// [`FRG0`] and the BRGVAL.
+    ///
+    /// The [`FRG0`] controls U_PCLK, the clock that is shared by all USART
+    /// peripherals. Please configure it before attempting to create a
+    /// `BaudRate`. By keeping a reference to it, `BaudRate` ensures that U_PCLK
+    /// cannot be changes as long as the `BaudRate` instance exists.
+    ///
+    /// BRGVAL is an additional divider value that divides the shared baud rate
+    /// to allow individual USART peripherals to use different baud rates. A
+    /// value of `0` means that U_PCLK is used directly, `1` means that U_PCLK
+    /// is divided by 2 before using it, `2` means it's divided by 3, and so on.
+    ///
+    /// Please refer to the user manual, section 13.3.1, for further details.
+    pub fn new(frg0: &'frg FRG0, brgval: u16) -> Self {
+        Self {
+            _frg: frg0,
+            brgval: brgval,
+        }
+    }
+}
 
 /// A USART error
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
