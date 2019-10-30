@@ -712,27 +712,14 @@ reg!(UARTFRGMULT, UARTFRGMULT, pac::SYSCON, uartfrgmult);
 #[cfg(feature = "845")]
 struct FRG0DIV;
 #[cfg(feature = "845")]
-unsafe impl crate::reg_proxy::Reg for FRG0DIV {
-    type Target = FRGDIV;
-    fn get() -> *const Self::Target {
-        unsafe { &(*<pac::SYSCON>::ptr()).frg0.frgdiv as *const _ }
-    }
-}
+reg_cluster!(FRG0DIV, FRGDIV, pac::SYSCON, frg0, frgdiv);
+
 #[cfg(feature = "845")]
 struct FRG0CLKSEL;
 #[cfg(feature = "845")]
-unsafe impl crate::reg_proxy::Reg for FRG0CLKSEL {
-    type Target = FRGCLKSEL;
-    fn get() -> *const Self::Target {
-        unsafe { &(*<pac::SYSCON>::ptr()).frg0.frgclksel as *const _ }
-    }
-}
+reg_cluster!(FRG0CLKSEL, FRGCLKSEL, pac::SYSCON, frg0, frgclksel);
+
 #[cfg(feature = "845")]
 struct FRG0MULT;
 #[cfg(feature = "845")]
-unsafe impl crate::reg_proxy::Reg for FRG0MULT {
-    type Target = FRGMULT;
-    fn get() -> *const Self::Target {
-        unsafe { &(*<pac::SYSCON>::ptr()).frg0.frgmult as *const _ }
-    }
-}
+reg_cluster!(FRG0MULT, FRGMULT, pac::SYSCON, frg0, frgmult);
