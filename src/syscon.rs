@@ -436,6 +436,10 @@ impl_clock_control!(pac::CRC, crc);
 impl_clock_control!(pac::USART0, uart0);
 impl_clock_control!(pac::USART1, uart1);
 impl_clock_control!(pac::USART2, uart2);
+#[cfg(feature = "845")]
+impl_clock_control!(pac::USART3, uart3);
+#[cfg(feature = "845")]
+impl_clock_control!(pac::USART4, uart4);
 impl_clock_control!(pac::WWDT, wwdt);
 impl_clock_control!(pac::IOCON, iocon);
 impl_clock_control!(pac::ACOMP, acmp);
@@ -496,6 +500,10 @@ impl_reset_control!(UARTFRG, uartfrg_rst_n);
 impl_reset_control!(pac::USART0, uart0_rst_n);
 impl_reset_control!(pac::USART1, uart1_rst_n);
 impl_reset_control!(pac::USART2, uart2_rst_n);
+#[cfg(feature = "845")]
+impl_reset_control!(pac::USART3, uart3_rst_n);
+#[cfg(feature = "845")]
+impl_reset_control!(pac::USART4, uart4_rst_n);
 impl_reset_control!(pac::I2C0, i2c0_rst_n);
 impl_reset_control!(pac::MRT0, mrt_rst_n);
 impl_reset_control!(pac::SCT0, sct_rst_n);
