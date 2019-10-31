@@ -20,8 +20,8 @@ use crate::pac::syscon::{
 #[cfg(feature = "845")]
 use crate::pac::syscon::{
     frg::{FRGCLKSEL, FRGDIV, FRGMULT},
-    pdruncfg, presetctrl0, starterp1, sysahbclkctrl0, PDRUNCFG, PRESETCTRL0,
-    STARTERP1, SYSAHBCLKCTRL0,
+    pdruncfg, presetctrl0, starterp1, sysahbclkctrl0, FCLKSEL, PDRUNCFG, PRESETCTRL0, STARTERP1,
+    SYSAHBCLKCTRL0,
 };
 
 use crate::{clock, init_state, pac, reg_proxy::RegProxy};
@@ -64,6 +64,7 @@ impl SYSCON {
                 presetctrl0: RegProxy::new(),
                 starterp1: RegProxy::new(),
                 sysahbclkctrl: RegProxy::new(),
+                fclksel: RegProxy::new(),
             },
 
             bod: BOD(PhantomData),
@@ -175,6 +176,7 @@ pub struct Handle {
     presetctrl0: RegProxy<PRESETCTRL0>,
     starterp1: RegProxy<STARTERP1>,
     sysahbclkctrl: RegProxy<SYSAHBCLKCTRL0>,
+    pub(crate) fclksel: RegProxy<FCLKSEL>,
 }
 
 impl Handle {
@@ -701,6 +703,8 @@ reg!(STARTERP1, STARTERP1, pac::SYSCON, starterp1);
 reg!(SYSAHBCLKCTRL0, SYSAHBCLKCTRL0, pac::SYSCON, sysahbclkctrl);
 #[cfg(feature = "845")]
 reg!(SYSAHBCLKCTRL0, SYSAHBCLKCTRL0, pac::SYSCON, sysahbclkctrl0);
+#[cfg(feature = "845")]
+reg!(FCLKSEL, [FCLKSEL; 11], pac::SYSCON, fclksel);
 
 #[cfg(feature = "82x")]
 reg!(UARTCLKDIV, UARTCLKDIV, pac::SYSCON, uartclkdiv);

@@ -561,6 +561,28 @@ impl<'frg> BaudRate<'frg, FRG0> {
     }
 }
 
+#[allow(unused)]
+macro_rules! usart_clock_selector {
+    ($usartx:ty, $number:expr, $clock_source: ty, $name: ident) => {
+        impl<'frg> UsartClockSelector<$usartx> for BaudRate<'frg, $clock_source> {
+            fn select_clock(&self, _: &$usartx, syscon: &mut syscon::Handle) {
+                syscon.fclksel[$number].write(|w| w.sel().$name());
+            }
+        }
+    };
+}
+
+#[cfg(feature = "845")]
+usart_clock_selector!(pac::USART0, 0, FRG0, frg0clk);
+#[cfg(feature = "845")]
+usart_clock_selector!(pac::USART1, 1, FRG0, frg0clk);
+#[cfg(feature = "845")]
+usart_clock_selector!(pac::USART2, 2, FRG0, frg0clk);
+#[cfg(feature = "845")]
+usart_clock_selector!(pac::USART3, 3, FRG0, frg0clk);
+#[cfg(feature = "845")]
+usart_clock_selector!(pac::USART4, 4, FRG0, frg0clk);
+
 /// A USART error
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Error {
