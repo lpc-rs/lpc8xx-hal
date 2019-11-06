@@ -454,7 +454,7 @@ impl Peripheral for pac::USART2 {
 /// Can be passed to [`USART::enable`] to configure the baud rate for a USART
 /// peripheral.
 pub struct BaudRate<'frg, CS: ClockSource> {
-    _uartfrg: &'frg CS,
+    _clock: &'frg CS,
 
     /// USART Baud Rate Generator divider value
     ///
@@ -481,8 +481,8 @@ impl<'frg, CS> BaudRate<'frg, CS> where CS: ClockSource {
     /// Please refer to the user manual, section 13.3.1, for further details.
     pub fn new(uartfrg : &'frg CS, brgval : u16) -> Self {
         Self {
-            _uartfrg: uartfrg,
-            brgval  : brgval,
+            _clock: uartfrg,
+            brgval: brgval,
         }
     }
 }
