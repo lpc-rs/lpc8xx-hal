@@ -453,8 +453,8 @@ impl Peripheral for pac::USART2 {
 ///
 /// Can be passed to [`USART::enable`] to configure the baud rate for a USART
 /// peripheral.
-pub struct BaudRate<'frg, CS: ClockSource> {
-    _clock: &'frg CS,
+pub struct BaudRate<'clock, CS: ClockSource> {
+    _clock: &'clock CS,
 
     /// USART Baud Rate Generator divider value
     ///
@@ -462,7 +462,7 @@ pub struct BaudRate<'frg, CS: ClockSource> {
     brgval: u16,
 }
 
-impl<'frg, CS> BaudRate<'frg, CS> where CS: ClockSource {
+impl<'clock, CS> BaudRate<'clock, CS> where CS: ClockSource {
     /// Create a `BaudRate` instance
     ///
     /// Creates a `BaudRate` instance from two components: A reference to the
@@ -479,7 +479,7 @@ impl<'frg, CS> BaudRate<'frg, CS> where CS: ClockSource {
     /// is divided by 2 before using it, `2` means it's divided by 3, and so on.
     ///
     /// Please refer to the user manual, section 13.3.1, for further details.
-    pub fn new(clock: &'frg CS, brgval : u16) -> Self {
+    pub fn new(clock: &'clock CS, brgval : u16) -> Self {
         Self {
             _clock: clock,
             brgval: brgval,
