@@ -128,9 +128,10 @@ impl WKT<init_state::Enabled> {
     ///
     /// [`wkt::Clock`]: trait.Clock.html
     pub fn select_clock<C>(&mut self) where C: Clock {
-        self.wkt.ctrl.modify(|_, w|
-            C::select(w)
-        );
+        self.wkt.ctrl.modify(|_, w| {
+            C::select(w);
+            w
+        });
     }
 }
 
@@ -187,20 +188,20 @@ pub trait Clock {
     /// This is an internal method, to be called by the WKT API. Users generally
     /// shouldn't need to call this. This method is exempt from any guarantees
     /// of API stability.
-    fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W;
+    fn select(w: &mut ctrl::W);
 }
 
 impl<State> Clock for IoscDerivedClock<State> {
-    fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
+    fn select(w: &mut ctrl::W) {
         // TODO svd bug, wrong value name for lpc845, add switch
-        w.sel_extclk().internal().clksel().divided_irc_clock()
+        w.sel_extclk().internal().clksel().divided_irc_clock();
     }
 }
 
 impl<State> Clock for LowPowerClock<State> {
-    fn select<'w>(w: &'w mut ctrl::W) -> &'w mut ctrl::W {
+    fn select(w: &mut ctrl::W) {
         w
             .sel_extclk().internal()
-            .clksel().low_power_clock()
+            .clksel().low_power_clock();
     }
 }
