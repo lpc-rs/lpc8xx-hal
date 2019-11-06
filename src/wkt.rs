@@ -193,8 +193,8 @@ pub trait Clock {
 
 impl<State> Clock for IoscDerivedClock<State> {
     fn select(w: &mut ctrl::W) {
-        // TODO svd bug, wrong value name for lpc845, add switch
-        w.sel_extclk().internal().clksel().divided_irc_clock();
+        w.sel_extclk().internal();
+        target::select_internal_oscillator(w);
     }
 }
 
@@ -203,5 +203,20 @@ impl<State> Clock for LowPowerClock<State> {
         w
             .sel_extclk().internal()
             .clksel().low_power_clock();
+    }
+}
+
+
+#[cfg(feature = "82x")]
+mod target {
+    pub fn select_internal_oscillator(w: &mut crate::pac::wkt::ctrl::W) {
+        w.clksel().divided_irc_clock();
+    }
+}
+
+#[cfg(feature = "845")]
+mod target {
+    pub fn select_internal_oscillator(w: &mut crate::pac::wkt::ctrl::W) {
+        w.clksel().divided_fro_clock();
     }
 }
