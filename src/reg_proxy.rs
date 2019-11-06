@@ -111,7 +111,6 @@ macro_rules! reg {
     };
 }
 
-#[cfg(feature = "82x")]
 macro_rules! reg_cluster {
     ($ty:ident, $target:ty, $peripheral:path, $cluster:ident, $field:ident) => {
         unsafe impl $crate::reg_proxy::Reg for $ty {

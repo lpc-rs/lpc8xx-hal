@@ -9,6 +9,15 @@
 //!
 //! The SYSCON peripheral is described in the user manual, chapter 5.
 
+
+#[cfg(feature = "845")]
+pub mod frg;
+
+
+#[cfg(feature = "845")]
+pub use self::frg::FRG;
+
+
 use core::marker::PhantomData;
 
 use crate::pac::syscon::{
@@ -96,6 +105,11 @@ impl SYSCON {
                 uartfrgmult: RegProxy::new(),
             },
 
+            #[cfg(feature = "845")]
+            frg0: FRG::new(),
+            #[cfg(feature = "845")]
+            frg1: FRG::new(),
+
             iosc_derived_clock: IoscDerivedClock::new(),
         }
     }
@@ -157,6 +171,14 @@ pub struct Parts {
     #[cfg(feature = "82x")]
     /// UART Fractional Baud Rate Generator
     pub uartfrg: UARTFRG,
+
+    /// Fractional generator 0
+    #[cfg(feature = "845")]
+    pub frg0: FRG<frg::FRG0>,
+
+    /// Fractional generator 1
+    #[cfg(feature = "845")]
+    pub frg1: FRG<frg::FRG1>,
 
     /// The 750 kHz internal oscillator/IRC/FRO-derived clock
     pub iosc_derived_clock: IoscDerivedClock<init_state::Enabled>,
