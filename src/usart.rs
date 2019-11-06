@@ -84,11 +84,11 @@ use crate::{
         FunctionTrait,
         PinTrait,
     },
-    syscon::{
-        self,
-        UARTFRG,
-    },
+    syscon,
 };
+
+#[cfg(feature = "82x")]
+use crate::syscon::UARTFRG;
 
 
 /// Interface to a USART peripheral
@@ -138,14 +138,15 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<Rx, Tx>(mut self,
-        baud_rate: &BaudRate,
+    pub fn enable<CS, Rx, Tx>(mut self,
+        baud_rate: &BaudRate<CS>,
         syscon   : &mut syscon::Handle,
         _        : swm::Function<UsartX::Rx, swm::state::Assigned<Rx>>,
         _        : swm::Function<UsartX::Tx, swm::state::Assigned<Tx>>,
     )
         -> USART<UsartX, init_state::Enabled>
         where
+            CS:         ClockSource,
             Rx        : PinTrait,
             Tx        : PinTrait,
             UsartX::Rx: FunctionTrait<Rx>,
@@ -452,8 +453,8 @@ impl Peripheral for pac::USART2 {
 ///
 /// Can be passed to [`USART::enable`] to configure the baud rate for a USART
 /// peripheral.
-pub struct BaudRate<'frg> {
-    _uartfrg: &'frg UARTFRG,
+pub struct BaudRate<'frg, CS: ClockSource> {
+    _uartfrg: &'frg CS,
 
     /// USART Baud Rate Generator divider value
     ///
@@ -461,16 +462,16 @@ pub struct BaudRate<'frg> {
     brgval: u16,
 }
 
-impl<'frg> BaudRate<'frg> {
+impl<'frg, CS> BaudRate<'frg, CS> where CS: ClockSource {
     /// Create a `BaudRate` instance
     ///
     /// Creates a `BaudRate` instance from two components: A reference to the
-    /// [`UARTFRG`] and the BRGVAL.
+    /// clock source and the BRGVAL.
     ///
-    /// The [`UARTFRG`] controls U_PCLK, the clock that is shared by all USART
-    /// peripherals. Please configure it before attempting to create a
-    /// `BaudRate`. By keeping a reference to it, `BaudRate` ensures that U_PCLK
-    /// cannot be changes as long as the `BaudRate` instance exists.
+    /// The clock source is shared by all USART peripherals. Please configure it
+    /// before attempting to create a `BaudRate`. By keeping a reference to it,
+    /// `BaudRate` ensures that the clock source cannot be changed as long as
+    /// the `BaudRate` instance exists.
     ///
     /// BRGVAL is an additional divider value that divides the shared baud rate
     /// to allow individual USART peripherals to use different baud rates. A
@@ -478,13 +479,22 @@ impl<'frg> BaudRate<'frg> {
     /// is divided by 2 before using it, `2` means it's divided by 3, and so on.
     ///
     /// Please refer to the user manual, section 13.3.1, for further details.
-    pub fn new(uartfrg : &'frg UARTFRG, brgval : u16) -> Self {
+    pub fn new(uartfrg : &'frg CS, brgval : u16) -> Self {
         Self {
             _uartfrg: uartfrg,
             brgval  : brgval,
         }
     }
 }
+
+
+/// Implemented for USART clock sources
+pub trait ClockSource {}
+
+#[cfg(feature = "82x")]
+impl ClockSource for UARTFRG {}
+
+
 
 
 /// A USART error
