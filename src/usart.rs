@@ -479,9 +479,9 @@ impl<'frg, CS> BaudRate<'frg, CS> where CS: ClockSource {
     /// is divided by 2 before using it, `2` means it's divided by 3, and so on.
     ///
     /// Please refer to the user manual, section 13.3.1, for further details.
-    pub fn new(uartfrg : &'frg CS, brgval : u16) -> Self {
+    pub fn new(clock: &'frg CS, brgval : u16) -> Self {
         Self {
-            _clock: uartfrg,
+            _clock: clock,
             brgval: brgval,
         }
     }
