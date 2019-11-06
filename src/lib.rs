@@ -117,7 +117,6 @@ pub mod pmu;
 pub mod sleep;
 pub mod swm;
 pub mod syscon;
-#[cfg(feature = "82x")]
 pub mod usart;
 pub mod wkt;
 
@@ -159,7 +158,6 @@ pub use self::i2c::I2C;
 pub use self::pmu::PMU;
 pub use self::swm::SWM;
 pub use self::syscon::SYSCON;
-#[cfg(feature = "82x")]
 pub use self::usart::USART;
 pub use self::wkt::WKT;
 
@@ -228,16 +226,21 @@ pub struct Peripherals {
     pub SYSCON: SYSCON,
 
     /// USART0
-    #[cfg(feature = "82x")]
     pub USART0: USART<pac::USART0, init_state::Disabled>,
 
     /// USART1
-    #[cfg(feature = "82x")]
     pub USART1: USART<pac::USART1, init_state::Disabled>,
 
     /// USART2
-    #[cfg(feature = "82x")]
     pub USART2: USART<pac::USART2, init_state::Disabled>,
+
+    /// USART3
+    #[cfg(feature = "845")]
+    pub USART3: USART<pac::USART3, init_state::Disabled>,
+
+    /// USART4
+    #[cfg(feature = "845")]
+    pub USART4: USART<pac::USART4, init_state::Disabled>,
 
     /// Self-wake-up timer (WKT)
     pub WKT: WKT<init_state::Disabled>,
@@ -389,46 +392,6 @@ pub struct Peripherals {
     /// allow you full, unprotected access to the peripheral.
     pub SPI1: pac::SPI1,
 
-    /// USART0
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    #[cfg(feature = "845")]
-    pub USART0: pac::USART0,
-
-    /// USART1
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    #[cfg(feature = "845")]
-    pub USART1: pac::USART1,
-
-    /// USART2
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    #[cfg(feature = "845")]
-    pub USART2: pac::USART2,
-
-    /// USART3
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    #[cfg(feature = "845")]
-    pub USART3: pac::USART3,
-
-    /// USART4
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    #[cfg(feature = "845")]
-    pub USART4: pac::USART4,
-
     /// Windowed Watchdog Timer (WWDT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
@@ -572,12 +535,13 @@ impl Peripherals {
             PMU   : PMU::new(p.PMU),
             SWM   : SWM::new(p.SWM0),
             SYSCON: SYSCON::new(p.SYSCON),
-            #[cfg(feature = "82x")]
             USART0: USART::new(p.USART0),
-            #[cfg(feature = "82x")]
             USART1: USART::new(p.USART1),
-            #[cfg(feature = "82x")]
             USART2: USART::new(p.USART2),
+            #[cfg(feature = "845")]
+            USART3: USART::new(p.USART3),
+            #[cfg(feature = "845")]
+            USART4: USART::new(p.USART4),
             WKT   : WKT::new(p.WKT),
 
             // Raw peripherals
@@ -607,16 +571,6 @@ impl Peripherals {
             SCT0      : p.SCT0,
             SPI0      : p.SPI0,
             SPI1      : p.SPI1,
-            #[cfg(feature = "845")]
-            USART0    : p.USART0,
-            #[cfg(feature = "845")]
-            USART1    : p.USART1,
-            #[cfg(feature = "845")]
-            USART2    : p.USART2,
-            #[cfg(feature = "845")]
-            USART3    : p.USART3,
-            #[cfg(feature = "845")]
-            USART4    : p.USART4,
             WWDT      : p.WWDT,
 
             // Core peripherals

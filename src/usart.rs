@@ -71,11 +71,9 @@ use nb::{
 use void::Void;
 
 use crate::{
-    dma,
     init_state,
     pac::{
         self,
-        usart0::TXDAT,
         Interrupt,
         NVIC,
     },
@@ -88,7 +86,11 @@ use crate::{
 };
 
 #[cfg(feature = "82x")]
-use crate::syscon::UARTFRG;
+use crate::{
+    dma,
+    pac::usart0::TXDAT,
+    syscon::UARTFRG,
+};
 
 
 /// Interface to a USART peripheral
@@ -392,6 +394,7 @@ impl<'usart, UsartX> fmt::Write for Transmitter<'usart, UsartX>
     }
 }
 
+#[cfg(feature = "82x")]
 impl<'usart, UsartX> dma::Dest for Transmitter<'usart, UsartX>
     where UsartX: Peripheral,
 {
@@ -494,7 +497,8 @@ pub trait ClockSource {}
 #[cfg(feature = "82x")]
 impl ClockSource for UARTFRG {}
 
-
+#[cfg(feature = "845")]
+impl ClockSource for Void {}
 
 
 /// A USART error
