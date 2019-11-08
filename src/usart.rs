@@ -92,6 +92,15 @@ use crate::{
     syscon::UARTFRG,
 };
 
+#[cfg(feature = "845")]
+use crate::{
+    pac::syscon::fclksel::SEL_A,
+    syscon::{
+        FRG,
+        frg,
+    },
+};
+
 
 /// Interface to a USART peripheral
 ///
@@ -156,6 +165,7 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Instance {
     {
         syscon.enable_clock(&mut self.usart);
 
+        self.usart.select_clock_source::<CS>();
         self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
 
         // According to the user manual, section 13.6.1, we need to make sure
@@ -428,25 +438,41 @@ pub trait Instance:
 
     /// The movable function that needs to be assigned to this USART's TX pin
     type Tx;
+
+    /// Selects `CS` as the clock source for this USART instance
+    fn select_clock_source<CS>(&self) where CS: ClockSource;
 }
 
 macro_rules! instances {
-    ($($name:ident, $rxd:ident, $txd:ident;)*) => {
+    ($($name:ident, $rxd:ident, $txd:ident, $clksel:expr;)*) => {
         $(
             impl Instance for pac::$name {
                 const INTERRUPT: Interrupt = Interrupt::$name;
 
                 type Rx = swm::$rxd;
                 type Tx = swm::$txd;
+
+                fn select_clock_source<CS>(&self) where CS: ClockSource {
+                    #[cfg(feature = "845")]
+                    {
+                        // Safe, as we're only accessing a register that is used
+                        // exclusively by this USART instance.
+                        let syscon = unsafe { &*pac::SYSCON::ptr() };
+
+                        syscon.fclksel[$clksel].write(|w|
+                            w.sel().variant(CS::CLKSEL)
+                        );
+                    }
+                }
             }
         )*
     }
 }
 
 instances!(
-    USART0, U0_RXD, U0_TXD;
-    USART1, U1_RXD, U1_TXD;
-    USART2, U2_RXD, U2_TXD;
+    USART0, U0_RXD, U0_TXD, 0;
+    USART1, U1_RXD, U1_TXD, 1;
+    USART2, U2_RXD, U2_TXD, 2;
 );
 
 
@@ -490,13 +516,19 @@ impl<'clock, CS> BaudRate<'clock, CS> where CS: ClockSource {
 
 
 /// Implemented for USART clock sources
-pub trait ClockSource {}
+pub trait ClockSource {
+    /// The value for the clock selection register
+    #[cfg(feature = "845")]
+    const CLKSEL: SEL_A;
+}
 
 #[cfg(feature = "82x")]
 impl ClockSource for UARTFRG {}
 
 #[cfg(feature = "845")]
-impl ClockSource for Void {}
+impl<T> ClockSource for FRG<T> where T: frg::Instance {
+    const CLKSEL: SEL_A = SEL_A::FRO;
+}
 
 
 /// A USART error
