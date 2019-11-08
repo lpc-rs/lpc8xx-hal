@@ -116,7 +116,7 @@ impl<UsartX> USART<UsartX, init_state::Disabled> {
     }
 }
 
-impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
+impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Instance {
     /// Enable the USART
     ///
     /// This method is only available, if `USART` is in the [`Disabled`] state.
@@ -192,7 +192,7 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     }
 }
 
-impl<UsartX> USART<UsartX, init_state::Enabled> where UsartX: Peripheral {
+impl<UsartX> USART<UsartX, init_state::Enabled> where UsartX: Instance {
     /// Disable the USART
     ///
     /// This method is only available, if `USART` is in the [`Enabled`] state.
@@ -258,7 +258,7 @@ impl<UsartX, State> USART<UsartX, State> {
 /// USART receiver
 pub struct Receiver<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
 
-impl<'usart, UsartX> Receiver<'usart, UsartX> where UsartX: Peripheral {
+impl<'usart, UsartX> Receiver<'usart, UsartX> where UsartX: Instance {
     /// Enable the RXRDY interrupt
     ///
     /// The interrupt will not actually work unless the interrupts for this
@@ -281,7 +281,7 @@ impl<'usart, UsartX> Receiver<'usart, UsartX> where UsartX: Peripheral {
 }
 
 impl<'usart, UsartX> Read<u8> for Receiver<'usart, UsartX>
-    where UsartX: Peripheral,
+    where UsartX: Instance,
 {
     type Error = Error;
 
@@ -325,7 +325,7 @@ impl<'usart, UsartX> Read<u8> for Receiver<'usart, UsartX>
 /// USART transmitter
 pub struct Transmitter<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
 
-impl<'usart, UsartX> Transmitter<'usart, UsartX> where UsartX: Peripheral {
+impl<'usart, UsartX> Transmitter<'usart, UsartX> where UsartX: Instance {
     /// Enable the TXRDY interrupt
     ///
     /// The interrupt will not actually work unless the interrupts for this
@@ -348,7 +348,7 @@ impl<'usart, UsartX> Transmitter<'usart, UsartX> where UsartX: Peripheral {
 }
 
 impl<'usart, UsartX> Write<u8> for Transmitter<'usart, UsartX>
-    where UsartX: Peripheral,
+    where UsartX: Instance,
 {
     type Error = Void;
 
@@ -374,13 +374,13 @@ impl<'usart, UsartX> Write<u8> for Transmitter<'usart, UsartX>
 }
 
 impl<'usart, UsartX> BlockingWriteDefault<u8> for Transmitter<'usart, UsartX>
-    where UsartX: Peripheral,
+    where UsartX: Instance,
 {}
 
 impl<'usart, UsartX> fmt::Write for Transmitter<'usart, UsartX>
     where
         Self  : BlockingWriteDefault<u8>,
-        UsartX: Peripheral,
+        UsartX: Instance,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         use crate::prelude::*;
@@ -396,7 +396,7 @@ impl<'usart, UsartX> fmt::Write for Transmitter<'usart, UsartX>
 
 #[cfg(feature = "82x")]
 impl<'usart, UsartX> dma::Dest for Transmitter<'usart, UsartX>
-    where UsartX: Peripheral,
+    where UsartX: Instance,
 {
     type Error = Void;
 
@@ -415,7 +415,7 @@ impl<'usart, UsartX> dma::Dest for Transmitter<'usart, UsartX>
 /// This trait is an internal implementation detail and should neither be
 /// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
 /// be considered breaking changes.
-pub trait Peripheral:
+pub trait Instance:
     Deref<Target = pac::usart0::RegisterBlock>
     + syscon::ClockControl
     + syscon::ResetControl
@@ -430,21 +430,21 @@ pub trait Peripheral:
     type Tx;
 }
 
-impl Peripheral for pac::USART0 {
+impl Instance for pac::USART0 {
     const INTERRUPT: Interrupt = Interrupt::USART0;
 
     type Rx = swm::U0_RXD;
     type Tx = swm::U0_TXD;
 }
 
-impl Peripheral for pac::USART1 {
+impl Instance for pac::USART1 {
     const INTERRUPT: Interrupt = Interrupt::USART1;
 
     type Rx = swm::U1_RXD;
     type Tx = swm::U1_TXD;
 }
 
-impl Peripheral for pac::USART2 {
+impl Instance for pac::USART2 {
     const INTERRUPT: Interrupt = Interrupt::USART2;
 
     type Rx = swm::U2_RXD;
