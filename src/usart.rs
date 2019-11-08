@@ -430,26 +430,24 @@ pub trait Instance:
     type Tx;
 }
 
-impl Instance for pac::USART0 {
-    const INTERRUPT: Interrupt = Interrupt::USART0;
+macro_rules! instances {
+    ($($name:ident, $rxd:ident, $txd:ident;)*) => {
+        $(
+            impl Instance for pac::$name {
+                const INTERRUPT: Interrupt = Interrupt::$name;
 
-    type Rx = swm::U0_RXD;
-    type Tx = swm::U0_TXD;
+                type Rx = swm::$rxd;
+                type Tx = swm::$txd;
+            }
+        )*
+    }
 }
 
-impl Instance for pac::USART1 {
-    const INTERRUPT: Interrupt = Interrupt::USART1;
-
-    type Rx = swm::U1_RXD;
-    type Tx = swm::U1_TXD;
-}
-
-impl Instance for pac::USART2 {
-    const INTERRUPT: Interrupt = Interrupt::USART2;
-
-    type Rx = swm::U2_RXD;
-    type Tx = swm::U2_TXD;
-}
+instances!(
+    USART0, U0_RXD, U0_TXD;
+    USART1, U1_RXD, U1_TXD;
+    USART2, U2_RXD, U2_TXD;
+);
 
 
 /// Represents a UART baud rate
