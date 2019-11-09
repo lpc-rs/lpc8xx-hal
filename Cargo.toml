@@ -1,6 +1,6 @@
 [package]
 name    = "lpc8xx-hal"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2018"
 
 authors = [
@@ -50,6 +50,8 @@ termion = "1.5.3"
 
 
 [features]
+
+default = ["845-rt"]
 
 # Target platforms. One of these must be selected for the crate to work.
 82x = ["lpc82x-pac"]

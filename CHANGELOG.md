@@ -1,4 +1,26 @@
 <a name="v0.5.0"></a>
+## v0.6.0 (2019-11-09)
+
+- Improve LPC845 support ([#163], [#165])
+- Re-export dependencies ([#164])
+- Implement delay based on SysTick ([#166], [#169])
+- Re-export PAC as `pac` ([#168])
+- Enable WKT for LPC845 ([#171])
+- Merge IRC and FRO APIs into IOSC ([#172])
+- Upgrade to latest `lpc845-pac` release ([#174])
+
+[#163]: https://github.com/lpc-rs/lpc8xx-hal/pull/163
+[#164]: https://github.com/lpc-rs/lpc8xx-hal/pull/164
+[#165]: https://github.com/lpc-rs/lpc8xx-hal/pull/165
+[#166]: https://github.com/lpc-rs/lpc8xx-hal/pull/166
+[#168]: https://github.com/lpc-rs/lpc8xx-hal/pull/168
+[#169]: https://github.com/lpc-rs/lpc8xx-hal/pull/169
+[#171]: https://github.com/lpc-rs/lpc8xx-hal/pull/171
+[#172]: https://github.com/lpc-rs/lpc8xx-hal/pull/172
+[#174]: https://github.com/lpc-rs/lpc8xx-hal/pull/174
+
+
+<a name="v0.5.0"></a>
 ## v0.5.0 (2019-10-12)
 
 - Add initial support for LPC845; rename to `lpc8xx-hal` ([#150], [#151], [#152], [#155], [#161])
