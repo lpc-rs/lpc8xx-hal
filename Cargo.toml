@@ -51,6 +51,8 @@ termion = "1.5.3"
 
 [features]
 
+default = ["845-rt"]
+
 # Target platforms. One of these must be selected for the crate to work.
 82x = ["lpc82x-pac"]
 845 = ["lpc845-pac"]
