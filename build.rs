@@ -1,4 +1,9 @@
-use std::fs;
+use std::{
+    io::prelude::*,
+    env,
+    fs::File,
+    path::PathBuf,
+};
 
 use termion::{
     color,
@@ -8,8 +13,8 @@ use termion::{
 
 fn main() {
     let openocd_cfg = match (cfg!(feature = "82x"), cfg!(feature = "845")) {
-        (true, false) => "openocd_82x.cfg",
-        (false, true) => "openocd_84x.cfg",
+        (true, false) => &include_bytes!("openocd_82x.cfg")[..],
+        (false, true) => &include_bytes!("openocd_84x.cfg")[..],
 
         _ => {
             panic!(
@@ -22,6 +27,12 @@ fn main() {
         }
     };
 
-    fs::copy(openocd_cfg, "target/openocd.cfg")
-        .expect("Failed to copy OpenOCD configuration");
+    let out_dir = env::var_os("OUT_DIR")
+        .unwrap_or("target".into());
+    let out_dir = &PathBuf::from(out_dir);
+
+    File::create(out_dir.join("openocd.cfg"))
+        .expect("Failed to create openocd.cfg")
+        .write_all(openocd_cfg)
+        .expect("Failed to write openocd.cfg");
 }
