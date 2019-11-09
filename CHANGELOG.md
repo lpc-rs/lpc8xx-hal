@@ -1,3 +1,12 @@
+
+<a name="v0.6.1"></a>
+## v0.6.1 (2019-11-09)
+
+- Fix build.rs ([#178])
+
+[#178]: https://github.com/lpc-rs/lpc8xx-hal/pull/178
+
+
 <a name="v0.6.0"></a>
 ## v0.6.0 (2019-11-09)
 
