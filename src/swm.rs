@@ -332,7 +332,7 @@ pins!(
     pio1_21, PIO1_21, 1, 0x15, pin_state::Unused        , pin_state::Unused;
 );
 
-/// Main API to control for controlling pins
+/// Main API for controlling pins
 ///
 /// `Pin` has two type parameters:
 /// - `T`, to indicate which specific pin this instance of `Pin` represents (so,
@@ -350,7 +350,7 @@ pins!(
 ///
 /// # State Management
 ///
-/// All pins start out their initial state, as defined in the user manual. To
+/// All pins start out in their initial state, as defined in the user manual. To
 /// prevent us from making mistakes, only the methods that induce a valid state
 /// transition are available. Code that tries to call a method that would cause
 /// an invalid state transition will simply not compile:
