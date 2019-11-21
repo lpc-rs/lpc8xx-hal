@@ -1,8 +1,6 @@
 use std::{
     io::prelude::*,
-    env,
     fs::File,
-    path::PathBuf,
 };
 
 use termion::{
@@ -27,11 +25,7 @@ fn main() {
         }
     };
 
-    let out_dir = env::var_os("OUT_DIR")
-        .unwrap_or("target".into());
-    let out_dir = &PathBuf::from(out_dir);
-
-    File::create(out_dir.join("openocd.cfg"))
+    File::create("target/openocd.cfg")
         .expect("Failed to create openocd.cfg")
         .write_all(openocd_cfg)
         .expect("Failed to write openocd.cfg");
