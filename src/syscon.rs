@@ -9,17 +9,34 @@
 //!
 //! The SYSCON peripheral is described in the user manual, chapter 5.
 
+#[cfg(feature = "845")]
+pub mod frg;
+
+#[cfg(feature = "845")]
+pub use self::frg::FRG;
+
+#[cfg(feature = "82x")]
+/// TODO
+pub mod clocksource_82x;
+#[cfg(feature = "82x")]
+pub use clocksource_82x as clocksource;
+#[cfg(feature = "845")]
+/// TODO
+pub mod clocksource_845;
+#[cfg(feature = "845")]
+pub use clocksource_845 as clocksource;
+
 use core::marker::PhantomData;
 
 #[cfg(feature = "82x")]
 use crate::pac::syscon::{
     pdruncfg, presetctrl as presetctrl0, starterp1, sysahbclkctrl as sysahbclkctrl0, PDRUNCFG,
-    PRESETCTRL, STARTERP1, SYSAHBCLKCTRL as SYSAHBCLKCTRL0, UARTCLKDIV, UARTFRGDIV, UARTFRGMULT,
+    PRESETCTRL as PRESETCTRL0, STARTERP1, SYSAHBCLKCTRL as SYSAHBCLKCTRL0, UARTCLKDIV, UARTFRGDIV,
+    UARTFRGMULT,
 };
 
 #[cfg(feature = "845")]
 use crate::pac::syscon::{
-    frg::{FRGCLKSEL, FRGDIV, FRGMULT},
     pdruncfg, presetctrl0, starterp1, sysahbclkctrl0, FCLKSEL, PDRUNCFG, PRESETCTRL0, STARTERP1,
     SYSAHBCLKCTRL0,
 };
@@ -64,6 +81,7 @@ impl SYSCON {
                 presetctrl0: RegProxy::new(),
                 starterp1: RegProxy::new(),
                 sysahbclkctrl: RegProxy::new(),
+                #[cfg(feature = "845")]
                 fclksel: RegProxy::new(),
             },
 
@@ -85,13 +103,10 @@ impl SYSCON {
             },
 
             iosc_derived_clock: IoscDerivedClock::new(),
-
             #[cfg(feature = "845")]
-            frg0: FRG0 {
-                frg0clksel: RegProxy::new(),
-                frg0div: RegProxy::new(),
-                frg0mult: RegProxy::new(),
-            },
+            frg0: FRG::new(),
+            #[cfg(feature = "845")]
+            frg1: FRG::new(),
         }
     }
 
@@ -155,10 +170,14 @@ pub struct Parts {
 
     /// The 750 kHz internal oscillator/IRC/FRO-derived clock
     pub iosc_derived_clock: IoscDerivedClock<init_state::Enabled>,
-    // TODO Add frg1
+
     #[cfg(feature = "845")]
     /// Fractional Baud Rate Generator 0
-    pub frg0: FRG0,
+    pub frg0: FRG<frg::FRG0>,
+
+    #[cfg(feature = "845")]
+    /// Fractional Baud Rate Generator 1
+    pub frg1: FRG<frg::FRG1>,
 }
 
 /// Handle to the SYSCON peripheral
@@ -176,6 +195,7 @@ pub struct Handle {
     presetctrl0: RegProxy<PRESETCTRL0>,
     starterp1: RegProxy<STARTERP1>,
     sysahbclkctrl: RegProxy<SYSAHBCLKCTRL0>,
+    #[cfg(feature = "845")]
     pub(crate) fclksel: RegProxy<FCLKSEL>,
 }
 
@@ -350,38 +370,6 @@ impl UARTFRG {
     /// See user manual, section 5.6.19.
     pub fn set_frgdiv(&mut self, value: u8) {
         self.uartfrgdiv.write(|w| unsafe { w.div().bits(value) });
-    }
-}
-
-#[cfg(feature = "845")]
-/// FRG0 Fractional Baud Rate Generator
-///
-/// Controls the common clock for all UART peripherals (U_PCLK).
-///
-/// Can also be used to control the UART FRG using various methods on
-/// [`syscon::Handle`].
-///
-/// [`syscon::Handle`]: struct.Handle.html
-pub struct FRG0 {
-    frg0clksel: RegProxy<FRG0CLKSEL>,
-    frg0div: RegProxy<FRG0DIV>,
-    frg0mult: RegProxy<FRG0MULT>,
-}
-
-#[cfg(feature = "845")]
-impl FRG0 {
-    /// Set UART fractional generator multiplier value (UARTFRGMULT)
-    ///
-    /// See user manual, section 5.6.20.
-    pub fn set_frgmult(&mut self, value: u8) {
-        self.frg0mult.write(|w| unsafe { w.mult().bits(value) });
-    }
-
-    /// Set UART fractional generator divider value (UARTFRGDIV)
-    ///
-    /// See user manual, section 5.6.19.
-    pub fn set_frgdiv(&mut self, value: u8) {
-        self.frg0div.write(|w| unsafe { w.div().bits(value) });
     }
 }
 
@@ -693,6 +681,19 @@ wakeup_interrupt!(WktWakeup, wkt);
 wakeup_interrupt!(I2c2Wakeup, i2c2);
 wakeup_interrupt!(I2c3Wakeup, i2c3);
 
+/// Internal trait used configure clocking of peripheals
+///
+/// This trait is an internal implementation detail and should neither be
+/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// be considered breaking changes.
+///
+pub trait PeripheralClock<PERIPH> {
+    /// Selects the clock
+    fn select_clock(&self, handle: &mut Handle);
+    /// Returns a prescaler value, that's used for the peripheral-specific prescaler
+    fn get_psc(&self) -> u16;
+}
+
 reg!(PDRUNCFG, PDRUNCFG, pac::SYSCON, pdruncfg);
 #[cfg(feature = "82x")]
 reg!(PRESETCTRL0, PRESETCTRL0, pac::SYSCON, presetctrl);
@@ -712,18 +713,3 @@ reg!(UARTCLKDIV, UARTCLKDIV, pac::SYSCON, uartclkdiv);
 reg!(UARTFRGDIV, UARTFRGDIV, pac::SYSCON, uartfrgdiv);
 #[cfg(feature = "82x")]
 reg!(UARTFRGMULT, UARTFRGMULT, pac::SYSCON, uartfrgmult);
-
-#[cfg(feature = "845")]
-struct FRG0DIV;
-#[cfg(feature = "845")]
-reg_cluster!(FRG0DIV, FRGDIV, pac::SYSCON, frg0, frgdiv);
-
-#[cfg(feature = "845")]
-struct FRG0CLKSEL;
-#[cfg(feature = "845")]
-reg_cluster!(FRG0CLKSEL, FRGCLKSEL, pac::SYSCON, frg0, frgclksel);
-
-#[cfg(feature = "845")]
-struct FRG0MULT;
-#[cfg(feature = "845")]
-reg_cluster!(FRG0MULT, FRGMULT, pac::SYSCON, frg0, frgmult);

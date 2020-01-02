@@ -1,17 +1,11 @@
 #![no_main]
 #![no_std]
 
-
 extern crate panic_halt;
 
-
 use lpc8xx_hal::{
-    prelude::*,
-    Peripherals,
-    cortex_m_rt::entry,
-    usart::BaudRate,
+    cortex_m_rt::entry, prelude::*, syscon::clocksource::PeripheralClockConfig, Peripherals,
 };
-
 
 #[entry]
 fn main() -> ! {
@@ -51,11 +45,11 @@ fn main() -> ! {
     // 0, resulting in no further division.
     //
     // All of this is somewhat explained in the user manual, section 13.3.1.
-    let baud_rate = {
+    let clock_config = {
         syscon.uartfrg.set_clkdiv(6);
         syscon.uartfrg.set_frgmult(22);
         syscon.uartfrg.set_frgdiv(0xff);
-        BaudRate::new(&syscon.uartfrg, 0)
+        PeripheralClockConfig::new(&syscon.uartfrg, 0)
     };
 
     #[cfg(feature = "845")]
@@ -83,11 +77,16 @@ fn main() -> ! {
     // 0, resulting in no further division.
     //
     // All of this is somewhat explained in the user manual, section 13.3.1.
-    let baud_rate = {
-        syscon.frg0.set_frgmult(22);
-        syscon.frg0.set_frgdiv(0xFF);
-        BaudRate::new(&syscon.frg0, 5)
+    let clock_config = {
+        syscon.frg0.set_mult(22);
+        syscon.frg0.set_div(0xFF);
+        PeripheralClockConfig::new(&syscon.frg0, 5)
     };
+    // The internal oscillator FRO can also be used as a clock source.
+    // Since it can only be divided by a whole number, it's doesn't work for
+    // high baudrates, but for 9600 Baud it works fine
+    //
+    // let clock_config = { PeripheralClockConfig::new(&syscon.iosc, (12_000_000 / (9_600 * 16)) as u16) };
 
     #[cfg(feature = "82x")]
     // Make PIO0_7 and PIO0_18 available to the switch matrix API, by changing
@@ -112,21 +111,18 @@ fn main() -> ! {
     // development board, those pins are bridged to the board's USB port. So by
     // using the pins, we can use them to communicate with a host PC, without
     // additional hardware.
-    let (u0_rxd, _) = swm.movable_functions.u0_rxd
-        .assign(rx_pin, &mut swm.handle);
-    let (u0_txd, _) = swm.movable_functions.u0_txd
-        .assign(tx_pin,  &mut swm.handle);
+    let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(rx_pin, &mut swm.handle);
+    let (u0_txd, _) = swm.movable_functions.u0_txd.assign(tx_pin, &mut swm.handle);
 
     // Enable USART0
-    let serial = p.USART0.enable(
-        &baud_rate,
-        &mut syscon.handle,
-        u0_rxd,
-        u0_txd,
-    );
+    let serial = p
+        .USART0
+        .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
     // Send a string via USART0, blocking until it has been sent
-    serial.tx().bwrite_all(b"Hello, world!\n")
+    serial
+        .tx()
+        .bwrite_all(b"Hello, world!\n")
         .expect("UART write shouldn't fail");
 
     // We're done. Let's do nothing until someone resets the microcontroller.

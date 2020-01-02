@@ -55,43 +55,20 @@
 //!
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/lpc82x-hal/examples
 
-
 use core::fmt;
 use core::ops::Deref;
 
 use embedded_hal::blocking::serial::write::Default as BlockingWriteDefault;
-use embedded_hal::serial::{
-    Read,
-    Write,
-};
-use nb::{
-    self,
-    block,
-};
+use embedded_hal::serial::{Read, Write};
+use nb::{self, block};
 use void::Void;
 
 use crate::{
-    dma,
-    init_state,
-    pac::{
-        self,
-        usart0::TXDAT,
-        Interrupt,
-        NVIC,
-    },
-    swm::{
-        self,
-        FunctionTrait,
-        PinTrait,
-    },
-    syscon,
+    dma, init_state,
+    pac::{self, usart0::TXDAT, Interrupt, NVIC},
+    swm::{self, FunctionTrait, PinTrait},
+    syscon::{self, PeripheralClock},
 };
-
-#[cfg(feature = "82x")]
-use crate::syscon::UARTFRG;
-
-#[cfg(feature = "845")]
-use crate::syscon::FRG0;
 
 /// Interface to a USART peripheral
 ///
@@ -140,9 +117,9 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<'a, Rx, Tx, FRG>(
+    pub fn enable<'a, Rx, Tx, CLOCK>(
         mut self,
-        baud_rate: &'a BaudRate<FRG>,
+        clock: &CLOCK,
         syscon: &mut syscon::Handle,
         _: swm::Function<UsartX::Rx, swm::state::Assigned<Rx>>,
         _: swm::Function<UsartX::Tx, swm::state::Assigned<Tx>>,
@@ -152,12 +129,14 @@ impl<UsartX> USART<UsartX, init_state::Disabled> where UsartX: Peripheral {
         Tx: PinTrait,
         UsartX::Rx: FunctionTrait<Rx>,
         UsartX::Tx: FunctionTrait<Tx>,
-        BaudRate<'a, FRG>: UsartClockSelector<UsartX>,
+        CLOCK: PeripheralClock<UsartX>,
     {
         syscon.enable_clock(&mut self.usart);
 
-        baud_rate.select_clock(&self.usart, syscon);
-        self.usart.brg.write(|w| unsafe { w.brgval().bits(baud_rate.brgval) });
+        clock.select_clock(syscon);
+        self.usart
+            .brg
+            .write(|w| unsafe { w.brgval().bits(clock.get_psc()) });
 
         // According to the user manual, section 13.6.1, we need to make sure
         // that the USART is not sending or receiving data before writing to
@@ -476,112 +455,6 @@ impl Peripheral for pac::USART4 {
     type Rx = swm::U4_RXD;
     type Tx = swm::U4_TXD;
 }
-
-/// Internal trait for USART peripherals
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
-/// be considered breaking changes.
-pub trait UsartClockSelector<UsartX> {
-    /// Select the clock for the peripheral
-    fn select_clock(&self, _: &UsartX, syscon: &mut syscon::Handle);
-}
-
-/// Represents a UART baud rate
-///
-/// Can be passed to [`USART::enable`] to configure the baud rate for a USART
-/// peripheral.
-pub struct BaudRate<'frg, FRG> {
-    _frg: &'frg FRG,
-
-    /// USART Baud Rate Generator divider value
-    ///
-    /// See user manual, section 13.6.9.
-    brgval: u16,
-}
-
-#[cfg(feature = "82x")]
-impl<'frg> BaudRate<'frg, UARTFRG> {
-    /// Create a `BaudRate` instance
-    ///
-    /// Creates a `BaudRate` instance from two components: A reference to the
-    /// [`UARTFRG`] and the BRGVAL.
-    ///
-    /// The [`UARTFRG`] controls U_PCLK, the clock that is shared by all USART
-    /// peripherals. Please configure it before attempting to create a
-    /// `BaudRate`. By keeping a reference to it, `BaudRate` ensures that U_PCLK
-    /// cannot be changes as long as the `BaudRate` instance exists.
-    ///
-    /// BRGVAL is an additional divider value that divides the shared baud rate
-    /// to allow individual USART peripherals to use different baud rates. A
-    /// value of `0` means that U_PCLK is used directly, `1` means that U_PCLK
-    /// is divided by 2 before using it, `2` means it's divided by 3, and so on.
-    ///
-    /// Please refer to the user manual, section 13.3.1, for further details.
-    pub fn new(uartfrg: &'frg UARTFRG, brgval: u16) -> Self {
-        Self {
-            _frg: uartfrg,
-            brgval: brgval,
-        }
-    }
-}
-#[cfg(feature = "82x")]
-impl<'frg, UsartX> UsartClockSelector<UsartX> for BaudRate<'frg, UARTFRG>
-where
-    UsartX: Peripheral,
-{
-    fn select_clock(&self, _: &UsartX, _: &mut syscon::Handle) {
-        // NOOP, this clock is always selected
-    }
-}
-
-#[cfg(feature = "845")]
-impl<'frg> BaudRate<'frg, FRG0> {
-    /// Create a `BaudRate` instance
-    ///
-    /// Creates a `BaudRate` instance from two components: A reference to the
-    /// [`FRG0`] and the BRGVAL.
-    ///
-    /// The [`FRG0`] controls U_PCLK, the clock that is shared by all USART
-    /// peripherals. Please configure it before attempting to create a
-    /// `BaudRate`. By keeping a reference to it, `BaudRate` ensures that U_PCLK
-    /// cannot be changes as long as the `BaudRate` instance exists.
-    ///
-    /// BRGVAL is an additional divider value that divides the shared baud rate
-    /// to allow individual USART peripherals to use different baud rates. A
-    /// value of `0` means that U_PCLK is used directly, `1` means that U_PCLK
-    /// is divided by 2 before using it, `2` means it's divided by 3, and so on.
-    ///
-    /// Please refer to the user manual, section 13.3.1, for further details.
-    pub fn new(frg0: &'frg FRG0, brgval: u16) -> Self {
-        Self {
-            _frg: frg0,
-            brgval: brgval,
-        }
-    }
-}
-
-#[allow(unused)]
-macro_rules! usart_clock_selector {
-    ($usartx:ty, $number:expr, $clock_source: ty, $name: ident) => {
-        impl<'frg> UsartClockSelector<$usartx> for BaudRate<'frg, $clock_source> {
-            fn select_clock(&self, _: &$usartx, syscon: &mut syscon::Handle) {
-                syscon.fclksel[$number].write(|w| w.sel().$name());
-            }
-        }
-    };
-}
-
-#[cfg(feature = "845")]
-usart_clock_selector!(pac::USART0, 0, FRG0, frg0clk);
-#[cfg(feature = "845")]
-usart_clock_selector!(pac::USART1, 1, FRG0, frg0clk);
-#[cfg(feature = "845")]
-usart_clock_selector!(pac::USART2, 2, FRG0, frg0clk);
-#[cfg(feature = "845")]
-usart_clock_selector!(pac::USART3, 3, FRG0, frg0clk);
-#[cfg(feature = "845")]
-usart_clock_selector!(pac::USART4, 4, FRG0, frg0clk);
 
 /// A USART error
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
