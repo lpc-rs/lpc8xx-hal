@@ -184,7 +184,6 @@ use embedded_hal as hal;
 #[allow(non_snake_case)]
 pub struct Peripherals {
     /// DMA controller
-    #[cfg(feature = "82x")]
     pub DMA: DMA,
 
     /// General-purpose I/O (GPIO)
@@ -283,10 +282,6 @@ pub struct Peripherals {
     /// allow you full, unprotected access to the peripheral.
     #[cfg(feature = "845")]
     pub DAC1: pac::DAC1,
-
-    /// DMA controller
-    #[cfg(feature = "845")]
-    pub DMA: DMA,
 
     /// Flash controller
     ///
