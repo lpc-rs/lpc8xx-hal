@@ -22,7 +22,7 @@ use lpc8xx_hal::{
     prelude::*,
     Peripherals,
     cortex_m_rt::entry,
-    usart::BaudRate,
+    syscon::clocksource::PeripheralClockConfig,
 };
 
 
@@ -71,7 +71,7 @@ fn main() -> ! {
     );
 
     let serial = p.USART0.enable(
-        &BaudRate::new(&syscon.uartfrg, 0),
+        &PeripheralClockConfig::new(&syscon.uartfrg, 0),
         &mut syscon.handle,
         u0_rxd,
         u0_txd,

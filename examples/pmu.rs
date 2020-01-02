@@ -17,7 +17,7 @@ use lpc8xx_hal::{
     },
     pmu::LowPowerClock,
     syscon::WktWakeup,
-    usart::BaudRate,
+    syscon::clocksource::PeripheralClockConfig,
 };
 
 
@@ -33,7 +33,8 @@ fn main() -> ! {
     syscon.uartfrg.set_clkdiv(6);
     syscon.uartfrg.set_frgmult(22);
     syscon.uartfrg.set_frgdiv(0xff);
-    let baud_rate = BaudRate::new(&syscon.uartfrg, 0);
+    let clock_config = PeripheralClockConfig::new(&syscon.uartfrg, 0);
+
 
     let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(
         swm.pins.pio0_0.into_swm_pin(),
@@ -45,7 +46,7 @@ fn main() -> ! {
     );
 
     let serial = p.USART0.enable(
-        &baud_rate,
+        &clock_config,
         &mut syscon.handle,
         u0_rxd,
         u0_txd,
