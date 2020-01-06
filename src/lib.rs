@@ -221,10 +221,16 @@ pub struct Peripherals {
 
     #[cfg(feature = "845")]
     /// USART3
+    ///
+    /// USART3 and PIN_INT6 share an interrupt, this may cause difficulties
+    /// when trying to use both at the same time
     pub USART3: USART<pac::USART3, init_state::Disabled>,
 
     #[cfg(feature = "845")]
     /// USART4
+    ///
+    /// USART4 and PIN_INT7 share an interrupt, this may cause difficulties
+    /// when trying to use both at the same time
     pub USART4: USART<pac::USART4, init_state::Disabled>,
 
     /// Self-wake-up timer (WKT)

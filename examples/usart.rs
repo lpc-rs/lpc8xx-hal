@@ -14,7 +14,8 @@ fn main() -> ! {
     let mut swm = p.SWM.split();
     let mut syscon = p.SYSCON.split();
 
-    // TODO
+    // For some reason, the clock for swm need to be enabled, even though
+    // it should be enabled from the start
     swm.handle = swm
         .handle
         .disable(&mut syscon.handle)

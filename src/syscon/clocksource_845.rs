@@ -15,7 +15,10 @@ pub struct PeripheralClockConfig<PERIPH, CLOCK> {
 impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
     PeripheralClockConfig<PERIPH, CLOCK>
 {
-    /// TODO
+    /// Create the clock config for the uart
+    ///
+    /// Please be aware that the usart additionally divides the
+    /// clock input by 16
     pub fn new(_: &CLOCK, psc: u16) -> Self {
         Self {
             psc,
@@ -27,7 +30,7 @@ impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
 /// Internal trait used for defining the fclksel index for a peripheral
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 pub trait PeripheralClockSelector {
     /// The index
@@ -57,7 +60,7 @@ impl PeripheralClockSelector for pac::USART4 {
 /// Internal trait used for defining valid peripheal clock sources
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 pub trait PeripheralClockSource {
     /// The variant

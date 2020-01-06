@@ -9,7 +9,10 @@ pub struct PeripheralClockConfig<PERIPH> {
 }
 
 impl<USART: crate::usart::Peripheral> PeripheralClockConfig<USART> {
-    /// TODO
+    /// Create the clock config for the uart
+    ///
+    /// Please be aware that the uart additionally divides the
+    /// clock input by 16
     pub fn new(_: &UARTFRG, psc: u16) -> Self {
         Self {
             psc,

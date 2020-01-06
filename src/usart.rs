@@ -436,10 +436,8 @@ impl Peripheral for pac::USART2 {
 
 #[cfg(feature = "845")]
 impl Peripheral for pac::USART3 {
-    /// USART3 and PIN_INT6 share an interrupt, this may cause difficulties
-    /// when trying to use both at the same time
-    // Since we don't provide an abstraction for pin interrupts,
-    //
+    /// Since we don't provide an abstraction for pin interrupts,
+    /// it's alright to ignore the shared interrupt
     const INTERRUPT: Interrupt = Interrupt::PIN_INT6_USART3;
 
     type Rx = swm::U3_RXD;
@@ -448,8 +446,6 @@ impl Peripheral for pac::USART3 {
 
 #[cfg(feature = "845")]
 impl Peripheral for pac::USART4 {
-    /// USART4 and PIN_INT7 share an interrupt, this may cause difficulties
-    /// when trying to use both at the same time
     const INTERRUPT: Interrupt = Interrupt::PIN_INT7_USART4;
 
     type Rx = swm::U4_RXD;
