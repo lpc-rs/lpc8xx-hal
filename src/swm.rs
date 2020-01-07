@@ -1230,6 +1230,12 @@ movable_functions!(
     u2_rts       , U2_RTS       , Output, pinassign3 , u2_rts_o;
     u2_cts       , U2_CTS       , Input , pinassign3 , u2_cts_i;
     u2_sclk      , U2_SCLK      , Output, pinassign3 , u2_sclk_io;
+    u3_txd       , U3_TXD       , Output, pinassign11, uart3_txd;
+    u3_rxd       , U3_RXD       , Input , pinassign12, uart3_rxd;
+    u3_sclk      , U3_SCLK      , Output, pinassign12, uart3_sclk;
+    u4_txd       , U4_TXD       , Output, pinassign12, uart4_txd;
+    u4_rxd       , U4_RXD       , Input , pinassign12, uart4_rxd;
+    u4_sclk      , U4_SCLK      , Output, pinassign13, uart4_sclk;
     spi0_sck     , SPI0_SCK     , Output, pinassign3 , spi0_sck_io;
     spi0_mosi    , SPI0_MOSI    , Output, pinassign4 , spi0_mosi_io;
     spi0_miso    , SPI0_MISO    , Output, pinassign4 , spi0_miso_io;
@@ -1262,12 +1268,6 @@ movable_functions!(
     acmp_o       , ACMP_O       , Output, pinassign11, comp0_out_o;
     clkout       , CLKOUT       , Output, pinassign11, clkout_o;
     gpio_int_bmat, GPIO_INT_BMAT, Output, pinassign11, gpio_int_bmat_o;
-    uart3_txd    , UART3_TXD    , Output, pinassign11, uart3_txd;
-    uart3_rxd    , UART3_RXD    , Input , pinassign12, uart3_rxd;
-    uart3_sclk   , UART3_SCLK   , Output, pinassign12, uart3_sclk;
-    uart4_txd    , UART4_TXD    , Output, pinassign12, uart4_txd;
-    uart4_rxd    , UART4_RXD    , Input , pinassign12, uart4_rxd;
-    uart4_sclk   , UART4_SCLK   , Output, pinassign13, uart4_sclk;
     t0_mat0      , T0_MAT0      , Output, pinassign13, t0_mat0;
     t0_mat1      , T0_MAT1      , Output, pinassign13, t0_mat1;
     t0_mat2      , T0_MAT2      , Output, pinassign13, t0_mat2;

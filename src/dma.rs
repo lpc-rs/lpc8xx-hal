@@ -342,7 +342,7 @@ pub trait ChannelTrait {
 }
 
 macro_rules! channels {
-    ($($field:ident, $name:ident, $index:expr, $cfg:ty, $xfercfg:ty;)*) => {
+    ($($field:ident, $name:ident, $index:expr, $cfg:ident, $xfercfg:ident;)*) => {
         /// Provides access to all channels
         #[allow(missing_docs)]
         pub struct Channels {
@@ -374,6 +374,16 @@ macro_rules! channels {
 
 
         $(
+            /// This struct is an implementation detail that shouldn't be used by user
+            pub struct $xfercfg;
+
+            reg_cluster!($xfercfg, XFERCFG, pac::DMA0, $field, xfercfg);
+
+            /// This struct is an implementation detail that shouldn't be used by user
+            pub struct $cfg;
+
+            reg_cluster!($cfg, CFG, pac::DMA0, $field, cfg);
+
             /// Identifies a DMA channel
             pub struct $name(());
 
@@ -388,29 +398,60 @@ macro_rules! channels {
     }
 }
 
+#[cfg(feature = "82x")]
 // The channels must always be specified in order, from lowest to highest, as
 // the channel descriptors are assigned based on that order.
 channels!(
-    channel_0 , Channel0 ,  0, CFG0 , XFERCFG0 ;
-    channel_1 , Channel1 ,  1, CFG1 , XFERCFG1 ;
-    channel_2 , Channel2 ,  2, CFG2 , XFERCFG2 ;
-    channel_3 , Channel3 ,  3, CFG3 , XFERCFG3 ;
-    channel_4 , Channel4 ,  4, CFG4 , XFERCFG4 ;
-    channel_5 , Channel5 ,  5, CFG5 , XFERCFG5 ;
-    channel_6 , Channel6 ,  6, CFG6 , XFERCFG6 ;
-    channel_7 , Channel7 ,  7, CFG7 , XFERCFG7 ;
-    channel_8 , Channel8 ,  8, CFG8 , XFERCFG8 ;
-    channel_9 , Channel9 ,  9, CFG9 , XFERCFG9 ;
-    channel_10, Channel10, 10, CFG10, XFERCFG10;
-    channel_11, Channel11, 11, CFG11, XFERCFG11;
-    channel_12, Channel12, 12, CFG12, XFERCFG12;
-    channel_13, Channel13, 13, CFG13, XFERCFG13;
-    channel_14, Channel14, 14, CFG14, XFERCFG14;
-    channel_15, Channel15, 15, CFG15, XFERCFG15;
-    channel_16, Channel16, 16, CFG16, XFERCFG16;
-    channel_17, Channel17, 17, CFG17, XFERCFG17;
+    channel0 , Channel0 ,  0, CFG0 , XFERCFG0 ;
+    channel1 , Channel1 ,  1, CFG1 , XFERCFG1 ;
+    channel2 , Channel2 ,  2, CFG2 , XFERCFG2 ;
+    channel3 , Channel3 ,  3, CFG3 , XFERCFG3 ;
+    channel4 , Channel4 ,  4, CFG4 , XFERCFG4 ;
+    channel5 , Channel5 ,  5, CFG5 , XFERCFG5 ;
+    channel6 , Channel6 ,  6, CFG6 , XFERCFG6 ;
+    channel7 , Channel7 ,  7, CFG7 , XFERCFG7 ;
+    channel8 , Channel8 ,  8, CFG8 , XFERCFG8 ;
+    channel9 , Channel9 ,  9, CFG9 , XFERCFG9 ;
+    channel10, Channel10, 10, CFG10, XFERCFG10;
+    channel11, Channel11, 11, CFG11, XFERCFG11;
+    channel12, Channel12, 12, CFG12, XFERCFG12;
+    channel13, Channel13, 13, CFG13, XFERCFG13;
+    channel14, Channel14, 14, CFG14, XFERCFG14;
+    channel15, Channel15, 15, CFG15, XFERCFG15;
+    channel16, Channel16, 16, CFG16, XFERCFG16;
+    channel17, Channel17, 17, CFG17, XFERCFG17;
 );
 
+#[cfg(feature = "845")]
+// The channels must always be specified in order, from lowest to highest, as
+// the channel descriptors are assigned based on that order.
+channels!(
+    channel0 , Channel0 ,  0, CFG0 , XFERCFG0 ;
+    channel1 , Channel1 ,  1, CFG1 , XFERCFG1 ;
+    channel2 , Channel2 ,  2, CFG2 , XFERCFG2 ;
+    channel3 , Channel3 ,  3, CFG3 , XFERCFG3 ;
+    channel4 , Channel4 ,  4, CFG4 , XFERCFG4 ;
+    channel5 , Channel5 ,  5, CFG5 , XFERCFG5 ;
+    channel6 , Channel6 ,  6, CFG6 , XFERCFG6 ;
+    channel7 , Channel7 ,  7, CFG7 , XFERCFG7 ;
+    channel8 , Channel8 ,  8, CFG8 , XFERCFG8 ;
+    channel9 , Channel9 ,  9, CFG9 , XFERCFG9 ;
+    channel10, Channel10, 10, CFG10, XFERCFG10;
+    channel11, Channel11, 11, CFG11, XFERCFG11;
+    channel12, Channel12, 12, CFG12, XFERCFG12;
+    channel13, Channel13, 13, CFG13, XFERCFG13;
+    channel14, Channel14, 14, CFG14, XFERCFG14;
+    channel15, Channel15, 15, CFG15, XFERCFG15;
+    channel16, Channel16, 16, CFG16, XFERCFG16;
+    channel17, Channel17, 17, CFG17, XFERCFG17;
+    channel18, Channel18, 18, CFG18, XFERCFG18;
+    channel19, Channel19, 19, CFG19, XFERCFG19;
+    channel20, Channel20, 20, CFG20, XFERCFG20;
+    channel21, Channel21, 21, CFG21, XFERCFG21;
+    channel22, Channel22, 22, CFG22, XFERCFG22;
+    channel23, Channel23, 23, CFG23, XFERCFG23;
+    channel24, Channel24, 24, CFG24, XFERCFG24;
+);
 
 /// A destination for a DMA transfer
 pub trait Dest {
@@ -477,154 +518,6 @@ impl<'dma, T, D> Transfer<'dma, T, D>
     }
 }
 
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG0;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG1;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG2;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG3;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG4;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG5;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG6;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG7;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG8;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG9;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG10;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG11;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG12;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG13;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG14;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG15;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG16;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct CFG17;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG0;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG1;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG2;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG3;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG4;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG5;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG6;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG7;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG8;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG9;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG10;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG11;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG12;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG13;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG14;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG15;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG16;
-
-/// This struct is an implementation detail that shouldn't be used by user
-pub struct XFERCFG17;
-
-
-reg_cluster!(CFG0 , CFG, pac::DMA0, channel0,  cfg);
-reg_cluster!(CFG1 , CFG, pac::DMA0, channel1,  cfg);
-reg_cluster!(CFG2 , CFG, pac::DMA0, channel2,  cfg);
-reg_cluster!(CFG3 , CFG, pac::DMA0, channel3,  cfg);
-reg_cluster!(CFG4 , CFG, pac::DMA0, channel4,  cfg);
-reg_cluster!(CFG5 , CFG, pac::DMA0, channel5,  cfg);
-reg_cluster!(CFG6 , CFG, pac::DMA0, channel6,  cfg);
-reg_cluster!(CFG7 , CFG, pac::DMA0, channel7,  cfg);
-reg_cluster!(CFG8 , CFG, pac::DMA0, channel8,  cfg);
-reg_cluster!(CFG9 , CFG, pac::DMA0, channel9,  cfg);
-reg_cluster!(CFG10, CFG, pac::DMA0, channel10, cfg);
-reg_cluster!(CFG11, CFG, pac::DMA0, channel11, cfg);
-reg_cluster!(CFG12, CFG, pac::DMA0, channel12, cfg);
-reg_cluster!(CFG13, CFG, pac::DMA0, channel13, cfg);
-reg_cluster!(CFG14, CFG, pac::DMA0, channel14, cfg);
-reg_cluster!(CFG15, CFG, pac::DMA0, channel15, cfg);
-reg_cluster!(CFG16, CFG, pac::DMA0, channel16, cfg);
-reg_cluster!(CFG17, CFG, pac::DMA0, channel17, cfg);
-
-reg_cluster!(XFERCFG0 , XFERCFG, pac::DMA0, channel0,  xfercfg);
-reg_cluster!(XFERCFG1 , XFERCFG, pac::DMA0, channel1,  xfercfg);
-reg_cluster!(XFERCFG2 , XFERCFG, pac::DMA0, channel2,  xfercfg);
-reg_cluster!(XFERCFG3 , XFERCFG, pac::DMA0, channel3,  xfercfg);
-reg_cluster!(XFERCFG4 , XFERCFG, pac::DMA0, channel4,  xfercfg);
-reg_cluster!(XFERCFG5 , XFERCFG, pac::DMA0, channel5,  xfercfg);
-reg_cluster!(XFERCFG6 , XFERCFG, pac::DMA0, channel6,  xfercfg);
-reg_cluster!(XFERCFG7 , XFERCFG, pac::DMA0, channel7,  xfercfg);
-reg_cluster!(XFERCFG8 , XFERCFG, pac::DMA0, channel8,  xfercfg);
-reg_cluster!(XFERCFG9 , XFERCFG, pac::DMA0, channel9,  xfercfg);
-reg_cluster!(XFERCFG10, XFERCFG, pac::DMA0, channel10, xfercfg);
-reg_cluster!(XFERCFG11, XFERCFG, pac::DMA0, channel11, xfercfg);
-reg_cluster!(XFERCFG12, XFERCFG, pac::DMA0, channel12, xfercfg);
-reg_cluster!(XFERCFG13, XFERCFG, pac::DMA0, channel13, xfercfg);
-reg_cluster!(XFERCFG14, XFERCFG, pac::DMA0, channel14, xfercfg);
-reg_cluster!(XFERCFG15, XFERCFG, pac::DMA0, channel15, xfercfg);
-reg_cluster!(XFERCFG16, XFERCFG, pac::DMA0, channel16, xfercfg);
-reg_cluster!(XFERCFG17, XFERCFG, pac::DMA0, channel17, xfercfg);
-
-reg!(ACTIVE0   , ACTIVE0   , pac::DMA0, active0   );
+reg!(ACTIVE0, ACTIVE0, pac::DMA0, active0);
 reg!(ENABLESET0, ENABLESET0, pac::DMA0, enableset0);
-reg!(SETTRIG0  , SETTRIG0  , pac::DMA0, settrig0  );
+reg!(SETTRIG0, SETTRIG0, pac::DMA0, settrig0);

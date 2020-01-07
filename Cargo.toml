@@ -95,7 +95,7 @@ required-features = ["rt-selected", "82x"]
 
 [[example]]
 name              = "usart"
-required-features = ["rt-selected", "82x"]
+required-features = ["rt-selected"]
 
 [profile.dev]
 debug = true

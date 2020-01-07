@@ -9,18 +9,36 @@
 //!
 //! The SYSCON peripheral is described in the user manual, chapter 5.
 
+#[cfg(feature = "845")]
+pub mod frg;
+
+#[cfg(feature = "845")]
+pub use self::frg::FRG;
+
+#[cfg(feature = "82x")]
+/// Clock configuration for peripherals
+pub mod clocksource_82x;
+#[cfg(feature = "82x")]
+pub use clocksource_82x as clocksource;
+#[cfg(feature = "845")]
+/// Clock configuration for peripherals
+pub mod clocksource_845;
+#[cfg(feature = "845")]
+pub use clocksource_845 as clocksource;
+
 use core::marker::PhantomData;
 
 #[cfg(feature = "82x")]
 use crate::pac::syscon::{
-    pdruncfg, presetctrl, starterp1, sysahbclkctrl, PDRUNCFG, PRESETCTRL, STARTERP1, SYSAHBCLKCTRL,
-    UARTCLKDIV, UARTFRGDIV, UARTFRGMULT,
+    pdruncfg, presetctrl as presetctrl0, starterp1, sysahbclkctrl as sysahbclkctrl0, PDRUNCFG,
+    PRESETCTRL as PRESETCTRL0, STARTERP1, SYSAHBCLKCTRL as SYSAHBCLKCTRL0, UARTCLKDIV, UARTFRGDIV,
+    UARTFRGMULT,
 };
 
 #[cfg(feature = "845")]
 use crate::pac::syscon::{
-    pdruncfg, presetctrl0 as presetctrl, starterp1, sysahbclkctrl0 as sysahbclkctrl, PDRUNCFG,
-    PRESETCTRL0 as PRESETCTRL, STARTERP1, SYSAHBCLKCTRL0 as SYSAHBCLKCTRL,
+    pdruncfg, presetctrl0, starterp1, sysahbclkctrl0, FCLKSEL, PDRUNCFG, PRESETCTRL0, STARTERP1,
+    SYSAHBCLKCTRL0,
 };
 
 use crate::{clock, init_state, pac, reg_proxy::RegProxy};
@@ -60,9 +78,11 @@ impl SYSCON {
         Parts {
             handle: Handle {
                 pdruncfg: RegProxy::new(),
-                presetctrl: RegProxy::new(),
+                presetctrl0: RegProxy::new(),
                 starterp1: RegProxy::new(),
                 sysahbclkctrl: RegProxy::new(),
+                #[cfg(feature = "845")]
+                fclksel: RegProxy::new(),
             },
 
             bod: BOD(PhantomData),
@@ -83,6 +103,10 @@ impl SYSCON {
             },
 
             iosc_derived_clock: IoscDerivedClock::new(),
+            #[cfg(feature = "845")]
+            frg0: FRG::new(),
+            #[cfg(feature = "845")]
+            frg1: FRG::new(),
         }
     }
 
@@ -146,6 +170,14 @@ pub struct Parts {
 
     /// The 750 kHz internal oscillator/IRC/FRO-derived clock
     pub iosc_derived_clock: IoscDerivedClock<init_state::Enabled>,
+
+    #[cfg(feature = "845")]
+    /// Fractional Baud Rate Generator 0
+    pub frg0: FRG<frg::FRG0>,
+
+    #[cfg(feature = "845")]
+    /// Fractional Baud Rate Generator 1
+    pub frg1: FRG<frg::FRG1>,
 }
 
 /// Handle to the SYSCON peripheral
@@ -160,9 +192,11 @@ pub struct Parts {
 /// [module documentation]: index.html
 pub struct Handle {
     pdruncfg: RegProxy<PDRUNCFG>,
-    presetctrl: RegProxy<PRESETCTRL>,
+    presetctrl0: RegProxy<PRESETCTRL0>,
     starterp1: RegProxy<STARTERP1>,
-    sysahbclkctrl: RegProxy<SYSAHBCLKCTRL>,
+    sysahbclkctrl: RegProxy<SYSAHBCLKCTRL0>,
+    #[cfg(feature = "845")]
+    pub(crate) fclksel: RegProxy<FCLKSEL>,
 }
 
 impl Handle {
@@ -183,7 +217,7 @@ impl Handle {
 
     /// Assert peripheral reset
     pub fn assert_reset<P: ResetControl>(&mut self, peripheral: &P) {
-        self.presetctrl.modify(|_, w| peripheral.assert_reset(w));
+        self.presetctrl0.modify(|_, w| peripheral.assert_reset(w));
     }
 
     /// Clear peripheral reset
@@ -192,7 +226,7 @@ impl Handle {
     /// usually won't have to call this method directly, as other peripheral
     /// APIs will do this for them.
     pub fn clear_reset<P: ResetControl>(&mut self, peripheral: &P) {
-        self.presetctrl.modify(|_, w| peripheral.clear_reset(w));
+        self.presetctrl0.modify(|_, w| peripheral.clear_reset(w));
     }
 
     /// Provide power to an analog block
@@ -352,20 +386,20 @@ impl UARTFRG {
 /// [`syscon::Handle::disable_clock`]: struct.Handle.html#method.disable_clock
 pub trait ClockControl {
     /// Internal method to enable a peripheral clock
-    fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W;
+    fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W;
 
     /// Internal method to disable a peripheral clock
-    fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W;
+    fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W;
 }
 
 macro_rules! impl_clock_control {
     ($clock_control:ty, $clock:ident) => {
         impl ClockControl for $clock_control {
-            fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
+            fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W {
                 w.$clock().set_bit()
             }
 
-            fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
+            fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W {
                 w.$clock().clear_bit()
             }
         }
@@ -392,6 +426,10 @@ impl_clock_control!(pac::CRC, crc);
 impl_clock_control!(pac::USART0, uart0);
 impl_clock_control!(pac::USART1, uart1);
 impl_clock_control!(pac::USART2, uart2);
+#[cfg(feature = "845")]
+impl_clock_control!(pac::USART3, uart3);
+#[cfg(feature = "845")]
+impl_clock_control!(pac::USART4, uart4);
 impl_clock_control!(pac::WWDT, wwdt);
 impl_clock_control!(pac::IOCON, iocon);
 impl_clock_control!(pac::ACOMP, acmp);
@@ -403,11 +441,11 @@ impl_clock_control!(MTB, mtb);
 impl_clock_control!(pac::DMA0, dma);
 #[cfg(feature = "845")]
 impl ClockControl for pac::GPIO {
-    fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
+    fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W {
         w.gpio0().enable().gpio1().enable()
     }
 
-    fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl::W) -> &'w mut sysahbclkctrl::W {
+    fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W {
         w.gpio0().disable().gpio1().disable()
     }
 }
@@ -425,20 +463,20 @@ impl ClockControl for pac::GPIO {
 /// [`syscon::Handle::clear_reset`]: struct.Handle.html#method.clear_reset
 pub trait ResetControl {
     /// Internal method to assert peripheral reset
-    fn assert_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W;
+    fn assert_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W;
 
     /// Internal method to clear peripheral reset
-    fn clear_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W;
+    fn clear_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W;
 }
 
 macro_rules! impl_reset_control {
     ($reset_control:ty, $field:ident) => {
         impl<'a> ResetControl for $reset_control {
-            fn assert_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W {
+            fn assert_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
                 w.$field().clear_bit()
             }
 
-            fn clear_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W {
+            fn clear_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
                 w.$field().set_bit()
             }
         }
@@ -452,6 +490,10 @@ impl_reset_control!(UARTFRG, uartfrg_rst_n);
 impl_reset_control!(pac::USART0, uart0_rst_n);
 impl_reset_control!(pac::USART1, uart1_rst_n);
 impl_reset_control!(pac::USART2, uart2_rst_n);
+#[cfg(feature = "845")]
+impl_reset_control!(pac::USART3, uart3_rst_n);
+#[cfg(feature = "845")]
+impl_reset_control!(pac::USART4, uart4_rst_n);
 impl_reset_control!(pac::I2C0, i2c0_rst_n);
 impl_reset_control!(pac::MRT0, mrt_rst_n);
 impl_reset_control!(pac::SCT0, sct_rst_n);
@@ -468,11 +510,11 @@ impl_reset_control!(pac::DMA0, dma_rst_n);
 
 #[cfg(feature = "845")]
 impl<'a> ResetControl for pac::GPIO {
-    fn assert_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W {
+    fn assert_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
         w.gpio0_rst_n().clear_bit().gpio1_rst_n().clear_bit()
     }
 
-    fn clear_reset<'w>(&self, w: &'w mut presetctrl::W) -> &'w mut presetctrl::W {
+    fn clear_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
         w.gpio0_rst_n().set_bit().gpio1_rst_n().set_bit()
     }
 }
@@ -639,16 +681,31 @@ wakeup_interrupt!(WktWakeup, wkt);
 wakeup_interrupt!(I2c2Wakeup, i2c2);
 wakeup_interrupt!(I2c3Wakeup, i2c3);
 
+/// Internal trait used configure clocking of peripheals
+///
+/// This trait is an internal implementation detail and should neither be
+/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// be considered breaking changes.
+///
+pub trait PeripheralClock<PERIPH> {
+    /// Selects the clock
+    fn select_clock(&self, handle: &mut Handle);
+    /// Returns a prescaler value, that's used for the peripheral-specific prescaler
+    fn get_psc(&self) -> u16;
+}
+
 reg!(PDRUNCFG, PDRUNCFG, pac::SYSCON, pdruncfg);
 #[cfg(feature = "82x")]
-reg!(PRESETCTRL, PRESETCTRL, pac::SYSCON, presetctrl);
+reg!(PRESETCTRL0, PRESETCTRL0, pac::SYSCON, presetctrl);
 #[cfg(feature = "845")]
-reg!(PRESETCTRL, PRESETCTRL, pac::SYSCON, presetctrl0);
+reg!(PRESETCTRL0, PRESETCTRL0, pac::SYSCON, presetctrl0);
 reg!(STARTERP1, STARTERP1, pac::SYSCON, starterp1);
 #[cfg(feature = "82x")]
-reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, pac::SYSCON, sysahbclkctrl);
+reg!(SYSAHBCLKCTRL0, SYSAHBCLKCTRL0, pac::SYSCON, sysahbclkctrl);
 #[cfg(feature = "845")]
-reg!(SYSAHBCLKCTRL, SYSAHBCLKCTRL, pac::SYSCON, sysahbclkctrl0);
+reg!(SYSAHBCLKCTRL0, SYSAHBCLKCTRL0, pac::SYSCON, sysahbclkctrl0);
+#[cfg(feature = "845")]
+reg!(FCLKSEL, [FCLKSEL; 11], pac::SYSCON, fclksel);
 
 #[cfg(feature = "82x")]
 reg!(UARTCLKDIV, UARTCLKDIV, pac::SYSCON, uartclkdiv);
