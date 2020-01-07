@@ -86,8 +86,8 @@ impl Handle<init_state::Disabled> {
     pub(crate) fn new(dma: pac::DMA0, srambase: u32) -> Self {
         Handle {
             _state: init_state::Disabled,
-            dma: dma,
-            srambase: srambase,
+            dma,
+            srambase,
         }
     }
 }
@@ -245,11 +245,11 @@ where
 
         // We need to substract 1 from the length below. If the source is empty,
         // return early to prevent underflow.
-        if source.len() == 0 {
+        if source.is_empty() {
             return Transfer {
                 channel: self,
-                source: source,
-                dest: dest,
+                source,
+                dest,
             };
         }
 
@@ -293,8 +293,8 @@ where
 
         Transfer {
             channel: self,
-            source: source,
-            dest: dest,
+            source,
+            dest,
         }
     }
 }

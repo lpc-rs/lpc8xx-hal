@@ -607,11 +607,11 @@ impl IoscDerivedClock<init_state::Disabled> {
     pub fn enable(
         self,
         syscon: &mut Handle,
-        mut iosc: IOSC,
-        mut ioscout: IOSCOUT,
+        iosc: IOSC,
+        ioscout: IOSCOUT,
     ) -> IoscDerivedClock<init_state::Enabled> {
-        syscon.power_up(&mut iosc);
-        syscon.power_up(&mut ioscout);
+        syscon.power_up(&iosc);
+        syscon.power_up(&ioscout);
 
         IoscDerivedClock {
             _state: init_state::Enabled(()),

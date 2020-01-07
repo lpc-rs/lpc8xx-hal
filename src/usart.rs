@@ -87,7 +87,7 @@ pub struct USART<UsartX, State = init_state::Enabled> {
 impl<UsartX> USART<UsartX, init_state::Disabled> {
     pub(crate) fn new(usart: UsartX) -> Self {
         USART {
-            usart: usart,
+            usart,
             _state: init_state::Disabled,
         }
     }
@@ -120,8 +120,8 @@ where
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<'a, Rx, Tx, CLOCK>(
-        mut self,
+    pub fn enable<Rx, Tx, CLOCK>(
+        self,
         clock: &CLOCK,
         syscon: &mut syscon::Handle,
         _: swm::Function<UsartX::Rx, swm::state::Assigned<Rx>>,
@@ -134,7 +134,7 @@ where
         UsartX::Tx: FunctionTrait<Tx>,
         CLOCK: PeripheralClock<UsartX>,
     {
-        syscon.enable_clock(&mut self.usart);
+        syscon.enable_clock(&self.usart);
 
         clock.select_clock(syscon);
         self.usart
@@ -188,8 +188,8 @@ where
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(mut self, syscon: &mut syscon::Handle) -> USART<UsartX, init_state::Disabled> {
-        syscon.disable_clock(&mut self.usart);
+    pub fn disable(self, syscon: &mut syscon::Handle) -> USART<UsartX, init_state::Disabled> {
+        syscon.disable_clock(&self.usart);
 
         USART {
             usart: self.usart,
@@ -286,21 +286,19 @@ where
             let rx_dat_stat = self.0.usart.rxdatstat.read();
 
             if rx_dat_stat.framerr().bit_is_set() {
-                return Err(nb::Error::Other(Error::Framing));
+                Err(nb::Error::Other(Error::Framing))
+            } else if rx_dat_stat.parityerr().bit_is_set() {
+                Err(nb::Error::Other(Error::Parity))
+            } else if rx_dat_stat.rxnoise().bit_is_set() {
+                Err(nb::Error::Other(Error::Noise))
+            } else {
+                // `bits` returns `u16`, but at most 9 bits are used. We've
+                // configured UART to use only 8 bits, so we can safely cast to
+                // `u8`.
+                Ok(rx_dat_stat.rxdat().bits() as u8)
             }
-            if rx_dat_stat.parityerr().bit_is_set() {
-                return Err(nb::Error::Other(Error::Parity));
-            }
-            if rx_dat_stat.rxnoise().bit_is_set() {
-                return Err(nb::Error::Other(Error::Noise));
-            }
-
-            // `bits` returns `u16`, but at most 9 bits are used. We've
-            // configured UART to use only 8 bits, so we can safely cast to
-            // `u8`.
-            return Ok(rx_dat_stat.rxdat().bits() as u8);
         } else {
-            return Err(nb::Error::WouldBlock);
+            Err(nb::Error::WouldBlock)
         }
     }
 }

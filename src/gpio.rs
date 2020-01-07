@@ -58,13 +58,15 @@ pub struct GPIO<State = init_state::Enabled> {
 impl GPIO<init_state::Enabled> {
     /// Create an enabled gpio peripheral
     ///
+    /// # Safety
+    ///
     /// This method creates an `GPIO` instance that it assumes is already in the
     /// [`Enabled`] state. It's up to the caller to verify this assumption.
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub unsafe fn new_enabled(gpio: pac::GPIO) -> Self {
         GPIO {
-            gpio: gpio,
+            gpio,
             _state: init_state::Enabled(()),
         }
     }
@@ -81,7 +83,7 @@ impl GPIO<init_state::Disabled> {
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn new(gpio: pac::GPIO) -> Self {
         GPIO {
-            gpio: gpio,
+            gpio,
             _state: init_state::Disabled,
         }
     }
@@ -96,8 +98,8 @@ impl GPIO<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(mut self, syscon: &mut syscon::Handle) -> GPIO<init_state::Enabled> {
-        syscon.enable_clock(&mut self.gpio);
+    pub fn enable(self, syscon: &mut syscon::Handle) -> GPIO<init_state::Enabled> {
+        syscon.enable_clock(&self.gpio);
 
         GPIO {
             gpio: self.gpio,
@@ -118,8 +120,8 @@ impl GPIO<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(mut self, syscon: &mut syscon::Handle) -> GPIO<init_state::Disabled> {
-        syscon.disable_clock(&mut self.gpio);
+    pub fn disable(self, syscon: &mut syscon::Handle) -> GPIO<init_state::Disabled> {
+        syscon.disable_clock(&self.gpio);
 
         GPIO {
             gpio: self.gpio,
@@ -215,7 +217,8 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_high(&mut self) -> Result<(), Self::Error> {
-        Ok(self.state.set[T::PORT].write(|w| unsafe { w.setp().bits(T::MASK) }))
+        self.state.set[T::PORT].write(|w| unsafe { w.setp().bits(T::MASK) });
+        Ok(())
     }
 
     /// Set the pin output to LOW
@@ -230,7 +233,8 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_low(&mut self) -> Result<(), Self::Error> {
-        Ok(self.state.clr[T::PORT].write(|w| unsafe { w.clrp().bits(T::MASK) }))
+        self.state.clr[T::PORT].write(|w| unsafe { w.clrp().bits(T::MASK) });
+        Ok(())
     }
 }
 

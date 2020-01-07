@@ -9,7 +9,6 @@
 //! provides access to a register.
 
 use core::marker::PhantomData;
-use core::mem::transmute;
 use core::ops::Deref;
 
 /// A proxy object for a register
@@ -71,7 +70,7 @@ where
         // the duration of the program. That means:
         // 1. It can always be dereferenced, so casting to a reference is safe.
         // 2. It is essentially `'static`, so casting to any lifetime is safe.
-        unsafe { transmute(T::get()) }
+        unsafe { &*T::get() }
     }
 }
 
