@@ -256,38 +256,24 @@ where
         // Configure channel 1 (has request input USART0_TX_DMA)
         // See user manual, section 12.6.16.
         self.cfg.write(|w| {
-            let w = w
-                .periphreqen()
-                .enabled()
-                .hwtrigen()
-                .disabled()
-                .trigburst()
-                .single();
+            w.periphreqen().enabled();
+            w.hwtrigen().disabled();
+            w.trigburst().single();
             unsafe { w.chpriority().bits(0) }
         });
 
         // Set channel transfer configuration
         // See user manual, section 12.6.18.
         self.xfercfg.write(|w| {
-            let w = w
-                .cfgvalid()
-                .valid()
-                .reload()
-                .disabled()
-                .swtrig()
-                .not_set()
-                .clrtrig()
-                .cleared()
-                .setinta()
-                .no_effect()
-                .setintb()
-                .no_effect()
-                .width()
-                .bit_8()
-                .srcinc()
-                .width_x_1()
-                .dstinc()
-                .no_increment();
+            w.cfgvalid().valid();
+            w.reload().disabled();
+            w.swtrig().not_set();
+            w.clrtrig().cleared();
+            w.setinta().no_effect();
+            w.setintb().no_effect();
+            w.width().bit_8();
+            w.srcinc().width_x_1();
+            w.dstinc().no_increment();
             unsafe { w.xfercount().bits(source.len() as u16 - 1) }
         });
 

@@ -147,37 +147,23 @@ where
         // at this point, so there isn't anything to do here to ensure it.
 
         self.usart.cfg.modify(|_, w| {
-            w.enable()
-                .enabled()
-                .datalen()
-                .bit_8()
-                .paritysel()
-                .no_parity()
-                .stoplen()
-                .bit_1()
-                .ctsen()
-                .disabled()
-                .syncen()
-                .asynchronous_mode()
-                .loop_()
-                .normal()
-                .autoaddr()
-                .disabled()
-                .rxpol()
-                .standard()
-                .txpol()
-                .standard()
+            w.enable().enabled();
+            w.datalen().bit_8();
+            w.paritysel().no_parity();
+            w.stoplen().bit_1();
+            w.ctsen().disabled();
+            w.syncen().asynchronous_mode();
+            w.loop_().normal();
+            w.autoaddr().disabled();
+            w.rxpol().standard();
+            w.txpol().standard()
         });
 
         self.usart.ctl.modify(|_, w| {
-            w.txbrken()
-                .normal()
-                .addrdet()
-                .disabled()
-                .txdis()
-                .enabled()
-                .autobaud()
-                .disabled()
+            w.txbrken().normal();
+            w.addrdet().disabled();
+            w.txdis().enabled();
+            w.autobaud().disabled()
         });
 
         USART {

@@ -511,11 +511,13 @@ impl_reset_control!(pac::DMA0, dma_rst_n);
 #[cfg(feature = "845")]
 impl<'a> ResetControl for pac::GPIO {
     fn assert_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
-        w.gpio0_rst_n().clear_bit().gpio1_rst_n().clear_bit()
+        w.gpio0_rst_n().clear_bit();
+        w.gpio1_rst_n().clear_bit()
     }
 
     fn clear_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
-        w.gpio0_rst_n().set_bit().gpio1_rst_n().set_bit()
+        w.gpio0_rst_n().set_bit();
+        w.gpio1_rst_n().set_bit()
     }
 }
 
