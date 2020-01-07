@@ -9,8 +9,7 @@ use core::marker::PhantomData;
 
 use crate::{
     gpio::{self, GPIO},
-    init_state, syscon,
-    pac,
+    init_state, pac, syscon,
 };
 
 use self::pin_state::PinState;

@@ -22,10 +22,8 @@ use cortex_m::peripheral::syst::SystClkSource;
 use crate::pac::SYST;
 use embedded_hal::blocking::delay::{DelayMs, DelayUs};
 
-
 const SYSTICK_RANGE: u32 = 0x0100_0000;
 const SYSTEM_CLOCK: u32 = 12_000_000;
-
 
 /// System timer (SysTick) as a delay provider
 #[derive(Clone)]

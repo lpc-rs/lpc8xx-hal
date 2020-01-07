@@ -33,8 +33,7 @@ use embedded_hal::digital::v2::{OutputPin, StatefulOutputPin};
 use void::Void;
 
 use crate::{
-    init_state,
-    pac,
+    init_state, pac,
     swm::{pin_state, Pin, PinTrait},
     syscon,
 };

@@ -1,13 +1,6 @@
-use std::{
-    io::prelude::*,
-    fs::File,
-};
+use std::{fs::File, io::prelude::*};
 
-use termion::{
-    color,
-    style,
-};
-
+use termion::{color, style};
 
 fn main() {
     let openocd_cfg = match (cfg!(feature = "82x"), cfg!(feature = "845")) {

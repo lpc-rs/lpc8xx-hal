@@ -28,18 +28,9 @@
 //!
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/lpc82x-hal/examples
 
+use cortex_m::{asm, interrupt};
 
-use cortex_m::{
-    asm,
-    interrupt,
-};
-
-use crate::{
-    clock,
-    init_state,
-    pac,
-};
-
+use crate::{clock, init_state, pac};
 
 /// Entry point to the PMU API
 ///
@@ -73,9 +64,7 @@ impl PMU {
     /// using [`PMU::free`] after you've called this method.
     pub fn split(self) -> Parts {
         Parts {
-            handle: Handle {
-                pmu: self.pmu,
-            },
+            handle: Handle { pmu: self.pmu },
             low_power_clock: LowPowerClock::new(),
         }
     }
@@ -97,7 +86,6 @@ impl PMU {
     }
 }
 
-
 /// The main API for the PMU peripheral
 ///
 /// Provides access to all types that make up the PMU API. Please refer to the
@@ -111,7 +99,6 @@ pub struct Parts {
     /// The 10 kHz low-power clock
     pub low_power_clock: LowPowerClock<init_state::Disabled>,
 }
-
 
 /// Handle to the PMU peripheral
 ///
@@ -135,9 +122,7 @@ impl Handle {
     pub fn enter_sleep_mode(&mut self, scb: &mut pac::SCB) {
         interrupt::free(|_| {
             // Default power mode indicates active or sleep mode.
-            self.pmu.pcon.modify(|_, w|
-                w.pm().default()
-            );
+            self.pmu.pcon.modify(|_, w| w.pm().default());
 
             // The SLEEPDEEP bit must be cleared when entering regular sleep
             // mode. See user manual, section 6.7.4.2.
@@ -175,9 +160,7 @@ impl Handle {
     /// method.
     pub unsafe fn enter_deep_sleep_mode(&mut self, scb: &mut pac::SCB) {
         interrupt::free(|_| {
-            self.pmu.pcon.modify(|_, w|
-                w.pm().deep_sleep_mode()
-            );
+            self.pmu.pcon.modify(|_, w| w.pm().deep_sleep_mode());
 
             // The SLEEPDEEP bit must be set for entering regular sleep mode.
             // See user manual, section 6.7.5.2.
@@ -215,9 +198,7 @@ impl Handle {
     /// method.
     pub unsafe fn enter_power_down_mode(&mut self, scb: &mut pac::SCB) {
         interrupt::free(|_| {
-            self.pmu.pcon.modify(|_, w|
-                w.pm().power_down_mode()
-            );
+            self.pmu.pcon.modify(|_, w| w.pm().power_down_mode());
 
             // The SLEEPDEEP bit must be set for entering regular sleep mode.
             // See user manual, section 6.7.5.2.
@@ -228,7 +209,6 @@ impl Handle {
         })
     }
 }
-
 
 /// The 10 kHz low-power clock
 ///
@@ -261,12 +241,8 @@ impl LowPowerClock<init_state::Disabled> {
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
-    pub fn enable(self, pmu: &mut Handle)
-        -> LowPowerClock<init_state::Enabled>
-    {
-        pmu.pmu.dpdctrl.modify(|_, w|
-            w.lposcen().enabled()
-        );
+    pub fn enable(self, pmu: &mut Handle) -> LowPowerClock<init_state::Enabled> {
+        pmu.pmu.dpdctrl.modify(|_, w| w.lposcen().enabled());
 
         LowPowerClock {
             _state: init_state::Enabled(()),
@@ -286,12 +262,8 @@ impl LowPowerClock<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(self, pmu: &mut Handle)
-        -> LowPowerClock<init_state::Disabled>
-    {
-        pmu.pmu.dpdctrl.modify(|_, w|
-            w.lposcen().disabled()
-        );
+    pub fn disable(self, pmu: &mut Handle) -> LowPowerClock<init_state::Disabled> {
+        pmu.pmu.dpdctrl.modify(|_, w| w.lposcen().disabled());
 
         LowPowerClock {
             _state: init_state::Disabled,
@@ -300,7 +272,9 @@ impl LowPowerClock<init_state::Enabled> {
 }
 
 impl<State> clock::Frequency for LowPowerClock<State> {
-    fn hz(&self) -> u32 { 10_000 }
+    fn hz(&self) -> u32 {
+        10_000
+    }
 }
 
 impl clock::Enabled for LowPowerClock<init_state::Enabled> {}

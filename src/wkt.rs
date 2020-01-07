@@ -52,14 +52,14 @@ use crate::{
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct WKT<State = init_state::Enabled> {
-    wkt   : pac::WKT,
+    wkt: pac::WKT,
     _state: State,
 }
 
 impl WKT<init_state::Disabled> {
     pub(crate) fn new(wkt: pac::WKT) -> Self {
         WKT {
-            wkt   : wkt,
+            wkt: wkt,
             _state: init_state::Disabled,
         }
     }
@@ -75,13 +75,11 @@ impl WKT<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(mut self, syscon: &mut syscon::Handle)
-        -> WKT<init_state::Enabled>
-    {
+    pub fn enable(mut self, syscon: &mut syscon::Handle) -> WKT<init_state::Enabled> {
         syscon.enable_clock(&mut self.wkt);
 
         WKT {
-            wkt   : self.wkt,
+            wkt: self.wkt,
             _state: init_state::Enabled(()),
         }
     }
@@ -99,13 +97,11 @@ impl WKT<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(mut self, syscon: &mut syscon::Handle)
-        -> WKT<init_state::Disabled>
-    {
+    pub fn disable(mut self, syscon: &mut syscon::Handle) -> WKT<init_state::Disabled> {
         syscon.disable_clock(&mut self.wkt);
 
         WKT {
-            wkt   : self.wkt,
+            wkt: self.wkt,
             _state: init_state::Disabled,
         }
     }
@@ -127,7 +123,10 @@ impl WKT<init_state::Enabled> {
     /// disabling the clock while the timer is running.
     ///
     /// [`wkt::Clock`]: trait.Clock.html
-    pub fn select_clock<C>(&mut self) where C: Clock {
+    pub fn select_clock<C>(&mut self)
+    where
+        C: Clock,
+    {
         self.wkt.ctrl.modify(|_, w| {
             C::select(w);
             w
@@ -138,7 +137,10 @@ impl WKT<init_state::Enabled> {
 impl timer::CountDown for WKT<init_state::Enabled> {
     type Time = u32;
 
-    fn start<T>(&mut self, timeout: T) where T: Into<Self::Time> {
+    fn start<T>(&mut self, timeout: T)
+    where
+        T: Into<Self::Time>,
+    {
         // Either clearing the counter or writing a value to it resets the alarm
         // flag, so no reason to worry about that here.
 
@@ -147,7 +149,9 @@ impl timer::CountDown for WKT<init_state::Enabled> {
 
         // The counter has been cleared, which halts counting. Writing a new
         // count is perfectly safe.
-        self.wkt.count.write(|w| unsafe { w.value().bits(timeout.into()) });
+        self.wkt
+            .count
+            .write(|w| unsafe { w.value().bits(timeout.into()) });
     }
 
     fn wait(&mut self) -> nb::Result<(), Void> {
@@ -177,7 +181,6 @@ impl<State> WKT<State> {
     }
 }
 
-
 /// A clock that is usable by the self-wake-up timer (WKT)
 ///
 /// This trait is implemented for all clocks that are supported by the WKT. The
@@ -200,12 +203,9 @@ impl<State> Clock for IoscDerivedClock<State> {
 
 impl<State> Clock for LowPowerClock<State> {
     fn select(w: &mut ctrl::W) {
-        w
-            .sel_extclk().internal()
-            .clksel().low_power_clock();
+        w.sel_extclk().internal().clksel().low_power_clock();
     }
 }
-
 
 #[cfg(feature = "82x")]
 mod target {

@@ -2,12 +2,8 @@
 //!
 //! The DMA controller is described in the user manual, chapter 12.
 
-
 use core::ptr;
-use core::sync::atomic::{
-    compiler_fence,
-    Ordering,
-};
+use core::sync::atomic::{compiler_fence, Ordering};
 
 use nb;
 
@@ -16,22 +12,13 @@ use crate::{
     pac::{
         self,
         dma0::{
-            ACTIVE0,
-            ENABLESET0,
-            SETTRIG0,
-            channel::{
-                CFG,
-                XFERCFG,
-            },
+            channel::{CFG, XFERCFG},
+            ACTIVE0, ENABLESET0, SETTRIG0,
         },
     },
-    reg_proxy::{
-        Reg,
-        RegProxy,
-    },
+    reg_proxy::{Reg, RegProxy},
     syscon,
 };
-
 
 /// Entry point to the DMA API
 pub struct DMA {
@@ -52,7 +39,7 @@ impl DMA {
         let srambase = descriptors as *mut _ as u32;
 
         Parts {
-            handle  : Handle::new(self.dma, srambase),
+            handle: Handle::new(self.dma, srambase),
             channels: Channels::new(descriptors),
         }
     }
@@ -88,19 +75,18 @@ pub struct Parts {
     pub channels: Channels,
 }
 
-
 /// Handle to the DMA controller
 pub struct Handle<State = init_state::Enabled> {
-    _state  : State,
-    dma     : pac::DMA0,
+    _state: State,
+    dma: pac::DMA0,
     srambase: u32,
 }
 
 impl Handle<init_state::Disabled> {
     pub(crate) fn new(dma: pac::DMA0, srambase: u32) -> Self {
         Handle {
-            _state  : init_state::Disabled,
-            dma     : dma,
+            _state: init_state::Disabled,
+            dma: dma,
             srambase: srambase,
         }
     }
@@ -108,17 +94,15 @@ impl Handle<init_state::Disabled> {
 
 impl<'dma> Handle<init_state::Disabled> {
     /// Enable the DMA controller
-    pub fn enable(self, syscon: &mut syscon::Handle)
-        -> Handle<init_state::Enabled>
-    {
+    pub fn enable(self, syscon: &mut syscon::Handle) -> Handle<init_state::Enabled> {
         syscon.enable_clock(&self.dma);
 
         // Set descriptor table address
         //
         // See user manual, section 12.6.3.
-        self.dma.srambase.write(|w|
-            unsafe { w.bits(self.srambase) }
-        );
+        self.dma
+            .srambase
+            .write(|w| unsafe { w.bits(self.srambase) });
 
         // Enable the DMA controller
         //
@@ -126,8 +110,8 @@ impl<'dma> Handle<init_state::Disabled> {
         self.dma.ctrl.write(|w| w.enable().enabled());
 
         Handle {
-            _state  : init_state::Enabled(()),
-            dma     : self.dma,
+            _state: init_state::Enabled(()),
+            dma: self.dma,
             srambase: self.srambase,
         }
     }
@@ -135,19 +119,16 @@ impl<'dma> Handle<init_state::Disabled> {
 
 impl Handle<init_state::Enabled> {
     /// Disable the DMA controller
-    pub fn disable(self, syscon: &mut syscon::Handle)
-        -> Handle<init_state::Disabled>
-    {
+    pub fn disable(self, syscon: &mut syscon::Handle) -> Handle<init_state::Disabled> {
         syscon.disable_clock(&self.dma);
 
         Handle {
-            _state  : init_state::Disabled,
-            dma     : self.dma,
+            _state: init_state::Disabled,
+            dma: self.dma,
             srambase: self.srambase,
         }
     }
 }
-
 
 /// The channel descriptor table
 ///
@@ -181,22 +162,21 @@ impl DescriptorTable {
     }
 }
 
-
 #[repr(C, align(16))]
 struct ChannelDescriptor {
-    config    : u32,
+    config: u32,
     source_end: *const u8,
-    dest_end  : *mut u8,
-    next_desc : *const ChannelDescriptor,
+    dest_end: *mut u8,
+    next_desc: *const ChannelDescriptor,
 }
 
 impl ChannelDescriptor {
     const fn new() -> Self {
         ChannelDescriptor {
-            config    : 0,
+            config: 0,
             source_end: ptr::null(),
-            dest_end  : ptr::null_mut(),
-            next_desc : ptr::null(),
+            dest_end: ptr::null_mut(),
+            next_desc: ptr::null(),
         }
     }
 }
@@ -207,58 +187,59 @@ impl ChannelDescriptor {
 // `cortex_m::interrupt::Mutex`.
 unsafe impl Send for ChannelDescriptor {}
 
-
 /// A DMA channel
-pub struct Channel<T, S> where T: ChannelTrait {
-    ty        : T,
-    _state    : S,
+pub struct Channel<T, S>
+where
+    T: ChannelTrait,
+{
+    ty: T,
+    _state: S,
     descriptor: &'static mut ChannelDescriptor,
 
     // This channel's dedicated registers.
-    cfg    : RegProxy<T::Cfg>,
+    cfg: RegProxy<T::Cfg>,
     xfercfg: RegProxy<T::Xfercfg>,
 
     // Shared registers. We restrict our access to the one bit that is dedicated
     // to this channel, so sharing those with other channels should be safe.
-    active0   : RegProxy<ACTIVE0>,
+    active0: RegProxy<ACTIVE0>,
     enableset0: RegProxy<ENABLESET0>,
-    settrig0  : RegProxy<SETTRIG0>,
+    settrig0: RegProxy<SETTRIG0>,
 }
 
-impl<T> Channel<T, init_state::Disabled> where T: ChannelTrait {
+impl<T> Channel<T, init_state::Disabled>
+where
+    T: ChannelTrait,
+{
     /// Enable the channel
-    pub fn enable<'dma>(self, dma: &'dma Handle)
-        -> Channel<T, init_state::Enabled<&'dma Handle>>
-    {
+    pub fn enable<'dma>(self, dma: &'dma Handle) -> Channel<T, init_state::Enabled<&'dma Handle>> {
         Channel {
-            ty        : self.ty,
-            _state    : init_state::Enabled(dma),
+            ty: self.ty,
+            _state: init_state::Enabled(dma),
             descriptor: self.descriptor,
 
-            cfg    : self.cfg,
+            cfg: self.cfg,
             xfercfg: self.xfercfg,
 
-            active0   : self.active0,
+            active0: self.active0,
             enableset0: self.enableset0,
-            settrig0  : self.settrig0,
+            settrig0: self.settrig0,
         }
     }
 }
 
 impl<'dma, T> Channel<T, init_state::Enabled<&'dma Handle>>
-    where T: ChannelTrait
+where
+    T: ChannelTrait,
 {
     /// Starts a DMA transfer
     ///
     /// # Limitations
     ///
     /// The length of `source` must be 1024 or less.
-    pub fn start_transfer<D>(self,
-            source: &'static mut [u8],
-        mut dest  : D,
-    )
-        -> Transfer<'dma, T, D>
-        where D: Dest
+    pub fn start_transfer<D>(self, source: &'static mut [u8], mut dest: D) -> Transfer<'dma, T, D>
+    where
+        D: Dest,
     {
         compiler_fence(Ordering::SeqCst);
 
@@ -267,18 +248,21 @@ impl<'dma, T> Channel<T, init_state::Enabled<&'dma Handle>>
         if source.len() == 0 {
             return Transfer {
                 channel: self,
-                source : source,
-                dest   : dest,
-            }
+                source: source,
+                dest: dest,
+            };
         }
 
         // Configure channel 1 (has request input USART0_TX_DMA)
         // See user manual, section 12.6.16.
         self.cfg.write(|w| {
             let w = w
-                .periphreqen().enabled()
-                .hwtrigen().disabled()
-                .trigburst().single();
+                .periphreqen()
+                .enabled()
+                .hwtrigen()
+                .disabled()
+                .trigburst()
+                .single();
             unsafe { w.chpriority().bits(0) }
         });
 
@@ -286,15 +270,24 @@ impl<'dma, T> Channel<T, init_state::Enabled<&'dma Handle>>
         // See user manual, section 12.6.18.
         self.xfercfg.write(|w| {
             let w = w
-                .cfgvalid().valid()
-                .reload().disabled()
-                .swtrig().not_set()
-                .clrtrig().cleared()
-                .setinta().no_effect()
-                .setintb().no_effect()
-                .width().bit_8()
-                .srcinc().width_x_1()
-                .dstinc().no_increment();
+                .cfgvalid()
+                .valid()
+                .reload()
+                .disabled()
+                .swtrig()
+                .not_set()
+                .clrtrig()
+                .cleared()
+                .setinta()
+                .no_effect()
+                .setintb()
+                .no_effect()
+                .width()
+                .bit_8()
+                .srcinc()
+                .width_x_1()
+                .dstinc()
+                .no_increment();
             unsafe { w.xfercount().bits(source.len() as u16 - 1) }
         });
 
@@ -303,7 +296,7 @@ impl<'dma, T> Channel<T, init_state::Enabled<&'dma Handle>>
         // Configure channel descriptor
         // See user manual, sections 12.5.2 and 12.5.3.
         self.descriptor.source_end = source_end;
-        self.descriptor.dest_end   = dest.end_addr();
+        self.descriptor.dest_end = dest.end_addr();
 
         // Enable channel 1
         // See user manual, section 12.6.4.
@@ -314,12 +307,11 @@ impl<'dma, T> Channel<T, init_state::Enabled<&'dma Handle>>
 
         Transfer {
             channel: self,
-            source : source,
-            dest   : dest,
+            source: source,
+            dest: dest,
         }
     }
 }
-
 
 /// Implemented for each DMA channel
 pub trait ChannelTrait {
@@ -332,13 +324,13 @@ pub trait ChannelTrait {
     ///
     /// This is `0x1` for channel 0, `0x2` for channel 2, `0x4` for channel 3,
     /// etc.
-    const FLAG : u32;
+    const FLAG: u32;
 
     /// The type that represents this channel's CFG register
-    type Cfg: Reg<Target=CFG>;
+    type Cfg: Reg<Target = CFG>;
 
     /// The type that represents this channel's XFERCFG register
-    type Xfercfg: Reg<Target=XFERCFG>;
+    type Xfercfg: Reg<Target = XFERCFG>;
 }
 
 macro_rules! channels {
@@ -465,30 +457,32 @@ pub trait Dest {
     fn end_addr(&mut self) -> *mut u8;
 }
 
-
 /// A DMA transfer
-pub struct Transfer<'dma, T, D> where T: ChannelTrait {
+pub struct Transfer<'dma, T, D>
+where
+    T: ChannelTrait,
+{
     channel: Channel<T, init_state::Enabled<&'dma Handle>>,
-    source : &'static mut [u8],
-    dest   : D,
+    source: &'static mut [u8],
+    dest: D,
 }
 
 impl<'dma, T, D> Transfer<'dma, T, D>
-    where
-        T: ChannelTrait,
-        D: Dest,
+where
+    T: ChannelTrait,
+    D: Dest,
 {
     /// Waits for the transfer to finish
-    pub fn wait(mut self)
-        -> Result<
-            (
-                Channel<T, init_state::Enabled<&'dma Handle>>,
-                &'static mut [u8],
-                D
-            ),
-            D::Error
-        >
-    {
+    pub fn wait(
+        mut self,
+    ) -> Result<
+        (
+            Channel<T, init_state::Enabled<&'dma Handle>>,
+            &'static mut [u8],
+            D,
+        ),
+        D::Error,
+    > {
         // There's an error interrupt status register. Maybe we should check
         // this here, but I have no idea whether that actually makes sense:
         // 1. As of this writing, we're not enabling any interrupts. I don't
@@ -503,7 +497,7 @@ impl<'dma, T, D> Transfer<'dma, T, D>
         loop {
             match self.dest.wait() {
                 Err(nb::Error::WouldBlock) => continue,
-                Ok(())                     => break,
+                Ok(()) => break,
 
                 Err(nb::Error::Other(error)) => {
                     compiler_fence(Ordering::SeqCst);

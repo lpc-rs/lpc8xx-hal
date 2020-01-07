@@ -1,16 +1,9 @@
 #![no_main]
 #![no_std]
 
-
 extern crate panic_halt;
 
-
-use lpc8xx_hal::{
-    prelude::*,
-    Peripherals,
-    cortex_m_rt::entry,
-};
-
+use lpc8xx_hal::{cortex_m_rt::entry, prelude::*, Peripherals};
 
 #[entry]
 fn main() -> ! {
