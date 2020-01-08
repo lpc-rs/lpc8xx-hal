@@ -30,15 +30,16 @@ use core::marker::PhantomData;
 
 #[cfg(feature = "82x")]
 use crate::pac::syscon::{
-    pdruncfg, presetctrl as presetctrl0, starterp1, sysahbclkctrl as sysahbclkctrl0, PDRUNCFG,
-    PRESETCTRL as PRESETCTRL0, STARTERP1, SYSAHBCLKCTRL as SYSAHBCLKCTRL0, UARTCLKDIV, UARTFRGDIV,
+    pdruncfg, presetctrl as presetctrl0, starterp1,
+    sysahbclkctrl as sysahbclkctrl0, PDRUNCFG, PRESETCTRL as PRESETCTRL0,
+    STARTERP1, SYSAHBCLKCTRL as SYSAHBCLKCTRL0, UARTCLKDIV, UARTFRGDIV,
     UARTFRGMULT,
 };
 
 #[cfg(feature = "845")]
 use crate::pac::syscon::{
-    pdruncfg, presetctrl0, starterp1, sysahbclkctrl0, FCLKSEL, PDRUNCFG, PRESETCTRL0, STARTERP1,
-    SYSAHBCLKCTRL0,
+    pdruncfg, presetctrl0, starterp1, sysahbclkctrl0, FCLKSEL, PDRUNCFG,
+    PRESETCTRL0, STARTERP1, SYSAHBCLKCTRL0,
 };
 
 use crate::{clock, init_state, pac, reg_proxy::RegProxy};
@@ -386,20 +387,32 @@ impl UARTFRG {
 /// [`syscon::Handle::disable_clock`]: struct.Handle.html#method.disable_clock
 pub trait ClockControl {
     /// Internal method to enable a peripheral clock
-    fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W;
+    fn enable_clock<'w>(
+        &self,
+        w: &'w mut sysahbclkctrl0::W,
+    ) -> &'w mut sysahbclkctrl0::W;
 
     /// Internal method to disable a peripheral clock
-    fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W;
+    fn disable_clock<'w>(
+        &self,
+        w: &'w mut sysahbclkctrl0::W,
+    ) -> &'w mut sysahbclkctrl0::W;
 }
 
 macro_rules! impl_clock_control {
     ($clock_control:ty, $clock:ident) => {
         impl ClockControl for $clock_control {
-            fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W {
+            fn enable_clock<'w>(
+                &self,
+                w: &'w mut sysahbclkctrl0::W,
+            ) -> &'w mut sysahbclkctrl0::W {
                 w.$clock().set_bit()
             }
 
-            fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W {
+            fn disable_clock<'w>(
+                &self,
+                w: &'w mut sysahbclkctrl0::W,
+            ) -> &'w mut sysahbclkctrl0::W {
                 w.$clock().clear_bit()
             }
         }
@@ -441,11 +454,17 @@ impl_clock_control!(MTB, mtb);
 impl_clock_control!(pac::DMA0, dma);
 #[cfg(feature = "845")]
 impl ClockControl for pac::GPIO {
-    fn enable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W {
+    fn enable_clock<'w>(
+        &self,
+        w: &'w mut sysahbclkctrl0::W,
+    ) -> &'w mut sysahbclkctrl0::W {
         w.gpio0().enable().gpio1().enable()
     }
 
-    fn disable_clock<'w>(&self, w: &'w mut sysahbclkctrl0::W) -> &'w mut sysahbclkctrl0::W {
+    fn disable_clock<'w>(
+        &self,
+        w: &'w mut sysahbclkctrl0::W,
+    ) -> &'w mut sysahbclkctrl0::W {
         w.gpio0().disable().gpio1().disable()
     }
 }
@@ -463,20 +482,32 @@ impl ClockControl for pac::GPIO {
 /// [`syscon::Handle::clear_reset`]: struct.Handle.html#method.clear_reset
 pub trait ResetControl {
     /// Internal method to assert peripheral reset
-    fn assert_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W;
+    fn assert_reset<'w>(
+        &self,
+        w: &'w mut presetctrl0::W,
+    ) -> &'w mut presetctrl0::W;
 
     /// Internal method to clear peripheral reset
-    fn clear_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W;
+    fn clear_reset<'w>(
+        &self,
+        w: &'w mut presetctrl0::W,
+    ) -> &'w mut presetctrl0::W;
 }
 
 macro_rules! impl_reset_control {
     ($reset_control:ty, $field:ident) => {
         impl<'a> ResetControl for $reset_control {
-            fn assert_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
+            fn assert_reset<'w>(
+                &self,
+                w: &'w mut presetctrl0::W,
+            ) -> &'w mut presetctrl0::W {
                 w.$field().clear_bit()
             }
 
-            fn clear_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
+            fn clear_reset<'w>(
+                &self,
+                w: &'w mut presetctrl0::W,
+            ) -> &'w mut presetctrl0::W {
                 w.$field().set_bit()
             }
         }
@@ -510,12 +541,18 @@ impl_reset_control!(pac::DMA0, dma_rst_n);
 
 #[cfg(feature = "845")]
 impl<'a> ResetControl for pac::GPIO {
-    fn assert_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
+    fn assert_reset<'w>(
+        &self,
+        w: &'w mut presetctrl0::W,
+    ) -> &'w mut presetctrl0::W {
         w.gpio0_rst_n().clear_bit();
         w.gpio1_rst_n().clear_bit()
     }
 
-    fn clear_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
+    fn clear_reset<'w>(
+        &self,
+        w: &'w mut presetctrl0::W,
+    ) -> &'w mut presetctrl0::W {
         w.gpio0_rst_n().set_bit();
         w.gpio1_rst_n().set_bit()
     }
@@ -543,11 +580,17 @@ pub trait AnalogBlock {
 macro_rules! impl_analog_block {
     ($analog_block:ty, $field:ident) => {
         impl<'a> AnalogBlock for $analog_block {
-            fn power_up<'w>(&self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W {
+            fn power_up<'w>(
+                &self,
+                w: &'w mut pdruncfg::W,
+            ) -> &'w mut pdruncfg::W {
                 w.$field().clear_bit()
             }
 
-            fn power_down<'w>(&self, w: &'w mut pdruncfg::W) -> &'w mut pdruncfg::W {
+            fn power_down<'w>(
+                &self,
+                w: &'w mut pdruncfg::W,
+            ) -> &'w mut pdruncfg::W {
                 w.$field().set_bit()
             }
         }

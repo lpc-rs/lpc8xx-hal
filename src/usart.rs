@@ -188,7 +188,10 @@ where
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(self, syscon: &mut syscon::Handle) -> USART<UsartX, init_state::Disabled> {
+    pub fn disable(
+        self,
+        syscon: &mut syscon::Handle,
+    ) -> USART<UsartX, init_state::Disabled> {
         syscon.disable_clock(&self.usart);
 
         USART {
@@ -395,7 +398,9 @@ where
 /// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
 /// be considered breaking changes.
 pub trait Peripheral:
-    Deref<Target = pac::usart0::RegisterBlock> + syscon::ClockControl + syscon::ResetControl
+    Deref<Target = pac::usart0::RegisterBlock>
+    + syscon::ClockControl
+    + syscon::ResetControl
 {
     /// The interrupt that is triggered for this USART peripheral
     const INTERRUPT: Interrupt;

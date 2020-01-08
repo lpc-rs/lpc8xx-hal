@@ -98,7 +98,10 @@ impl GPIO<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(self, syscon: &mut syscon::Handle) -> GPIO<init_state::Enabled> {
+    pub fn enable(
+        self,
+        syscon: &mut syscon::Handle,
+    ) -> GPIO<init_state::Enabled> {
         syscon.enable_clock(&self.gpio);
 
         GPIO {
@@ -120,7 +123,10 @@ impl GPIO<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(self, syscon: &mut syscon::Handle) -> GPIO<init_state::Disabled> {
+    pub fn disable(
+        self,
+        syscon: &mut syscon::Handle,
+    ) -> GPIO<init_state::Disabled> {
         syscon.disable_clock(&self.gpio);
 
         GPIO {
@@ -181,8 +187,11 @@ where
     /// pin.set_high();
     /// pin.set_low();
     /// ```
-    pub fn into_output(self) -> Pin<T, pin_state::Gpio<'gpio, direction::Output>> {
-        self.state.dirset[T::PORT].write(|w| unsafe { w.dirsetp().bits(T::MASK) });
+    pub fn into_output(
+        self,
+    ) -> Pin<T, pin_state::Gpio<'gpio, direction::Output>> {
+        self.state.dirset[T::PORT]
+            .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
 
         Pin {
             ty: self.ty,
@@ -238,7 +247,8 @@ where
     }
 }
 
-impl<'gpio, T> StatefulOutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
+impl<'gpio, T> StatefulOutputPin
+    for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
 where
     T: PinTrait,
 {

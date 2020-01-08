@@ -94,7 +94,10 @@ impl Handle<init_state::Disabled> {
 
 impl<'dma> Handle<init_state::Disabled> {
     /// Enable the DMA controller
-    pub fn enable(self, syscon: &mut syscon::Handle) -> Handle<init_state::Enabled> {
+    pub fn enable(
+        self,
+        syscon: &mut syscon::Handle,
+    ) -> Handle<init_state::Enabled> {
         syscon.enable_clock(&self.dma);
 
         // Set descriptor table address
@@ -119,7 +122,10 @@ impl<'dma> Handle<init_state::Disabled> {
 
 impl Handle<init_state::Enabled> {
     /// Disable the DMA controller
-    pub fn disable(self, syscon: &mut syscon::Handle) -> Handle<init_state::Disabled> {
+    pub fn disable(
+        self,
+        syscon: &mut syscon::Handle,
+    ) -> Handle<init_state::Disabled> {
         syscon.disable_clock(&self.dma);
 
         Handle {
@@ -212,7 +218,10 @@ where
     T: ChannelTrait,
 {
     /// Enable the channel
-    pub fn enable<'dma>(self, dma: &'dma Handle) -> Channel<T, init_state::Enabled<&'dma Handle>> {
+    pub fn enable<'dma>(
+        self,
+        dma: &'dma Handle,
+    ) -> Channel<T, init_state::Enabled<&'dma Handle>> {
         Channel {
             ty: self.ty,
             _state: init_state::Enabled(dma),
@@ -237,7 +246,11 @@ where
     /// # Limitations
     ///
     /// The length of `source` must be 1024 or less.
-    pub fn start_transfer<D>(self, source: &'static mut [u8], mut dest: D) -> Transfer<'dma, T, D>
+    pub fn start_transfer<D>(
+        self,
+        source: &'static mut [u8],
+        mut dest: D,
+    ) -> Transfer<'dma, T, D>
     where
         D: Dest,
     {

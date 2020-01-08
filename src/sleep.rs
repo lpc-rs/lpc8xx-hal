@@ -161,7 +161,11 @@ impl<'r> Regular<'r> {
     /// Requires references to various peripherals, which will be borrowed for
     /// as long as the `sleep::Regular` instance exists, as they will be needed
     /// for every call to [`Sleep::sleep`].
-    pub fn prepare(pmu: &'r mut pmu::Handle, scb: &'r mut pac::SCB, wkt: &'r mut WKT) -> Self {
+    pub fn prepare(
+        pmu: &'r mut pmu::Handle,
+        scb: &'r mut pac::SCB,
+        wkt: &'r mut WKT,
+    ) -> Self {
         Regular { pmu, scb, wkt }
     }
 }

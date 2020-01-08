@@ -79,11 +79,12 @@ impl PeripheralClockSource for IOSC {
     const CLOCK: SEL_A = SEL_A::FRO;
 }
 
-impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource> PeripheralClock<PERIPH>
-    for PeripheralClockConfig<PERIPH, CLOCK>
+impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
+    PeripheralClock<PERIPH> for PeripheralClockConfig<PERIPH, CLOCK>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
-        syscon.fclksel[PERIPH::REGISTER_NUM].write(|w| w.sel().variant(CLOCK::CLOCK));
+        syscon.fclksel[PERIPH::REGISTER_NUM]
+            .write(|w| w.sel().variant(CLOCK::CLOCK));
     }
     fn get_psc(&self) -> u16 {
         self.psc

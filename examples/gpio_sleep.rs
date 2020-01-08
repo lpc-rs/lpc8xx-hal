@@ -3,7 +3,9 @@
 
 extern crate panic_halt;
 
-use lpc8xx_hal::{clock::Ticks, cortex_m_rt::entry, prelude::*, sleep, Peripherals};
+use lpc8xx_hal::{
+    clock::Ticks, cortex_m_rt::entry, prelude::*, sleep, Peripherals,
+};
 
 #[entry]
 fn main() -> ! {

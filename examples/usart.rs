@@ -4,7 +4,8 @@
 extern crate panic_halt;
 
 use lpc8xx_hal::{
-    cortex_m_rt::entry, prelude::*, syscon::clocksource::PeripheralClockConfig, Peripherals,
+    cortex_m_rt::entry, prelude::*, syscon::clocksource::PeripheralClockConfig,
+    Peripherals,
 };
 
 #[cfg(feature = "845")]
@@ -98,13 +99,15 @@ fn main() -> ! {
     // LPC845-BRK development boards, they're connected to the integrated USB to
     // Serial converter. So by using the pins, we can use them to communicate
     // with a host PC, without additional hardware.
-    let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(rx_pin, &mut swm.handle);
-    let (u0_txd, _) = swm.movable_functions.u0_txd.assign(tx_pin, &mut swm.handle);
+    let (u0_rxd, _) =
+        swm.movable_functions.u0_rxd.assign(rx_pin, &mut swm.handle);
+    let (u0_txd, _) =
+        swm.movable_functions.u0_txd.assign(tx_pin, &mut swm.handle);
 
     // Enable USART0
-    let serial = p
-        .USART0
-        .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
+    let serial =
+        p.USART0
+            .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
     // Send a string via USART0, blocking until it has been sent
     serial
