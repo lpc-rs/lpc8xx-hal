@@ -1,4 +1,7 @@
-use std::{fs::File, io::prelude::*};
+use std::{
+    fs::{self, File},
+    io::prelude::*,
+};
 
 use termion::{color, style};
 
@@ -17,6 +20,8 @@ fn main() {
             );
         }
     };
+
+    fs::create_dir_all("target").expect("Failed to create target directory");
 
     File::create("target/openocd.cfg")
         .expect("Failed to create openocd.cfg")
