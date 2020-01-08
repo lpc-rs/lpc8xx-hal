@@ -21,6 +21,11 @@ fn main() {
         }
     };
 
+    // These file operations are not using the `OUT_DIR` environment variable on
+    // purpose. `OUT_DIR` points to a directory within target, whose path even
+    // contains a hash. This configuration file needs to be referenced from the
+    // GDB configuration, which can't just ask Cargo where to look for it.
+
     fs::create_dir_all("target").expect("Failed to create target directory");
 
     File::create("target/openocd.cfg")
