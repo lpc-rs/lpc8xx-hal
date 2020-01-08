@@ -1,11 +1,19 @@
 use std::{
+    env,
     fs::{self, File},
     io::{self, prelude::*},
+    path::PathBuf,
 };
 
 use termion::{color, style};
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), Error> {
+    copy_openocd_config()?;
+    copy_memory_config()?;
+    Ok(())
+}
+
+fn copy_openocd_config() -> Result<(), io::Error> {
     let openocd_cfg = match (cfg!(feature = "82x"), cfg!(feature = "845")) {
         (true, false) => &include_bytes!("openocd_82x.cfg")[..],
         (false, true) => &include_bytes!("openocd_84x.cfg")[..],
@@ -29,4 +37,35 @@ fn main() -> io::Result<()> {
     File::create("target/openocd.cfg")?.write_all(openocd_cfg)?;
 
     Ok(())
+}
+
+fn copy_memory_config() -> Result<(), Error> {
+    let out_dir = env::var("OUT_DIR")?;
+    let out_dir = PathBuf::from(out_dir);
+
+    File::create(out_dir.join("memory.x"))?
+        .write_all(include_bytes!("memory.x"))?;
+
+    // Tell Cargo where to find the file.
+    println!("cargo:rustc-link-search={}", out_dir.display());
+
+    Ok(())
+}
+
+#[derive(Debug)]
+enum Error {
+    Env(env::VarError),
+    Io(io::Error),
+}
+
+impl From<env::VarError> for Error {
+    fn from(error: env::VarError) -> Self {
+        Self::Env(error)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(error: io::Error) -> Self {
+        Self::Io(error)
+    }
 }
