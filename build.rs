@@ -16,6 +16,7 @@ fn main() -> Result<(), Error> {
     Ok(())
 }
 
+/// Make target-specific configuration available where OpenOCD expects it
 fn copy_openocd_config() -> Result<(), io::Error> {
     let openocd_cfg = match (cfg!(feature = "82x"), cfg!(feature = "845")) {
         (true, false) => &include_bytes!("openocd_82x.cfg")[..],
@@ -45,6 +46,7 @@ fn copy_openocd_config() -> Result<(), io::Error> {
     Ok(())
 }
 
+/// Make `memory.x` available to dependent crates
 fn copy_memory_config() -> Result<(), Error> {
     let out_dir = env::var("OUT_DIR")?;
     let out_dir = PathBuf::from(out_dir);
