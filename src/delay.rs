@@ -96,7 +96,10 @@ impl DelayUs<u32> for Delay {
 
             // Use the wrapping substraction and the modulo to deal with the systick wrapping around
             // from 0 to 0xFFFF
-            while (start_count.wrapping_sub(SYST::get_current()) % SYSTICK_RANGE) < current_ticks {}
+            while (start_count.wrapping_sub(SYST::get_current())
+                % SYSTICK_RANGE)
+                < current_ticks
+            {}
         }
     }
 }

@@ -128,7 +128,8 @@ pub mod wkt;
 /// imports.
 pub mod prelude {
     pub use crate::clock::{
-        Enabled as _lpc82x_hal_clock_Enabled, Frequency as _lpc82x_hal_clock_Frequency,
+        Enabled as _lpc82x_hal_clock_Enabled,
+        Frequency as _lpc82x_hal_clock_Frequency,
     };
     pub use crate::hal::{digital::v2::*, prelude::*};
     pub use crate::sleep::Sleep as _;

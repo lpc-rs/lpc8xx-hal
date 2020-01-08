@@ -75,7 +75,10 @@ impl WKT<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(self, syscon: &mut syscon::Handle) -> WKT<init_state::Enabled> {
+    pub fn enable(
+        self,
+        syscon: &mut syscon::Handle,
+    ) -> WKT<init_state::Enabled> {
         syscon.enable_clock(&self.wkt);
 
         WKT {
@@ -97,7 +100,10 @@ impl WKT<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(self, syscon: &mut syscon::Handle) -> WKT<init_state::Disabled> {
+    pub fn disable(
+        self,
+        syscon: &mut syscon::Handle,
+    ) -> WKT<init_state::Disabled> {
         syscon.disable_clock(&self.wkt);
 
         WKT {

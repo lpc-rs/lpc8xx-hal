@@ -21,7 +21,9 @@ impl<USART: crate::usart::Peripheral> PeripheralClockConfig<USART> {
     }
 }
 
-impl<USART: crate::usart::Peripheral> PeripheralClock<USART> for PeripheralClockConfig<USART> {
+impl<USART: crate::usart::Peripheral> PeripheralClock<USART>
+    for PeripheralClockConfig<USART>
+{
     fn select_clock(&self, _: &mut syscon::Handle) {
         // NOOP, selected by default
     }

@@ -241,7 +241,10 @@ impl LowPowerClock<init_state::Disabled> {
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`clock::Enabled`]: ../clock/trait.Enabled.html
-    pub fn enable(self, pmu: &mut Handle) -> LowPowerClock<init_state::Enabled> {
+    pub fn enable(
+        self,
+        pmu: &mut Handle,
+    ) -> LowPowerClock<init_state::Enabled> {
         pmu.pmu.dpdctrl.modify(|_, w| w.lposcen().enabled());
 
         LowPowerClock {
@@ -262,7 +265,10 @@ impl LowPowerClock<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(self, pmu: &mut Handle) -> LowPowerClock<init_state::Disabled> {
+    pub fn disable(
+        self,
+        pmu: &mut Handle,
+    ) -> LowPowerClock<init_state::Disabled> {
         pmu.pmu.dpdctrl.modify(|_, w| w.lposcen().disabled());
 
         LowPowerClock {

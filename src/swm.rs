@@ -126,7 +126,10 @@ impl Handle<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(self, syscon: &mut syscon::Handle) -> Handle<init_state::Enabled> {
+    pub fn enable(
+        self,
+        syscon: &mut syscon::Handle,
+    ) -> Handle<init_state::Enabled> {
         syscon.enable_clock(&self.swm);
 
         Handle {
@@ -148,7 +151,10 @@ impl Handle<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(self, syscon: &mut syscon::Handle) -> Handle<init_state::Disabled> {
+    pub fn disable(
+        self,
+        syscon: &mut syscon::Handle,
+    ) -> Handle<init_state::Disabled> {
         syscon.disable_clock(&self.swm);
 
         Handle {
@@ -557,7 +563,10 @@ where
     /// ```
     ///
     /// [State Management]: #state-management
-    pub fn into_gpio_pin(self, gpio: &GPIO) -> Pin<T, pin_state::Gpio<gpio::direction::Unknown>> {
+    pub fn into_gpio_pin(
+        self,
+        gpio: &GPIO,
+    ) -> Pin<T, pin_state::Gpio<gpio::direction::Unknown>> {
         // Isn't used for lpc845
         #[allow(unused_imports)]
         use core::slice;
@@ -677,7 +686,8 @@ where
     }
 }
 
-impl<T, F, O, Is> UnassignFunction<F, Input> for Pin<T, pin_state::Swm<O, (Is,)>>
+impl<T, F, O, Is> UnassignFunction<F, Input>
+    for Pin<T, pin_state::Swm<O, (Is,)>>
 where
     T: PinTrait,
     F: FunctionTrait<T, Kind = Input>,
@@ -732,7 +742,9 @@ pub mod pin_state {
     #[cfg(feature = "845")]
     use crate::pac::gpio::{CLR, DIRSET, PIN, SET};
     #[cfg(feature = "82x")]
-    use crate::pac::gpio::{CLR0 as CLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET};
+    use crate::pac::gpio::{
+        CLR0 as CLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET,
+    };
 
     /// Implemented by types that indicate pin state
     ///

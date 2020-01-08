@@ -194,7 +194,11 @@ impl i2c::Read for I2C<init_state::Enabled> {
     /// Reading multiple bytes should work, but has not been tested.
     ///
     /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Read.html#tymethod.read
-    fn read(&mut self, address: u8, buffer: &mut [u8]) -> Result<(), Self::Error> {
+    fn read(
+        &mut self,
+        address: u8,
+        buffer: &mut [u8],
+    ) -> Result<(), Self::Error> {
         // Wait until peripheral is idle
         while !self.i2c.stat.read().mststate().is_idle() {}
 
