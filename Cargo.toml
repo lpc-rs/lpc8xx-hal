@@ -86,6 +86,10 @@ name              = "gpio_delay"
 required-features = ["rt-selected"]
 
 [[example]]
+name              = "gpio_input"
+required-features = ["rt-selected", "845"]
+
+[[example]]
 name              = "i2c_vl53l0x"
 required-features = ["rt-selected", "82x"]
 
