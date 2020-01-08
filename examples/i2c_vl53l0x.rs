@@ -8,30 +8,23 @@
 //! - VDD to VDD
 //! - VDD to XSDN_I, via a 10 kOhm pull-up resistor
 
-
 #![no_main]
 #![no_std]
 
-
 extern crate panic_halt;
-
 
 use core::fmt::Write;
 
 use lpc8xx_hal::{
-    prelude::*,
-    Peripherals,
-    cortex_m_rt::entry,
-    syscon::clocksource::PeripheralClockConfig,
+    cortex_m_rt::entry, prelude::*, syscon::clocksource::PeripheralClockConfig, Peripherals,
 };
-
 
 #[entry]
 fn main() -> ! {
     let p = Peripherals::take().unwrap();
 
-    let     i2c    = p.I2C0;
-    let mut swm    = p.SWM.split();
+    let i2c = p.I2C0;
+    let mut swm = p.SWM.split();
     let mut syscon = p.SYSCON.split();
 
     // Set baud rate to 115200 baud
@@ -61,14 +54,14 @@ fn main() -> ! {
     syscon.uartfrg.set_frgmult(22);
     syscon.uartfrg.set_frgdiv(0xff);
 
-    let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(
-        swm.pins.pio0_0.into_swm_pin(),
-        &mut swm.handle,
-    );
-    let (u0_txd, _) = swm.movable_functions.u0_txd.assign(
-        swm.pins.pio0_4.into_swm_pin(),
-        &mut swm.handle,
-    );
+    let (u0_rxd, _) = swm
+        .movable_functions
+        .u0_rxd
+        .assign(swm.pins.pio0_0.into_swm_pin(), &mut swm.handle);
+    let (u0_txd, _) = swm
+        .movable_functions
+        .u0_txd
+        .assign(swm.pins.pio0_4.into_swm_pin(), &mut swm.handle);
 
     let serial = p.USART0.enable(
         &PeripheralClockConfig::new(&syscon.uartfrg, 0),
@@ -77,44 +70,50 @@ fn main() -> ! {
         u0_txd,
     );
 
-    serial.tx().bwrite_all(b"Initializing I2C...\n")
+    serial
+        .tx()
+        .bwrite_all(b"Initializing I2C...\n")
         .expect("Write should never fail");
 
-    let (i2c0_sda, _) = swm.fixed_functions.i2c0_sda.assign(
-        swm.pins.pio0_11.into_swm_pin(),
-        &mut swm.handle,
-    );
-    let (i2c0_scl, _) = swm.fixed_functions.i2c0_scl.assign(
-        swm.pins.pio0_10.into_swm_pin(),
-        &mut swm.handle,
-    );
+    let (i2c0_sda, _) = swm
+        .fixed_functions
+        .i2c0_sda
+        .assign(swm.pins.pio0_11.into_swm_pin(), &mut swm.handle);
+    let (i2c0_scl, _) = swm
+        .fixed_functions
+        .i2c0_scl
+        .assign(swm.pins.pio0_10.into_swm_pin(), &mut swm.handle);
 
     let mut i2c = i2c.enable(&mut syscon.handle, i2c0_sda, i2c0_scl);
 
-    serial.tx().bwrite_all(b"Writing data...\n")
+    serial
+        .tx()
+        .bwrite_all(b"Writing data...\n")
         .expect("Write should never fail");
 
     // Write index of reference register
-    i2c.write(0x52, &[0xC0])
-        .expect("Failed to write data");
+    i2c.write(0x52, &[0xC0]).expect("Failed to write data");
 
-    serial.tx().bwrite_all(b"Receiving data...\n")
+    serial
+        .tx()
+        .bwrite_all(b"Receiving data...\n")
         .expect("Write should never fail");
 
     // Read value from reference register
     let mut buffer = [0u8; 1];
-    i2c.read(0x52, &mut buffer)
-        .expect("Failed to read data");
+    i2c.read(0x52, &mut buffer).expect("Failed to read data");
 
-    write!(serial.tx(), "{:#X}\n", buffer[0])
-        .expect("Write should never fail");
+    write!(serial.tx(), "{:#X}\n", buffer[0]).expect("Write should never fail");
 
     if buffer[0] == 0xEE {
-        serial.tx().bwrite_all(b"SUCCESS!\n")
+        serial
+            .tx()
+            .bwrite_all(b"SUCCESS!\n")
             .expect("Write should never fail");
-    }
-    else {
-        serial.tx().bwrite_all(b"FAILURE!\n")
+    } else {
+        serial
+            .tx()
+            .bwrite_all(b"FAILURE!\n")
             .expect("Write should never fail");
     }
 

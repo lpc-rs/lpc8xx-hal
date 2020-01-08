@@ -9,8 +9,7 @@ use core::marker::PhantomData;
 
 use crate::{
     gpio::{self, GPIO},
-    init_state, syscon,
-    pac,
+    init_state, pac, syscon,
 };
 
 use self::pin_state::PinState;
@@ -109,7 +108,7 @@ pub struct Handle<State = init_state::Enabled> {
 impl Handle<init_state::Enabled> {
     pub(crate) fn new(swm: pac::SWM0) -> Self {
         Handle {
-            swm: swm,
+            swm,
             _state: init_state::Enabled(()),
         }
     }
@@ -127,8 +126,8 @@ impl Handle<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(mut self, syscon: &mut syscon::Handle) -> Handle<init_state::Enabled> {
-        syscon.enable_clock(&mut self.swm);
+    pub fn enable(self, syscon: &mut syscon::Handle) -> Handle<init_state::Enabled> {
+        syscon.enable_clock(&self.swm);
 
         Handle {
             swm: self.swm,
@@ -149,8 +148,8 @@ impl Handle<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(mut self, syscon: &mut syscon::Handle) -> Handle<init_state::Disabled> {
-        syscon.disable_clock(&mut self.swm);
+    pub fn disable(self, syscon: &mut syscon::Handle) -> Handle<init_state::Disabled> {
+        syscon.disable_clock(&self.swm);
 
         Handle {
             swm: self.swm,

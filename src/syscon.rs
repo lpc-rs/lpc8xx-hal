@@ -511,11 +511,13 @@ impl_reset_control!(pac::DMA0, dma_rst_n);
 #[cfg(feature = "845")]
 impl<'a> ResetControl for pac::GPIO {
     fn assert_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
-        w.gpio0_rst_n().clear_bit().gpio1_rst_n().clear_bit()
+        w.gpio0_rst_n().clear_bit();
+        w.gpio1_rst_n().clear_bit()
     }
 
     fn clear_reset<'w>(&self, w: &'w mut presetctrl0::W) -> &'w mut presetctrl0::W {
-        w.gpio0_rst_n().set_bit().gpio1_rst_n().set_bit()
+        w.gpio0_rst_n().set_bit();
+        w.gpio1_rst_n().set_bit()
     }
 }
 
@@ -605,11 +607,11 @@ impl IoscDerivedClock<init_state::Disabled> {
     pub fn enable(
         self,
         syscon: &mut Handle,
-        mut iosc: IOSC,
-        mut ioscout: IOSCOUT,
+        iosc: IOSC,
+        ioscout: IOSCOUT,
     ) -> IoscDerivedClock<init_state::Enabled> {
-        syscon.power_up(&mut iosc);
-        syscon.power_up(&mut ioscout);
+        syscon.power_up(&iosc);
+        syscon.power_up(&ioscout);
 
         IoscDerivedClock {
             _state: init_state::Enabled(()),

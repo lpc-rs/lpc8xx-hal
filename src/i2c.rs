@@ -44,23 +44,14 @@
 //!
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/lpc82x-hal/examples
 
-
 use embedded_hal::blocking::i2c;
 use void::Void;
 
 use crate::{
-    init_state,
-    pac,
-    swm::{
-        self,
-        I2C0_SCL,
-        I2C0_SDA,
-        PIO0_10,
-        PIO0_11,
-    },
+    init_state, pac,
+    swm::{self, I2C0_SCL, I2C0_SDA, PIO0_10, PIO0_11},
     syscon,
 };
-
 
 /// Interface to an I2C peripheral
 ///
@@ -78,14 +69,14 @@ use crate::{
 ///
 /// [module documentation]: index.html
 pub struct I2C<State = init_state::Enabled> {
-    i2c   : pac::I2C0,
+    i2c: pac::I2C0,
     _state: State,
 }
 
 impl I2C<init_state::Disabled> {
     pub(crate) fn new(i2c: pac::I2C0) -> Self {
         I2C {
-            i2c   : i2c,
+            i2c: i2c,
             _state: init_state::Disabled,
         }
     }
@@ -109,13 +100,12 @@ impl I2C<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(mut self,
+    pub fn enable(
+        mut self,
         syscon: &mut syscon::Handle,
-        _     : swm::Function<I2C0_SDA, swm::state::Assigned<PIO0_11>>,
-        _     : swm::Function<I2C0_SCL, swm::state::Assigned<PIO0_10>>,
-    )
-        -> I2C<init_state::Enabled>
-    {
+        _: swm::Function<I2C0_SDA, swm::state::Assigned<PIO0_11>>,
+        _: swm::Function<I2C0_SCL, swm::state::Assigned<PIO0_10>>,
+    ) -> I2C<init_state::Enabled> {
         syscon.enable_clock(&mut self.i2c);
 
         // We need the I2C mode for the pins set to standard/fast mode,
@@ -141,7 +131,7 @@ impl I2C<init_state::Disabled> {
         self.i2c.cfg.write(|w| w.msten().enabled());
 
         I2C {
-            i2c   : self.i2c,
+            i2c: self.i2c,
             _state: init_state::Enabled(()),
         }
     }
@@ -164,7 +154,9 @@ impl i2c::Write for I2C<init_state::Enabled> {
         while !self.i2c.stat.read().mststate().is_idle() {}
 
         // Write slave address with rw bit set to 0
-        self.i2c.mstdat.write(|w| unsafe { w.data().bits(address & 0xfe) });
+        self.i2c
+            .mstdat
+            .write(|w| unsafe { w.data().bits(address & 0xfe) });
 
         // Start transmission
         self.i2c.mstctl.write(|w| w.mststart().start());
@@ -202,14 +194,14 @@ impl i2c::Read for I2C<init_state::Enabled> {
     /// Reading multiple bytes should work, but has not been tested.
     ///
     /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Read.html#tymethod.read
-    fn read(&mut self, address: u8, buffer: &mut [u8])
-        -> Result<(), Self::Error>
-    {
+    fn read(&mut self, address: u8, buffer: &mut [u8]) -> Result<(), Self::Error> {
         // Wait until peripheral is idle
         while !self.i2c.stat.read().mststate().is_idle() {}
 
         // Write slave address with rw bit set to 1
-        self.i2c.mstdat.write(|w| unsafe { w.data().bits(address | 0x01) });
+        self.i2c
+            .mstdat
+            .write(|w| unsafe { w.data().bits(address | 0x01) });
 
         // Start transmission
         self.i2c.mstctl.write(|w| w.mststart().start());

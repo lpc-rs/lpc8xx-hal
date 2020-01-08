@@ -1,32 +1,26 @@
 #![no_main]
 #![no_std]
 
-
 extern crate panic_halt;
 
-
 use lpc8xx_hal::{
-    prelude::*,
-    Peripherals,
     cortex_m::interrupt,
     cortex_m_rt::entry,
     nb::block,
-    pac::{
-        Interrupt,
-        NVIC,
-    },
+    pac::{Interrupt, NVIC},
     pmu::LowPowerClock,
-    syscon::WktWakeup,
+    prelude::*,
     syscon::clocksource::PeripheralClockConfig,
+    syscon::WktWakeup,
+    Peripherals,
 };
-
 
 #[entry]
 fn main() -> ! {
     let p = Peripherals::take().unwrap();
 
-    let mut pmu    = p.PMU.split();
-    let mut swm    = p.SWM.split();
+    let mut pmu = p.PMU.split();
+    let mut swm = p.SWM.split();
     let mut syscon = p.SYSCON.split();
 
     // 115200 baud
@@ -35,22 +29,18 @@ fn main() -> ! {
     syscon.uartfrg.set_frgdiv(0xff);
     let clock_config = PeripheralClockConfig::new(&syscon.uartfrg, 0);
 
+    let (u0_rxd, _) = swm
+        .movable_functions
+        .u0_rxd
+        .assign(swm.pins.pio0_0.into_swm_pin(), &mut swm.handle);
+    let (u0_txd, _) = swm
+        .movable_functions
+        .u0_txd
+        .assign(swm.pins.pio0_4.into_swm_pin(), &mut swm.handle);
 
-    let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(
-        swm.pins.pio0_0.into_swm_pin(),
-        &mut swm.handle,
-    );
-    let (u0_txd, _) = swm.movable_functions.u0_txd.assign(
-        swm.pins.pio0_4.into_swm_pin(),
-        &mut swm.handle,
-    );
-
-    let serial = p.USART0.enable(
-        &clock_config,
-        &mut syscon.handle,
-        u0_rxd,
-        u0_txd,
-    );
+    let serial = p
+        .USART0
+        .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
     let _ = pmu.low_power_clock.enable(&mut pmu.handle);
 
@@ -61,8 +51,8 @@ fn main() -> ! {
 
     // Need to re-assign some stuff that's needed inside the closure. Otherwise
     // it will try to move stuff that's still borrowed outside of it.
-    let mut pmu    = pmu.handle;
-    let mut scb    = p.SCB;
+    let mut pmu = pmu.handle;
+    let mut scb = p.SCB;
     let mut syscon = syscon.handle;
 
     interrupt::free(|_| {
@@ -75,7 +65,9 @@ fn main() -> ! {
         unsafe { NVIC::unmask(Interrupt::WKT) }
 
         // Busy Waiting
-        serial.tx().bwrite_all(b"5 seconds of busy waiting...\n")
+        serial
+            .tx()
+            .bwrite_all(b"5 seconds of busy waiting...\n")
             .expect("UART write shouldn't fail");
         wkt.start(five_seconds);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {}
@@ -89,7 +81,9 @@ fn main() -> ! {
         // the timer from here on out.
 
         // Sleep mode
-        serial.tx().bwrite_all(b"5 seconds of sleep mode...\n")
+        serial
+            .tx()
+            .bwrite_all(b"5 seconds of sleep mode...\n")
             .expect("UART write shouldn't fail");
         wkt.start(five_seconds);
         NVIC::unpend(Interrupt::WKT);
@@ -102,10 +96,11 @@ fn main() -> ! {
         syscon.enable_interrupt_wakeup::<WktWakeup>();
 
         // Deep-sleep mode
-        serial.tx().bwrite_all(b"5 seconds of deep-sleep mode...\n")
+        serial
+            .tx()
+            .bwrite_all(b"5 seconds of deep-sleep mode...\n")
             .expect("UART write shouldn't fail");
-        block!(serial.tx().flush())
-            .expect("Flush shouldn't fail");
+        block!(serial.tx().flush()).expect("Flush shouldn't fail");
         wkt.start(five_seconds);
         NVIC::unpend(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
@@ -113,10 +108,11 @@ fn main() -> ! {
         }
 
         // Power-down mode
-        serial.tx().bwrite_all(b"5 seconds of power-down mode...\n")
+        serial
+            .tx()
+            .bwrite_all(b"5 seconds of power-down mode...\n")
             .expect("UART write shouldn't fail");
-        block!(serial.tx().flush())
-            .expect("Flush shouldn't fail");
+        block!(serial.tx().flush()).expect("Flush shouldn't fail");
         wkt.start(five_seconds);
         NVIC::unpend(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
@@ -127,7 +123,9 @@ fn main() -> ! {
         // this example, due to some problems with my setup that prevent me from
         // testing it for the time being.
 
-        serial.tx().bwrite_all(b"Done\n")
+        serial
+            .tx()
+            .bwrite_all(b"Done\n")
             .expect("UART write shouldn't fail");
 
         loop {}

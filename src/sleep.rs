@@ -82,7 +82,7 @@ impl<'wkt> Busy<'wkt> {
     /// for as long as the `sleep::Busy` instance exists, as it will be needed
     /// to count down the time in every call to [`Sleep::sleep`].
     pub fn prepare(wkt: &'wkt mut WKT) -> Self {
-        Busy { wkt: wkt }
+        Busy { wkt }
     }
 }
 
@@ -162,11 +162,7 @@ impl<'r> Regular<'r> {
     /// as long as the `sleep::Regular` instance exists, as they will be needed
     /// for every call to [`Sleep::sleep`].
     pub fn prepare(pmu: &'r mut pmu::Handle, scb: &'r mut pac::SCB, wkt: &'r mut WKT) -> Self {
-        Regular {
-            pmu: pmu,
-            scb: scb,
-            wkt: wkt,
-        }
+        Regular { pmu, scb, wkt }
     }
 }
 
