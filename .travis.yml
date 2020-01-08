@@ -15,6 +15,4 @@ install:
   - rustup component add rustfmt
 
 script:
-  - |
-    cargo fmt -- --check &&
-    ./scripts/build.sh
+  - ./scripts/build.sh
