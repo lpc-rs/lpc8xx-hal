@@ -25,9 +25,7 @@ fn main() -> io::Result<()> {
     // purpose. `OUT_DIR` points to a directory within target, whose path even
     // contains a hash. This configuration file needs to be referenced from the
     // GDB configuration, which can't just ask Cargo where to look for it.
-
     fs::create_dir_all("target")?;
-
     File::create("target/openocd.cfg")?.write_all(openocd_cfg)?;
 
     Ok(())
