@@ -10,6 +10,9 @@ use termion::{color, style};
 fn main() -> Result<(), Error> {
     copy_openocd_config()?;
     copy_memory_config()?;
+
+    println!("cargo:rerun-if-changed=build.rs");
+
     Ok(())
 }
 
@@ -36,6 +39,9 @@ fn copy_openocd_config() -> Result<(), io::Error> {
     fs::create_dir_all("target")?;
     File::create("target/openocd.cfg")?.write_all(openocd_cfg)?;
 
+    println!("cargo:rerun-if-changed=openocd_82x.cfg");
+    println!("cargo:rerun-if-changed=openocd_84x.cfg");
+
     Ok(())
 }
 
@@ -48,6 +54,8 @@ fn copy_memory_config() -> Result<(), Error> {
 
     // Tell Cargo where to find the file.
     println!("cargo:rustc-link-search={}", out_dir.display());
+
+    println!("cargo:rerun-if-changed=memory.x");
 
     Ok(())
 }
