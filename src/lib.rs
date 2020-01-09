@@ -1,64 +1,66 @@
-//! # LPC82x Hardware Abstraction Layer
+//! # LPC8xx HAL
 //!
-//! Hardware Abstraction Layer (HAL) for the NXP LPC82x series of ARM Cortex-M0+
+//! Hardware Abstraction Layer (HAL) for the NXP LPC800 series of ARM Cortex-M0+
 //! microcontrollers.
 //!
-//! ## Using LPC82x HAL in a Library
 //!
-//! Writing a library on top of LPC82x HAL is pretty simple. All you need to do
-//! is include it via Cargo, by adding the following to your `Cargo.toml`:
+//! ## Adding LPC8xx HAL as a dependency
+//!
+//! To use LPC8xx HAL in your project, you need to include it via Cargo, by
+//! adding a dependency to you `Cargo.toml`:
 //!
 //! ``` toml
-//! [dependencies]
-//! lpc82x-hal = "0.6"
+//! [dependencies.lpc8xx-hal]
+//! version  = "0.6"
+//! features = ["824m201jhi33"]
 //! ```
 //!
-//! With that in place, you can just reference the crate in your Rust code, like
-//! this:
+//! The above adds a dependency on the `lpc8xx-hal` crate and selects your
+//! target hardware. To find out which targets are supported, please check out
+//! the list of targets in our [`Cargo.toml`].
 //!
-//! ```rust
-//! // lib.rs
+//! In principle, there are two things you might want to do differently in your
+//! project (besides selecting another target):
 //!
-//! extern crate lpc82x_hal;
+//! 1. Select a less specific target.
+//! 2. Enable runtime support.
+//!
+//! If you're writing an application or library that can work with (part of) a
+//! family you can select that instead:
+//!
+//! ``` toml
+//! [dependencies.lpc8xx-hal]
+//! version  = "0.6"
+//! features = ["82x"]
 //! ```
 //!
-//! That's it! Now you can start using the LPC82x HAL APIs. Take a look at
+//! This selects the LPC82x family. Only the hardware resources available on all
+//! targets within that family will be provided, while the actual target
+//! hardware you're running on might have more peripherals or more memory.
+//!
+//! Again, check out [`Cargo.toml`] for a list of options.
+//!
+//! If you want to use LPC8xx HAL in an application (as opposed to a library),
+//! you probably need to enable runtime support. You can do this by passing
+//! the runtime feature for your selected family:
+//!
+//! ``` toml
+//! [dependencies.lpc8xx-hal]
+//! version  = "0.6"
+//! features = ["824m201jhi33", "82x-rt"]
+//! ```
+//!
+//! Again, the available options are listed in [`Cargo.toml`].
+//!
+//! Please note that LPC82x HAL is an implementation of [embedded-hal]. If you
+//! are writing code that is not specific to LPC800, please consider depending
+//! on embedded-hal instead.
+//!
+//! That's it! Now you can start using the LPC8xx HAL APIs. Take a look at
 //! [`Peripherals`], which is the entry point to the whole API.
 //!
-//! Please note that LPC82x HAL is an implementation of [embedded-hal]. If your
-//! library is not specific to LPC82x, please consider depending on embedded-hal
-//! instead. Doing so means that your library should work on top of all
-//! embedded-hal implementations.
+//! [`Cargo.toml`]: https://github.com/lpc-rs/lpc8xx-hal/blob/master/Cargo.toml
 //!
-//! ## Using LPC82x HAL in an Application
-//!
-//! To use LPC82x HAL in an application, you need to enable its `rt` feature.
-//! Add the following to your `Cargo.toml`:
-//!
-//! ``` toml
-//! [dependencies.lpc82x-hal]
-//! version  = "0.6"
-//! features = ["rt"]
-//! ```
-//!
-//! How to upload your application to the microcontroller depends on the details
-//! of your specific case. If you happen to be using the LPCXpresso824-MAX
-//! development board, you can use the configuration in this repository to set
-//! up the uploading process. The following configuration files are relevant:
-//!
-//! - `memory.x`
-//! - `.cargo/config`
-//! - `openocd.cfg`
-//! - `.gdbinit`
-//!
-//! If everything is set up correctly, you should be able to upload your
-//! application to the board using `cargo run`. You can test this out using one
-//! of the example in this repository, by running the following from the
-//! repository root:
-//!
-//! ``` ignore
-//! cargo run --release --features=rt --example gpio
-//! ```
 //!
 //! ## Examples
 //!
@@ -69,8 +71,18 @@
 //! should be able to run any example like this:
 //!
 //! ``` ignore
-//! cargo run --release --features=rt --example gpio
+//! cargo run --release --features=82x-rt --example gpio_simple
 //! ```
+//!
+//!
+//! ## Other documentation
+//!
+//! Please refer to the [Embedded Rust Book] for further documentation on how to
+//! use embedded Rust. The book does not use LPC8xx HAL as an example, but most
+//! of what you learn their will transfer over to this crate.
+//!
+//! [Embedded Rust Book]: https://rust-embedded.github.io/book/
+//!
 //!
 //! # References
 //!
