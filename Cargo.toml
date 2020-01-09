@@ -51,8 +51,6 @@ termion = "1.5.3"
 
 [features]
 
-default = ["845-rt"]
-
 # Target hardware selection
 822m101jdh20 = ["822", "20"]
 822m101jhi33 = ["822", "33"]
