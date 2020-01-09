@@ -275,20 +275,15 @@ where
         if stat.rxbrk().bit_is_set() {
             return Err(nb::Error::WouldBlock);
         }
-        // TODO Due to SVD bug not available
-        #[cfg(feature = "82x")]
-        {
-            if stat.overrunint().bit_is_set() {
-                return Err(nb::Error::Other(Error::Overrun));
-            }
-        }
 
         if stat.rxrdy().bit_is_set() {
             // It's important to read this register all at once, as reading
             // it changes the status flags.
             let rx_dat_stat = self.0.usart.rxdatstat.read();
 
-            if rx_dat_stat.framerr().bit_is_set() {
+            if stat.overrunint().bit_is_set() {
+                Err(nb::Error::Other(Error::Overrun))
+            } else if rx_dat_stat.framerr().bit_is_set() {
                 Err(nb::Error::Other(Error::Framing))
             } else if rx_dat_stat.parityerr().bit_is_set() {
                 Err(nb::Error::Other(Error::Parity))
