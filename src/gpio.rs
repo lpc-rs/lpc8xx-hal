@@ -304,7 +304,6 @@ where
     ///
     /// # Example
     ///
-    /// # TODO
     /// ``` no_run
     /// use lpc82x_hal::prelude::*;
     /// use lpc82x_hal::Peripherals;
@@ -316,16 +315,18 @@ where
     /// // Transition pin into GPIO state, then set it to output
     /// let mut pin = swm.pins.pio0_12
     ///     .into_gpio_pin(&p.GPIO)
-    ///     .into_output();
+    ///     .into_input();
     ///
-    /// // Output level can now be controlled
-    /// pin.set_high();
-    /// pin.set_low();
+    /// // Input level can now be read
+    /// if pin.is_high() {
+    ///     // The pin is high
+    /// } else {
+    ///     // The pin is low
+    /// }
     /// ```
     pub fn into_input(
         self,
     ) -> Pin<T, pin_state::Gpio<'gpio, direction::Input>> {
-        // TODO
         self.state.registers.dirclr[T::PORT]
             .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
 
