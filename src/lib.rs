@@ -206,7 +206,24 @@ pub struct Peripherals {
     pub PMU: PMU,
 
     /// Switch matrix
-    pub SWM: SWM,
+    ///
+    /// By default, the switch matrix is enabled on the LPC82x and disabled on
+    /// the LPC845.
+    ///
+    /// The reference manual for the LPC845 suggests otherwise, but it seems to
+    /// be wrong.
+    #[cfg(feature = "82x")]
+    pub SWM: SWM<init_state::Enabled>,
+
+    /// Switch matrix
+    ///
+    /// By default, the switch matrix is enabled on the LPC82x and disabled on
+    /// the LPC845.
+    ///
+    /// The reference manual for the LPC845 suggests otherwise, but it seems to
+    /// be wrong.
+    #[cfg(feature = "845")]
+    pub SWM: SWM<init_state::Disabled>,
 
     /// System configuration
     pub SYSCON: SYSCON,
@@ -512,7 +529,10 @@ impl Peripherals {
             #[cfg(feature = "82x")]
             I2C0: I2C::new(p.I2C0),
             PMU: PMU::new(p.PMU),
-            SWM: SWM::new(p.SWM0),
+            #[cfg(feature = "82x")]
+            SWM: unsafe { SWM::new_enabled(p.SWM0) },
+            #[cfg(feature = "845")]
+            SWM: unsafe { SWM::new(p.SWM0) },
             SYSCON: SYSCON::new(p.SYSCON),
             USART0: USART::new(p.USART0),
             USART1: USART::new(p.USART1),

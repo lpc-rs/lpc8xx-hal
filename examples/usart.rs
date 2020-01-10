@@ -15,17 +15,13 @@ use lpc8xx_hal::pac::syscon::frg::frgclksel::SEL_A;
 fn main() -> ! {
     let p = Peripherals::take().unwrap();
 
-    let mut swm = p.SWM.split();
+    let swm = p.SWM.split();
     let mut syscon = p.SYSCON.split();
 
-    // TODO
-    //
-    // For some reason, the clock for swm need to be enabled, even though
-    // it should be enabled from the start
-    swm.handle = swm
-        .handle
-        .disable(&mut syscon.handle)
-        .enable(&mut syscon.handle);
+    #[cfg(feature = "82x")]
+    let mut handle = swm.handle;
+    #[cfg(feature = "845")]
+    let mut handle = swm.handle.enable(&mut syscon.handle); // SWM isn't enabled by default on LPC845.
 
     #[cfg(feature = "82x")]
     // Set baud rate to 115200 baud
@@ -99,10 +95,8 @@ fn main() -> ! {
     // LPC845-BRK development boards, they're connected to the integrated USB to
     // Serial converter. So by using the pins, we can use them to communicate
     // with a host PC, without additional hardware.
-    let (u0_rxd, _) =
-        swm.movable_functions.u0_rxd.assign(rx_pin, &mut swm.handle);
-    let (u0_txd, _) =
-        swm.movable_functions.u0_txd.assign(tx_pin, &mut swm.handle);
+    let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(rx_pin, &mut handle);
+    let (u0_txd, _) = swm.movable_functions.u0_txd.assign(tx_pin, &mut handle);
 
     // Enable USART0
     let serial =
