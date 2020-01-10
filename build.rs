@@ -103,8 +103,14 @@ impl Family {
             }
 
             (false, false, false, false) => {
-                error(
-                    "You must select a target. Choose a family by passing `--features=82x` or `--features=845`, or a more specific target by passing something like `--features=824m201jhi33`."
+                error("You must select a target.
+
+If you added LPC8xx HAL as a dependency to your crate, you can select a target by enabling the respective feature in `Cargo.toml`.
+
+If you're running an example from the repository, select a target by passing the desired target as a command-line argument, for example `--features=824m201jhi33`.
+
+
+Please refer to the documentation for more details."
                 )
             }
             _ => {
