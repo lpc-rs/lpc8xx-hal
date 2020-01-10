@@ -51,10 +51,24 @@ termion = "1.5.3"
 
 [features]
 
-default = ["845-rt"]
+# Target hardware selection
+822m101jdh20 = ["822", "20"]
+822m101jhi33 = ["822", "33"]
+824m201jdh20 = ["824", "20"]
+824m201jhi33 = ["824", "33"]
+#844m201jhi33 = ["844", "33"]
+#844m201jdb48 = ["844", "48"]
+#844m201jhi48 = ["844", "48"]
+#844m201jdb64 = ["844", "64"]
+845m301jhi33 = ["845", "33"]
+845m301jdb48 = ["845", "48"]
+845m301jhi48 = ["845", "48"]
+845m301jdb64 = ["845", "64"]
 
-# Target platforms. One of these must be selected for the crate to work.
+# Selection of whole families or parts thereof as your target hardware.
 82x = ["lpc82x-pac"]
+822 = ["82x"]
+824 = ["82x"]
 845 = ["lpc845-pac"]
 
 # Runtime support. Required when building an application, not a library.
@@ -63,6 +77,17 @@ default = ["845-rt"]
 # actually required by the build script to check the target selection.
 82x-rt = ["82x", "cortex-m-rt", "lpc82x-pac/rt", "rt-selected"]
 845-rt = ["845", "cortex-m-rt", "lpc845-pac/rt", "rt-selected"]
+
+# Indicates that the feature selection is deliberate and should not cause any
+# warnings.
+no-target-warning = []
+
+# Internal implementation detail. Used by HAL code to determine the exact
+# hardware capabilites.
+20 = []
+33 = []
+48 = []
+64 = []
 
 # Internal implementation detail. Used by other code to determine whether a
 # runtime feature was selected.
