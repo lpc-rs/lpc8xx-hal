@@ -114,6 +114,8 @@ pub extern crate nb;
 pub(crate) mod reg_proxy;
 
 pub mod clock;
+#[cfg(feature = "845")]
+pub mod ctimer;
 pub mod delay;
 pub mod dma;
 pub mod gpio;
@@ -151,6 +153,8 @@ pub use lpc82x_pac as pac;
 #[cfg(feature = "845")]
 pub use lpc845_pac as pac;
 
+#[cfg(feature = "845")]
+pub use self::ctimer::CTimer;
 pub use self::dma::DMA;
 pub use self::gpio::GPIO;
 #[cfg(feature = "82x")]
@@ -195,6 +199,10 @@ use embedded_hal as hal;
 /// use of the hardware.
 #[allow(non_snake_case)]
 pub struct Peripherals {
+    /// Standard counter/timer (CTIMER)
+    #[cfg(feature = "845")]
+    pub CTIMER0: CTimer,
+
     /// DMA controller
     pub DMA: DMA,
 
@@ -293,14 +301,6 @@ pub struct Peripherals {
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
     pub CRC: pac::CRC,
-
-    /// Standard counter/timer (CTIMER)
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    #[cfg(feature = "845")]
-    pub CTIMER0: pac::CTIMER0,
 
     /// Digital-to-Analog Converter 0 (DAC0)
     ///
@@ -530,6 +530,8 @@ impl Peripherals {
     fn new(p: pac::Peripherals, cp: pac::CorePeripherals) -> Self {
         Peripherals {
             // HAL peripherals
+            #[cfg(feature = "845")]
+            CTIMER0: CTimer::new(p.CTIMER0),
             DMA: DMA::new(p.DMA0),
             // NOTE(unsafe) The init state of the gpio peripheral is enabled,
             // thus it's safe to create an already initialized gpio port
@@ -560,8 +562,6 @@ impl Peripherals {
             #[cfg(feature = "845")]
             CAPT: p.CAPT,
             CRC: p.CRC,
-            #[cfg(feature = "845")]
-            CTIMER0: p.CTIMER0,
             #[cfg(feature = "845")]
             DAC0: p.DAC0,
             #[cfg(feature = "845")]

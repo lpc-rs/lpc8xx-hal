@@ -126,6 +126,10 @@ required-features = ["rt-selected", "82x"]
 name              = "usart"
 required-features = ["rt-selected"]
 
+[[example]]
+name              = "ctimer_fade"
+required-features = ["rt-selected", "845"]
+
 [profile.dev]
 debug = true
 

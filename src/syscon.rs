@@ -433,6 +433,8 @@ impl_clock_control!(pac::SWM0, swm);
 impl_clock_control!(pac::SCT0, sct);
 impl_clock_control!(pac::WKT, wkt);
 impl_clock_control!(pac::MRT0, mrt);
+#[cfg(feature = "845")]
+impl_clock_control!(pac::CTIMER0, ctimer);
 impl_clock_control!(pac::SPI0, spi0);
 impl_clock_control!(pac::SPI1, spi1);
 impl_clock_control!(pac::CRC, crc);
@@ -529,6 +531,8 @@ impl_reset_control!(pac::I2C0, i2c0_rst_n);
 impl_reset_control!(pac::MRT0, mrt_rst_n);
 impl_reset_control!(pac::SCT0, sct_rst_n);
 impl_reset_control!(pac::WKT, wkt_rst_n);
+#[cfg(feature = "845")]
+impl_reset_control!(pac::CTIMER0, ctimer_rst_n);
 #[cfg(feature = "82x")]
 impl_reset_control!(pac::GPIO, gpio_rst_n);
 impl_reset_control!(pac::FLASH_CTRL, flash_rst_n);
