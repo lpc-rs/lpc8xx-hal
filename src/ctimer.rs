@@ -5,9 +5,11 @@
 // Use the timer as one 32 bit timer
 // Don't implement prescaling, since it isn't needed
 // Currently only implemented for lpc845
+use crate::pac::ctimer0::{MR, MSR};
 use crate::pac::CTIMER0;
+use crate::reg_proxy::RegProxy;
 use crate::swm::{self, PinTrait, T0_MAT0, T0_MAT1, T0_MAT2};
-use crate::syscon::{self};
+use crate::syscon;
 use core::marker::PhantomData;
 use embedded_hal::PwmPin;
 
@@ -27,12 +29,15 @@ pub struct CTimer {
 /// An unconfigured PwmPin
 pub struct UnconfiguredPwmPin<CTOutput> {
     number: u8,
-    // TODO Do the specific registers properly
+    mr: RegProxy<MR>,
+    msr: RegProxy<MSR>,
     output: PhantomData<CTOutput>,
 }
 
 /// TODO
 pub struct CTimerPwmPin {
+    mr: RegProxy<MR>,
+    msr: RegProxy<MSR>,
     number: u8,
 }
 
@@ -75,14 +80,20 @@ impl CTimer {
         (
             UnconfiguredPwmPin {
                 number: 0,
+                mr: RegProxy::new(),
+                msr: RegProxy::new(),
                 output: PhantomData {},
             },
             UnconfiguredPwmPin {
                 number: 1,
+                mr: RegProxy::new(),
+                msr: RegProxy::new(),
                 output: PhantomData {},
             },
             UnconfiguredPwmPin {
                 number: 2,
+                mr: RegProxy::new(),
+                msr: RegProxy::new(),
                 output: PhantomData {},
             },
         )
@@ -116,6 +127,8 @@ impl<CTOutput> UnconfiguredPwmPin<CTOutput> {
         PWM: PinTrait,
     {
         CTimerPwmPin {
+            mr: self.mr,
+            msr: self.msr,
             number: self.number,
         }
     }
@@ -132,18 +145,20 @@ impl PwmPin for CTimerPwmPin {
     }
 
     fn get_duty(&self) -> Self::Duty {
-        unsafe { &(*CTIMER0::ptr()).msr[self.number as usize] }
-            .read()
-            .match_shadow()
-            .bits()
+        self.msr[self.number as usize].read().match_shadow().bits()
     }
 
     fn get_max_duty(&self) -> Self::Duty {
-        unsafe { &(*CTIMER0::ptr()).mr[3] }.read().match_().bits()
+        self.mr[3].read().match_().bits()
     }
 
     fn set_duty(&mut self, duty: Self::Duty) {
-        let reg = unsafe { &(*CTIMER0::ptr()).msr[self.number as usize] };
-        unsafe { reg.write(|w| w.match_shadow().bits(duty)) };
+        unsafe {
+            self.msr[self.number as usize]
+                .write(|w| w.match_shadow().bits(duty))
+        };
     }
 }
+
+reg!(MR, [MR; 4], CTIMER0, mr);
+reg!(MSR, [MSR; 4], CTIMER0, msr);
