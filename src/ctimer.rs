@@ -1,15 +1,46 @@
-//! PwmPin implementation based on CTimer
+//! API for the CTimer peripheral
+//!
+//! Currently, only PWM output functionality is implemented.
+//!
+//! # Example
+//!
+//! ```no_run
+//! use lpc8xx_hal::{delay::Delay, prelude::*, Peripherals};
+//!
+//! let p = Peripherals::take().unwrap();
+//!
+//! let swm = p.SWM.split();
+//! let mut delay = Delay::new(p.SYST);
+//! let mut syscon = p.SYSCON.split();
 //!
 //!
+//! // Use 8 bit pwm
+//! let (pwm_channel,_, _ ) =
+//!     p.CTIMER0.start_pwm(256, 0, &mut syscon.handle);
+//!
+//! let pwm_output = swm.pins.pio1_2.into_swm_pin();
+//!
+//! let (pwm_output, _) = swm.movable_functions.t0_mat0.assign(pwm_output, &mut handle);
+//!
+//! let mut pwm_pin = pwm_channel.configure(pwm_output);
+//! loop {
+//!     for i in 0..red.get_max_duty() {
+//!         delay.delay_ms(4_u8);
+//!         red.set_duty(i);
+//!     }
+//! }
+//! ```
 
-// Use the timer as one 32 bit timer
-// Don't implement prescaling, since it isn't needed
-// Currently only implemented for lpc845
-use crate::pac::ctimer0::{MR, MSR};
-use crate::pac::CTIMER0;
-use crate::reg_proxy::RegProxy;
-use crate::swm::{self, PinTrait, T0_MAT0, T0_MAT1, T0_MAT2};
-use crate::syscon;
+use crate::{
+    pac::{
+        ctimer0::{MR, MSR},
+        CTIMER0,
+    },
+    reg_proxy::RegProxy,
+    swm::{self, PinTrait, T0_MAT0, T0_MAT1, T0_MAT2},
+    syscon,
+};
+
 use core::marker::PhantomData;
 use embedded_hal::PwmPin;
 
@@ -26,7 +57,11 @@ pub struct CTimer {
     ct: CTIMER0,
 }
 
-/// An unconfigured PwmPin
+/// An unconfigured [`CTimerPwmPin`]
+///
+/// Use `configure` to assing an output to it
+///
+/// [`CTimerPwmPin`]: struct.CTimerPwmPin.html
 pub struct UnconfiguredPwmPin<CTOutput> {
     number: u8,
     mr: RegProxy<MR>,
@@ -34,7 +69,7 @@ pub struct UnconfiguredPwmPin<CTOutput> {
     output: PhantomData<CTOutput>,
 }
 
-/// TODO
+/// Represents a pwm channel assigned to an output pin
 pub struct CTimerPwmPin {
     mr: RegProxy<MR>,
     msr: RegProxy<MSR>,
@@ -46,7 +81,10 @@ impl CTimer {
         Self { ct }
     }
 
-    /// TODO
+    /// Start the PWM timer, with a predefined period and prescaler
+    ///
+    /// The `period` sets resolution of the pwm and is returned with
+    /// `get_max_duty`
     pub fn start_pwm(
         self,
         period: u32,
@@ -59,7 +97,7 @@ impl CTimer {
     ) {
         syscon.enable_clock(&self.ct);
         unsafe { self.ct.pr.write(|w| w.prval().bits(prescaler)) };
-        // Use MAT3  to reset the counter
+        // Use MAT3 to reset the counter
         unsafe { self.ct.mr[3].write(|w| w.match_().bits(period)) };
         self.ct.mcr.write(|w| {
             w.mr3r().set_bit();
