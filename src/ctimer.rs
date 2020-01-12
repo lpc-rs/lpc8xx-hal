@@ -136,13 +136,15 @@ impl<CTOutput> UnconfiguredPwmPin<CTOutput> {
 
 impl PwmPin for CTimerPwmPin {
     type Duty = u32;
-    fn enable(&mut self) {
-        // TODO
-    }
+    /// The behaviour of `enable` is implementation defined and does nothing in
+    /// this implementation
+    fn enable(&mut self) {}
 
-    fn disable(&mut self) {
-        // TODO
-    }
+    /// The behaviour of `disable` is implementation defined and does nothing in
+    /// this implementation
+    // Accessing pwmc would require some kind of lock, which is inconvenient
+    // and would involve a hidden `CriticalSection`
+    fn disable(&mut self) {}
 
     fn get_duty(&self) -> Self::Duty {
         self.msr[self.number as usize].read().match_shadow().bits()
