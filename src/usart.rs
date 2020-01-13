@@ -79,13 +79,13 @@ use crate::{
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct USART<UsartX, State = init_state::Enabled> {
-    usart: UsartX,
+pub struct USART<I, State = init_state::Enabled> {
+    usart: I,
     _state: State,
 }
 
-impl<UsartX> USART<UsartX, init_state::Disabled> {
-    pub(crate) fn new(usart: UsartX) -> Self {
+impl<I> USART<I, init_state::Disabled> {
+    pub(crate) fn new(usart: I) -> Self {
         USART {
             usart,
             _state: init_state::Disabled,
@@ -93,9 +93,9 @@ impl<UsartX> USART<UsartX, init_state::Disabled> {
     }
 }
 
-impl<UsartX> USART<UsartX, init_state::Disabled>
+impl<I> USART<I, init_state::Disabled>
 where
-    UsartX: Instance,
+    I: Instance,
 {
     /// Enable the USART
     ///
@@ -124,15 +124,15 @@ where
         self,
         clock: &CLOCK,
         syscon: &mut syscon::Handle,
-        _: swm::Function<UsartX::Rx, swm::state::Assigned<Rx>>,
-        _: swm::Function<UsartX::Tx, swm::state::Assigned<Tx>>,
-    ) -> USART<UsartX, init_state::Enabled>
+        _: swm::Function<I::Rx, swm::state::Assigned<Rx>>,
+        _: swm::Function<I::Tx, swm::state::Assigned<Tx>>,
+    ) -> USART<I, init_state::Enabled>
     where
         Rx: PinTrait,
         Tx: PinTrait,
-        UsartX::Rx: FunctionTrait<Rx>,
-        UsartX::Tx: FunctionTrait<Tx>,
-        CLOCK: PeripheralClock<UsartX>,
+        I::Rx: FunctionTrait<Rx>,
+        I::Tx: FunctionTrait<Tx>,
+        CLOCK: PeripheralClock<I>,
     {
         syscon.enable_clock(&self.usart);
 
@@ -173,9 +173,9 @@ where
     }
 }
 
-impl<UsartX> USART<UsartX, init_state::Enabled>
+impl<I> USART<I, init_state::Enabled>
 where
-    UsartX: Instance,
+    I: Instance,
 {
     /// Disable the USART
     ///
@@ -191,7 +191,7 @@ where
     pub fn disable(
         self,
         syscon: &mut syscon::Handle,
-    ) -> USART<UsartX, init_state::Disabled> {
+    ) -> USART<I, init_state::Disabled> {
         syscon.disable_clock(&self.usart);
 
         USART {
@@ -207,21 +207,21 @@ where
     pub fn enable_interrupts(&mut self) {
         // Safe, because there's no critical section here that this could
         // interfere with.
-        unsafe { NVIC::unmask(UsartX::INTERRUPT) };
+        unsafe { NVIC::unmask(I::INTERRUPT) };
     }
 
     /// Return USART receiver
-    pub fn rx(&self) -> Rx<UsartX> {
+    pub fn rx(&self) -> Rx<I> {
         Rx(self)
     }
 
     /// Return USART transmitter
-    pub fn tx(&self) -> Tx<UsartX> {
+    pub fn tx(&self) -> Tx<I> {
         Tx(self)
     }
 }
 
-impl<UsartX, State> USART<UsartX, State> {
+impl<I, State> USART<I, State> {
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the
@@ -234,17 +234,17 @@ impl<UsartX, State> USART<UsartX, State> {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> UsartX {
+    pub fn free(self) -> I {
         self.usart
     }
 }
 
 /// USART receiver
-pub struct Rx<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
+pub struct Rx<'usart, I: 'usart>(&'usart USART<I>);
 
-impl<'usart, UsartX> Rx<'usart, UsartX>
+impl<'usart, I> Rx<'usart, I>
 where
-    UsartX: Instance,
+    I: Instance,
 {
     /// Enable the RXRDY interrupt
     ///
@@ -263,9 +263,9 @@ where
     }
 }
 
-impl<'usart, UsartX> Read<u8> for Rx<'usart, UsartX>
+impl<'usart, I> Read<u8> for Rx<'usart, I>
 where
-    UsartX: Instance,
+    I: Instance,
 {
     type Error = Error;
 
@@ -302,11 +302,11 @@ where
 }
 
 /// USART transmitter
-pub struct Tx<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
+pub struct Tx<'usart, I: 'usart>(&'usart USART<I>);
 
-impl<'usart, UsartX> Tx<'usart, UsartX>
+impl<'usart, I> Tx<'usart, I>
 where
-    UsartX: Instance,
+    I: Instance,
 {
     /// Enable the TXRDY interrupt
     ///
@@ -325,9 +325,9 @@ where
     }
 }
 
-impl<'usart, UsartX> Write<u8> for Tx<'usart, UsartX>
+impl<'usart, I> Write<u8> for Tx<'usart, I>
 where
-    UsartX: Instance,
+    I: Instance,
 {
     type Error = Void;
 
@@ -352,15 +352,12 @@ where
     }
 }
 
-impl<'usart, UsartX> BlockingWriteDefault<u8> for Tx<'usart, UsartX> where
-    UsartX: Instance
-{
-}
+impl<'usart, I> BlockingWriteDefault<u8> for Tx<'usart, I> where I: Instance {}
 
-impl<'usart, UsartX> fmt::Write for Tx<'usart, UsartX>
+impl<'usart, I> fmt::Write for Tx<'usart, I>
 where
     Self: BlockingWriteDefault<u8>,
-    UsartX: Instance,
+    I: Instance,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         use crate::prelude::*;
@@ -372,9 +369,9 @@ where
     }
 }
 
-impl<'usart, UsartX> dma::Dest for Tx<'usart, UsartX>
+impl<'usart, I> dma::Dest for Tx<'usart, I>
 where
-    UsartX: Instance,
+    I: Instance,
 {
     type Error = Void;
 
