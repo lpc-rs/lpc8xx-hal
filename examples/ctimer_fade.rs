@@ -36,9 +36,9 @@ fn main() -> ! {
     let (green, _) = swm.movable_functions.t0_mat1.assign(green, &mut handle);
     let (blue, _) = swm.movable_functions.t0_mat2.assign(blue, &mut handle);
 
-    let mut red = red_pwm.configure(red);
-    let mut green = green_pwm.configure(green);
-    let mut blue = blue_pwm.configure(blue);
+    let mut red = red_pwm.attach(red);
+    let mut green = green_pwm.attach(green);
+    let mut blue = blue_pwm.attach(blue);
     // Fade each color after anothe
     loop {
         for i in 0..red.get_max_duty() {

@@ -22,7 +22,7 @@
 //!
 //! let (pwm_output, _) = swm.movable_functions.t0_mat0.assign(pwm_output, &mut handle);
 //!
-//! let mut pwm_pin = pwm_channel.configure(pwm_output);
+//! let mut pwm_pin = pwm_channel.attach(pwm_output);
 //! loop {
 //!     for i in 0..red.get_max_duty() {
 //!         delay.delay_ms(4_u8);
@@ -57,12 +57,12 @@ pub struct CTimer {
     ct: CTIMER0,
 }
 
-/// An unconfigured [`CTimerPwmPin`]
+/// A detached [`CTimerPwmPin`]
 ///
-/// Use `configure` to assing an output to it
+/// Use `attach` to assign an output to it.
 ///
 /// [`CTimerPwmPin`]: struct.CTimerPwmPin.html
-pub struct UnconfiguredPwmPin<CTOutput> {
+pub struct DetachedPwmPin<CTOutput> {
     number: u8,
     mr: RegProxy<MR>,
     msr: RegProxy<MSR>,
@@ -84,16 +84,16 @@ impl CTimer {
     /// Start the PWM timer, with a predefined period and prescaler
     ///
     /// The `period` sets resolution of the pwm and is returned with
-    /// `get_max_duty`
+    /// `get_max_duty`.
     pub fn start_pwm(
         self,
         period: u32,
         prescaler: u32,
         syscon: &mut syscon::Handle,
     ) -> (
-        UnconfiguredPwmPin<T0_MAT0>,
-        UnconfiguredPwmPin<T0_MAT1>,
-        UnconfiguredPwmPin<T0_MAT2>,
+        DetachedPwmPin<T0_MAT0>,
+        DetachedPwmPin<T0_MAT1>,
+        DetachedPwmPin<T0_MAT2>,
     ) {
         syscon.enable_clock(&self.ct);
         unsafe { self.ct.pr.write(|w| w.prval().bits(prescaler)) };
@@ -116,19 +116,19 @@ impl CTimer {
         // Start the timer
         self.ct.tcr.write(|w| w.cen().set_bit());
         (
-            UnconfiguredPwmPin {
+            DetachedPwmPin {
                 number: 0,
                 mr: RegProxy::new(),
                 msr: RegProxy::new(),
                 output: PhantomData {},
             },
-            UnconfiguredPwmPin {
+            DetachedPwmPin {
                 number: 1,
                 mr: RegProxy::new(),
                 msr: RegProxy::new(),
                 output: PhantomData {},
             },
-            UnconfiguredPwmPin {
+            DetachedPwmPin {
                 number: 2,
                 mr: RegProxy::new(),
                 msr: RegProxy::new(),
@@ -154,10 +154,10 @@ impl CTimer {
     }
 }
 
-impl<CTOutput> UnconfiguredPwmPin<CTOutput> {
-    /// Assings a pin to an `UnconfiguredPwmOutput`,
+impl<CTOutput> DetachedPwmPin<CTOutput> {
+    /// Assigns a pin to a `DetachedPwmPin`,
     /// allowing it to be used as a pwm output
-    pub fn configure<PWM>(
+    pub fn attach<PWM>(
         self,
         _: swm::Function<CTOutput, swm::state::Assigned<PWM>>,
     ) -> CTimerPwmPin
