@@ -9,7 +9,7 @@ use lpc8xx_hal::{
 };
 
 #[cfg(feature = "845")]
-use lpc8xx_hal::pac::syscon::frg::frgclksel::SEL_A;
+use lpc8xx_hal::syscon::frg;
 
 #[entry]
 fn main() -> ! {
@@ -64,7 +64,7 @@ fn main() -> ! {
     // case), and we get our division by 6 by setting the BRGVAL of the
     // USART instance (setting its value to 5 means division by 6).
     let clock_config = {
-        syscon.frg0.select_clock(SEL_A::FRO);
+        syscon.frg0.select_clock(frg::Clock::FRO);
         syscon.frg0.set_mult(22);
         syscon.frg0.set_div(0xFF);
         PeripheralClockConfig::new(&syscon.frg0, 5)

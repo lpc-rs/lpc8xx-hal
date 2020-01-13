@@ -3,10 +3,15 @@
 use crate::{
     pac::{
         self,
-        syscon::frg::{frgclksel::SEL_A, FRGCLKSEL, FRGDIV, FRGMULT},
+        syscon::frg::{FRGCLKSEL, FRGDIV, FRGMULT},
     },
     reg_proxy::{Reg, RegProxy},
 };
+
+/// Clock sources for the FRG
+///
+/// Can be passed to [`FRG::select_clock`].
+pub use crate::pac::syscon::frg::frgclksel::SEL_A as Clock;
 
 /// Fractional generator
 ///
@@ -30,7 +35,7 @@ where
     }
 
     /// Select clock source for FRG
-    pub fn select_clock(&mut self, clock: SEL_A) {
+    pub fn select_clock(&mut self, clock: Clock) {
         self.clksel.write(|w| w.sel().variant(clock));
     }
 
