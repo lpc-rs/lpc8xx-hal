@@ -211,13 +211,13 @@ where
     }
 
     /// Return USART receiver
-    pub fn rx(&self) -> Receiver<UsartX> {
-        Receiver(self)
+    pub fn rx(&self) -> Rx<UsartX> {
+        Rx(self)
     }
 
     /// Return USART transmitter
-    pub fn tx(&self) -> Transmitter<UsartX> {
-        Transmitter(self)
+    pub fn tx(&self) -> Tx<UsartX> {
+        Tx(self)
     }
 }
 
@@ -240,9 +240,9 @@ impl<UsartX, State> USART<UsartX, State> {
 }
 
 /// USART receiver
-pub struct Receiver<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
+pub struct Rx<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
 
-impl<'usart, UsartX> Receiver<'usart, UsartX>
+impl<'usart, UsartX> Rx<'usart, UsartX>
 where
     UsartX: Peripheral,
 {
@@ -263,7 +263,7 @@ where
     }
 }
 
-impl<'usart, UsartX> Read<u8> for Receiver<'usart, UsartX>
+impl<'usart, UsartX> Read<u8> for Rx<'usart, UsartX>
 where
     UsartX: Peripheral,
 {
@@ -302,9 +302,9 @@ where
 }
 
 /// USART transmitter
-pub struct Transmitter<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
+pub struct Tx<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
 
-impl<'usart, UsartX> Transmitter<'usart, UsartX>
+impl<'usart, UsartX> Tx<'usart, UsartX>
 where
     UsartX: Peripheral,
 {
@@ -325,7 +325,7 @@ where
     }
 }
 
-impl<'usart, UsartX> Write<u8> for Transmitter<'usart, UsartX>
+impl<'usart, UsartX> Write<u8> for Tx<'usart, UsartX>
 where
     UsartX: Peripheral,
 {
@@ -352,12 +352,12 @@ where
     }
 }
 
-impl<'usart, UsartX> BlockingWriteDefault<u8> for Transmitter<'usart, UsartX> where
+impl<'usart, UsartX> BlockingWriteDefault<u8> for Tx<'usart, UsartX> where
     UsartX: Peripheral
 {
 }
 
-impl<'usart, UsartX> fmt::Write for Transmitter<'usart, UsartX>
+impl<'usart, UsartX> fmt::Write for Tx<'usart, UsartX>
 where
     Self: BlockingWriteDefault<u8>,
     UsartX: Peripheral,
@@ -372,7 +372,7 @@ where
     }
 }
 
-impl<'usart, UsartX> dma::Dest for Transmitter<'usart, UsartX>
+impl<'usart, UsartX> dma::Dest for Tx<'usart, UsartX>
 where
     UsartX: Peripheral,
 {
