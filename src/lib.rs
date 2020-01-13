@@ -139,6 +139,8 @@ pub mod wkt;
 /// The traits in this module have been renamed, to avoid collisions with other
 /// imports.
 pub mod prelude {
+    pub use core::fmt::Write as _;
+
     pub use crate::clock::{Enabled as _, Frequency as _};
     pub use crate::hal::{digital::v2::*, prelude::*};
     pub use crate::sleep::Sleep as _;
