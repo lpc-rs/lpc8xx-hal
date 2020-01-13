@@ -30,23 +30,59 @@ use self::pin_state::PinState;
 /// [`swm::Parts`]: struct.Parts.html
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct SWM {
+pub struct SWM<State = init_state::Enabled> {
     swm: pac::SWM0,
+    state: State,
 }
 
-impl SWM {
-    pub(crate) fn new(swm: pac::SWM0) -> Self {
-        SWM { swm }
+impl SWM<init_state::Disabled> {
+    /// Create a disabled SWM peripheral
+    ///
+    /// This method creates an `SWM` instance that it assumes is in the
+    /// [`Disabled`] state. As it's only possible to enable a [`Disabled`] `SWM`
+    /// instance, it's also safe to pass an already [`Enabled`] instance.
+    ///
+    /// # Safety
+    ///
+    /// This method creates an `SWM` instance that it assumes is in the default
+    /// state. It's up to the caller to verify this assumption.
+    ///
+    /// [`Disabled`]: ../init_state/struct.Enabled.html
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    pub unsafe fn new(swm: pac::SWM0) -> Self {
+        SWM {
+            swm,
+            state: init_state::Disabled,
+        }
     }
+}
 
+impl SWM<init_state::Enabled> {
+    /// Create a enabled SWM peripheral
+    ///
+    /// # Safety
+    ///
+    /// This method creates an `SWM` instance that it assumes is already in the
+    /// default [`Enabled`] state. It's up to the caller to verify this assumption.
+    ///
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    pub unsafe fn new_enabled(swm: pac::SWM0) -> Self {
+        SWM {
+            swm,
+            state: init_state::Enabled(()),
+        }
+    }
+}
+
+impl<STATE> SWM<STATE> {
     /// Splits the SWM API into its component parts
     ///
     /// This is the regular way to access the SWM API. It exists as an explicit
     /// step, as it's no longer possible to gain access to the raw peripheral
     /// using [`SWM::free`] after you've called this method.
-    pub fn split(self) -> Parts {
+    pub fn split(self) -> Parts<STATE> {
         Parts {
-            handle: Handle::new(self.swm),
+            handle: Handle::new(self.swm, self.state),
             pins: Pins::new(),
             movable_functions: MovableFunctions::new(),
             fixed_functions: FixedFunctions::new(),
@@ -76,9 +112,9 @@ impl SWM {
 /// [module documentation] for more information.
 ///
 /// [module documentation]: index.html
-pub struct Parts {
+pub struct Parts<STATE> {
     /// Handle to the switch matrix
-    pub handle: Handle<init_state::Enabled>,
+    pub handle: Handle<STATE>,
 
     /// Pins that can be used for GPIO or other functions
     pub pins: Pins,
@@ -105,12 +141,9 @@ pub struct Handle<State = init_state::Enabled> {
     _state: State,
 }
 
-impl Handle<init_state::Enabled> {
-    pub(crate) fn new(swm: pac::SWM0) -> Self {
-        Handle {
-            swm,
-            _state: init_state::Enabled(()),
-        }
+impl<STATE> Handle<STATE> {
+    pub(crate) fn new(swm: pac::SWM0, state: STATE) -> Self {
+        Handle { swm, _state: state }
     }
 }
 
@@ -141,6 +174,9 @@ impl Handle<init_state::Disabled> {
 
 impl Handle<init_state::Enabled> {
     /// Disable the switch matrix
+    ///
+    /// The switch matrix retains it's configuration while disabled, but
+    /// doesn't allow modifications
     ///
     /// This method is only available, if `SWM` is in the [`Enabled`] state.
     /// Code that attempts to call this method when the peripheral is already
