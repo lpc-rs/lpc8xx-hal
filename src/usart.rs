@@ -95,7 +95,7 @@ impl<UsartX> USART<UsartX, init_state::Disabled> {
 
 impl<UsartX> USART<UsartX, init_state::Disabled>
 where
-    UsartX: Peripheral,
+    UsartX: Instance,
 {
     /// Enable the USART
     ///
@@ -175,7 +175,7 @@ where
 
 impl<UsartX> USART<UsartX, init_state::Enabled>
 where
-    UsartX: Peripheral,
+    UsartX: Instance,
 {
     /// Disable the USART
     ///
@@ -244,7 +244,7 @@ pub struct Rx<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
 
 impl<'usart, UsartX> Rx<'usart, UsartX>
 where
-    UsartX: Peripheral,
+    UsartX: Instance,
 {
     /// Enable the RXRDY interrupt
     ///
@@ -265,7 +265,7 @@ where
 
 impl<'usart, UsartX> Read<u8> for Rx<'usart, UsartX>
 where
-    UsartX: Peripheral,
+    UsartX: Instance,
 {
     type Error = Error;
 
@@ -306,7 +306,7 @@ pub struct Tx<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
 
 impl<'usart, UsartX> Tx<'usart, UsartX>
 where
-    UsartX: Peripheral,
+    UsartX: Instance,
 {
     /// Enable the TXRDY interrupt
     ///
@@ -327,7 +327,7 @@ where
 
 impl<'usart, UsartX> Write<u8> for Tx<'usart, UsartX>
 where
-    UsartX: Peripheral,
+    UsartX: Instance,
 {
     type Error = Void;
 
@@ -353,14 +353,14 @@ where
 }
 
 impl<'usart, UsartX> BlockingWriteDefault<u8> for Tx<'usart, UsartX> where
-    UsartX: Peripheral
+    UsartX: Instance
 {
 }
 
 impl<'usart, UsartX> fmt::Write for Tx<'usart, UsartX>
 where
     Self: BlockingWriteDefault<u8>,
-    UsartX: Peripheral,
+    UsartX: Instance,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         use crate::prelude::*;
@@ -374,7 +374,7 @@ where
 
 impl<'usart, UsartX> dma::Dest for Tx<'usart, UsartX>
 where
-    UsartX: Peripheral,
+    UsartX: Instance,
 {
     type Error = Void;
 
@@ -392,7 +392,7 @@ where
 /// This trait is an internal implementation detail and should neither be
 /// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
 /// be considered breaking changes.
-pub trait Peripheral:
+pub trait Instance:
     Deref<Target = pac::usart0::RegisterBlock>
     + syscon::ClockControl
     + syscon::ResetControl
@@ -407,21 +407,21 @@ pub trait Peripheral:
     type Tx;
 }
 
-impl Peripheral for pac::USART0 {
+impl Instance for pac::USART0 {
     const INTERRUPT: Interrupt = Interrupt::USART0;
 
     type Rx = swm::U0_RXD;
     type Tx = swm::U0_TXD;
 }
 
-impl Peripheral for pac::USART1 {
+impl Instance for pac::USART1 {
     const INTERRUPT: Interrupt = Interrupt::USART1;
 
     type Rx = swm::U1_RXD;
     type Tx = swm::U1_TXD;
 }
 
-impl Peripheral for pac::USART2 {
+impl Instance for pac::USART2 {
     const INTERRUPT: Interrupt = Interrupt::USART2;
 
     type Rx = swm::U2_RXD;
@@ -429,7 +429,7 @@ impl Peripheral for pac::USART2 {
 }
 
 #[cfg(feature = "845")]
-impl Peripheral for pac::USART3 {
+impl Instance for pac::USART3 {
     /// Since we don't provide an abstraction for pin interrupts,
     /// it's alright to ignore the shared interrupt
     const INTERRUPT: Interrupt = Interrupt::PIN_INT6_USART3;
@@ -439,7 +439,7 @@ impl Peripheral for pac::USART3 {
 }
 
 #[cfg(feature = "845")]
-impl Peripheral for pac::USART4 {
+impl Instance for pac::USART4 {
     const INTERRUPT: Interrupt = Interrupt::PIN_INT7_USART4;
 
     type Rx = swm::U4_RXD;
