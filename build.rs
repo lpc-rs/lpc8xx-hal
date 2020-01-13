@@ -54,7 +54,9 @@ fn copy_memory_config(target: Target) -> Result<(), Error> {
     // Tell Cargo where to find the file.
     println!("cargo:rustc-link-search={}", out_dir.display());
 
-    println!("cargo:rerun-if-changed=memory.x");
+    println!("cargo:rerun-if-changed=memory_16_4.x");
+    println!("cargo:rerun-if-changed=memory_32_8.x");
+    println!("cargo:rerun-if-changed=memory_64_16.x");
 
     Ok(())
 }
