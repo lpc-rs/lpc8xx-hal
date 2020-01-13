@@ -570,24 +570,26 @@ where
         // Isn't used for lpc845
         #[allow(unused_imports)]
         use core::slice;
+        #[cfg(feature = "82x")]
+        let registers = pin_state::GpioRegisters {
+            dirset: slice::from_ref(&gpio.gpio.dirset0),
+            dirclr: slice::from_ref(&gpio.gpio.dirclr0),
+            pin: slice::from_ref(&gpio.gpio.pin0),
+            set: slice::from_ref(&gpio.gpio.set0),
+            clr: slice::from_ref(&gpio.gpio.clr0),
+        };
+        #[cfg(feature = "845")]
+        let registers = pin_state::GpioRegisters {
+            dirset: &gpio.gpio.dirset,
+            dirclr: &gpio.gpio.dirclr,
+            pin: &gpio.gpio.pin,
+            set: &gpio.gpio.set,
+            clr: &gpio.gpio.clr,
+        };
         Pin {
             ty: self.ty,
-            #[cfg(feature = "82x")]
             state: pin_state::Gpio {
-                dirset: slice::from_ref(&gpio.gpio.dirset0),
-                pin: slice::from_ref(&gpio.gpio.pin0),
-                set: slice::from_ref(&gpio.gpio.set0),
-                clr: slice::from_ref(&gpio.gpio.clr0),
-
-                _direction: gpio::direction::Unknown,
-            },
-            #[cfg(feature = "845")]
-            state: pin_state::Gpio {
-                dirset: &gpio.gpio.dirset,
-                pin: &gpio.gpio.pin,
-                set: &gpio.gpio.set,
-                clr: &gpio.gpio.clr,
-
+                registers,
                 _direction: gpio::direction::Unknown,
             },
         }
@@ -740,10 +742,11 @@ pub mod pin_state {
 
     use crate::gpio::direction::Direction;
     #[cfg(feature = "845")]
-    use crate::pac::gpio::{CLR, DIRSET, PIN, SET};
+    use crate::pac::gpio::{CLR, DIRCLR, DIRSET, PIN, SET};
     #[cfg(feature = "82x")]
     use crate::pac::gpio::{
-        CLR0 as CLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET,
+        CLR0 as CLR, DIRCLR0 as DIRCLR, DIRSET0 as DIRSET, PIN0 as PIN,
+        SET0 as SET,
     };
 
     /// Implemented by types that indicate pin state
@@ -774,12 +777,16 @@ pub mod pin_state {
     ///
     /// [`Pin`]: ../struct.Pin.html
     pub struct Gpio<'gpio, D: Direction> {
+        pub(crate) registers: GpioRegisters<'gpio>,
+        pub(crate) _direction: D,
+    }
+
+    pub(crate) struct GpioRegisters<'gpio> {
         pub(crate) dirset: &'gpio [DIRSET],
+        pub(crate) dirclr: &'gpio [DIRCLR],
         pub(crate) pin: &'gpio [PIN],
         pub(crate) set: &'gpio [SET],
         pub(crate) clr: &'gpio [CLR],
-
-        pub(crate) _direction: D,
     }
 
     impl<'gpio, D> PinState for Gpio<'gpio, D> where D: Direction {}
