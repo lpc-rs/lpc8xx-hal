@@ -84,19 +84,17 @@ pub struct USART<I, State = init_state::Enabled> {
     _state: State,
 }
 
-impl<I> USART<I, init_state::Disabled> {
+impl<I> USART<I, init_state::Disabled>
+where
+    I: Instance,
+{
     pub(crate) fn new(usart: I) -> Self {
         USART {
             usart,
             _state: init_state::Disabled,
         }
     }
-}
 
-impl<I> USART<I, init_state::Disabled>
-where
-    I: Instance,
-{
     /// Enable the USART
     ///
     /// This method is only available, if `USART` is in the [`Disabled`] state.
