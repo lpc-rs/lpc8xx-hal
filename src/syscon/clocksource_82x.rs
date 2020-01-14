@@ -8,7 +8,7 @@ pub struct PeripheralClockConfig<PERIPH> {
     _periph: PhantomData<PERIPH>,
 }
 
-impl<USART: crate::usart::Peripheral> PeripheralClockConfig<USART> {
+impl<USART: crate::usart::Instance> PeripheralClockConfig<USART> {
     /// Create the clock config for the uart
     ///
     /// Please be aware that the uart additionally divides the
@@ -21,7 +21,7 @@ impl<USART: crate::usart::Peripheral> PeripheralClockConfig<USART> {
     }
 }
 
-impl<USART: crate::usart::Peripheral> PeripheralClock<USART>
+impl<USART: crate::usart::Instance> PeripheralClock<USART>
     for PeripheralClockConfig<USART>
 {
     fn select_clock(&self, _: &mut syscon::Handle) {

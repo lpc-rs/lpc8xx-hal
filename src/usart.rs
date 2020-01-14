@@ -79,24 +79,22 @@ use crate::{
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct USART<UsartX, State = init_state::Enabled> {
-    usart: UsartX,
+pub struct USART<I, State = init_state::Enabled> {
+    usart: I,
     _state: State,
 }
 
-impl<UsartX> USART<UsartX, init_state::Disabled> {
-    pub(crate) fn new(usart: UsartX) -> Self {
+impl<I> USART<I, init_state::Disabled>
+where
+    I: Instance,
+{
+    pub(crate) fn new(usart: I) -> Self {
         USART {
             usart,
             _state: init_state::Disabled,
         }
     }
-}
 
-impl<UsartX> USART<UsartX, init_state::Disabled>
-where
-    UsartX: Peripheral,
-{
     /// Enable the USART
     ///
     /// This method is only available, if `USART` is in the [`Disabled`] state.
@@ -120,19 +118,19 @@ where
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<Rx, Tx, CLOCK>(
+    pub fn enable<RxPin, TxPin, CLOCK>(
         self,
         clock: &CLOCK,
         syscon: &mut syscon::Handle,
-        _: swm::Function<UsartX::Rx, swm::state::Assigned<Rx>>,
-        _: swm::Function<UsartX::Tx, swm::state::Assigned<Tx>>,
-    ) -> USART<UsartX, init_state::Enabled>
+        _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
+        _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
+    ) -> USART<I, init_state::Enabled>
     where
-        Rx: PinTrait,
-        Tx: PinTrait,
-        UsartX::Rx: FunctionTrait<Rx>,
-        UsartX::Tx: FunctionTrait<Tx>,
-        CLOCK: PeripheralClock<UsartX>,
+        RxPin: PinTrait,
+        TxPin: PinTrait,
+        I::Rx: FunctionTrait<RxPin>,
+        I::Tx: FunctionTrait<TxPin>,
+        CLOCK: PeripheralClock<I>,
     {
         syscon.enable_clock(&self.usart);
 
@@ -173,9 +171,9 @@ where
     }
 }
 
-impl<UsartX> USART<UsartX, init_state::Enabled>
+impl<I> USART<I, init_state::Enabled>
 where
-    UsartX: Peripheral,
+    I: Instance,
 {
     /// Disable the USART
     ///
@@ -191,7 +189,7 @@ where
     pub fn disable(
         self,
         syscon: &mut syscon::Handle,
-    ) -> USART<UsartX, init_state::Disabled> {
+    ) -> USART<I, init_state::Disabled> {
         syscon.disable_clock(&self.usart);
 
         USART {
@@ -207,21 +205,21 @@ where
     pub fn enable_interrupts(&mut self) {
         // Safe, because there's no critical section here that this could
         // interfere with.
-        unsafe { NVIC::unmask(UsartX::INTERRUPT) };
+        unsafe { NVIC::unmask(I::INTERRUPT) };
     }
 
     /// Return USART receiver
-    pub fn rx(&self) -> Receiver<UsartX> {
-        Receiver(self)
+    pub fn rx(&self) -> Rx<I> {
+        Rx(self)
     }
 
     /// Return USART transmitter
-    pub fn tx(&self) -> Transmitter<UsartX> {
-        Transmitter(self)
+    pub fn tx(&self) -> Tx<I> {
+        Tx(self)
     }
 }
 
-impl<UsartX, State> USART<UsartX, State> {
+impl<I, State> USART<I, State> {
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the
@@ -234,17 +232,17 @@ impl<UsartX, State> USART<UsartX, State> {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> UsartX {
+    pub fn free(self) -> I {
         self.usart
     }
 }
 
 /// USART receiver
-pub struct Receiver<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
+pub struct Rx<'usart, I: 'usart>(&'usart USART<I>);
 
-impl<'usart, UsartX> Receiver<'usart, UsartX>
+impl<'usart, I> Rx<'usart, I>
 where
-    UsartX: Peripheral,
+    I: Instance,
 {
     /// Enable the RXRDY interrupt
     ///
@@ -263,9 +261,9 @@ where
     }
 }
 
-impl<'usart, UsartX> Read<u8> for Receiver<'usart, UsartX>
+impl<'usart, I> Read<u8> for Rx<'usart, I>
 where
-    UsartX: Peripheral,
+    I: Instance,
 {
     type Error = Error;
 
@@ -302,11 +300,11 @@ where
 }
 
 /// USART transmitter
-pub struct Transmitter<'usart, UsartX: 'usart>(&'usart USART<UsartX>);
+pub struct Tx<'usart, I: 'usart>(&'usart USART<I>);
 
-impl<'usart, UsartX> Transmitter<'usart, UsartX>
+impl<'usart, I> Tx<'usart, I>
 where
-    UsartX: Peripheral,
+    I: Instance,
 {
     /// Enable the TXRDY interrupt
     ///
@@ -325,9 +323,9 @@ where
     }
 }
 
-impl<'usart, UsartX> Write<u8> for Transmitter<'usart, UsartX>
+impl<'usart, I> Write<u8> for Tx<'usart, I>
 where
-    UsartX: Peripheral,
+    I: Instance,
 {
     type Error = Void;
 
@@ -352,15 +350,12 @@ where
     }
 }
 
-impl<'usart, UsartX> BlockingWriteDefault<u8> for Transmitter<'usart, UsartX> where
-    UsartX: Peripheral
-{
-}
+impl<'usart, I> BlockingWriteDefault<u8> for Tx<'usart, I> where I: Instance {}
 
-impl<'usart, UsartX> fmt::Write for Transmitter<'usart, UsartX>
+impl<'usart, I> fmt::Write for Tx<'usart, I>
 where
     Self: BlockingWriteDefault<u8>,
-    UsartX: Peripheral,
+    I: Instance,
 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         use crate::prelude::*;
@@ -372,9 +367,9 @@ where
     }
 }
 
-impl<'usart, UsartX> dma::Dest for Transmitter<'usart, UsartX>
+impl<'usart, I> dma::Dest for Tx<'usart, I>
 where
-    UsartX: Peripheral,
+    I: Instance,
 {
     type Error = Void;
 
@@ -392,7 +387,7 @@ where
 /// This trait is an internal implementation detail and should neither be
 /// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
 /// be considered breaking changes.
-pub trait Peripheral:
+pub trait Instance:
     Deref<Target = pac::usart0::RegisterBlock>
     + syscon::ClockControl
     + syscon::ResetControl
@@ -407,44 +402,37 @@ pub trait Peripheral:
     type Tx;
 }
 
-impl Peripheral for pac::USART0 {
-    const INTERRUPT: Interrupt = Interrupt::USART0;
+macro_rules! instances {
+    (
+        $(
+            $instance:ident,
+            $interrupt:ident,
+            $rx:ident,
+            $tx:ident;
+        )*
+    ) => {
+        $(
+            impl Instance for pac::$instance {
+                const INTERRUPT: Interrupt = Interrupt::$interrupt;
 
-    type Rx = swm::U0_RXD;
-    type Tx = swm::U0_TXD;
+                type Rx = swm::$rx;
+                type Tx = swm::$tx;
+            }
+        )*
+    };
 }
 
-impl Peripheral for pac::USART1 {
-    const INTERRUPT: Interrupt = Interrupt::USART1;
-
-    type Rx = swm::U1_RXD;
-    type Tx = swm::U1_TXD;
-}
-
-impl Peripheral for pac::USART2 {
-    const INTERRUPT: Interrupt = Interrupt::USART2;
-
-    type Rx = swm::U2_RXD;
-    type Tx = swm::U2_TXD;
-}
+instances!(
+    USART0, USART0, U0_RXD, U0_TXD;
+    USART1, USART1, U1_RXD, U1_TXD;
+    USART2, USART2, U2_RXD, U2_TXD;
+);
 
 #[cfg(feature = "845")]
-impl Peripheral for pac::USART3 {
-    /// Since we don't provide an abstraction for pin interrupts,
-    /// it's alright to ignore the shared interrupt
-    const INTERRUPT: Interrupt = Interrupt::PIN_INT6_USART3;
-
-    type Rx = swm::U3_RXD;
-    type Tx = swm::U3_TXD;
-}
-
-#[cfg(feature = "845")]
-impl Peripheral for pac::USART4 {
-    const INTERRUPT: Interrupt = Interrupt::PIN_INT7_USART4;
-
-    type Rx = swm::U4_RXD;
-    type Tx = swm::U4_TXD;
-}
+instances!(
+    USART3, PIN_INT6_USART3, U3_RXD, U3_TXD;
+    USART4, PIN_INT7_USART4, U4_RXD, U4_TXD;
+);
 
 /// A USART error
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
