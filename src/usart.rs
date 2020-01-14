@@ -53,7 +53,7 @@
 //!
 //! Please refer to the [examples in the repository] for more example code.
 //!
-//! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/lpc82x-hal/examples
+//! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
 use core::fmt;
 use core::ops::Deref;
@@ -390,7 +390,7 @@ where
 /// Internal trait for USART peripherals
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 pub trait Peripheral:
     Deref<Target = pac::usart0::RegisterBlock>

@@ -203,7 +203,7 @@ impl Handle<init_state::Enabled> {
 /// Implemented by types that identify pins
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 ///
 /// Please refer to [`Pin`] for the public API used to control pins.
@@ -240,7 +240,7 @@ macro_rules! pins {
         /// # Limitations
         ///
         /// This struct currently provides access to all pins that can be
-        /// available on an LPC82x part. Please make sure that you are aware of
+        /// available on an LPC8xx part. Please make sure that you are aware of
         /// which pins are actually available on your specific part, and only
         /// use those.
         ///
@@ -551,15 +551,15 @@ pins!(
 /// Using the pin for analog input once it is in the ADC state is currently not
 /// supported by this API. If you need this feature, [please let us know](https://github.com/lpc-rs/lpc8xx-hal/issues/51)!
 ///
-/// As a woraround, you can use the raw register mappings from the lpc82x crate,
-/// [`lpc82x::IOCON`] and [`lpc82x::ADC`], after you have put the pin into the
-/// ADC state.
+/// As a wokraround, you can use the raw register mappings from the lpc82x-pac &
+/// lpc845-pac crates, [`lpc82x::IOCON`] and [`lpc82x::ADC`], after you have put
+/// the pin into the ADC state.
 ///
 /// [`direction::Unknown`]: ../gpio/direction/struct.Unknown.html
 /// [`direction::Input`]: ../gpio/direction/struct.Input.html
 /// [`direction::Output`]: ../gpio/direction/struct.Output.html
-/// [`lpc82x::IOCON`]: https://docs.rs/lpc82x/0.4.*/lpc82x/struct.IOCON.html
-/// [`lpc82x::ADC`]: https://docs.rs/lpc82x/0.4.*/lpc82x/struct.ADC.html
+/// [`lpc82x::IOCON`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.IOCON.html
+/// [`lpc82x::ADC`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.ADC.html
 pub struct Pin<T: PinTrait, S: PinState> {
     pub(crate) ty: T,
     pub(crate) state: S,
@@ -1019,7 +1019,7 @@ impl<T, P> Function<T, state::Assigned<P>> {
 /// Implemented for all fixed and movable functions
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 ///
 /// Please refer [`Function::assign`] and [`Function::unassign`] for the public
@@ -1041,7 +1041,7 @@ pub trait FunctionTrait<P: PinTrait> {
 /// Implemented for types that designate whether a function is input or output
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 pub trait FunctionKind {}
 
@@ -1060,7 +1060,7 @@ impl FunctionKind for Analog {}
 /// Internal trait used to assign functions to pins
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 ///
 /// Please refer to [`Function::assign`] for the public API that uses this
@@ -1076,7 +1076,7 @@ pub trait AssignFunction<Function, Kind> {
 /// Internal trait used to unassign functions from pins
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 ///
 /// Please refer to [`Function::unassign`] for the public API that uses this

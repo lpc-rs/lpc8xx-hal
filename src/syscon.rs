@@ -377,7 +377,7 @@ impl UARTFRG {
 /// Internal trait for controlling peripheral clocks
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 ///
 /// Please refer to [`syscon::Handle::enable_clock`] and
@@ -474,7 +474,7 @@ impl ClockControl for pac::GPIO {
 /// Internal trait for controlling peripheral reset
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any incompatible changes to this
+/// implemented nor used outside of LPC8xx HAL. Any incompatible changes to this
 /// trait won't be considered breaking changes.
 ///
 /// Please refer to [`syscon::Handle::assert_reset`] and
@@ -565,7 +565,7 @@ impl<'a> ResetControl for pac::GPIO {
 /// Internal trait for powering analog blocks
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 ///
 /// Please refer to [`syscon::Handle::power_up`] and
@@ -677,7 +677,7 @@ impl clock::Enabled for IoscDerivedClock<init_state::Enabled> {}
 /// Internal trait used to configure interrupt wake-up
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 ///
 /// Please refer to [`syscon::Handle::enable_interrupt_wakeup`] and
@@ -733,7 +733,7 @@ wakeup_interrupt!(I2c3Wakeup, i2c3);
 /// Internal trait used configure clocking of peripheals
 ///
 /// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC82x HAL. Any changes to this trait won't
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 ///
 pub trait PeripheralClock<PERIPH> {
