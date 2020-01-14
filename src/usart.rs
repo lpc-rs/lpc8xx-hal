@@ -402,44 +402,37 @@ pub trait Instance:
     type Tx;
 }
 
-impl Instance for pac::USART0 {
-    const INTERRUPT: Interrupt = Interrupt::USART0;
+macro_rules! instances {
+    (
+        $(
+            $instance:ident,
+            $interrupt:ident,
+            $rx:ident,
+            $tx:ident;
+        )*
+    ) => {
+        $(
+            impl Instance for pac::$instance {
+                const INTERRUPT: Interrupt = Interrupt::$interrupt;
 
-    type Rx = swm::U0_RXD;
-    type Tx = swm::U0_TXD;
+                type Rx = swm::$rx;
+                type Tx = swm::$tx;
+            }
+        )*
+    };
 }
 
-impl Instance for pac::USART1 {
-    const INTERRUPT: Interrupt = Interrupt::USART1;
-
-    type Rx = swm::U1_RXD;
-    type Tx = swm::U1_TXD;
-}
-
-impl Instance for pac::USART2 {
-    const INTERRUPT: Interrupt = Interrupt::USART2;
-
-    type Rx = swm::U2_RXD;
-    type Tx = swm::U2_TXD;
-}
+instances!(
+    USART0, USART0, U0_RXD, U0_TXD;
+    USART1, USART1, U1_RXD, U1_TXD;
+    USART2, USART2, U2_RXD, U2_TXD;
+);
 
 #[cfg(feature = "845")]
-impl Instance for pac::USART3 {
-    /// Since we don't provide an abstraction for pin interrupts,
-    /// it's alright to ignore the shared interrupt
-    const INTERRUPT: Interrupt = Interrupt::PIN_INT6_USART3;
-
-    type Rx = swm::U3_RXD;
-    type Tx = swm::U3_TXD;
-}
-
-#[cfg(feature = "845")]
-impl Instance for pac::USART4 {
-    const INTERRUPT: Interrupt = Interrupt::PIN_INT7_USART4;
-
-    type Rx = swm::U4_RXD;
-    type Tx = swm::U4_TXD;
-}
+instances!(
+    USART3, PIN_INT6_USART3, U3_RXD, U3_TXD;
+    USART4, PIN_INT7_USART4, U4_RXD, U4_TXD;
+);
 
 /// A USART error
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
