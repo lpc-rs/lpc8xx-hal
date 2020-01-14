@@ -71,7 +71,7 @@ impl MRTimer {
 
 // TODO the lpc82x um isn't quite clear on how many bits the mrt has
 impl CountDown for MRTimerChannel {
-    /// Only 31 bit values
+    /// Only values smaller than 0x7FFFFFFF
     type Time = u32;
 
     fn start<T>(&mut self, count: T)
@@ -79,19 +79,19 @@ impl CountDown for MRTimerChannel {
         T: Into<Self::Time>,
     {
         let reload: Self::Time = count.into();
-        debug_assert!(reload < (1 << 31));
-        // This sets the timer to 0, to prevent race conditions when resetting the interrupt bit
+        debug_assert!(reload < (1 << 31) - 1);
+        // This stops the timer, to prevent race conditions when resetting the
+        // interrupt bit
         self.channels[self.channel as usize].intval.write(|w| {
             w.load().set_bit();
             unsafe { w.ivalue().bits(0) }
         });
-
         self.channels[self.channel as usize]
             .stat
             .write(|w| w.intflag().set_bit());
         self.channels[self.channel as usize]
             .intval
-            .write(|w| unsafe { w.ivalue().bits(reload) });
+            .write(|w| unsafe { w.ivalue().bits(reload + 1) });
     }
 
     fn wait(&mut self) -> Result<(), Void> {
