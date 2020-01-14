@@ -118,18 +118,18 @@ where
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<Rx, Tx, CLOCK>(
+    pub fn enable<RxPin, TxPin, CLOCK>(
         self,
         clock: &CLOCK,
         syscon: &mut syscon::Handle,
-        _: swm::Function<I::Rx, swm::state::Assigned<Rx>>,
-        _: swm::Function<I::Tx, swm::state::Assigned<Tx>>,
+        _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
+        _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
     ) -> USART<I, init_state::Enabled>
     where
-        Rx: PinTrait,
-        Tx: PinTrait,
-        I::Rx: FunctionTrait<Rx>,
-        I::Tx: FunctionTrait<Tx>,
+        RxPin: PinTrait,
+        TxPin: PinTrait,
+        I::Rx: FunctionTrait<RxPin>,
+        I::Tx: FunctionTrait<TxPin>,
         CLOCK: PeripheralClock<I>,
     {
         syscon.enable_clock(&self.usart);
