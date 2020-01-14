@@ -27,7 +27,7 @@
 //! Please refer to the [examples in the repository] for more example code.
 //!
 //! [`swm`]: ../swm/index.html
-//! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/lpc82x-hal/examples
+//! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
 use embedded_hal::digital::v2::{InputPin, OutputPin, StatefulOutputPin};
 use void::Void;

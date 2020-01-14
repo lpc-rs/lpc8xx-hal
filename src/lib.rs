@@ -52,7 +52,7 @@
 //!
 //! Again, the available options are listed in [`Cargo.toml`].
 //!
-//! Please note that LPC82x HAL is an implementation of [embedded-hal]. If you
+//! Please note that LPC8xx HAL is an implementation of [embedded-hal]. If you
 //! are writing code that is not specific to LPC800, please consider depending
 //! on embedded-hal instead.
 //!
@@ -90,12 +90,8 @@
 //! manual, which is [available from NXP].
 //!
 //! [embedded-hal]: https://crates.io/crates/embedded-hal
-//! [cortex-m-quickstart]: https://github.com/japaric/cortex-m-quickstart
-//! [cortex-m-rt]: https://crates.io/crates/cortex-m-rt
-//! [rustup]: https://rustup.rs/
-//! [This fork of lpc21isp]: https://github.com/hannobraun/lpc21isp
-//! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/lpc82x-hal/examples
-//! [GPIO example]: https://github.com/lpc-rs/lpc8xx-hal/blob/master/lpc82x-hal/examples/gpio.rs
+//! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
+//! [GPIO example]: https://github.com/lpc-rs/lpc8xx-hal/blob/master/examples/gpio_delay.rs
 //! [available from NXP]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
 
 #![no_std]
@@ -128,7 +124,7 @@ pub mod syscon;
 pub mod usart;
 pub mod wkt;
 
-/// Re-exports various traits that are required to use lpc82x-hal
+/// Re-exports various traits that are required to use lpc8xx-hal
 ///
 /// The purpose of this module is to improve convenience, by not requiring the
 /// user to import traits separately. Just add the following to your code, and
@@ -208,12 +204,15 @@ pub struct Peripherals {
 
     /// General-purpose I/O (GPIO)
     ///
-    /// The GPIO peripheral is enabled by default. See user manual, section
-    /// 5.6.14.
+    /// By default, the GPIO peripheral is enabled on the LPC82x and disabled on
+    /// the LPC845.
     #[cfg(feature = "82x")]
     pub GPIO: GPIO<init_state::Enabled>,
 
     /// General-purpose I/O (GPIO)
+    ///
+    /// By default, the GPIO peripheral is enabled on the LPC82x and disabled on
+    /// the LPC845.
     #[cfg(feature = "845")]
     pub GPIO: GPIO<init_state::Disabled>,
 
