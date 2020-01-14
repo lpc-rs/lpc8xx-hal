@@ -1,9 +1,35 @@
-//! MRT embedded_hal timer implementations based on the mrt
+//! API for the MRT peripheral
+//!
+//! Please be aware that this doesn't try to abstract everything, it only
+//! implements the embedded-hal `Timer` functionality.
+//!
+//! The MRT consists of 4 channels, which are mostly separate and can each act
+//! as a run-of-the-mill timer.
+//!
+//! # Example
+//!
+//! ``` no_run
+//! use lpc8xx_hal::prelude::*;
+//! use lpc8xx_hal::Peripherals;
+//!
+//! use nb::block;
+//!
+//! let mut p = Peripherals::take().unwrap();
+//!
+//! let mut syscon = p.SYSCON.split();
+//! let [mut timer, _, _, _] = p.SYST.enable_delay();
+//! timer.start(12_000_000u32);
+//! loop {
+//!     block!(timer.wait()).unwrap();
+//! }
+//! ```
+
 use crate::{
     pac::{mrt0::CHANNEL, MRT0},
     reg_proxy::RegProxy,
     syscon,
 };
+
 use embedded_hal::timer::{CountDown, Periodic};
 use nb::{Error, Result};
 use void::Void;
@@ -29,7 +55,7 @@ impl MRTimer {
         Self { mrt }
     }
 
-    /// Splits the MRTimer peripheral into each channel
+    /// Enables the MRTimer and splits it into it's four channels
     pub fn split(self, syscon: &mut syscon::Handle) -> [MRTimerChannel; 4] {
         syscon.enable_clock(&self.mrt);
         [
@@ -71,7 +97,10 @@ impl MRTimer {
 
 // TODO the lpc82x um isn't quite clear on how many bits the mrt has
 impl CountDown for MRTimerChannel {
-    /// Only values smaller than 0x7FFFFFFF
+    /// The timer operates in clock ticks from the system clock, that means it
+    /// runs at 12_000_000 ticks per second if you haven't changed it.
+    ///
+    /// It can also only use values smaller than 0x7FFFFFFF.
     type Time = u32;
 
     fn start<T>(&mut self, count: T)
