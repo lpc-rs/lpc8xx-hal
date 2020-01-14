@@ -121,6 +121,7 @@ pub mod dma;
 pub mod gpio;
 #[cfg(feature = "82x")]
 pub mod i2c;
+pub mod mrtimer;
 pub mod pmu;
 pub mod sleep;
 pub mod swm;
@@ -159,6 +160,7 @@ pub use self::dma::DMA;
 pub use self::gpio::GPIO;
 #[cfg(feature = "82x")]
 pub use self::i2c::I2C;
+pub use self::mrtimer::MRTimer;
 pub use self::pmu::PMU;
 pub use self::swm::SWM;
 pub use self::syscon::SYSCON;
@@ -220,6 +222,9 @@ pub struct Peripherals {
     /// I2C0-bus interface
     #[cfg(feature = "82x")]
     pub I2C0: I2C<init_state::Disabled>,
+
+    /// Multi-Rate Timer (MRT)
+    pub MRT0: MRTimer,
 
     /// Power Management Unit
     pub PMU: PMU,
@@ -367,13 +372,6 @@ pub struct Peripherals {
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
     pub IOCON: pac::IOCON,
-
-    /// Multi-Rate Timer (MRT)
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub MRT0: pac::MRT0,
 
     /// Pin interrupt and pattern match engine
     ///
@@ -541,6 +539,7 @@ impl Peripherals {
             GPIO: GPIO::new(p.GPIO),
             #[cfg(feature = "82x")]
             I2C0: I2C::new(p.I2C0),
+            MRT0: MRTimer::new(p.MRT0),
             PMU: PMU::new(p.PMU),
             #[cfg(feature = "82x")]
             SWM: unsafe { SWM::new_enabled(p.SWM0) },
@@ -574,7 +573,6 @@ impl Peripherals {
             I2C3: p.I2C3,
             INPUTMUX: p.INPUTMUX,
             IOCON: p.IOCON,
-            MRT0: p.MRT0,
             PINT: p.PINT,
             SCT0: p.SCT0,
             SPI0: p.SPI0,
