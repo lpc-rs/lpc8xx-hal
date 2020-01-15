@@ -118,18 +118,12 @@ where
         // default value (see user manual, sections 8.5.8 and 8.5.9).
 
         // Set I2C clock frequency
-        // Here's my thinking: The main clock runs at 12 Mhz by default. The
-        // minimum low and high times of SCL are set to 2 clock cyles each (see
-        // below), meaning a full SCL cycle should take 4 clock ticks. Therefore
-        // dividing the main clock by 8 (which is achieved by writing 7 below),
-        // should result in an I2C frequency near 400 kHz (375 kHz to be
-        // precise).
-        // None of that is correct, of course. When actually running, I'm
-        // measuring an SCL frequency of 79.6 kHz. I wish I knew why.
-        self.i2c.clkdiv.write(|w| unsafe { w.divval().bits(7) });
-
-        // SCL low and high times are left at their default values (two clock
-        // cycles each). See user manual, section 15.6.9.
+        // We just use the values for 400 kHz, from table 370 from the lpc845 um
+        self.i2c.clkdiv.write(|w| unsafe { w.divval().bits(5) });
+        self.i2c.msttime.write(|w| {
+            w.mstsclhigh().clocks_2();
+            w.mstscllow().clocks_3()
+        });
 
         // Enable master mode
         // Set all other configuration values to default.
