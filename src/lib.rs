@@ -220,7 +220,7 @@ pub struct Peripherals {
 
     /// I2C0-bus interface
     #[cfg(feature = "82x")]
-    pub I2C0: I2C<init_state::Disabled>,
+    pub I2C0: I2C<pac::I2C0, init_state::Disabled>,
 
     /// Multi-Rate Timer (MRT)
     pub MRT0: MRT,
