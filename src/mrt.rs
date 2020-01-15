@@ -35,17 +35,17 @@ use nb::{Error, Result};
 use void::Void;
 
 /// Represent a MRT0 instance
-pub struct MRTimer {
+pub struct MRT {
     mrt: MRT0,
 }
 
 /// Represent a MRT0 channel
-pub struct MRTimerChannel {
+pub struct MrtChannel {
     channel: u8,
     channels: RegProxy<CHANNEL>,
 }
 
-impl MRTimer {
+impl MRT {
     /// Assumes peripheral is in reset state
     ///
     /// This means:
@@ -55,23 +55,23 @@ impl MRTimer {
         Self { mrt }
     }
 
-    /// Enables the MRTimer and splits it into it's four channels
-    pub fn split(self, syscon: &mut syscon::Handle) -> [MRTimerChannel; 4] {
+    /// Enables the MRT and splits it into it's four channels
+    pub fn split(self, syscon: &mut syscon::Handle) -> [MrtChannel; 4] {
         syscon.enable_clock(&self.mrt);
         [
-            MRTimerChannel {
+            MrtChannel {
                 channel: 0,
                 channels: RegProxy::new(),
             },
-            MRTimerChannel {
+            MrtChannel {
                 channel: 1,
                 channels: RegProxy::new(),
             },
-            MRTimerChannel {
+            MrtChannel {
                 channel: 2,
                 channels: RegProxy::new(),
             },
-            MRTimerChannel {
+            MrtChannel {
                 channel: 3,
                 channels: RegProxy::new(),
             },
@@ -95,8 +95,7 @@ impl MRTimer {
     }
 }
 
-// TODO the lpc82x um isn't quite clear on how many bits the mrt has
-impl CountDown for MRTimerChannel {
+impl CountDown for MrtChannel {
     /// The timer operates in clock ticks from the system clock, that means it
     /// runs at 12_000_000 ticks per second if you haven't changed it.
     ///
@@ -141,6 +140,6 @@ impl CountDown for MRTimerChannel {
     }
 }
 
-impl Periodic for MRTimerChannel {}
+impl Periodic for MrtChannel {}
 
 reg!(CHANNEL, [CHANNEL; 4], MRT0, channel);

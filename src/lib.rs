@@ -121,7 +121,7 @@ pub mod dma;
 pub mod gpio;
 #[cfg(feature = "82x")]
 pub mod i2c;
-pub mod mrtimer;
+pub mod mrt;
 pub mod pmu;
 pub mod sleep;
 pub mod swm;
@@ -160,7 +160,7 @@ pub use self::dma::DMA;
 pub use self::gpio::GPIO;
 #[cfg(feature = "82x")]
 pub use self::i2c::I2C;
-pub use self::mrtimer::MRTimer;
+pub use self::mrt::MRT;
 pub use self::pmu::PMU;
 pub use self::swm::SWM;
 pub use self::syscon::SYSCON;
@@ -224,7 +224,7 @@ pub struct Peripherals {
     pub I2C0: I2C<init_state::Disabled>,
 
     /// Multi-Rate Timer (MRT)
-    pub MRT0: MRTimer,
+    pub MRT0: MRT,
 
     /// Power Management Unit
     pub PMU: PMU,
@@ -539,7 +539,7 @@ impl Peripherals {
             GPIO: GPIO::new(p.GPIO),
             #[cfg(feature = "82x")]
             I2C0: I2C::new(p.I2C0),
-            MRT0: MRTimer::new(p.MRT0),
+            MRT0: MRT::new(p.MRT0),
             PMU: PMU::new(p.PMU),
             #[cfg(feature = "82x")]
             SWM: unsafe { SWM::new_enabled(p.SWM0) },
