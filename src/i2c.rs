@@ -117,6 +117,8 @@ where
         // according to the user manual, section 15.3.1. This is already the
         // default value (see user manual, sections 8.5.8 and 8.5.9).
 
+        // TODO Clock selection on lpc845
+
         // Set I2C clock frequency
         // We just use the values for 400 kHz, from table 370 from the lpc845 um
         self.i2c.clkdiv.write(|w| unsafe { w.divval().bits(5) });

@@ -37,25 +37,22 @@ pub trait PeripheralClockSelector {
     const REGISTER_NUM: usize;
 }
 
-impl PeripheralClockSelector for pac::USART0 {
-    const REGISTER_NUM: usize = 0;
+macro_rules! periph_clock_selector {
+    ($peripheral:ident, $num:expr) => {
+        impl PeripheralClockSelector for pac::$peripheral {
+            const REGISTER_NUM: usize = $num;
+        }
+    };
 }
-
-impl PeripheralClockSelector for pac::USART1 {
-    const REGISTER_NUM: usize = 1;
-}
-
-impl PeripheralClockSelector for pac::USART2 {
-    const REGISTER_NUM: usize = 2;
-}
-
-impl PeripheralClockSelector for pac::USART3 {
-    const REGISTER_NUM: usize = 3;
-}
-
-impl PeripheralClockSelector for pac::USART4 {
-    const REGISTER_NUM: usize = 4;
-}
+periph_clock_selector!(USART0, 0);
+periph_clock_selector!(USART1, 1);
+periph_clock_selector!(USART2, 2);
+periph_clock_selector!(USART3, 3);
+periph_clock_selector!(USART4, 4);
+periph_clock_selector!(I2C0, 5);
+periph_clock_selector!(I2C1, 6);
+periph_clock_selector!(I2C2, 7);
+periph_clock_selector!(I2C3, 8);
 
 /// Internal trait used for defining valid peripheal clock sources
 ///
