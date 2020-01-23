@@ -97,7 +97,7 @@ where
     ///
     /// # Limitations
     ///
-    /// This method expects the I2C mode for PIO0_10 and PIO0_11 to be set to
+    /// This method expects the mode for SDA & SCL pins to be set to
     /// standard/fast mode. This is the default value.
     ///
     /// The I2C clock frequency is hardcoded to a specific value. For unknown
@@ -263,10 +263,10 @@ pub trait Instance:
     /// The interrupt that is triggered for this I2C peripheral
     const INTERRUPT: Interrupt;
 
-    /// The movable function that needs to be assigned to this I2C's Sda pin
+    /// The movable function that needs to be assigned to this I2C's SDA pin
     type Sda;
 
-    /// The movable function that needs to be assigned to this I2C's Scl pin
+    /// The movable function that needs to be assigned to this I2C's SCL pin
     type Scl;
 }
 
