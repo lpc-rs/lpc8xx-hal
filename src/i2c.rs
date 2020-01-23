@@ -52,7 +52,7 @@ use crate::{
     init_state,
     pac::{self, Interrupt},
     swm::{self},
-    syscon,
+    syscon::{self, clocksource::I2cClock, PeripheralClock},
 };
 
 /// Interface to an I2C peripheral
@@ -105,26 +105,30 @@ where
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable<SdaPin, SclPin>(
+    pub fn enable<SdaPin, SclPin, Clock>(
         mut self,
+        clock: &I2cClock<Clock>,
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Sda, swm::state::Assigned<SdaPin>>,
         _: swm::Function<I::Scl, swm::state::Assigned<SclPin>>,
-    ) -> I2C<I, init_state::Enabled> {
+    ) -> I2C<I, init_state::Enabled>
+    where
+        I2cClock<Clock>: PeripheralClock<I>,
+    {
         syscon.enable_clock(&mut self.i2c);
 
+        clock.select_clock(syscon);
         // We need the I2C mode for the pins set to standard/fast mode,
         // according to the user manual, section 15.3.1. This is already the
         // default value (see user manual, sections 8.5.8 and 8.5.9).
 
-        // TODO Clock selection on lpc845
-
         // Set I2C clock frequency
-        // We just use the values for 400 kHz, from table 370 from the lpc845 um
-        self.i2c.clkdiv.write(|w| unsafe { w.divval().bits(5) });
+        self.i2c
+            .clkdiv
+            .write(|w| unsafe { w.divval().bits(clock.divval) });
         self.i2c.msttime.write(|w| {
-            w.mstsclhigh().clocks_2();
-            w.mstscllow().clocks_3()
+            w.mstsclhigh().bits(clock.mstsclhigh);
+            w.mstscllow().bits(clock.mstscllow)
         });
 
         // Enable master mode
