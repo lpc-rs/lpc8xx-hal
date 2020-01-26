@@ -171,7 +171,7 @@ where
 
         for &b in data {
             // Wait until peripheral is ready to transmit
-            while !self.i2c.stat.read().mststate().is_transmit_ready() {}
+            while self.i2c.stat.read().mstpending().is_in_progress() {}
 
             // Write byte
             self.i2c.mstdat.write(|w| unsafe { w.data().bits(b) });
@@ -181,7 +181,7 @@ where
         }
 
         // Wait until peripheral is ready to transmit
-        while !self.i2c.stat.read().mststate().is_transmit_ready() {}
+        while self.i2c.stat.read().mstpending().is_in_progress() {}
 
         // Stop transmission
         self.i2c.mstctl.modify(|_, w| w.mststop().stop());
@@ -222,12 +222,18 @@ where
         self.i2c.mstctl.write(|w| w.mststart().start());
 
         for b in buffer {
+            // Continue transmission
+            self.i2c.mstctl.write(|w| w.mstcontinue().continue_());
+
             // Wait until peripheral is ready to receive
-            while !self.i2c.stat.read().mststate().is_receive_ready() {}
+            while self.i2c.stat.read().mstpending().is_in_progress() {}
 
             // Read received byte
             *b = self.i2c.mstdat.read().data().bits();
         }
+
+        // Stop transmission
+        self.i2c.mstctl.modify(|_, w| w.mststop().stop());
 
         Ok(())
     }
