@@ -1,4 +1,34 @@
-//! TODO
+//! API for ADC
+//!
+//! # Examples
+//!
+//! Read a single value
+//! ``` no_run
+//! use lpc8xx_hal::prelude::*;
+//! use lpc8xx_hal::Peripherals;
+//! use lpc8xx_hal::syscon::clocksource::AdcClock;
+//!
+//! let mut p = Peripherals::take().unwrap();
+//!
+//! let mut syscon = p.SYSCON.split();
+//! let mut swm    = p.SWM.split();
+//!
+//! let adc_clock = AdcClock::new_default();
+//! let mut adc = p.ADC.enable(&adc_clock, &mut syscon.handle);
+//!
+//! let (mut adc_pin, _) = swm
+//!     .fixed_functions
+//!     .adc_0
+//!     .assign(swm.pins.pio0_7.into_swm_pin(), &mut swm.handle);
+//!
+//! // Read a single value
+//! let adc_value = block! {adc.read(&mut adc_pin)}
+//!     .expect("Read should never fail");
+//! ```
+//!
+//! Please refer to the [examples in the repository] for more example code.
+//!
+//! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
 use embedded_hal::adc::{Channel, OneShot};
 
