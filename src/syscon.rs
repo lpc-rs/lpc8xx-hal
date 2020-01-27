@@ -15,16 +15,7 @@ pub mod frg;
 #[cfg(feature = "845")]
 pub use self::frg::FRG;
 
-#[cfg(feature = "82x")]
-/// Clock configuration for peripherals
-pub mod clocksource_82x;
-#[cfg(feature = "82x")]
-pub use clocksource_82x as clocksource;
-#[cfg(feature = "845")]
-/// Clock configuration for peripherals
-pub mod clocksource_845;
-#[cfg(feature = "845")]
-pub use clocksource_845 as clocksource;
+pub mod clocksource;
 
 use core::marker::PhantomData;
 
