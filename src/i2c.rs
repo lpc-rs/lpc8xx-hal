@@ -44,13 +44,15 @@
 //!
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
+use core::ops::Deref;
 use embedded_hal::blocking::i2c;
 use void::Void;
 
 use crate::{
-    init_state, pac,
-    swm::{self, I2C0_SCL, I2C0_SDA, PIO0_10, PIO0_11},
-    syscon,
+    init_state,
+    pac::{self, Interrupt},
+    swm::{self},
+    syscon::{self, clocksource::I2cClock, PeripheralClock},
 };
 
 /// Interface to an I2C peripheral
@@ -68,13 +70,16 @@ use crate::{
 /// apply to.
 ///
 /// [module documentation]: index.html
-pub struct I2C<State = init_state::Enabled> {
-    i2c: pac::I2C0,
+pub struct I2C<I, State = init_state::Enabled> {
+    i2c: I,
     _state: State,
 }
 
-impl I2C<init_state::Disabled> {
-    pub(crate) fn new(i2c: pac::I2C0) -> Self {
+impl<I> I2C<I, init_state::Disabled>
+where
+    I: Instance,
+{
+    pub(crate) fn new(i2c: I) -> Self {
         I2C {
             i2c: i2c,
             _state: init_state::Disabled,
@@ -92,7 +97,7 @@ impl I2C<init_state::Disabled> {
     ///
     /// # Limitations
     ///
-    /// This method expects the I2C mode for PIO0_10 and PIO0_11 to be set to
+    /// This method expects the mode for SDA & SCL pins to be set to
     /// standard/fast mode. This is the default value.
     ///
     /// The I2C clock frequency is hardcoded to a specific value. For unknown
@@ -100,31 +105,31 @@ impl I2C<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable(
+    pub fn enable<SdaPin, SclPin, Clock>(
         mut self,
+        clock: &I2cClock<Clock>,
         syscon: &mut syscon::Handle,
-        _: swm::Function<I2C0_SDA, swm::state::Assigned<PIO0_11>>,
-        _: swm::Function<I2C0_SCL, swm::state::Assigned<PIO0_10>>,
-    ) -> I2C<init_state::Enabled> {
+        _: swm::Function<I::Sda, swm::state::Assigned<SdaPin>>,
+        _: swm::Function<I::Scl, swm::state::Assigned<SclPin>>,
+    ) -> I2C<I, init_state::Enabled>
+    where
+        I2cClock<Clock>: PeripheralClock<I>,
+    {
         syscon.enable_clock(&mut self.i2c);
 
+        clock.select_clock(syscon);
         // We need the I2C mode for the pins set to standard/fast mode,
         // according to the user manual, section 15.3.1. This is already the
         // default value (see user manual, sections 8.5.8 and 8.5.9).
 
         // Set I2C clock frequency
-        // Here's my thinking: The main clock runs at 12 Mhz by default. The
-        // minimum low and high times of SCL are set to 2 clock cyles each (see
-        // below), meaning a full SCL cycle should take 4 clock ticks. Therefore
-        // dividing the main clock by 8 (which is achieved by writing 7 below),
-        // should result in an I2C frequency near 400 kHz (375 kHz to be
-        // precise).
-        // None of that is correct, of course. When actually running, I'm
-        // measuring an SCL frequency of 79.6 kHz. I wish I knew why.
-        self.i2c.clkdiv.write(|w| unsafe { w.divval().bits(7) });
-
-        // SCL low and high times are left at their default values (two clock
-        // cycles each). See user manual, section 15.6.9.
+        self.i2c
+            .clkdiv
+            .write(|w| unsafe { w.divval().bits(clock.divval) });
+        self.i2c.msttime.write(|w| {
+            w.mstsclhigh().bits(clock.mstsclhigh);
+            w.mstscllow().bits(clock.mstscllow)
+        });
 
         // Enable master mode
         // Set all other configuration values to default.
@@ -137,7 +142,10 @@ impl I2C<init_state::Disabled> {
     }
 }
 
-impl i2c::Write for I2C<init_state::Enabled> {
+impl<I> i2c::Write for I2C<I, init_state::Enabled>
+where
+    I: Instance,
+{
     type Error = Void;
 
     /// Write to the I2C bus
@@ -163,7 +171,7 @@ impl i2c::Write for I2C<init_state::Enabled> {
 
         for &b in data {
             // Wait until peripheral is ready to transmit
-            while !self.i2c.stat.read().mststate().is_transmit_ready() {}
+            while self.i2c.stat.read().mstpending().is_in_progress() {}
 
             // Write byte
             self.i2c.mstdat.write(|w| unsafe { w.data().bits(b) });
@@ -173,7 +181,7 @@ impl i2c::Write for I2C<init_state::Enabled> {
         }
 
         // Wait until peripheral is ready to transmit
-        while !self.i2c.stat.read().mststate().is_transmit_ready() {}
+        while self.i2c.stat.read().mstpending().is_in_progress() {}
 
         // Stop transmission
         self.i2c.mstctl.modify(|_, w| w.mststop().stop());
@@ -182,7 +190,10 @@ impl i2c::Write for I2C<init_state::Enabled> {
     }
 }
 
-impl i2c::Read for I2C<init_state::Enabled> {
+impl<I> i2c::Read for I2C<I, init_state::Enabled>
+where
+    I: Instance,
+{
     type Error = Void;
 
     /// Read from the I2C bus
@@ -211,18 +222,27 @@ impl i2c::Read for I2C<init_state::Enabled> {
         self.i2c.mstctl.write(|w| w.mststart().start());
 
         for b in buffer {
+            // Continue transmission
+            self.i2c.mstctl.write(|w| w.mstcontinue().continue_());
+
             // Wait until peripheral is ready to receive
-            while !self.i2c.stat.read().mststate().is_receive_ready() {}
+            while self.i2c.stat.read().mstpending().is_in_progress() {}
 
             // Read received byte
             *b = self.i2c.mstdat.read().data().bits();
         }
 
+        // Stop transmission
+        self.i2c.mstctl.modify(|_, w| w.mststop().stop());
+
         Ok(())
     }
 }
 
-impl<State> I2C<State> {
+impl<I, State> I2C<I, State>
+where
+    I: Instance,
+{
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the
@@ -235,7 +255,54 @@ impl<State> I2C<State> {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> pac::I2C0 {
+    pub fn free(self) -> I {
         self.i2c
     }
 }
+
+/// Internal trait for I2C peripherals
+///
+/// This trait is an internal implementation detail and should neither be
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
+/// be considered breaking changes.
+pub trait Instance:
+    Deref<Target = pac::i2c0::RegisterBlock>
+    + syscon::ClockControl
+    + syscon::ResetControl
+{
+    /// The interrupt that is triggered for this I2C peripheral
+    const INTERRUPT: Interrupt;
+
+    /// The movable function that needs to be assigned to this I2C's SDA pin
+    type Sda;
+
+    /// The movable function that needs to be assigned to this I2C's SCL pin
+    type Scl;
+}
+
+macro_rules! instances {
+    (
+        $(
+            $instance:ident,
+            $interrupt:ident,
+            $rx:ident,
+            $tx:ident;
+        )*
+    ) => {
+        $(
+            impl Instance for pac::$instance {
+                const INTERRUPT: Interrupt = Interrupt::$interrupt;
+
+                type Sda = swm::$rx;
+                type Scl = swm::$tx;
+            }
+        )*
+    };
+}
+
+instances!(
+    I2C0, I2C0, I2C0_SDA, I2C0_SCL;
+    I2C1, I2C1, I2C1_SDA, I2C1_SCL;
+    I2C2, I2C2, I2C2_SDA, I2C2_SCL;
+    I2C3, I2C3, I2C3_SDA, I2C3_SCL;
+);

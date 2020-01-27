@@ -10,7 +10,7 @@ use lpc8xx_hal::{
     pac::{Interrupt, NVIC},
     pmu::LowPowerClock,
     prelude::*,
-    syscon::clocksource::PeripheralClockConfig,
+    syscon::clocksource::UsartClock,
     syscon::WktWakeup,
     Peripherals,
 };
@@ -27,7 +27,7 @@ fn main() -> ! {
     syscon.uartfrg.set_clkdiv(6);
     syscon.uartfrg.set_frgmult(22);
     syscon.uartfrg.set_frgdiv(0xff);
-    let clock_config = PeripheralClockConfig::new(&syscon.uartfrg, 0);
+    let clock_config = UsartClock::new(&syscon.uartfrg, 0, 16);
 
     let (u0_rxd, _) = swm
         .movable_functions

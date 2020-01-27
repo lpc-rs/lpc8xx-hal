@@ -67,7 +67,7 @@ use crate::{
     dma, init_state,
     pac::{self, usart0::TXDAT, Interrupt, NVIC},
     swm::{self, FunctionTrait, PinTrait},
-    syscon::{self, PeripheralClock},
+    syscon::{self, clocksource::UsartClock, PeripheralClock},
 };
 
 /// Interface to a USART peripheral
@@ -120,7 +120,7 @@ where
     /// [module documentation]: index.html
     pub fn enable<RxPin, TxPin, CLOCK>(
         self,
-        clock: &CLOCK,
+        clock: &UsartClock<CLOCK>,
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
         _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
@@ -130,14 +130,17 @@ where
         TxPin: PinTrait,
         I::Rx: FunctionTrait<RxPin>,
         I::Tx: FunctionTrait<TxPin>,
-        CLOCK: PeripheralClock<I>,
+        UsartClock<CLOCK>: PeripheralClock<I>,
     {
         syscon.enable_clock(&self.usart);
 
         clock.select_clock(syscon);
         self.usart
             .brg
-            .write(|w| unsafe { w.brgval().bits(clock.get_psc()) });
+            .write(|w| unsafe { w.brgval().bits(clock.psc) });
+        self.usart
+            .osr
+            .write(|w| unsafe { w.osrval().bits(clock.osrval) });
 
         // According to the user manual, section 13.6.1, we need to make sure
         // that the USART is not sending or receiving data before writing to

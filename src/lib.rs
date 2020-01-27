@@ -115,7 +115,6 @@ pub mod ctimer;
 pub mod delay;
 pub mod dma;
 pub mod gpio;
-#[cfg(feature = "82x")]
 pub mod i2c;
 pub mod mrt;
 pub mod pmu;
@@ -154,7 +153,6 @@ pub use lpc845_pac as pac;
 pub use self::ctimer::CTimer;
 pub use self::dma::DMA;
 pub use self::gpio::GPIO;
-#[cfg(feature = "82x")]
 pub use self::i2c::I2C;
 pub use self::mrt::MRT;
 pub use self::pmu::PMU;
@@ -219,8 +217,7 @@ pub struct Peripherals {
     pub GPIO: GPIO<init_state::Disabled>,
 
     /// I2C0-bus interface
-    #[cfg(feature = "82x")]
-    pub I2C0: I2C<init_state::Disabled>,
+    pub I2C0: I2C<pac::I2C0, init_state::Disabled>,
 
     /// Multi-Rate Timer (MRT)
     pub MRT0: MRT,
@@ -328,14 +325,6 @@ pub struct Peripherals {
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
     pub FLASH_CTRL: pac::FLASH_CTRL,
-
-    /// I2C0-bus interface
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    #[cfg(feature = "845")]
-    pub I2C0: pac::I2C0,
 
     /// I2C1-bus interface
     ///
@@ -536,7 +525,6 @@ impl Peripherals {
             GPIO: unsafe { GPIO::new_enabled(p.GPIO) },
             #[cfg(feature = "845")]
             GPIO: GPIO::new(p.GPIO),
-            #[cfg(feature = "82x")]
             I2C0: I2C::new(p.I2C0),
             MRT0: MRT::new(p.MRT0),
             PMU: PMU::new(p.PMU),
@@ -565,8 +553,6 @@ impl Peripherals {
             #[cfg(feature = "845")]
             DAC1: p.DAC1,
             FLASH_CTRL: p.FLASH_CTRL,
-            #[cfg(feature = "845")]
-            I2C0: p.I2C0,
             I2C1: p.I2C1,
             I2C2: p.I2C2,
             I2C3: p.I2C3,

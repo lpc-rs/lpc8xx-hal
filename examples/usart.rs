@@ -4,12 +4,9 @@
 extern crate panic_halt;
 
 use lpc8xx_hal::{
-    cortex_m_rt::entry, prelude::*, syscon::clocksource::PeripheralClockConfig,
+    cortex_m_rt::entry, prelude::*, syscon::clocksource::UsartClock,
     Peripherals,
 };
-
-#[cfg(feature = "845")]
-use lpc8xx_hal::syscon::frg;
 
 #[entry]
 fn main() -> ! {
@@ -52,28 +49,12 @@ fn main() -> ! {
         syscon.uartfrg.set_clkdiv(6);
         syscon.uartfrg.set_frgmult(22);
         syscon.uartfrg.set_frgdiv(0xff);
-        PeripheralClockConfig::new(&syscon.uartfrg, 0)
+        UsartClock::new(&syscon.uartfrg, 0, 16)
     };
 
     #[cfg(feature = "845")]
     // Set baud rate to 115200 baud
-    //
-    // This is pretty much the same as for the LPC82x. The differences are
-    // that we're using a fractional generator that can be used as a clock
-    // source for other peripherals (which doesn't make a difference in this
-    // case), and we get our division by 6 by setting the BRGVAL of the
-    // USART instance (setting its value to 5 means division by 6).
-    let clock_config = {
-        syscon.frg0.select_clock(frg::Clock::FRO);
-        syscon.frg0.set_mult(22);
-        syscon.frg0.set_div(0xFF);
-        PeripheralClockConfig::new(&syscon.frg0, 5)
-    };
-    // The internal oscillator FRO can also be used as a clock source.
-    // Since it can only be divided by a whole number, it's doesn't work for
-    // high baudrates, but for 9600 Baud it works fine
-    //
-    // let clock_config = { PeripheralClockConfig::new(&syscon.iosc, (12_000_000 / (9_600 * 16)) as u16) };
+    let clock_config = UsartClock::new_with_baudrate(115200);
 
     // Make the rx & tx pins available to the switch matrix API, by changing
     // their state using `into_swm_pin`. This is required, because we're going

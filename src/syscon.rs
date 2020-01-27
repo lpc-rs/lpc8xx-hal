@@ -739,8 +739,6 @@ wakeup_interrupt!(I2c3Wakeup, i2c3);
 pub trait PeripheralClock<PERIPH> {
     /// Selects the clock
     fn select_clock(&self, handle: &mut Handle);
-    /// Returns a prescaler value, that's used for the peripheral-specific prescaler
-    fn get_psc(&self) -> u16;
 }
 
 reg!(PDRUNCFG, PDRUNCFG, pac::SYSCON, pdruncfg);
