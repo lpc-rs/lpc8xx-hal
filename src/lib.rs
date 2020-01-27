@@ -109,6 +109,7 @@ pub extern crate nb;
 #[macro_use]
 pub(crate) mod reg_proxy;
 
+pub mod adc;
 pub mod clock;
 #[cfg(feature = "845")]
 pub mod ctimer;
@@ -149,6 +150,7 @@ pub use lpc82x_pac as pac;
 #[cfg(feature = "845")]
 pub use lpc845_pac as pac;
 
+pub use self::adc::ADC;
 #[cfg(feature = "845")]
 pub use self::ctimer::CTimer;
 pub use self::dma::DMA;
@@ -195,6 +197,9 @@ use embedded_hal as hal;
 /// use of the hardware.
 #[allow(non_snake_case)]
 pub struct Peripherals {
+    /// Analog-to-Digital Converter (ADC)
+    pub ADC: ADC<init_state::Disabled>,
+
     /// Standard counter/timer (CTIMER)
     #[cfg(feature = "845")]
     pub CTIMER0: CTimer,
@@ -280,13 +285,6 @@ pub struct Peripherals {
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
     pub ACOMP: pac::ACOMP,
-
-    /// Analog-to-Digital Converter (ADC)
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub ADC0: pac::ADC0,
 
     /// Capacitive Touch (CAPT)
     ///
@@ -516,6 +514,7 @@ impl Peripherals {
     fn new(p: pac::Peripherals, cp: pac::CorePeripherals) -> Self {
         Peripherals {
             // HAL peripherals
+            ADC: ADC::new(p.ADC0),
             #[cfg(feature = "845")]
             CTIMER0: CTimer::new(p.CTIMER0),
             DMA: DMA::new(p.DMA0),
@@ -544,7 +543,6 @@ impl Peripherals {
 
             // Raw peripherals
             ACOMP: p.ACOMP,
-            ADC0: p.ADC0,
             #[cfg(feature = "845")]
             CAPT: p.CAPT,
             CRC: p.CRC,
