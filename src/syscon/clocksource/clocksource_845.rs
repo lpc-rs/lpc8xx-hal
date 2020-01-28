@@ -33,6 +33,8 @@ periph_clock_selector!(I2C0, 5);
 periph_clock_selector!(I2C1, 6);
 periph_clock_selector!(I2C2, 7);
 periph_clock_selector!(I2C3, 8);
+periph_clock_selector!(SPI0, 9);
+periph_clock_selector!(SPI1, 10);
 
 /// Internal trait used for defining valid peripheal clock sources
 ///
@@ -157,6 +159,34 @@ impl<PERIPH: PeripheralClockSelector> I2cClock<(PERIPH, IOSC)> {
 
 impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
     PeripheralClock<PERIPH> for I2cClock<(PERIPH, CLOCK)>
+{
+    fn select_clock(&self, syscon: &mut syscon::Handle) {
+        syscon.fclksel[PERIPH::REGISTER_NUM]
+            .write(|w| w.sel().variant(CLOCK::CLOCK));
+    }
+}
+
+/// A struct containing the clock configuration for a peripheral
+pub struct SpiClock<PeriphClock> {
+    pub(crate) divval: u16,
+    // The fields in the DLY register are ignored, since SSEL & EOF aren't used
+    _periphclock: PhantomData<PeriphClock>,
+}
+
+impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
+    SpiClock<(PERIPH, CLOCK)>
+{
+    /// Create the clock config for the spi peripheral
+    pub fn new(_: &CLOCK, divval: u16) -> Self {
+        Self {
+            divval,
+            _periphclock: PhantomData,
+        }
+    }
+}
+
+impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
+    PeripheralClock<PERIPH> for SpiClock<(PERIPH, CLOCK)>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
         syscon.fclksel[PERIPH::REGISTER_NUM]

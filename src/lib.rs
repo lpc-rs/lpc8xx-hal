@@ -120,6 +120,7 @@ pub mod i2c;
 pub mod mrt;
 pub mod pmu;
 pub mod sleep;
+pub mod spi;
 pub mod swm;
 pub mod syscon;
 pub mod usart;
@@ -158,6 +159,7 @@ pub use self::gpio::GPIO;
 pub use self::i2c::I2C;
 pub use self::mrt::MRT;
 pub use self::pmu::PMU;
+pub use self::spi::SPI;
 pub use self::swm::SWM;
 pub use self::syscon::SYSCON;
 pub use self::usart::USART;
@@ -229,6 +231,12 @@ pub struct Peripherals {
 
     /// Power Management Unit
     pub PMU: PMU,
+
+    /// SPI0
+    pub SPI0: SPI<pac::SPI0, init_state::Disabled>,
+
+    /// SPI1
+    pub SPI1: SPI<pac::SPI1, init_state::Disabled>,
 
     /// Switch matrix
     ///
@@ -373,20 +381,6 @@ pub struct Peripherals {
     /// allow you full, unprotected access to the peripheral.
     pub SCT0: pac::SCT0,
 
-    /// SPI0
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub SPI0: pac::SPI0,
-
-    /// SPI1
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub SPI1: pac::SPI1,
-
     /// Windowed Watchdog Timer (WWDT)
     ///
     /// A HAL API for this peripheral has not been implemented yet. In the
@@ -527,6 +521,8 @@ impl Peripherals {
             I2C0: I2C::new(p.I2C0),
             MRT0: MRT::new(p.MRT0),
             PMU: PMU::new(p.PMU),
+            SPI0: SPI::new(p.SPI0),
+            SPI1: SPI::new(p.SPI1),
             #[cfg(feature = "82x")]
             SWM: unsafe { SWM::new_enabled(p.SWM0) },
             #[cfg(feature = "845")]
@@ -558,8 +554,6 @@ impl Peripherals {
             IOCON: p.IOCON,
             PINT: p.PINT,
             SCT0: p.SCT0,
-            SPI0: p.SPI0,
-            SPI1: p.SPI1,
             WWDT: p.WWDT,
 
             // Core peripherals

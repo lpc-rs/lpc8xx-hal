@@ -75,3 +75,28 @@ impl<PERIPH: crate::i2c::Instance> PeripheralClock<PERIPH>
         // NOOP, selected by default
     }
 }
+
+/// A struct containing the clock configuration for a peripheral
+pub struct SpiClock<PERIPH> {
+    pub(crate) divval: u16,
+    // The fields in the DLY register are ignored, since SSEL & EOF aren't used
+    _periphclock: PhantomData<PERIPH>,
+}
+
+impl<PERIPH: crate::spi::Instance> SpiClock<PERIPH> {
+    /// Create the clock config for the spi peripheral
+    pub fn new(divval: u16) -> Self {
+        Self {
+            divval,
+            _periphclock: PhantomData,
+        }
+    }
+}
+
+impl<PERIPH: crate::spi::Instance> PeripheralClock<PERIPH>
+    for SpiClock<PERIPH>
+{
+    fn select_clock(&self, _: &mut syscon::Handle) {
+        // NOOP, selected by default
+    }
+}
