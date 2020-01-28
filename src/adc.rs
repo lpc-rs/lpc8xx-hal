@@ -2,7 +2,7 @@
 //!
 //! # Examples
 //!
-//! Read a single value
+//! Read a single value:
 //! ``` no_run
 //! use lpc8xx_hal::prelude::*;
 //! use lpc8xx_hal::Peripherals;
@@ -22,7 +22,7 @@
 //!     .assign(swm.pins.pio0_7.into_swm_pin(), &mut swm.handle);
 //!
 //! // Read a single value
-//! let adc_value = block! {adc.read(&mut adc_pin)}
+//! let adc_value = block!(adc.read(&mut adc_pin))
 //!     .expect("Read should never fail");
 //! ```
 //!
@@ -66,10 +66,6 @@ impl ADC<init_state::Disabled> {
     ///
     /// Consumes this instance of `ADC` and returns another instance that has
     /// its `State` type parameter set to [`Enabled`].
-    ///
-    /// # Limitations
-    ///
-    /// This assumes that the clock is running at 500 kHz for the calibration
     ///
     /// # Examples
     ///
@@ -152,9 +148,8 @@ where
 {
     type Error = ();
 
-    // TODO Nonblocking
     fn read(&mut self, _: &mut PIN) -> nb::Result<u16, Self::Error> {
-        // Start reading ofthe channel
+        // Start the measurement of the given channel
         // Follows the description in the um
         self.adc.seq_ctrla.write(|w| {
             unsafe { w.channels().bits(1 << PIN::channel()) };
@@ -163,12 +158,15 @@ where
             w.seq_ena().enabled();
             w.mode().end_of_conversion()
         });
+
         let mut read = self.adc.seq_gdata.read();
+
         // Wait until the conversion is done
         while read.datavalid().bit_is_clear() {
             read = self.adc.seq_gdata.read();
         }
-        // Return the results as 16 bit values
+
+        // Returns the result as a 16 bit value
         Ok(read.result().bits() << 4)
     }
 }

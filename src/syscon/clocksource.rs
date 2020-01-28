@@ -17,7 +17,7 @@ pub struct AdcClock {
 impl AdcClock {
     /// Create the clock config for the ADC peripheral
     ///
-    /// The clocksource is divided by `caldiv` during calibration or `div`
+    /// The system clock is divided by `caldiv` during calibration or `div`
     /// during normal operation.
     /// During calibration the frequency of the ADC peripheral has to be 500 kHz
     /// and during normal operation it can't be higher than 30 MHz.
