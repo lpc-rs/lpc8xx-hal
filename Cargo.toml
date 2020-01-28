@@ -134,6 +134,10 @@ required-features = ["rt-selected"]
 name              = "ctimer_fade"
 required-features = ["rt-selected", "845"]
 
+[[example]]
+name              = "adc"
+required-features = ["rt-selected", "845"]
+
 [profile.dev]
 debug = true
 
