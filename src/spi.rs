@@ -205,3 +205,10 @@ impl Instance for pac::SPI1 {
     type Mosi = swm::SPI1_MOSI;
     type Miso = swm::SPI1_MISO;
 }
+
+impl<I: Instance> embedded_hal::blocking::spi::transfer::Default<u8>
+    for SPI<I>
+{
+}
+
+impl<I: Instance> embedded_hal::blocking::spi::write::Default<u8> for SPI<I> {}
