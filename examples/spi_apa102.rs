@@ -25,9 +25,9 @@ fn main() -> ! {
     #[cfg(feature = "845")]
     let mut handle = swm.handle.enable(&mut syscon.handle); // SWM isn't enabled by default on LPC845.
 
-    let sck_pin = swm.pins.pio0_9.into_swm_pin();
-    let mosi_pin = swm.pins.pio0_10.into_swm_pin();
-    let miso_pin = swm.pins.pio0_11.into_swm_pin();
+    let sck_pin = swm.pins.pio0_13.into_swm_pin();
+    let mosi_pin = swm.pins.pio0_14.into_swm_pin();
+    let miso_pin = swm.pins.pio0_15.into_swm_pin();
 
     let (spi0_sck, _) =
         swm.movable_functions.spi0_sck.assign(sck_pin, &mut handle);
@@ -55,7 +55,6 @@ fn main() -> ! {
         spi0_miso,
     );
 
-    // We're done. Let's do nothing until someone resets the microcontroller.
     loop {
         // Cycle through colors on 16 chained APA102C LEDs
         loop {
