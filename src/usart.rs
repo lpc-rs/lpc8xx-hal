@@ -201,10 +201,10 @@ where
         }
     }
 
-    /// Enable the USART interrupts
+    /// Enable interrupts for this instance in the NVIC
     ///
-    /// Enable the interrupts for this USART peripheral. This only enables the
-    /// interrupts via the NVIC. It doesn't enable any specific interrupt.
+    /// This only enables the interrupts in the NVIC. It doesn't enable any
+    /// specific interrupt in this USART instance.
     pub fn enable_interrupts(&mut self) {
         // Safe, because there's no critical section here that this could
         // interfere with.
@@ -250,7 +250,7 @@ where
     /// Enable the RXRDY interrupt
     ///
     /// The interrupt will not actually work unless the interrupts for this
-    /// peripheral have also been enabled via the NVIC. See
+    /// peripheral have also been enabled in the NVIC. See
     /// [`enable_interrupts`].
     ///
     /// [`enable_interrupts`]: #method.enable_interrupts
@@ -312,7 +312,7 @@ where
     /// Enable the TXRDY interrupt
     ///
     /// The interrupt will not actually work unless the interrupts for this
-    /// peripheral have also been enabled via the NVIC. See
+    /// peripheral have also been enabled in the NVIC. See
     /// [`enable_interrupts`].
     ///
     /// [`enable_interrupts`]: #method.enable_interrupts
