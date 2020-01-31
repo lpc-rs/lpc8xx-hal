@@ -201,14 +201,58 @@ where
         }
     }
 
-    /// Enable the USART interrupts
+    /// Enable interrupts for this instance in the NVIC
     ///
-    /// Enable the interrupts for this USART peripheral. This only enables the
-    /// interrupts via the NVIC. It doesn't enable any specific interrupt.
-    pub fn enable_interrupts(&mut self) {
+    /// This only enables the interrupts in the NVIC. It doesn't enable any
+    /// specific interrupt in this USART instance.
+    pub fn enable_in_nvic(&mut self) {
         // Safe, because there's no critical section here that this could
         // interfere with.
         unsafe { NVIC::unmask(I::INTERRUPT) };
+    }
+
+    /// Disable interrupts for this instance in the NVIC
+    ///
+    /// This only disables the interrupts in the NVIC. It doesn't change
+    /// anything about the interrupt configuration within this USART instance.
+    pub fn disable_in_nvic(&mut self) {
+        NVIC::mask(I::INTERRUPT);
+    }
+
+    /// Enable the RXRDY interrupt
+    ///
+    /// See [`Rx::enable_rxrdy`].
+    ///
+    /// [`Rx::enable_rxrdy`]: struct.Rx.html#method.enable_rxrdy
+    pub fn enable_rxrdy(&mut self) {
+        self.rx().enable_rxrdy()
+    }
+
+    /// Disable the RXRDY interrupt
+    ///
+    /// See [`Rx::disable_rxrdy`].
+    ///
+    /// [`Rx::disable_rxrdy`]: struct.Rx.html#method.disable_rxrdy
+    pub fn disable_rxrdy(&mut self) {
+        self.rx().disable_rxrdy()
+    }
+
+    /// Enable the TXRDY interrupt
+    ///
+    /// See [`Tx::enable_txrdy`].
+    ///
+    /// [`Tx::enable_txrdy`]: struct.Tx.html#method.enable_txrdy
+    pub fn enable_txrdy(&mut self) {
+        self.tx().enable_txrdy()
+    }
+
+    /// Disable the TXRDY interrupt
+    ///
+    /// See [`Tx::disable_txrdy`].
+    ///
+    /// [`Tx::disable_txrdy`]: struct.Tx.html#method.disable_txrdy
+    pub fn disable_txrdy(&mut self) {
+        self.tx().disable_txrdy()
     }
 
     /// Return USART receiver
@@ -250,16 +294,16 @@ where
     /// Enable the RXRDY interrupt
     ///
     /// The interrupt will not actually work unless the interrupts for this
-    /// peripheral have also been enabled via the NVIC. See
-    /// [`enable_interrupts`].
+    /// peripheral have also been enabled in the NVIC. See
+    /// [`USART::enable_in_nvic`].
     ///
-    /// [`enable_interrupts`]: #method.enable_interrupts
-    pub fn enable_rxrdy_interrupt(&mut self) {
+    /// [`USART::enable_in_nvic`]: struct.USART.html#method.enable_in_nvic
+    pub fn enable_rxrdy(&mut self) {
         self.0.usart.intenset.write(|w| w.rxrdyen().set_bit());
     }
 
     /// Disable the RXRDY interrupt
-    pub fn disable_rxrdy_interrupt(&mut self) {
+    pub fn disable_rxrdy(&mut self) {
         self.0.usart.intenclr.write(|w| w.rxrdyclr().set_bit());
     }
 }
@@ -312,16 +356,16 @@ where
     /// Enable the TXRDY interrupt
     ///
     /// The interrupt will not actually work unless the interrupts for this
-    /// peripheral have also been enabled via the NVIC. See
-    /// [`enable_interrupts`].
+    /// peripheral have also been enabled in the NVIC. See
+    /// [`USART::enable_in_nvic`].
     ///
-    /// [`enable_interrupts`]: #method.enable_interrupts
-    pub fn enable_txrdy_interrupt(&mut self) {
+    /// [`USART::enable_in_nvic`]: struct.USART.html#method.enable_in_nvic
+    pub fn enable_txrdy(&mut self) {
         self.0.usart.intenset.write(|w| w.txrdyen().set_bit());
     }
 
     /// Disable the TXRDY interrupt
-    pub fn disable_txrdy_interrupt(&mut self) {
+    pub fn disable_txrdy(&mut self) {
         self.0.usart.intenclr.write(|w| w.txrdyclr().set_bit());
     }
 }
