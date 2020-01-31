@@ -219,6 +219,42 @@ where
         NVIC::mask(I::INTERRUPT);
     }
 
+    /// Enable the RXRDY interrupt
+    ///
+    /// See [`Rx::enable_rxrdy`].
+    ///
+    /// [`Rx::enable_rxrdy`]: struct.Rx.html#method.enable_rxrdy
+    pub fn enable_rxrdy(&mut self) {
+        self.rx().enable_rxrdy()
+    }
+
+    /// Disable the RXRDY interrupt
+    ///
+    /// See [`Rx::disable_rxrdy`].
+    ///
+    /// [`Rx::disable_rxrdy`]: struct.Rx.html#method.disable_rxrdy
+    pub fn disable_rxrdy(&mut self) {
+        self.rx().disable_rxrdy()
+    }
+
+    /// Enable the TXRDY interrupt
+    ///
+    /// See [`Tx::enable_txrdy`].
+    ///
+    /// [`Tx::enable_txrdy`]: struct.Tx.html#method.enable_txrdy
+    pub fn enable_txrdy(&mut self) {
+        self.tx().enable_txrdy()
+    }
+
+    /// Disable the TXRDY interrupt
+    ///
+    /// See [`Tx::disable_txrdy`].
+    ///
+    /// [`Tx::disable_txrdy`]: struct.Tx.html#method.disable_txrdy
+    pub fn disable_txrdy(&mut self) {
+        self.tx().disable_txrdy()
+    }
+
     /// Return USART receiver
     pub fn rx(&self) -> Rx<I> {
         Rx(self)
