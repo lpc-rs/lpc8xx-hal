@@ -205,7 +205,7 @@ where
     ///
     /// This only enables the interrupts in the NVIC. It doesn't enable any
     /// specific interrupt in this USART instance.
-    pub fn enable_interrupts(&mut self) {
+    pub fn enable_in_nvic(&mut self) {
         // Safe, because there's no critical section here that this could
         // interfere with.
         unsafe { NVIC::unmask(I::INTERRUPT) };
@@ -251,9 +251,9 @@ where
     ///
     /// The interrupt will not actually work unless the interrupts for this
     /// peripheral have also been enabled in the NVIC. See
-    /// [`enable_interrupts`].
+    /// [`USART::enable_in_nvic`].
     ///
-    /// [`enable_interrupts`]: #method.enable_interrupts
+    /// [`USART::enable_in_nvic`]: struct.USART.html#method.enable_in_nvic
     pub fn enable_rxrdy_interrupt(&mut self) {
         self.0.usart.intenset.write(|w| w.rxrdyen().set_bit());
     }
@@ -313,9 +313,9 @@ where
     ///
     /// The interrupt will not actually work unless the interrupts for this
     /// peripheral have also been enabled in the NVIC. See
-    /// [`enable_interrupts`].
+    /// [`USART::enable_in_nvic`].
     ///
-    /// [`enable_interrupts`]: #method.enable_interrupts
+    /// [`USART::enable_in_nvic`]: struct.USART.html#method.enable_in_nvic
     pub fn enable_txrdy_interrupt(&mut self) {
         self.0.usart.intenset.write(|w| w.txrdyen().set_bit());
     }
