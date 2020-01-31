@@ -211,6 +211,14 @@ where
         unsafe { NVIC::unmask(I::INTERRUPT) };
     }
 
+    /// Disable interrupts for this instance in the NVIC
+    ///
+    /// This only disables the interrupts in the NVIC. It doesn't change
+    /// anything about the interrupt configuration within this USART instance.
+    pub fn disable_in_nvic(&mut self) {
+        NVIC::mask(I::INTERRUPT);
+    }
+
     /// Return USART receiver
     pub fn rx(&self) -> Rx<I> {
         Rx(self)
