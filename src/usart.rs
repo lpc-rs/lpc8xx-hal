@@ -262,12 +262,12 @@ where
     /// [`USART::enable_in_nvic`].
     ///
     /// [`USART::enable_in_nvic`]: struct.USART.html#method.enable_in_nvic
-    pub fn enable_rxrdy_interrupt(&mut self) {
+    pub fn enable_rxrdy(&mut self) {
         self.0.usart.intenset.write(|w| w.rxrdyen().set_bit());
     }
 
     /// Disable the RXRDY interrupt
-    pub fn disable_rxrdy_interrupt(&mut self) {
+    pub fn disable_rxrdy(&mut self) {
         self.0.usart.intenclr.write(|w| w.rxrdyclr().set_bit());
     }
 }
@@ -324,12 +324,12 @@ where
     /// [`USART::enable_in_nvic`].
     ///
     /// [`USART::enable_in_nvic`]: struct.USART.html#method.enable_in_nvic
-    pub fn enable_txrdy_interrupt(&mut self) {
+    pub fn enable_txrdy(&mut self) {
         self.0.usart.intenset.write(|w| w.txrdyen().set_bit());
     }
 
     /// Disable the TXRDY interrupt
-    pub fn disable_txrdy_interrupt(&mut self) {
+    pub fn disable_txrdy(&mut self) {
         self.0.usart.intenclr.write(|w| w.txrdyclr().set_bit());
     }
 }
