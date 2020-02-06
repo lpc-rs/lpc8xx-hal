@@ -219,6 +219,14 @@ where
         NVIC::mask(I::INTERRUPT);
     }
 
+    /// Clear's this instance's interrupt pending flag in the NVIC
+    ///
+    /// This only clears the interrupt's pending flag in the NVIC. It does not
+    /// affect any of the interrupt-related flags in the peripheral.
+    pub fn clear_nvic_pending(&mut self) {
+        NVIC::unpend(I::INTERRUPT);
+    }
+
     /// Enable the RXRDY interrupt
     ///
     /// See [`Rx::enable_rxrdy`].
