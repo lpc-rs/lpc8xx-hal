@@ -29,7 +29,9 @@
 //! [`swm`]: ../swm/index.html
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
-use embedded_hal::digital::v2::{InputPin, OutputPin, StatefulOutputPin};
+use embedded_hal::digital::v2::{
+    toggleable, InputPin, OutputPin, StatefulOutputPin,
+};
 use void::Void;
 
 use crate::{
@@ -286,6 +288,13 @@ where
                 == T::MASK,
         )
     }
+}
+
+impl<'gpio, T> toggleable::Default
+    for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
+where
+    T: PinTrait,
+{
 }
 
 impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
