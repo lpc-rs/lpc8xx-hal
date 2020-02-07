@@ -12,11 +12,12 @@ use lpc8xx_hal::{
     prelude::*,
     syscon::clocksource::UsartClock,
     syscon::WktWakeup,
-    Peripherals,
+    CorePeripherals, Peripherals,
 };
 
 #[entry]
 fn main() -> ! {
+    let cp = CorePeripherals::take().unwrap();
     let p = Peripherals::take().unwrap();
 
     let mut pmu = p.PMU.split();
@@ -52,7 +53,7 @@ fn main() -> ! {
     // Need to re-assign some stuff that's needed inside the closure. Otherwise
     // it will try to move stuff that's still borrowed outside of it.
     let mut pmu = pmu.handle;
-    let mut scb = p.SCB;
+    let mut scb = cp.SCB;
     let mut syscon = syscon.handle;
 
     interrupt::free(|_| {

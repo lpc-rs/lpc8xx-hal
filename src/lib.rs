@@ -165,6 +165,8 @@ pub use self::syscon::SYSCON;
 pub use self::usart::USART;
 pub use self::wkt::WKT;
 
+pub use pac::CorePeripherals;
+
 use embedded_hal as hal;
 
 /// Provides access to all peripherals
@@ -387,41 +389,6 @@ pub struct Peripherals {
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
     pub WWDT: pac::WWDT,
-
-    /// CPUID
-    ///
-    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub CPUID: pac::CPUID,
-
-    /// Debug Control Block (DCB)
-    ///
-    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub DCB: pac::DCB,
-
-    /// Data Watchpoint and Trace unit (DWT)
-    ///
-    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub DWT: pac::DWT,
-
-    /// Memory Protection Unit (MPU)
-    ///
-    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub MPU: pac::MPU,
-
-    /// Nested Vector Interrupt Controller (NVIC)
-    ///
-    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub NVIC: pac::NVIC,
-
-    /// System Control Block (SCB)
-    ///
-    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub SCB: pac::SCB,
-
-    /// SysTick: System Timer
-    ///
-    /// This is a core peripherals that's available on all ARM Cortex-M0+ cores.
-    pub SYST: pac::SYST,
 }
 
 impl Peripherals {
@@ -455,10 +422,7 @@ impl Peripherals {
     /// let p = Peripherals::take().unwrap();
     /// ```
     pub fn take() -> Option<Self> {
-        Some(Self::new(
-            pac::Peripherals::take()?,
-            pac::CorePeripherals::take()?,
-        ))
+        Some(Self::new(pac::Peripherals::take()?))
     }
 
     /// Steal the peripherals
@@ -502,10 +466,10 @@ impl Peripherals {
     /// Since there are no means within this API to forcibly change type state,
     /// you will need to resort to something like [`core::mem::transmute`].
     pub unsafe fn steal() -> Self {
-        Self::new(pac::Peripherals::steal(), pac::CorePeripherals::steal())
+        Self::new(pac::Peripherals::steal())
     }
 
-    fn new(p: pac::Peripherals, cp: pac::CorePeripherals) -> Self {
+    fn new(p: pac::Peripherals) -> Self {
         Peripherals {
             // HAL peripherals
             ADC: ADC::new(p.ADC0),
@@ -555,15 +519,6 @@ impl Peripherals {
             PINT: p.PINT,
             SCT0: p.SCT0,
             WWDT: p.WWDT,
-
-            // Core peripherals
-            CPUID: cp.CPUID,
-            DCB: cp.DCB,
-            DWT: cp.DWT,
-            MPU: cp.MPU,
-            NVIC: cp.NVIC,
-            SCB: cp.SCB,
-            SYST: cp.SYST,
         }
     }
 }

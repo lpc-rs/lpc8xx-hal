@@ -19,14 +19,15 @@ use lpc8xx_hal::{
     delay::Delay,
     prelude::*,
     syscon::clocksource::{I2cClock, UsartClock},
-    Peripherals,
+    CorePeripherals, Peripherals,
 };
 
 #[entry]
 fn main() -> ! {
+    let cp = CorePeripherals::take().unwrap();
     let p = Peripherals::take().unwrap();
 
-    let mut delay = Delay::new(p.SYST);
+    let mut delay = Delay::new(cp.SYST);
     let i2c = p.I2C0;
     let swm = p.SWM.split();
     let mut syscon = p.SYSCON.split();

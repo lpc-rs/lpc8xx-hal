@@ -3,7 +3,9 @@
 
 extern crate panic_halt;
 
-use lpc8xx_hal::{cortex_m_rt::entry, delay::Delay, prelude::*, Peripherals};
+use lpc8xx_hal::{
+    cortex_m_rt::entry, delay::Delay, prelude::*, CorePeripherals, Peripherals,
+};
 
 #[entry]
 fn main() -> ! {
@@ -12,11 +14,12 @@ fn main() -> ! {
     // If we tried to call the method a second time, it would return `None`, but
     // we're only calling it the one time here, so we can safely `unwrap` the
     // `Option` without causing a panic.
+    let cp = CorePeripherals::take().unwrap();
     let p = Peripherals::take().unwrap();
 
     // Initialize the APIs of the peripherals we need.
     let swm = p.SWM.split();
-    let mut delay = Delay::new(p.SYST);
+    let mut delay = Delay::new(cp.SYST);
     let mut syscon = p.SYSCON.split();
 
     let mut handle = swm.handle.enable(&mut syscon.handle);
