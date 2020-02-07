@@ -140,6 +140,10 @@ name              = "adc"
 required-features = ["rt-selected", "845"]
 
 [[example]]
+name              = "rtfm"
+required-features = ["845"]
+
+[[example]]
 name              = "spi_apa102"
 required-features = ["rt-selected"]
 
