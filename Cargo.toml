@@ -42,7 +42,8 @@ version      = "0.3.0"
 
 
 [dev-dependencies]
-panic-halt = "0.2.0"
+panic-halt    = "0.2.0"
+cortex-m-rtfm = "0.5.1"
 
 
 [build-dependencies]
