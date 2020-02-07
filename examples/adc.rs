@@ -13,14 +13,15 @@ use lpc8xx_hal::{
     delay::Delay,
     prelude::*,
     syscon::clocksource::{AdcClock, UsartClock},
-    Peripherals,
+    CorePeripherals, Peripherals,
 };
 
 #[entry]
 fn main() -> ! {
+    let cp = CorePeripherals::take().unwrap();
     let p = Peripherals::take().unwrap();
 
-    let mut delay = Delay::new(p.SYST);
+    let mut delay = Delay::new(cp.SYST);
     let swm = p.SWM.split();
     let mut syscon = p.SYSCON.split();
 
