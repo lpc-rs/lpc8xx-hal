@@ -65,7 +65,7 @@ use void::Void;
 
 use crate::{
     dma, init_state,
-    pac::{self, usart0::TXDAT, Interrupt, NVIC},
+    pac::{self, Interrupt, NVIC},
     swm::{self, FunctionTrait, PinTrait},
     syscon::{self, clocksource::UsartClock, PeripheralClock},
 };
@@ -433,7 +433,7 @@ where
     }
 
     fn end_addr(&mut self) -> *mut u8 {
-        &self.0.usart.txdat as *const _ as *mut TXDAT as *mut u8
+        I::TXDAT_ADDR
     }
 }
 
@@ -450,6 +450,9 @@ pub trait Instance:
     /// The interrupt that is triggered for this USART peripheral
     const INTERRUPT: Interrupt;
 
+    /// Address of the TXDAT register
+    const TXDAT_ADDR: *mut u8;
+
     /// The movable function that needs to be assigned to this USART's RX pin
     type Rx;
 
@@ -462,13 +465,15 @@ macro_rules! instances {
         $(
             $instance:ident,
             $interrupt:ident,
+            $addr:expr,
             $rx:ident,
             $tx:ident;
         )*
     ) => {
         $(
             impl Instance for pac::$instance {
-                const INTERRUPT: Interrupt = Interrupt::$interrupt;
+                const INTERRUPT:  Interrupt = Interrupt::$interrupt;
+                const TXDAT_ADDR: *mut u8   = ($addr + 0x1c) as *mut u8;
 
                 type Rx = swm::$rx;
                 type Tx = swm::$tx;
@@ -478,15 +483,15 @@ macro_rules! instances {
 }
 
 instances!(
-    USART0, USART0, U0_RXD, U0_TXD;
-    USART1, USART1, U1_RXD, U1_TXD;
-    USART2, USART2, U2_RXD, U2_TXD;
+    USART0, USART0, 0x4006_4000, U0_RXD, U0_TXD;
+    USART1, USART1, 0x4006_8000, U1_RXD, U1_TXD;
+    USART2, USART2, 0x4006_C000, U2_RXD, U2_TXD;
 );
 
 #[cfg(feature = "845")]
 instances!(
-    USART3, PIN_INT6_USART3, U3_RXD, U3_TXD;
-    USART4, PIN_INT7_USART4, U4_RXD, U4_TXD;
+    USART3, PIN_INT6_USART3, 0x4007_0000, U3_RXD, U3_TXD;
+    USART4, PIN_INT7_USART4, 0x4007_4000, U4_RXD, U4_TXD;
 );
 
 /// A USART error
