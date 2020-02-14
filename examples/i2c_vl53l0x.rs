@@ -74,7 +74,6 @@ fn main() -> ! {
     );
 
     serial
-        .tx
         .bwrite_all(b"Initializing I2C...\n")
         .expect("Write should never fail");
 
@@ -92,7 +91,6 @@ fn main() -> ! {
         i2c.enable(&i2c_clock, &mut syscon.handle, i2c0_sda, i2c0_scl);
 
     serial
-        .tx
         .bwrite_all(b"Writing data...\n")
         .expect("Write should never fail");
 
@@ -100,7 +98,6 @@ fn main() -> ! {
     i2c.write(0x52, &[0xC0]).expect("Failed to write data");
 
     serial
-        .tx
         .bwrite_all(b"Receiving data...\n")
         .expect("Write should never fail");
 
@@ -108,16 +105,14 @@ fn main() -> ! {
     let mut buffer = [0u8; 1];
     i2c.read(0x52, &mut buffer).expect("Failed to read data");
 
-    write!(serial.tx, "{:#X}\n", buffer[0]).expect("Write should never fail");
+    write!(serial, "{:#X}\n", buffer[0]).expect("Write should never fail");
 
     if buffer[0] == 0xEE {
         serial
-            .tx
             .bwrite_all(b"SUCCESS!\n")
             .expect("Write should never fail");
     } else {
         serial
-            .tx
             .bwrite_all(b"FAILURE!\n")
             .expect("Write should never fail");
     }

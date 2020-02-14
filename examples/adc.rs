@@ -51,7 +51,7 @@ fn main() -> ! {
     loop {
         let adc_value =
             block! {adc.read(&mut adc_pin)}.expect("Read should never fail");
-        write!(serial.tx, "{}\n", adc_value).expect("Write should never fail");
+        write!(serial, "{}\n", adc_value).expect("Write should never fail");
         delay.delay_ms(100u8);
     }
 }

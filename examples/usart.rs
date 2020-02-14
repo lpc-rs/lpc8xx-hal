@@ -86,7 +86,6 @@ fn main() -> ! {
 
     // Send a string via USART0, blocking until it has been sent
     serial
-        .tx
         .bwrite_all(b"Hello, world!\n")
         .expect("UART write shouldn't fail");
 
