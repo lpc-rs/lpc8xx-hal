@@ -39,7 +39,7 @@ fn main() -> ! {
         .u0_txd
         .assign(swm.pins.pio0_4.into_swm_pin(), &mut swm.handle);
 
-    let serial =
+    let mut serial =
         p.USART0
             .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
@@ -67,7 +67,7 @@ fn main() -> ! {
 
         // Busy Waiting
         serial
-            .tx()
+            .tx
             .bwrite_all(b"5 seconds of busy waiting...\n")
             .expect("UART write shouldn't fail");
         wkt.start(five_seconds);
@@ -83,7 +83,7 @@ fn main() -> ! {
 
         // Sleep mode
         serial
-            .tx()
+            .tx
             .bwrite_all(b"5 seconds of sleep mode...\n")
             .expect("UART write shouldn't fail");
         wkt.start(five_seconds);
@@ -98,10 +98,10 @@ fn main() -> ! {
 
         // Deep-sleep mode
         serial
-            .tx()
+            .tx
             .bwrite_all(b"5 seconds of deep-sleep mode...\n")
             .expect("UART write shouldn't fail");
-        block!(serial.tx().flush()).expect("Flush shouldn't fail");
+        block!(serial.tx.flush()).expect("Flush shouldn't fail");
         wkt.start(five_seconds);
         NVIC::unpend(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
@@ -110,10 +110,10 @@ fn main() -> ! {
 
         // Power-down mode
         serial
-            .tx()
+            .tx
             .bwrite_all(b"5 seconds of power-down mode...\n")
             .expect("UART write shouldn't fail");
-        block!(serial.tx().flush()).expect("Flush shouldn't fail");
+        block!(serial.tx.flush()).expect("Flush shouldn't fail");
         wkt.start(five_seconds);
         NVIC::unpend(Interrupt::WKT);
         while let Err(nb::Error::WouldBlock) = wkt.wait() {
@@ -125,7 +125,7 @@ fn main() -> ! {
         // testing it for the time being.
 
         serial
-            .tx()
+            .tx
             .bwrite_all(b"Done\n")
             .expect("UART write shouldn't fail");
 

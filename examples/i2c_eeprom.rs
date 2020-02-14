@@ -62,12 +62,12 @@ fn main() -> ! {
     let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(rx_pin, &mut handle);
     let (u0_txd, _) = swm.movable_functions.u0_txd.assign(tx_pin, &mut handle);
 
-    let serial =
+    let mut serial =
         p.USART0
             .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
     serial
-        .tx()
+        .tx
         .bwrite_all(b"Initializing I2C...\n")
         .expect("Write should never fail");
 
@@ -89,7 +89,7 @@ fn main() -> ! {
     let address = 0b1010_0000;
 
     serial
-        .tx()
+        .tx
         .bwrite_all(b"Writing data...\n")
         .expect("Write should never fail");
 
@@ -98,7 +98,7 @@ fn main() -> ! {
         .expect("Failed to write data");
 
     serial
-        .tx()
+        .tx
         .bwrite_all(b"Reading data...\n")
         .expect("Write should never fail");
 
@@ -112,17 +112,17 @@ fn main() -> ! {
     // Read the two bytes at 0 & 1
     i2c.read(address, &mut buffer).expect("Failed to read data");
 
-    write!(serial.tx(), "{:?}\n", &buffer).expect("Write should never fail");
+    write!(serial.tx, "{:?}\n", &buffer).expect("Write should never fail");
 
     // Check if they're correct
     if buffer == *b"Hi" {
         serial
-            .tx()
+            .tx
             .bwrite_all(b"SUCCESS!\n")
             .expect("Write should never fail");
     } else {
         serial
-            .tx()
+            .tx
             .bwrite_all(b"FAILURE!\n")
             .expect("Write should never fail");
     }

@@ -80,13 +80,13 @@ fn main() -> ! {
     let (u0_txd, _) = swm.movable_functions.u0_txd.assign(tx_pin, &mut handle);
 
     // Enable USART0
-    let serial =
+    let mut serial =
         p.USART0
             .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
     // Send a string via USART0, blocking until it has been sent
     serial
-        .tx()
+        .tx
         .bwrite_all(b"Hello, world!\n")
         .expect("UART write shouldn't fail");
 

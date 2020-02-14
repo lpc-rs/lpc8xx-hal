@@ -56,6 +56,7 @@
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
 use core::fmt;
+use core::marker::PhantomData;
 use core::ops::Deref;
 
 use embedded_hal::blocking::serial::write::Default as BlockingWriteDefault;
@@ -65,7 +66,12 @@ use void::Void;
 
 use crate::{
     dma, init_state,
-    pac::{self, Interrupt, NVIC},
+    pac::{
+        self,
+        usart0::{rxdatstat, stat},
+        Interrupt, NVIC,
+    },
+    reg_proxy::{Reg, RegProxy},
     swm::{self, FunctionTrait, PinTrait},
     syscon::{self, clocksource::UsartClock, PeripheralClock},
 };
@@ -79,7 +85,13 @@ use crate::{
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct USART<I, State = init_state::Enabled> {
+pub struct USART<I: Instance, State = init_state::Enabled> {
+    /// USART Receiver
+    pub rx: Rx<I, State>,
+
+    /// USART Transmitter
+    pub tx: Tx<I, State>,
+
     usart: I,
     _state: State,
 }
@@ -90,6 +102,9 @@ where
 {
     pub(crate) fn new(usart: I) -> Self {
         USART {
+            rx: Rx::new(),
+            tx: Tx::new(),
+
             usart,
             _state: init_state::Disabled,
         }
@@ -168,6 +183,8 @@ where
         });
 
         USART {
+            rx: Rx::new(), // can't use `self.rx`, due to state
+            tx: Tx::new(), // can't use `self.tx`, due to state
             usart: self.usart,
             _state: init_state::Enabled(()),
         }
@@ -196,6 +213,8 @@ where
         syscon.disable_clock(&self.usart);
 
         USART {
+            rx: Rx::new(), // can't use `self.rx`, due to state
+            tx: Tx::new(), // can't use `self.tx`, due to state
             usart: self.usart,
             _state: init_state::Disabled,
         }
@@ -233,7 +252,7 @@ where
     ///
     /// [`Rx::enable_rxrdy`]: struct.Rx.html#method.enable_rxrdy
     pub fn enable_rxrdy(&mut self) {
-        self.rx().enable_rxrdy()
+        self.rx.enable_rxrdy()
     }
 
     /// Disable the RXRDY interrupt
@@ -242,7 +261,7 @@ where
     ///
     /// [`Rx::disable_rxrdy`]: struct.Rx.html#method.disable_rxrdy
     pub fn disable_rxrdy(&mut self) {
-        self.rx().disable_rxrdy()
+        self.rx.disable_rxrdy()
     }
 
     /// Enable the TXRDY interrupt
@@ -251,7 +270,7 @@ where
     ///
     /// [`Tx::enable_txrdy`]: struct.Tx.html#method.enable_txrdy
     pub fn enable_txrdy(&mut self) {
-        self.tx().enable_txrdy()
+        self.tx.enable_txrdy()
     }
 
     /// Disable the TXRDY interrupt
@@ -260,21 +279,14 @@ where
     ///
     /// [`Tx::disable_txrdy`]: struct.Tx.html#method.disable_txrdy
     pub fn disable_txrdy(&mut self) {
-        self.tx().disable_txrdy()
-    }
-
-    /// Return USART receiver
-    pub fn rx(&self) -> Rx<I> {
-        Rx(self)
-    }
-
-    /// Return USART transmitter
-    pub fn tx(&self) -> Tx<I> {
-        Tx(self)
+        self.tx.disable_txrdy()
     }
 }
 
-impl<I, State> USART<I, State> {
+impl<I, State> USART<I, State>
+where
+    I: Instance,
+{
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the
@@ -293,9 +305,43 @@ impl<I, State> USART<I, State> {
 }
 
 /// USART receiver
-pub struct Rx<'usart, I: 'usart>(&'usart USART<I>);
+pub struct Rx<I: Instance, State = init_state::Enabled> {
+    _instance: PhantomData<I>,
+    _state: PhantomData<State>,
 
-impl<'usart, I> Rx<'usart, I>
+    /// Shared with `Tx`. This is fine, as this is a stateless register that
+    /// we're writing to atomically.
+    intenset: RegProxy<I::INTENSET>,
+
+    /// Shared with `Tx`. This is fine, as this is a stateless register that
+    /// we're writing to atomically.
+    intenclr: RegProxy<I::INTENCLR>,
+
+    /// Shared with `Tx`. This is fine, as this we're only reading from this
+    /// register.
+    stat: RegProxy<I::STAT>,
+
+    rxdatstat: RegProxy<I::RXDATSTAT>,
+}
+
+impl<I, State> Rx<I, State>
+where
+    I: Instance,
+{
+    fn new() -> Self {
+        Self {
+            _instance: PhantomData,
+            _state: PhantomData,
+
+            intenset: RegProxy::new(),
+            intenclr: RegProxy::new(),
+            stat: RegProxy::new(),
+            rxdatstat: RegProxy::new(),
+        }
+    }
+}
+
+impl<I> Rx<I, init_state::Enabled>
 where
     I: Instance,
 {
@@ -307,23 +353,23 @@ where
     ///
     /// [`USART::enable_in_nvic`]: struct.USART.html#method.enable_in_nvic
     pub fn enable_rxrdy(&mut self) {
-        self.0.usart.intenset.write(|w| w.rxrdyen().set_bit());
+        I::enable_rxrdy(&self.intenset);
     }
 
     /// Disable the RXRDY interrupt
     pub fn disable_rxrdy(&mut self) {
-        self.0.usart.intenclr.write(|w| w.rxrdyclr().set_bit());
+        I::disable_rxrdy(&self.intenclr);
     }
 }
 
-impl<'usart, I> Read<u8> for Rx<'usart, I>
+impl<I> Read<u8> for Rx<I, init_state::Enabled>
 where
     I: Instance,
 {
     type Error = Error;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
-        let stat = self.0.usart.stat.read();
+        let stat = I::read_stat(&self.stat);
 
         if stat.rxbrk().bit_is_set() {
             return Err(nb::Error::WouldBlock);
@@ -332,7 +378,7 @@ where
         if stat.rxrdy().bit_is_set() {
             // It's important to read this register all at once, as reading
             // it changes the status flags.
-            let rx_dat_stat = self.0.usart.rxdatstat.read();
+            let rx_dat_stat = I::read_rxdatstat(&self.rxdatstat);
 
             if stat.overrunint().bit_is_set() {
                 Err(nb::Error::Other(Error::Overrun))
@@ -355,9 +401,43 @@ where
 }
 
 /// USART transmitter
-pub struct Tx<'usart, I: 'usart>(&'usart USART<I>);
+pub struct Tx<I: Instance, State = init_state::Enabled> {
+    _instance: PhantomData<I>,
+    _state: PhantomData<State>,
 
-impl<'usart, I> Tx<'usart, I>
+    /// Shared with `Rx`. This is fine, as this is a stateless register that
+    /// we're writing to atomically.
+    intenset: RegProxy<I::INTENSET>,
+
+    /// Shared with `Rx`. This is fine, as this is a stateless register that
+    /// we're writing to atomically.
+    intenclr: RegProxy<I::INTENCLR>,
+
+    /// Shared with `Tx`. This is fine, as this we're only reading from this
+    /// register.
+    stat: RegProxy<I::STAT>,
+
+    txdat: RegProxy<I::TXDAT>,
+}
+
+impl<I, State> Tx<I, State>
+where
+    I: Instance,
+{
+    fn new() -> Self {
+        Self {
+            _instance: PhantomData,
+            _state: PhantomData,
+
+            intenset: RegProxy::new(),
+            intenclr: RegProxy::new(),
+            stat: RegProxy::new(),
+            txdat: RegProxy::new(),
+        }
+    }
+}
+
+impl<I> Tx<I, init_state::Enabled>
 where
     I: Instance,
 {
@@ -369,35 +449,33 @@ where
     ///
     /// [`USART::enable_in_nvic`]: struct.USART.html#method.enable_in_nvic
     pub fn enable_txrdy(&mut self) {
-        self.0.usart.intenset.write(|w| w.txrdyen().set_bit());
+        I::enable_txrdy(&self.intenset);
     }
 
     /// Disable the TXRDY interrupt
     pub fn disable_txrdy(&mut self) {
-        self.0.usart.intenclr.write(|w| w.txrdyclr().set_bit());
+        I::disable_txrdy(&self.intenclr);
     }
 }
 
-impl<'usart, I> Write<u8> for Tx<'usart, I>
+impl<I> Write<u8> for Tx<I, init_state::Enabled>
 where
     I: Instance,
 {
     type Error = Void;
 
     fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
-        if self.0.usart.stat.read().txrdy().bit_is_clear() {
+        if I::read_stat(&self.stat).txrdy().bit_is_clear() {
             return Err(nb::Error::WouldBlock);
         }
 
-        unsafe {
-            self.0.usart.txdat.write(|w| w.txdat().bits(word as u16));
-        }
+        I::write_txdat(&self.txdat, word);
 
         Ok(())
     }
 
     fn flush(&mut self) -> nb::Result<(), Self::Error> {
-        if self.0.usart.stat.read().txidle().bit_is_clear() {
+        if I::read_stat(&self.stat).txidle().bit_is_clear() {
             return Err(nb::Error::WouldBlock);
         }
 
@@ -405,9 +483,10 @@ where
     }
 }
 
-impl<'usart, I> BlockingWriteDefault<u8> for Tx<'usart, I> where I: Instance {}
+impl<I> BlockingWriteDefault<u8> for Tx<I, init_state::Enabled> where I: Instance
+{}
 
-impl<'usart, I> fmt::Write for Tx<'usart, I>
+impl<I> fmt::Write for Tx<I, init_state::Enabled>
 where
     Self: BlockingWriteDefault<u8>,
     I: Instance,
@@ -422,7 +501,7 @@ where
     }
 }
 
-impl<'usart, I> dma::Dest for Tx<'usart, I>
+impl<I> dma::Dest for Tx<I, init_state::Enabled>
 where
     I: Instance,
 {
@@ -458,12 +537,49 @@ pub trait Instance:
 
     /// The movable function that needs to be assigned to this USART's TX pin
     type Tx;
+
+    /// The instance-specific proxy for the INTENCLR register
+    type INTENCLR: Reg;
+
+    /// The instance-specific proxy for the INTENSET register
+    type INTENSET: Reg;
+
+    /// The instance-specific proxy for the STAT register
+    type STAT: Reg;
+
+    /// The instance-specific proxy for the RXDATSTAT register
+    type RXDATSTAT: Reg;
+
+    /// The instance-specific proxy for the TXDAT register
+    type TXDAT: Reg;
+
+    /// Enable RXRDY interrupt
+    fn enable_rxrdy(_: &<Self::INTENSET as Reg>::Target);
+
+    /// Enable TXRDY interrupt
+    fn enable_txrdy(_: &<Self::INTENSET as Reg>::Target);
+
+    /// Disable RXRDY interrupt
+    fn disable_rxrdy(_: &<Self::INTENCLR as Reg>::Target);
+
+    /// Disable TXRDY interrupt
+    fn disable_txrdy(_: &<Self::INTENCLR as Reg>::Target);
+
+    /// Read STAT register
+    fn read_stat(_: &<Self::STAT as Reg>::Target) -> stat::R;
+
+    /// Read RXDATSTAT register
+    fn read_rxdatstat(_: &<Self::RXDATSTAT as Reg>::Target) -> rxdatstat::R;
+
+    /// Write TXDAT register
+    fn write_txdat(_: &<Self::TXDAT as Reg>::Target, word: u8);
 }
 
 macro_rules! instances {
     (
         $(
             $instance:ident,
+            $module:ident,
             $interrupt:ident,
             $addr:expr,
             $rx:ident,
@@ -477,21 +593,101 @@ macro_rules! instances {
 
                 type Rx = swm::$rx;
                 type Tx = swm::$tx;
+
+                type INTENCLR  = $module::INTENCLR;
+                type INTENSET  = $module::INTENSET;
+                type STAT      = $module::STAT;
+                type RXDATSTAT = $module::RXDATSTAT;
+                type TXDAT     = $module::TXDAT;
+
+                fn enable_rxrdy(intenset: &<Self::INTENSET as Reg>::Target) {
+                    intenset.write(|w| w.rxrdyen().set_bit());
+                }
+
+                fn enable_txrdy(intenset: &<Self::INTENSET as Reg>::Target) {
+                    intenset.write(|w| w.txrdyen().set_bit());
+                }
+
+                fn disable_rxrdy(intenclr: &<Self::INTENCLR as Reg>::Target) {
+                    intenclr.write(|w| w.rxrdyclr().set_bit());
+                }
+
+                fn disable_txrdy(intenclr: &<Self::INTENCLR as Reg>::Target) {
+                    intenclr.write(|w| w.txrdyclr().set_bit());
+                }
+
+                fn read_stat(stat: &<Self::STAT as Reg>::Target) -> stat::R {
+                    stat.read()
+                }
+
+                fn read_rxdatstat(rxdatstat: &<Self::RXDATSTAT as Reg>::Target)
+                    -> rxdatstat::R
+                {
+                    rxdatstat.read()
+                }
+
+                fn write_txdat(txdat: &<Self::TXDAT as Reg>::Target, word: u8) {
+                    txdat.write(|w|
+                        // This is sound, as all `u8` values are valid here.
+                        unsafe { w.txdat().bits(word as u16) }
+                    );
+                }
+            }
+
+            mod $module {
+                use crate::pac;
+
+                pub struct INTENCLR;
+                pub struct INTENSET;
+                pub struct STAT;
+                pub struct RXDATSTAT;
+                pub struct TXDAT;
+
+                reg!(
+                    INTENCLR,
+                    pac::usart0::INTENCLR,
+                    pac::$instance,
+                    intenclr
+                );
+                reg!(
+                    INTENSET,
+                    pac::usart0::INTENSET,
+                    pac::$instance,
+                    intenset
+                );
+                reg!(
+                    STAT,
+                    pac::usart0::STAT,
+                    pac::$instance,
+                    stat
+                );
+                reg!(
+                    RXDATSTAT,
+                    pac::usart0::RXDATSTAT,
+                    pac::$instance,
+                    rxdatstat
+                );
+                reg!(
+                    TXDAT,
+                    pac::usart0::TXDAT,
+                    pac::$instance,
+                    txdat
+                );
             }
         )*
     };
 }
 
 instances!(
-    USART0, USART0, 0x4006_4000, U0_RXD, U0_TXD;
-    USART1, USART1, 0x4006_8000, U1_RXD, U1_TXD;
-    USART2, USART2, 0x4006_C000, U2_RXD, U2_TXD;
+    USART0, usart0, USART0, 0x4006_4000, U0_RXD, U0_TXD;
+    USART1, usart1, USART1, 0x4006_8000, U1_RXD, U1_TXD;
+    USART2, usart2, USART2, 0x4006_C000, U2_RXD, U2_TXD;
 );
 
 #[cfg(feature = "845")]
 instances!(
-    USART3, PIN_INT6_USART3, 0x4007_0000, U3_RXD, U3_TXD;
-    USART4, PIN_INT7_USART4, 0x4007_4000, U4_RXD, U4_TXD;
+    USART3, usart3, PIN_INT6_USART3, 0x4007_0000, U3_RXD, U3_TXD;
+    USART4, usart4, PIN_INT7_USART4, 0x4007_4000, U4_RXD, U4_TXD;
 );
 
 /// A USART error
