@@ -304,6 +304,62 @@ where
     }
 }
 
+impl<I> Read<u8> for USART<I, init_state::Enabled>
+where
+    I: Instance,
+{
+    type Error = Error;
+
+    fn read(&mut self) -> nb::Result<u8, Self::Error> {
+        self.rx.read()
+    }
+}
+
+impl<I> Write<u8> for USART<I, init_state::Enabled>
+where
+    I: Instance,
+{
+    type Error = Void;
+
+    fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
+        self.tx.write(word)
+    }
+
+    fn flush(&mut self) -> nb::Result<(), Self::Error> {
+        self.tx.flush()
+    }
+}
+
+impl<I> BlockingWriteDefault<u8> for USART<I, init_state::Enabled> where
+    I: Instance
+{
+}
+
+impl<I> fmt::Write for USART<I, init_state::Enabled>
+where
+    Self: BlockingWriteDefault<u8>,
+    I: Instance,
+{
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        self.tx.write_str(s)
+    }
+}
+
+impl<I> dma::Dest for USART<I, init_state::Enabled>
+where
+    I: Instance,
+{
+    type Error = Void;
+
+    fn wait(&mut self) -> nb::Result<(), Self::Error> {
+        self.tx.wait()
+    }
+
+    fn end_addr(&mut self) -> *mut u8 {
+        self.tx.end_addr()
+    }
+}
+
 /// USART receiver
 pub struct Rx<I: Instance, State = init_state::Enabled> {
     _instance: PhantomData<I>,
