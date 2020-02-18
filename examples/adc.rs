@@ -36,7 +36,7 @@ fn main() -> ! {
     let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(rx_pin, &mut handle);
     let (u0_txd, _) = swm.movable_functions.u0_txd.assign(tx_pin, &mut handle);
 
-    let serial =
+    let mut serial =
         p.USART0
             .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
@@ -51,8 +51,7 @@ fn main() -> ! {
     loop {
         let adc_value =
             block! {adc.read(&mut adc_pin)}.expect("Read should never fail");
-        write!(serial.tx(), "{}\n", adc_value)
-            .expect("Write should never fail");
+        write!(serial, "{}\n", adc_value).expect("Write should never fail");
         delay.delay_ms(100u8);
     }
 }
