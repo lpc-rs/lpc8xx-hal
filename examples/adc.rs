@@ -15,10 +15,10 @@ use lpc8xx_hal::{
 
 #[entry]
 fn main() -> ! {
-    let cp = CorePeripherals::take().unwrap();
+    let core = CorePeripherals::take().unwrap();
     let device = Device::take().unwrap();
 
-    let mut delay = Delay::new(cp.SYST);
+    let mut delay = Delay::new(core.SYST);
     let swm = device.SWM.split();
     let mut syscon = device.SYSCON.split();
 

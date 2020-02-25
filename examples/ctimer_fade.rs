@@ -14,12 +14,12 @@ fn main() -> ! {
     // If we tried to call the method a second time, it would return `None`, but
     // we're only calling it the one time here, so we can safely `unwrap` the
     // `Option` without causing a panic.
-    let cp = CorePeripherals::take().unwrap();
+    let core = CorePeripherals::take().unwrap();
     let device = Device::take().unwrap();
 
     // Initialize the APIs of the peripherals we need.
     let swm = device.SWM.split();
-    let mut delay = Delay::new(cp.SYST);
+    let mut delay = Delay::new(core.SYST);
     let mut syscon = device.SYSCON.split();
 
     let mut handle = swm.handle.enable(&mut syscon.handle);
