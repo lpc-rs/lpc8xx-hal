@@ -46,8 +46,11 @@ panic-halt    = "0.2.0"
 cortex-m-rtfm = "0.5.1"
 
 
-[build-dependencies]
-termion = "1.5.3"
+# Termion has been made optional, as it doesn't build on Windows:
+# https://gitlab.redox-os.org/redox-os/termion/issues/167
+[build-dependencies.termion]
+version  = "1.5.3"
+optional = true
 
 
 [features]

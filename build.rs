@@ -5,6 +5,7 @@ use std::{
     path::PathBuf,
 };
 
+#[cfg(feature = "termion")]
 use termion::{color, style};
 
 fn main() -> Result<(), Error> {
@@ -150,6 +151,10 @@ impl From<io::Error> for Error {
 }
 
 fn error(message: &str) -> ! {
+    #[cfg(not(feature = "termion"))]
+    panic!("\n\n\n{}\n\n\n", message);
+
+    #[cfg(feature = "termion")]
     panic!(
         "\n\n\n{}{}{}{}{}\n\n\n",
         style::Bold,
