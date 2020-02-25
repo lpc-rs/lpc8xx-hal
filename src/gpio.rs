@@ -36,7 +36,7 @@ use void::Void;
 
 use crate::{
     init_state, pac,
-    swm::{pin_state, Pin, PinTrait},
+    pins::{pin_state, Pin, PinTrait},
     syscon,
 };
 

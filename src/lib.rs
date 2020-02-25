@@ -118,6 +118,7 @@ pub mod dma;
 pub mod gpio;
 pub mod i2c;
 pub mod mrt;
+pub mod pins;
 pub mod pmu;
 pub mod sleep;
 pub mod spi;

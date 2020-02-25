@@ -71,8 +71,9 @@ use crate::{
         usart0::{rxdatstat, stat},
         Interrupt, NVIC,
     },
+    pins::PinTrait,
     reg_proxy::{Reg, RegProxy},
-    swm::{self, FunctionTrait, PinTrait},
+    swm::{self, FunctionTrait},
     syscon::{self, clocksource::UsartClock, PeripheralClock},
 };
 

@@ -47,7 +47,8 @@ use embedded_hal::spi::{FullDuplex, Mode, Phase, Polarity};
 
 use crate::{
     init_state, pac,
-    swm::{self, FunctionTrait, PinTrait},
+    pins::PinTrait,
+    swm::{self, FunctionTrait},
     syscon::{self, clocksource::SpiClock, PeripheralClock},
 };
 
