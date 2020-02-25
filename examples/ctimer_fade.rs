@@ -4,7 +4,7 @@
 extern crate panic_halt;
 
 use lpc8xx_hal::{
-    cortex_m_rt::entry, delay::Delay, prelude::*, CorePeripherals, Peripherals,
+    cortex_m_rt::entry, delay::Delay, prelude::*, CorePeripherals, Device,
 };
 
 #[entry]
@@ -15,23 +15,23 @@ fn main() -> ! {
     // we're only calling it the one time here, so we can safely `unwrap` the
     // `Option` without causing a panic.
     let cp = CorePeripherals::take().unwrap();
-    let p = Peripherals::take().unwrap();
+    let device = Device::take().unwrap();
 
     // Initialize the APIs of the peripherals we need.
-    let swm = p.SWM.split();
+    let swm = device.SWM.split();
     let mut delay = Delay::new(cp.SYST);
-    let mut syscon = p.SYSCON.split();
+    let mut syscon = device.SYSCON.split();
 
     let mut handle = swm.handle.enable(&mut syscon.handle);
 
     // Use 8 bit pwm
     let (red_pwm, green_pwm, blue_pwm) =
-        p.CTIMER0.start_pwm(256, 0, &mut syscon.handle);
+        device.CTIMER0.start_pwm(256, 0, &mut syscon.handle);
 
     // Select pin for the RGB LED
-    let green = p.pins.pio1_0.into_swm_pin();
-    let blue = p.pins.pio1_1.into_swm_pin();
-    let red = p.pins.pio1_2.into_swm_pin();
+    let green = device.pins.pio1_0.into_swm_pin();
+    let blue = device.pins.pio1_1.into_swm_pin();
+    let red = device.pins.pio1_2.into_swm_pin();
 
     // Configure the LED pins. The API tracks the state of pins at compile time,
     // to prevent any mistakes.

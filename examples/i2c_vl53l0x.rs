@@ -17,16 +17,16 @@ use core::fmt::Write;
 
 use lpc8xx_hal::{
     cortex_m_rt::entry, prelude::*, syscon::clock_source::I2cClock, usart,
-    Peripherals,
+    Device,
 };
 
 #[entry]
 fn main() -> ! {
-    let p = Peripherals::take().unwrap();
+    let device = Device::take().unwrap();
 
-    let i2c = p.I2C0;
-    let mut swm = p.SWM.split();
-    let mut syscon = p.SYSCON.split();
+    let i2c = device.I2C0;
+    let mut swm = device.SWM.split();
+    let mut syscon = device.SYSCON.split();
 
     // Set baud rate to 115200 baud
     //
@@ -58,13 +58,13 @@ fn main() -> ! {
     let (u0_rxd, _) = swm
         .movable_functions
         .u0_rxd
-        .assign(p.pins.pio0_0.into_swm_pin(), &mut swm.handle);
+        .assign(device.pins.pio0_0.into_swm_pin(), &mut swm.handle);
     let (u0_txd, _) = swm
         .movable_functions
         .u0_txd
-        .assign(p.pins.pio0_4.into_swm_pin(), &mut swm.handle);
+        .assign(device.pins.pio0_4.into_swm_pin(), &mut swm.handle);
 
-    let mut serial = p.USART0.enable(
+    let mut serial = device.USART0.enable(
         &usart::Clock::new(&syscon.uartfrg, 0, 16),
         &mut syscon.handle,
         u0_rxd,
@@ -78,11 +78,11 @@ fn main() -> ! {
     let (i2c0_sda, _) = swm
         .fixed_functions
         .i2c0_sda
-        .assign(p.pins.pio0_11.into_swm_pin(), &mut swm.handle);
+        .assign(device.pins.pio0_11.into_swm_pin(), &mut swm.handle);
     let (i2c0_scl, _) = swm
         .fixed_functions
         .i2c0_scl
-        .assign(p.pins.pio0_10.into_swm_pin(), &mut swm.handle);
+        .assign(device.pins.pio0_10.into_swm_pin(), &mut swm.handle);
 
     let i2c_clock = I2cClock::new_400khz();
     let mut i2c =

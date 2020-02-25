@@ -3,14 +3,14 @@
 
 extern crate panic_halt;
 
-use lpc8xx_hal::{cortex_m_rt::entry, prelude::*, usart, Peripherals};
+use lpc8xx_hal::{cortex_m_rt::entry, prelude::*, usart, Device};
 
 #[entry]
 fn main() -> ! {
-    let p = Peripherals::take().unwrap();
+    let device = Device::take().unwrap();
 
-    let swm = p.SWM.split();
-    let mut syscon = p.SYSCON.split();
+    let swm = device.SWM.split();
+    let mut syscon = device.SYSCON.split();
 
     #[cfg(feature = "82x")]
     let mut handle = swm.handle;
@@ -61,13 +61,13 @@ fn main() -> ! {
     // perspective from the serial adapter, so this is used the opposite way
 
     #[cfg(feature = "82x")]
-    let tx_pin = p.pins.pio0_7.into_swm_pin();
+    let tx_pin = device.pins.pio0_7.into_swm_pin();
     #[cfg(feature = "82x")]
-    let rx_pin = p.pins.pio0_18.into_swm_pin();
+    let rx_pin = device.pins.pio0_18.into_swm_pin();
     #[cfg(feature = "845")]
-    let tx_pin = p.pins.pio0_25.into_swm_pin();
+    let tx_pin = device.pins.pio0_25.into_swm_pin();
     #[cfg(feature = "845")]
-    let rx_pin = p.pins.pio0_24.into_swm_pin();
+    let rx_pin = device.pins.pio0_24.into_swm_pin();
 
     // Assign U0_RXD & U0_TXD to the rx & tx pins. On the LPCXpresso824-MAX &
     // LPC845-BRK development boards, they're connected to the integrated USB to
@@ -78,7 +78,8 @@ fn main() -> ! {
 
     // Enable USART0
     let mut serial =
-        p.USART0
+        device
+            .USART0
             .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
     // Send a string via USART0, blocking until it has been sent

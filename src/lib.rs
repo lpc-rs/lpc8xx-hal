@@ -201,7 +201,7 @@ use embedded_hal as hal;
 /// should be fully aware of what your code does, and whether that is a valid
 /// use of the hardware.
 #[allow(non_snake_case)]
-pub struct Peripherals {
+pub struct Device {
     /// Pins that can be used for GPIO or other functions
     pub pins: pins::Pins,
 
@@ -395,7 +395,7 @@ pub struct Peripherals {
     pub WWDT: pac::WWDT,
 }
 
-impl Peripherals {
+impl Device {
     /// Take the peripherals safely
     ///
     /// This method can only be called one time to access the peripherals. It
@@ -474,7 +474,7 @@ impl Peripherals {
     }
 
     fn new(p: pac::Peripherals) -> Self {
-        Peripherals {
+        Self {
             pins: pins::Pins::new(),
 
             // HAL peripherals

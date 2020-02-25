@@ -4,7 +4,7 @@
 extern crate panic_halt;
 
 use lpc8xx_hal::{
-    cortex_m_rt::entry, prelude::*, syscon::clock_source::SpiClock, Peripherals,
+    cortex_m_rt::entry, prelude::*, syscon::clock_source::SpiClock, Device,
 };
 
 use embedded_hal::spi::{Mode, Phase, Polarity};
@@ -15,19 +15,19 @@ fn main() -> ! {
         polarity: Polarity::IdleHigh,
         phase: Phase::CaptureOnSecondTransition,
     };
-    let p = Peripherals::take().unwrap();
+    let device = Device::take().unwrap();
 
-    let swm = p.SWM.split();
-    let mut syscon = p.SYSCON.split();
+    let swm = device.SWM.split();
+    let mut syscon = device.SYSCON.split();
 
     #[cfg(feature = "82x")]
     let mut handle = swm.handle;
     #[cfg(feature = "845")]
     let mut handle = swm.handle.enable(&mut syscon.handle); // SWM isn't enabled by default on LPC845.
 
-    let sck_pin = p.pins.pio0_13.into_swm_pin();
-    let mosi_pin = p.pins.pio0_14.into_swm_pin();
-    let miso_pin = p.pins.pio0_15.into_swm_pin();
+    let sck_pin = device.pins.pio0_13.into_swm_pin();
+    let mosi_pin = device.pins.pio0_14.into_swm_pin();
+    let miso_pin = device.pins.pio0_15.into_swm_pin();
 
     let (spi0_sck, _) =
         swm.movable_functions.spi0_sck.assign(sck_pin, &mut handle);
@@ -46,7 +46,7 @@ fn main() -> ! {
     let spi_clock = SpiClock::new(&syscon.iosc, 0);
 
     // Enable SPI0
-    let mut spi = p.SPI0.enable(
+    let mut spi = device.SPI0.enable(
         &spi_clock,
         &mut syscon.handle,
         MODE,

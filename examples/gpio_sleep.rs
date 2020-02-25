@@ -4,8 +4,7 @@
 extern crate panic_halt;
 
 use lpc8xx_hal::{
-    clock::Ticks, cortex_m_rt::entry, gpio::Level, prelude::*, sleep,
-    Peripherals,
+    clock::Ticks, cortex_m_rt::entry, gpio::Level, prelude::*, sleep, Device,
 };
 
 #[entry]
@@ -15,15 +14,15 @@ fn main() -> ! {
     // If we tried to call the method a second time, it would return `None`, but
     // we're only calling it the one time here, so we can safely `unwrap` the
     // `Option` without causing a panic.
-    let p = Peripherals::take().unwrap();
+    let device = Device::take().unwrap();
 
     // Initialize the APIs of the peripherals we need.
-    let mut syscon = p.SYSCON.split();
-    let mut wkt = p.WKT.enable(&mut syscon.handle);
+    let mut syscon = device.SYSCON.split();
+    let mut wkt = device.WKT.enable(&mut syscon.handle);
     #[cfg(feature = "82x")]
-    let gpio = p.GPIO; // GPIO is initialized by default on LPC82x.
+    let gpio = device.GPIO; // GPIO is initialized by default on LPC82x.
     #[cfg(feature = "845")]
-    let gpio = p.GPIO.enable(&mut syscon.handle);
+    let gpio = device.GPIO.enable(&mut syscon.handle);
 
     // We're going to need a clock for sleeping. Let's use the internal oscillator/IRC/FRO-derived clock
     // that runs at 750 kHz.
@@ -31,9 +30,9 @@ fn main() -> ! {
 
     // Select pin for LED
     #[cfg(feature = "82x")]
-    let (led, token) = (p.pins.pio0_12, gpio.tokens.pio0_12);
+    let (led, token) = (device.pins.pio0_12, gpio.tokens.pio0_12);
     #[cfg(feature = "845")]
-    let (led, token) = (p.pins.pio1_1, gpio.tokens.pio1_1);
+    let (led, token) = (device.pins.pio1_1, gpio.tokens.pio1_1);
 
     // Configure the LED pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.

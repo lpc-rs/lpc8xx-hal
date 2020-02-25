@@ -3,28 +3,28 @@
 
 extern crate panic_halt;
 
-use lpc8xx_hal::{cortex_m_rt::entry, gpio::Level, prelude::*, Peripherals};
+use lpc8xx_hal::{cortex_m_rt::entry, gpio::Level, prelude::*, Device};
 
 #[entry]
 fn main() -> ! {
     // Get access to the device's peripherals. Since only one instance of this
-    // struct can exist, the call to `take` returns an `Option<Peripherals>`.
+    // struct can exist, the call to `take` returns an `Option<Device>`.
     // If we tried to call the method a second time, it would return `None`, but
     // we're only calling it the one time here, so we can safely `unwrap` the
     // `Option` without causing a panic.
-    let p = Peripherals::take().unwrap();
+    let device = Device::take().unwrap();
 
     // Initialize the APIs of the peripherals we need.
     let gpio = {
-        let mut syscon = p.SYSCON.split();
-        p.GPIO.enable(&mut syscon.handle)
+        let mut syscon = device.SYSCON.split();
+        device.GPIO.enable(&mut syscon.handle)
     };
 
     // Select pin for LED
-    let led = p.pins.pio1_1;
+    let led = device.pins.pio1_1;
 
     // Select pin for button
-    let button = p.pins.pio0_4;
+    let button = device.pins.pio0_4;
 
     // Configure the LED pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.

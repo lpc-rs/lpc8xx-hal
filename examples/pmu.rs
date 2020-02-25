@@ -11,17 +11,17 @@ use lpc8xx_hal::{
     pmu::LowPowerClock,
     prelude::*,
     syscon::WktWakeup,
-    usart, CorePeripherals, Peripherals,
+    usart, CorePeripherals, Device,
 };
 
 #[entry]
 fn main() -> ! {
     let cp = CorePeripherals::take().unwrap();
-    let p = Peripherals::take().unwrap();
+    let device = Device::take().unwrap();
 
-    let mut pmu = p.PMU.split();
-    let mut swm = p.SWM.split();
-    let mut syscon = p.SYSCON.split();
+    let mut pmu = device.PMU.split();
+    let mut swm = device.SWM.split();
+    let mut syscon = device.SYSCON.split();
 
     // 115200 baud
     syscon.uartfrg.set_clkdiv(6);
@@ -32,19 +32,20 @@ fn main() -> ! {
     let (u0_rxd, _) = swm
         .movable_functions
         .u0_rxd
-        .assign(p.pins.pio0_0.into_swm_pin(), &mut swm.handle);
+        .assign(device.pins.pio0_0.into_swm_pin(), &mut swm.handle);
     let (u0_txd, _) = swm
         .movable_functions
         .u0_txd
-        .assign(p.pins.pio0_4.into_swm_pin(), &mut swm.handle);
+        .assign(device.pins.pio0_4.into_swm_pin(), &mut swm.handle);
 
     let mut serial =
-        p.USART0
+        device
+            .USART0
             .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
     let _ = pmu.low_power_clock.enable(&mut pmu.handle);
 
-    let mut wkt = p.WKT.enable(&mut syscon.handle);
+    let mut wkt = device.WKT.enable(&mut syscon.handle);
     wkt.select_clock::<LowPowerClock>();
 
     let five_seconds: u32 = 10_000 * 5;

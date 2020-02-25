@@ -6,7 +6,7 @@ use lpc8xx_hal::{
     gpio::{direction::Output, GpioPin, Level},
     pins::PIO1_1,
     prelude::*,
-    Peripherals,
+    Device,
 };
 use panic_halt as _;
 
@@ -19,14 +19,14 @@ const APP: () = {
 
     #[init]
     fn init(cx: init::Context) -> init::LateResources {
-        let p = Peripherals::take().unwrap();
+        let device = Device::take().unwrap();
 
         let delay = Delay::new(cx.core.SYST);
 
-        let mut syscon = p.SYSCON.split();
-        let gpio = p.GPIO.enable(&mut syscon.handle);
+        let mut syscon = device.SYSCON.split();
+        let gpio = device.GPIO.enable(&mut syscon.handle);
 
-        let led = p
+        let led = device
             .pins
             .pio1_1
             .into_output_pin(gpio.tokens.pio1_1, Level::Low);

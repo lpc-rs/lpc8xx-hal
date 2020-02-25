@@ -16,18 +16,18 @@ use core::fmt::Write;
 
 use lpc8xx_hal::{
     cortex_m_rt::entry, delay::Delay, prelude::*,
-    syscon::clock_source::I2cClock, usart, CorePeripherals, Peripherals,
+    syscon::clock_source::I2cClock, usart, CorePeripherals, Device,
 };
 
 #[entry]
 fn main() -> ! {
     let cp = CorePeripherals::take().unwrap();
-    let p = Peripherals::take().unwrap();
+    let device = Device::take().unwrap();
 
     let mut delay = Delay::new(cp.SYST);
-    let i2c = p.I2C0;
-    let swm = p.SWM.split();
-    let mut syscon = p.SYSCON.split();
+    let i2c = device.I2C0;
+    let swm = device.SWM.split();
+    let mut syscon = device.SYSCON.split();
 
     #[cfg(feature = "82x")]
     let mut handle = swm.handle;
@@ -48,19 +48,20 @@ fn main() -> ! {
     // Set baud rate to 115200 baud
     let clock_config = usart::Clock::new_with_baudrate(115200);
     #[cfg(feature = "82x")]
-    let tx_pin = p.pins.pio0_7.into_swm_pin();
+    let tx_pin = device.pins.pio0_7.into_swm_pin();
     #[cfg(feature = "82x")]
-    let rx_pin = p.pins.pio0_18.into_swm_pin();
+    let rx_pin = device.pins.pio0_18.into_swm_pin();
     #[cfg(feature = "845")]
-    let tx_pin = p.pins.pio0_25.into_swm_pin();
+    let tx_pin = device.pins.pio0_25.into_swm_pin();
     #[cfg(feature = "845")]
-    let rx_pin = p.pins.pio0_24.into_swm_pin();
+    let rx_pin = device.pins.pio0_24.into_swm_pin();
 
     let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(rx_pin, &mut handle);
     let (u0_txd, _) = swm.movable_functions.u0_txd.assign(tx_pin, &mut handle);
 
     let mut serial =
-        p.USART0
+        device
+            .USART0
             .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
     serial
@@ -70,11 +71,11 @@ fn main() -> ! {
     let (i2c0_sda, _) = swm
         .fixed_functions
         .i2c0_sda
-        .assign(p.pins.pio0_11.into_swm_pin(), &mut handle);
+        .assign(device.pins.pio0_11.into_swm_pin(), &mut handle);
     let (i2c0_scl, _) = swm
         .fixed_functions
         .i2c0_scl
-        .assign(p.pins.pio0_10.into_swm_pin(), &mut handle);
+        .assign(device.pins.pio0_10.into_swm_pin(), &mut handle);
 
     let i2c_clock = I2cClock::new_400khz();
     let mut i2c =
