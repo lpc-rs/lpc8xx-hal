@@ -9,7 +9,7 @@ use core::marker::PhantomData;
 
 use crate::{
     init_state, pac,
-    pins::{self, pin_state, Pin, PinTrait, Pins},
+    pins::{self, pin_state, Pin, PinTrait},
     syscon,
 };
 
@@ -84,7 +84,6 @@ impl<STATE> SWM<STATE> {
     pub fn split(self) -> Parts<STATE> {
         Parts {
             handle: Handle::new(self.swm, self.state),
-            pins: Pins::new(),
             movable_functions: MovableFunctions::new(),
             fixed_functions: FixedFunctions::new(),
         }
@@ -116,9 +115,6 @@ impl<STATE> SWM<STATE> {
 pub struct Parts<STATE> {
     /// Handle to the switch matrix
     pub handle: Handle<STATE>,
-
-    /// Pins that can be used for GPIO or other functions
-    pub pins: Pins,
 
     /// Movable functions
     pub movable_functions: MovableFunctions,

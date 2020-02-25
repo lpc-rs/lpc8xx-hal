@@ -17,7 +17,6 @@ fn main() -> ! {
     let p = Peripherals::take().unwrap();
 
     // Initialize the APIs of the peripherals we need.
-    let swm = p.SWM.split();
     let mut syscon = p.SYSCON.split();
     let mut wkt = p.WKT.enable(&mut syscon.handle);
     #[cfg(feature = "82x")]
@@ -31,9 +30,9 @@ fn main() -> ! {
 
     // Select pin for LED
     #[cfg(feature = "82x")]
-    let led = swm.pins.pio0_12;
+    let led = p.pins.pio0_12;
     #[cfg(feature = "845")]
-    let led = swm.pins.pio1_1;
+    let led = p.pins.pio1_1;
 
     // Configure the LED pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.

@@ -15,18 +15,16 @@ fn main() -> ! {
     let p = Peripherals::take().unwrap();
 
     // Initialize the APIs of the peripherals we need.
-    let swm = p.SWM.split();
-
     let gpio = {
         let mut syscon = p.SYSCON.split();
         p.GPIO.enable(&mut syscon.handle)
     };
 
     // Select pin for LED
-    let led = swm.pins.pio1_1;
+    let led = p.pins.pio1_1;
 
     // Select pin for button
-    let button = swm.pins.pio0_4;
+    let button = p.pins.pio0_4;
 
     // Configure the LED pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.

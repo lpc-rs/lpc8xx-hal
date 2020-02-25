@@ -60,11 +60,11 @@ fn main() -> ! {
     let (u0_rxd, _) = swm
         .movable_functions
         .u0_rxd
-        .assign(swm.pins.pio0_0.into_swm_pin(), &mut swm.handle);
+        .assign(p.pins.pio0_0.into_swm_pin(), &mut swm.handle);
     let (u0_txd, _) = swm
         .movable_functions
         .u0_txd
-        .assign(swm.pins.pio0_4.into_swm_pin(), &mut swm.handle);
+        .assign(p.pins.pio0_4.into_swm_pin(), &mut swm.handle);
 
     let mut serial = p.USART0.enable(
         &UsartClock::new(&syscon.uartfrg, 0, 16),
@@ -80,11 +80,11 @@ fn main() -> ! {
     let (i2c0_sda, _) = swm
         .fixed_functions
         .i2c0_sda
-        .assign(swm.pins.pio0_11.into_swm_pin(), &mut swm.handle);
+        .assign(p.pins.pio0_11.into_swm_pin(), &mut swm.handle);
     let (i2c0_scl, _) = swm
         .fixed_functions
         .i2c0_scl
-        .assign(swm.pins.pio0_10.into_swm_pin(), &mut swm.handle);
+        .assign(p.pins.pio0_10.into_swm_pin(), &mut swm.handle);
 
     let i2c_clock = I2cClock::new_400khz();
     let mut i2c =
