@@ -9,11 +9,13 @@ use core::marker::PhantomData;
 
 use crate::{
     init_state, pac,
-    pins::{self, pin_state, Pin, PinTrait},
+    pins::{
+        self,
+        pin_state::{self, PinState},
+        Pin, PinTrait,
+    },
     syscon,
 };
-
-use self::pin_state::PinState;
 
 /// Entry point to the switch matrix (SWM) API
 ///
