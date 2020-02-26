@@ -34,11 +34,7 @@ use embedded_hal::digital::v2::{
 };
 use void::Void;
 
-use crate::{
-    init_state, pac,
-    pins::{self, Pin, PinTrait},
-    syscon,
-};
+use crate::{init_state, pac, pins::PinTrait, syscon};
 
 #[cfg(feature = "845")]
 use crate::pac::gpio::{CLR, DIRCLR, DIRSET, PIN, SET};
@@ -163,7 +159,45 @@ impl<State> GPIO<State> {
     }
 }
 
-impl<'gpio, T, D> Pin<T, pins::state::Gpio<'gpio, D>>
+/// A pin used for general purpose I/O (GPIO)
+pub struct GpioPin<'gpio, T, D> {
+    ty: T,
+    registers: GpioRegisters<'gpio>,
+    _direction: D,
+}
+
+impl<'gpio, T> GpioPin<'gpio, T, direction::Unknown> {
+    pub(crate) fn new(ty: T, gpio: &'gpio GPIO) -> Self {
+        #[cfg(feature = "82x")]
+        let registers = {
+            use core::slice;
+
+            GpioRegisters {
+                dirset: slice::from_ref(&gpio.gpio.dirset0),
+                dirclr: slice::from_ref(&gpio.gpio.dirclr0),
+                pin: slice::from_ref(&gpio.gpio.pin0),
+                set: slice::from_ref(&gpio.gpio.set0),
+                clr: slice::from_ref(&gpio.gpio.clr0),
+            }
+        };
+        #[cfg(feature = "845")]
+        let registers = GpioRegisters {
+            dirset: &gpio.gpio.dirset,
+            dirclr: &gpio.gpio.dirclr,
+            pin: &gpio.gpio.pin,
+            set: &gpio.gpio.set,
+            clr: &gpio.gpio.clr,
+        };
+
+        Self {
+            ty,
+            registers,
+            _direction: direction::Unknown,
+        }
+    }
+}
+
+impl<'gpio, T, D> GpioPin<'gpio, T, D>
 where
     T: PinTrait,
     D: direction::NotOutput,
@@ -196,25 +230,19 @@ where
     /// pin.set_high();
     /// pin.set_low();
     /// ```
-    pub fn into_output(
-        self,
-    ) -> Pin<T, pins::state::Gpio<'gpio, direction::Output>> {
-        self.state.registers.dirset[T::PORT]
+    pub fn into_output(self) -> GpioPin<'gpio, T, direction::Output> {
+        self.registers.dirset[T::PORT]
             .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
 
-        Pin {
+        GpioPin {
             ty: self.ty,
-
-            state: pins::state::Gpio {
-                registers: self.state.registers,
-
-                _direction: direction::Output,
-            },
+            registers: self.registers,
+            _direction: direction::Output,
         }
     }
 }
 
-impl<'gpio, T> OutputPin for Pin<T, pins::state::Gpio<'gpio, direction::Output>>
+impl<'gpio, T> OutputPin for GpioPin<'gpio, T, direction::Output>
 where
     T: PinTrait,
 {
@@ -232,7 +260,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_high(&mut self) -> Result<(), Self::Error> {
-        self.state.registers.set[T::PORT]
+        self.registers.set[T::PORT]
             .write(|w| unsafe { w.setp().bits(T::MASK) });
         Ok(())
     }
@@ -249,14 +277,13 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_low(&mut self) -> Result<(), Self::Error> {
-        self.state.registers.clr[T::PORT]
+        self.registers.clr[T::PORT]
             .write(|w| unsafe { w.clrp().bits(T::MASK) });
         Ok(())
     }
 }
 
-impl<'gpio, T> StatefulOutputPin
-    for Pin<T, pins::state::Gpio<'gpio, direction::Output>>
+impl<'gpio, T> StatefulOutputPin for GpioPin<'gpio, T, direction::Output>
 where
     T: PinTrait,
 {
@@ -272,10 +299,8 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_high(&self) -> Result<bool, Self::Error> {
-        Ok(
-            self.state.registers.pin[T::PORT].read().port().bits() & T::MASK
-                == T::MASK,
-        )
+        Ok(self.registers.pin[T::PORT].read().port().bits() & T::MASK
+            == T::MASK)
     }
 
     /// Indicates whether the pin output is currently set to LOW
@@ -290,21 +315,17 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_low(&self) -> Result<bool, Self::Error> {
-        Ok(
-            !self.state.registers.pin[T::PORT].read().port().bits() & T::MASK
-                == T::MASK,
-        )
+        Ok(!self.registers.pin[T::PORT].read().port().bits() & T::MASK
+            == T::MASK)
     }
 }
 
-impl<'gpio, T> toggleable::Default
-    for Pin<T, pins::state::Gpio<'gpio, direction::Output>>
-where
-    T: PinTrait,
+impl<'gpio, T> toggleable::Default for GpioPin<'gpio, T, direction::Output> where
+    T: PinTrait
 {
 }
 
-impl<'gpio, T, D> Pin<T, pins::state::Gpio<'gpio, D>>
+impl<'gpio, T, D> GpioPin<'gpio, T, D>
 where
     T: PinTrait,
     D: direction::NotInput,
@@ -340,24 +361,19 @@ where
     ///     // The pin is low
     /// }
     /// ```
-    pub fn into_input(
-        self,
-    ) -> Pin<T, pins::state::Gpio<'gpio, direction::Input>> {
-        self.state.registers.dirclr[T::PORT]
+    pub fn into_input(self) -> GpioPin<'gpio, T, direction::Input> {
+        self.registers.dirclr[T::PORT]
             .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
 
-        Pin {
+        GpioPin {
             ty: self.ty,
-
-            state: pins::state::Gpio {
-                registers: self.state.registers,
-                _direction: direction::Input,
-            },
+            registers: self.registers,
+            _direction: direction::Input,
         }
     }
 }
 
-impl<'gpio, T> InputPin for Pin<T, pins::state::Gpio<'gpio, direction::Input>>
+impl<'gpio, T> InputPin for GpioPin<'gpio, T, direction::Input>
 where
     T: PinTrait,
 {
@@ -375,10 +391,8 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_input`]: #method.into_input
     fn is_high(&self) -> Result<bool, Self::Error> {
-        Ok(
-            self.state.registers.pin[T::PORT].read().port().bits() & T::MASK
-                == T::MASK,
-        )
+        Ok(self.registers.pin[T::PORT].read().port().bits() & T::MASK
+            == T::MASK)
     }
 
     /// Indicates wether the pin input is HIGH
@@ -393,10 +407,8 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_input`]: #method.into_input
     fn is_low(&self) -> Result<bool, Self::Error> {
-        Ok(
-            !self.state.registers.pin[T::PORT].read().port().bits() & T::MASK
-                == T::MASK,
-        )
+        Ok(!self.registers.pin[T::PORT].read().port().bits() & T::MASK
+            == T::MASK)
     }
 }
 

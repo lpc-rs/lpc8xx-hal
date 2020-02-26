@@ -1,6 +1,6 @@
 //! API to control pins
 
-use crate::gpio::{self, GpioRegisters, GPIO};
+use crate::gpio::{direction, GpioPin, GPIO};
 
 use self::state::PinState;
 
@@ -192,7 +192,7 @@ use self::state::PinState;
 /// [`lpc82x::ADC`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.ADC.html
 pub struct Pin<T: PinTrait, S: PinState> {
     pub(crate) ty: T,
-    pub(crate) state: S,
+    pub(crate) _state: S,
 }
 
 impl<T> Pin<T, state::Unused>
@@ -229,38 +229,8 @@ where
     /// ```
     ///
     /// [State Management]: #state-management
-    pub fn into_gpio_pin(
-        self,
-        gpio: &GPIO,
-    ) -> Pin<T, state::Gpio<gpio::direction::Unknown>> {
-        #[cfg(feature = "82x")]
-        let registers = {
-            use core::slice;
-
-            GpioRegisters {
-                dirset: slice::from_ref(&gpio.gpio.dirset0),
-                dirclr: slice::from_ref(&gpio.gpio.dirclr0),
-                pin: slice::from_ref(&gpio.gpio.pin0),
-                set: slice::from_ref(&gpio.gpio.set0),
-                clr: slice::from_ref(&gpio.gpio.clr0),
-            }
-        };
-        #[cfg(feature = "845")]
-        let registers = GpioRegisters {
-            dirset: &gpio.gpio.dirset,
-            dirclr: &gpio.gpio.dirclr,
-            pin: &gpio.gpio.pin,
-            set: &gpio.gpio.set,
-            clr: &gpio.gpio.clr,
-        };
-
-        Pin {
-            ty: self.ty,
-            state: state::Gpio {
-                registers,
-                _direction: gpio::direction::Unknown,
-            },
-        }
+    pub fn into_gpio_pin(self, gpio: &GPIO) -> GpioPin<T, direction::Unknown> {
+        GpioPin::new(self.ty, gpio)
     }
 
     /// Transition pin to SWM state
@@ -294,7 +264,7 @@ where
     pub fn into_swm_pin(self) -> Pin<T, state::Swm<(), ()>> {
         Pin {
             ty: self.ty,
-            state: state::Swm::new(),
+            _state: state::Swm::new(),
         }
     }
 }
@@ -321,7 +291,7 @@ where
     pub fn into_unused_pin(self) -> Pin<T, state::Unused> {
         Pin {
             ty: self.ty,
-            state: state::Unused,
+            _state: state::Unused,
         }
     }
 }
@@ -380,8 +350,8 @@ macro_rules! pins {
                 Pins {
                     $(
                         $field: Pin {
-                            ty   : $type(()),
-                            state: <$default_state_ty>::new(),
+                            ty:     $type(()),
+                            _state: <$default_state_ty>::new(),
                         },
                     )*
                 }
@@ -504,8 +474,6 @@ pins!(
 pub mod state {
     use core::marker::PhantomData;
 
-    use crate::gpio::{direction::Direction, GpioRegisters};
-
     /// Implemented by types that indicate pin state
     ///
     /// [`Pin`] uses this type as a trait bound for the type parameter that
@@ -535,16 +503,6 @@ pub mod state {
     pub struct Analog;
 
     impl PinState for Analog {}
-
-    /// Marks a [`Pin`]  as being assigned to general-purpose I/O
-    ///
-    /// [`Pin`]: ../struct.Pin.html
-    pub struct Gpio<'gpio, D: Direction> {
-        pub(crate) registers: GpioRegisters<'gpio>,
-        pub(crate) _direction: D,
-    }
-
-    impl<'gpio, D> PinState for Gpio<'gpio, D> where D: Direction {}
 
     /// Marks a [`Pin`]  as being available for switch matrix function assigment
     ///
