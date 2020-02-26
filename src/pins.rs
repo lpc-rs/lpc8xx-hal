@@ -234,16 +234,17 @@ where
         self,
         gpio: &GPIO,
     ) -> Pin<T, state::Gpio<gpio::direction::Unknown>> {
-        // Isn't used for lpc845
-        #[allow(unused_imports)]
-        use core::slice;
         #[cfg(feature = "82x")]
-        let registers = state::GpioRegisters {
-            dirset: slice::from_ref(&gpio.gpio.dirset0),
-            dirclr: slice::from_ref(&gpio.gpio.dirclr0),
-            pin: slice::from_ref(&gpio.gpio.pin0),
-            set: slice::from_ref(&gpio.gpio.set0),
-            clr: slice::from_ref(&gpio.gpio.clr0),
+        let registers = {
+            use core::slice;
+
+            state::GpioRegisters {
+                dirset: slice::from_ref(&gpio.gpio.dirset0),
+                dirclr: slice::from_ref(&gpio.gpio.dirclr0),
+                pin: slice::from_ref(&gpio.gpio.pin0),
+                set: slice::from_ref(&gpio.gpio.set0),
+                clr: slice::from_ref(&gpio.gpio.clr0),
+            }
         };
         #[cfg(feature = "845")]
         let registers = state::GpioRegisters {
@@ -253,6 +254,7 @@ where
             set: &gpio.gpio.set,
             clr: &gpio.gpio.clr,
         };
+
         Pin {
             ty: self.ty,
             state: state::Gpio {
