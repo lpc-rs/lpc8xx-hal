@@ -203,10 +203,9 @@ where
     }
 }
 
-impl<'gpio, T, D> GpioPin<'gpio, T, D>
+impl<'gpio, T> GpioPin<'gpio, T, direction::Input>
 where
     T: PinTrait,
-    D: direction::NotOutput,
 {
     /// Set pin direction to output
     ///
@@ -328,10 +327,9 @@ impl<'gpio, T> toggleable::Default for GpioPin<'gpio, T, direction::Output> wher
 {
 }
 
-impl<'gpio, T, D> GpioPin<'gpio, T, D>
+impl<'gpio, T> GpioPin<'gpio, T, direction::Output>
 where
     T: PinTrait,
-    D: direction::NotInput,
 {
     /// Set pin direction to input
     ///
@@ -481,26 +479,4 @@ pub mod direction {
             Self(())
         }
     }
-
-    /// Marks a direction as not being output (i.e. being unknown or input)
-    ///
-    /// This is a helper trait used only to prevent some code duplication in
-    /// [`Pin`] by allowing `impl` blocks to be defined precisely. It should not
-    /// be relevant to users of this crate.
-    ///
-    /// [`Pin`]: ../../pins/struct.Pin.html
-    pub trait NotOutput: Direction {}
-
-    impl NotOutput for Input {}
-
-    /// Marks a direction as not being input (i.e. being unknown or output)
-    ///
-    /// This is a helper trait used only to prevent some code duplication in
-    /// [`Pin`] by allowing `impl` blocks to be defined precisely. It should not
-    /// be relevant to users of this crate.
-    ///
-    /// [`Pin`]: ../../pins/struct.Pin.html
-    pub trait NotInput: Direction {}
-
-    impl NotInput for Output {}
 }
