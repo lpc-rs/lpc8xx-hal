@@ -33,11 +33,11 @@ fn main() -> ! {
     let (u0_rxd, _) = swm
         .movable_functions
         .u0_rxd
-        .assign(swm.pins.pio0_0.into_swm_pin(), &mut swm.handle);
+        .assign(p.pins.pio0_0.into_swm_pin(), &mut swm.handle);
     let (u0_txd, _) = swm
         .movable_functions
         .u0_txd
-        .assign(swm.pins.pio0_4.into_swm_pin(), &mut swm.handle);
+        .assign(p.pins.pio0_4.into_swm_pin(), &mut swm.handle);
 
     let mut serial =
         p.USART0

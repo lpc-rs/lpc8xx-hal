@@ -64,13 +64,13 @@ fn main() -> ! {
     // perspective from the serial adapter, so this is used the opposite way
 
     #[cfg(feature = "82x")]
-    let tx_pin = swm.pins.pio0_7.into_swm_pin();
+    let tx_pin = p.pins.pio0_7.into_swm_pin();
     #[cfg(feature = "82x")]
-    let rx_pin = swm.pins.pio0_18.into_swm_pin();
+    let rx_pin = p.pins.pio0_18.into_swm_pin();
     #[cfg(feature = "845")]
-    let tx_pin = swm.pins.pio0_25.into_swm_pin();
+    let tx_pin = p.pins.pio0_25.into_swm_pin();
     #[cfg(feature = "845")]
-    let rx_pin = swm.pins.pio0_24.into_swm_pin();
+    let rx_pin = p.pins.pio0_24.into_swm_pin();
 
     // Assign U0_RXD & U0_TXD to the rx & tx pins. On the LPCXpresso824-MAX &
     // LPC845-BRK development boards, they're connected to the integrated USB to

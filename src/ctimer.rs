@@ -36,8 +36,9 @@ use crate::{
         ctimer0::{MR, MSR},
         CTIMER0,
     },
+    pins::PinTrait,
     reg_proxy::RegProxy,
-    swm::{self, PinTrait, T0_MAT0, T0_MAT1, T0_MAT2},
+    swm::{self, T0_MAT0, T0_MAT1, T0_MAT2},
     syscon,
 };
 

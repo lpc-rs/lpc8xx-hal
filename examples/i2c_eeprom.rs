@@ -51,13 +51,13 @@ fn main() -> ! {
     // Set baud rate to 115200 baud
     let clock_config = UsartClock::new_with_baudrate(115200);
     #[cfg(feature = "82x")]
-    let tx_pin = swm.pins.pio0_7.into_swm_pin();
+    let tx_pin = p.pins.pio0_7.into_swm_pin();
     #[cfg(feature = "82x")]
-    let rx_pin = swm.pins.pio0_18.into_swm_pin();
+    let rx_pin = p.pins.pio0_18.into_swm_pin();
     #[cfg(feature = "845")]
-    let tx_pin = swm.pins.pio0_25.into_swm_pin();
+    let tx_pin = p.pins.pio0_25.into_swm_pin();
     #[cfg(feature = "845")]
-    let rx_pin = swm.pins.pio0_24.into_swm_pin();
+    let rx_pin = p.pins.pio0_24.into_swm_pin();
 
     let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(rx_pin, &mut handle);
     let (u0_txd, _) = swm.movable_functions.u0_txd.assign(tx_pin, &mut handle);
@@ -73,11 +73,11 @@ fn main() -> ! {
     let (i2c0_sda, _) = swm
         .fixed_functions
         .i2c0_sda
-        .assign(swm.pins.pio0_11.into_swm_pin(), &mut handle);
+        .assign(p.pins.pio0_11.into_swm_pin(), &mut handle);
     let (i2c0_scl, _) = swm
         .fixed_functions
         .i2c0_scl
-        .assign(swm.pins.pio0_10.into_swm_pin(), &mut handle);
+        .assign(p.pins.pio0_10.into_swm_pin(), &mut handle);
 
     let i2c_clock = I2cClock::new_400khz();
     let mut i2c =

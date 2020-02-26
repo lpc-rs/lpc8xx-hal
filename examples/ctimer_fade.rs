@@ -29,9 +29,9 @@ fn main() -> ! {
         p.CTIMER0.start_pwm(256, 0, &mut syscon.handle);
 
     // Select pin for the RGB LED
-    let green = swm.pins.pio1_0.into_swm_pin();
-    let blue = swm.pins.pio1_1.into_swm_pin();
-    let red = swm.pins.pio1_2.into_swm_pin();
+    let green = p.pins.pio1_0.into_swm_pin();
+    let blue = p.pins.pio1_1.into_swm_pin();
+    let red = p.pins.pio1_2.into_swm_pin();
 
     // Configure the LED pins. The API tracks the state of pins at compile time,
     // to prevent any mistakes.

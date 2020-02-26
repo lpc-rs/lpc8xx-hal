@@ -118,6 +118,7 @@ pub mod dma;
 pub mod gpio;
 pub mod i2c;
 pub mod mrt;
+pub mod pins;
 pub mod pmu;
 pub mod sleep;
 pub mod spi;
@@ -201,6 +202,9 @@ use embedded_hal as hal;
 /// use of the hardware.
 #[allow(non_snake_case)]
 pub struct Peripherals {
+    /// Pins that can be used for GPIO or other functions
+    pub pins: pins::Pins,
+
     /// Analog-to-Digital Converter (ADC)
     pub ADC: ADC<init_state::Disabled>,
 
@@ -471,6 +475,8 @@ impl Peripherals {
 
     fn new(p: pac::Peripherals) -> Self {
         Peripherals {
+            pins: pins::Pins::new(),
+
             // HAL peripherals
             ADC: ADC::new(p.ADC0),
             #[cfg(feature = "845")]

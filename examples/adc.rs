@@ -30,8 +30,8 @@ fn main() -> ! {
     // Set baud rate to 115200 baud
     let clock_config = UsartClock::new_with_baudrate(115200);
 
-    let tx_pin = swm.pins.pio0_25.into_swm_pin();
-    let rx_pin = swm.pins.pio0_24.into_swm_pin();
+    let tx_pin = p.pins.pio0_25.into_swm_pin();
+    let rx_pin = p.pins.pio0_24.into_swm_pin();
 
     let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(rx_pin, &mut handle);
     let (u0_txd, _) = swm.movable_functions.u0_txd.assign(tx_pin, &mut handle);
@@ -46,7 +46,7 @@ fn main() -> ! {
     let (mut adc_pin, _) = swm
         .fixed_functions
         .adc_0
-        .assign(swm.pins.pio0_7.into_swm_pin(), &mut handle);
+        .assign(p.pins.pio0_7.into_swm_pin(), &mut handle);
 
     loop {
         let adc_value =
