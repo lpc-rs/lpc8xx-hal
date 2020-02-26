@@ -40,6 +40,13 @@ use crate::{
     syscon,
 };
 
+#[cfg(feature = "845")]
+use crate::pac::gpio::{CLR, DIRCLR, DIRSET, PIN, SET};
+#[cfg(feature = "82x")]
+use crate::pac::gpio::{
+    CLR0 as CLR, DIRCLR0 as DIRCLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET,
+};
+
 /// Interface to the GPIO peripheral
 ///
 /// Controls the GPIO peripheral. Can be used to enable, disable, or free the
@@ -391,6 +398,14 @@ where
                 == T::MASK,
         )
     }
+}
+
+pub(crate) struct GpioRegisters<'gpio> {
+    pub(crate) dirset: &'gpio [DIRSET],
+    pub(crate) dirclr: &'gpio [DIRCLR],
+    pub(crate) pin: &'gpio [PIN],
+    pub(crate) set: &'gpio [SET],
+    pub(crate) clr: &'gpio [CLR],
 }
 
 /// Contains types to indicate the direction of GPIO pins

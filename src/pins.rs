@@ -1,6 +1,6 @@
 //! API to control pins
 
-use crate::gpio::{self, GPIO};
+use crate::gpio::{self, GpioRegisters, GPIO};
 
 use self::state::PinState;
 
@@ -237,7 +237,7 @@ where
         let registers = {
             use core::slice;
 
-            state::GpioRegisters {
+            GpioRegisters {
                 dirset: slice::from_ref(&gpio.gpio.dirset0),
                 dirclr: slice::from_ref(&gpio.gpio.dirclr0),
                 pin: slice::from_ref(&gpio.gpio.pin0),
@@ -246,7 +246,7 @@ where
             }
         };
         #[cfg(feature = "845")]
-        let registers = state::GpioRegisters {
+        let registers = GpioRegisters {
             dirset: &gpio.gpio.dirset,
             dirclr: &gpio.gpio.dirclr,
             pin: &gpio.gpio.pin,
@@ -504,14 +504,7 @@ pins!(
 pub mod state {
     use core::marker::PhantomData;
 
-    use crate::gpio::direction::Direction;
-    #[cfg(feature = "845")]
-    use crate::pac::gpio::{CLR, DIRCLR, DIRSET, PIN, SET};
-    #[cfg(feature = "82x")]
-    use crate::pac::gpio::{
-        CLR0 as CLR, DIRCLR0 as DIRCLR, DIRSET0 as DIRSET, PIN0 as PIN,
-        SET0 as SET,
-    };
+    use crate::gpio::{direction::Direction, GpioRegisters};
 
     /// Implemented by types that indicate pin state
     ///
@@ -549,14 +542,6 @@ pub mod state {
     pub struct Gpio<'gpio, D: Direction> {
         pub(crate) registers: GpioRegisters<'gpio>,
         pub(crate) _direction: D,
-    }
-
-    pub(crate) struct GpioRegisters<'gpio> {
-        pub(crate) dirset: &'gpio [DIRSET],
-        pub(crate) dirclr: &'gpio [DIRCLR],
-        pub(crate) pin: &'gpio [PIN],
-        pub(crate) set: &'gpio [SET],
-        pub(crate) clr: &'gpio [CLR],
     }
 
     impl<'gpio, D> PinState for Gpio<'gpio, D> where D: Direction {}
