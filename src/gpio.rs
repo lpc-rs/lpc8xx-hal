@@ -231,13 +231,10 @@ where
     /// pin.set_low();
     /// ```
     pub fn into_output(self) -> GpioPin<'gpio, T, direction::Output> {
-        self.registers.dirset[T::PORT]
-            .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
-
         GpioPin {
             ty: self.ty,
             registers: self.registers,
-            _direction: direction::Output,
+            _direction: direction::Output::switch::<T>(self.registers),
         }
     }
 }
@@ -362,13 +359,10 @@ where
     /// }
     /// ```
     pub fn into_input(self) -> GpioPin<'gpio, T, direction::Input> {
-        self.registers.dirclr[T::PORT]
-            .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
-
         GpioPin {
             ty: self.ty,
             registers: self.registers,
-            _direction: direction::Input,
+            _direction: direction::Input::switch::<T>(self.registers),
         }
     }
 }
@@ -425,6 +419,10 @@ pub(crate) struct GpioRegisters<'gpio> {
 ///
 /// Please refer to [`Pin`] for documentation on how these types are used.
 pub mod direction {
+    use crate::pins::PinTrait;
+
+    use super::GpioRegisters;
+
     /// Implemented by types that indicate GPIO pin direction
     ///
     /// The [`Gpio`] type uses this trait as a bound for its type parameter.
@@ -457,7 +455,20 @@ pub mod direction {
     ///
     /// [`Gpio`]: ../../pins/state/struct.Gpio.html
     /// [`Pin`]: ../../pins/struct.Pin.html
-    pub struct Input;
+    pub struct Input(());
+
+    impl Input {
+        /// Switches a pin to the output state
+        ///
+        /// This method is for internal use only. Any changes to it won't be
+        /// considered breaking changes.
+        pub(crate) fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
+            registers.dirclr[T::PORT]
+                .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
+            Self(())
+        }
+    }
+
     impl Direction for Input {}
 
     /// Marks a GPIO pin as being configured for output
@@ -468,7 +479,20 @@ pub mod direction {
     ///
     /// [`Gpio`]: ../../pins/state/struct.Gpio.html
     /// [`Pin`]: ../../pins/struct.Pin.html
-    pub struct Output;
+    pub struct Output(());
+
+    impl Output {
+        /// Switches a pin to the output state
+        ///
+        /// This method is for internal use only. Any changes to it won't be
+        /// considered breaking changes.
+        pub(crate) fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
+            registers.dirset[T::PORT]
+                .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
+            Self(())
+        }
+    }
+
     impl Direction for Output {}
 
     /// Marks a direction as not being output (i.e. being unknown or input)
