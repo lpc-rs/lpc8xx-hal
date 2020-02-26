@@ -412,6 +412,7 @@ where
     }
 }
 
+#[derive(Clone, Copy)]
 pub(crate) struct GpioRegisters<'gpio> {
     pub(crate) dirset: &'gpio [DIRSET],
     pub(crate) dirclr: &'gpio [DIRCLR],
