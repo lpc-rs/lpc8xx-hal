@@ -43,6 +43,8 @@ use crate::pac::gpio::{
     CLR0 as CLR, DIRCLR0 as DIRCLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET,
 };
 
+use self::direction::Direction;
+
 /// Interface to the GPIO peripheral
 ///
 /// Controls the GPIO peripheral. Can be used to enable, disable, or free the
@@ -166,7 +168,11 @@ pub struct GpioPin<'gpio, T, D> {
     _direction: D,
 }
 
-impl<'gpio, T> GpioPin<'gpio, T, direction::Unknown> {
+impl<'gpio, T, D> GpioPin<'gpio, T, D>
+where
+    T: PinTrait,
+    D: Direction,
+{
     pub(crate) fn new(ty: T, gpio: &'gpio GPIO) -> Self {
         #[cfg(feature = "82x")]
         let registers = {
@@ -192,7 +198,7 @@ impl<'gpio, T> GpioPin<'gpio, T, direction::Unknown> {
         Self {
             ty,
             registers,
-            _direction: direction::Unknown,
+            _direction: D::switch::<T>(registers),
         }
     }
 }
@@ -406,8 +412,9 @@ where
     }
 }
 
+/// This is an internal type that should be of no concern to users of this crate
 #[derive(Clone, Copy)]
-pub(crate) struct GpioRegisters<'gpio> {
+pub struct GpioRegisters<'gpio> {
     pub(crate) dirset: &'gpio [DIRSET],
     pub(crate) dirclr: &'gpio [DIRCLR],
     pub(crate) pin: &'gpio [PIN],
@@ -431,21 +438,13 @@ pub mod direction {
     /// relevant to users of this crate.
     ///
     /// [`Gpio`]: ../../pins/state/struct.Gpio.html
-    pub trait Direction {}
-
-    /// Marks a GPIO pin's direction as being unknown
-    ///
-    /// This type is used as a type parameter of [`Gpio`], which in turn is used
-    /// as a type parameter of [`Pin`]. Please refer to the documentation of
-    /// [`Pin`] to see how this type is used.
-    ///
-    /// As we can't know what happened to the hardware before the HAL was
-    /// initialized, this is the initial state of GPIO pins.
-    ///
-    /// [`Gpio`]: ../../pins/state/struct.Gpio.html
-    /// [`Pin`]: ../../pins/struct.Pin.html
-    pub struct Unknown;
-    impl Direction for Unknown {}
+    pub trait Direction {
+        /// Switch a pin to this direction
+        ///
+        /// This method is for internal use only. Any changes to it won't be
+        /// considered breaking changes.
+        fn switch<T: PinTrait>(_: GpioRegisters) -> Self;
+    }
 
     /// Marks a GPIO pin as being configured for input
     ///
@@ -457,19 +456,13 @@ pub mod direction {
     /// [`Pin`]: ../../pins/struct.Pin.html
     pub struct Input(());
 
-    impl Input {
-        /// Switches a pin to the output state
-        ///
-        /// This method is for internal use only. Any changes to it won't be
-        /// considered breaking changes.
-        pub(crate) fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
+    impl Direction for Input {
+        fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
             registers.dirclr[T::PORT]
                 .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
             Self(())
         }
     }
-
-    impl Direction for Input {}
 
     /// Marks a GPIO pin as being configured for output
     ///
@@ -481,19 +474,13 @@ pub mod direction {
     /// [`Pin`]: ../../pins/struct.Pin.html
     pub struct Output(());
 
-    impl Output {
-        /// Switches a pin to the output state
-        ///
-        /// This method is for internal use only. Any changes to it won't be
-        /// considered breaking changes.
-        pub(crate) fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
+    impl Direction for Output {
+        fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
             registers.dirset[T::PORT]
                 .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
             Self(())
         }
     }
-
-    impl Direction for Output {}
 
     /// Marks a direction as not being output (i.e. being unknown or input)
     ///
@@ -504,7 +491,6 @@ pub mod direction {
     /// [`Pin`]: ../../pins/struct.Pin.html
     pub trait NotOutput: Direction {}
 
-    impl NotOutput for Unknown {}
     impl NotOutput for Input {}
 
     /// Marks a direction as not being input (i.e. being unknown or output)
@@ -516,6 +502,5 @@ pub mod direction {
     /// [`Pin`]: ../../pins/struct.Pin.html
     pub trait NotInput: Direction {}
 
-    impl NotInput for Unknown {}
     impl NotInput for Output {}
 }

@@ -199,37 +199,13 @@ impl<T> Pin<T, state::Unused>
 where
     T: PinTrait,
 {
-    /// Transition pin to GPIO state
-    ///
-    /// This method is only available while the pin is in the unused state. Code
-    /// that attempts to call this method while the pin is in any other state
-    /// will not compile. See [State Management] for more information on
-    /// managing pin states.
-    ///
-    /// Consumes this pin instance and returns a new instance that is in the
-    /// GPIO state, allowing you to use the pin for general-purpose I/O. As long
-    /// as the pin is in the GPIO state, it needs the GPIO peripheral to be
-    /// enabled to function correctly. To statically guarantee that this is the
-    /// case, this method takes a shared reference to [`GPIO`], which the pin
-    /// keeps around until it leaves the GPIO state.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// use lpc82x_hal::Peripherals;
-    ///
-    /// let p = Peripherals::take().unwrap();
-    ///
-    /// let swm = p.SWM.split();
-    ///
-    /// let pin = swm.pins.pio0_12
-    ///     .into_gpio_pin(&p.GPIO);
-    ///
-    /// // `pin` is now available for general-purpose I/O
-    /// ```
-    ///
-    /// [State Management]: #state-management
-    pub fn into_gpio_pin(self, gpio: &GPIO) -> GpioPin<T, direction::Unknown> {
+    /// Transition pin to GPIO input mode
+    pub fn into_input_pin(self, gpio: &GPIO) -> GpioPin<T, direction::Input> {
+        GpioPin::new(self.ty, gpio)
+    }
+
+    /// Transition pin to GPIO output mode
+    pub fn into_output_pin(self, gpio: &GPIO) -> GpioPin<T, direction::Output> {
         GpioPin::new(self.ty, gpio)
     }
 
