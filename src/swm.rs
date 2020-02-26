@@ -9,11 +9,7 @@ use core::marker::PhantomData;
 
 use crate::{
     init_state, pac,
-    pins::{
-        self,
-        pin_state::{self, PinState},
-        Pin, PinTrait,
-    },
+    pins::{self, state::PinState, Pin, PinTrait},
     syscon,
 };
 
@@ -199,78 +195,79 @@ impl Handle<init_state::Enabled> {
     }
 }
 
-impl<T, F, O, Is> AssignFunction<F, Input> for Pin<T, pin_state::Swm<O, Is>>
+impl<T, F, O, Is> AssignFunction<F, Input> for Pin<T, pins::state::Swm<O, Is>>
 where
     T: PinTrait,
     F: FunctionTrait<T, Kind = Input>,
 {
-    type Assigned = Pin<T, pin_state::Swm<O, (Is,)>>;
+    type Assigned = Pin<T, pins::state::Swm<O, (Is,)>>;
 
     fn assign(self) -> Self::Assigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Swm::new(),
+            state: pins::state::Swm::new(),
         }
     }
 }
 
-impl<T, F, Is> AssignFunction<F, Output> for Pin<T, pin_state::Swm<(), Is>>
+impl<T, F, Is> AssignFunction<F, Output> for Pin<T, pins::state::Swm<(), Is>>
 where
     T: PinTrait,
     F: FunctionTrait<T, Kind = Output>,
 {
-    type Assigned = Pin<T, pin_state::Swm<((),), Is>>;
+    type Assigned = Pin<T, pins::state::Swm<((),), Is>>;
 
     fn assign(self) -> Self::Assigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Swm::new(),
+            state: pins::state::Swm::new(),
         }
     }
 }
 
 impl<T, F, O, Is> UnassignFunction<F, Input>
-    for Pin<T, pin_state::Swm<O, (Is,)>>
+    for Pin<T, pins::state::Swm<O, (Is,)>>
 where
     T: PinTrait,
     F: FunctionTrait<T, Kind = Input>,
 {
-    type Unassigned = Pin<T, pin_state::Swm<O, Is>>;
+    type Unassigned = Pin<T, pins::state::Swm<O, Is>>;
 
     fn unassign(self) -> Self::Unassigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Swm::new(),
+            state: pins::state::Swm::new(),
         }
     }
 }
 
-impl<T, F, Is> UnassignFunction<F, Output> for Pin<T, pin_state::Swm<((),), Is>>
+impl<T, F, Is> UnassignFunction<F, Output>
+    for Pin<T, pins::state::Swm<((),), Is>>
 where
     T: PinTrait,
     F: FunctionTrait<T, Kind = Output>,
 {
-    type Unassigned = Pin<T, pin_state::Swm<(), Is>>;
+    type Unassigned = Pin<T, pins::state::Swm<(), Is>>;
 
     fn unassign(self) -> Self::Unassigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Swm::new(),
+            state: pins::state::Swm::new(),
         }
     }
 }
 
-impl<T, F> AssignFunction<F, Analog> for Pin<T, pin_state::Swm<(), ()>>
+impl<T, F> AssignFunction<F, Analog> for Pin<T, pins::state::Swm<(), ()>>
 where
     T: PinTrait,
     F: FunctionTrait<T, Kind = Analog>,
 {
-    type Assigned = Pin<T, pin_state::Analog>;
+    type Assigned = Pin<T, pins::state::Analog>;
 
     fn assign(self) -> Self::Assigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Analog,
+            state: pins::state::Analog,
         }
     }
 }
@@ -291,7 +288,7 @@ impl<T> Function<T, state::Unassigned> {
     /// This method is only available if a number of requirements are met:
     /// - `Function` must be in the [`Unassigned`] state, as a function can only
     ///   be assigned to one pin.
-    /// - The [`Pin`] must be in the SWM state ([`pin_state::Swm`]). See
+    /// - The [`Pin`] must be in the SWM state ([`pins::state::Swm`]). See
     ///   documentation on [`Pin`] for information on pin state management.
     /// - The function must be assignable to the pin. Movable functions can be
     ///   assigned to any pin, but fixed functions can be assigned to only one
@@ -367,7 +364,7 @@ impl<T, P> Function<T, state::Assigned<P>> {
     ///   `Function` must be in the [`Assigned`] state, and the type parameter
     ///   of [`Assigned`] must indicate that the function is assigned to the
     ///   same pin that is provided as an argument.
-    /// - The [`Pin`] must be in the SWM state ([`pin_state::Swm`]), and the
+    /// - The [`Pin`] must be in the SWM state ([`pins::state::Swm`]), and the
     ///   state must indicate that a function of this `Function`'s type is
     ///   currently assigned. This should always be the case, if the previous
     ///   condition is met, as it should be impossible to create inconsistent
