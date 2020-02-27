@@ -29,6 +29,8 @@
 //! [`swm`]: ../swm/index.html
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
+use core::marker::PhantomData;
+
 use embedded_hal::digital::v2::{
     toggleable, InputPin, OutputPin, StatefulOutputPin,
 };
@@ -59,7 +61,7 @@ use self::direction::Direction;
 /// [module documentation]: index.html
 pub struct GPIO<State = init_state::Enabled> {
     pub(crate) gpio: pac::GPIO,
-    _state: State,
+    _state: PhantomData<State>,
 }
 
 impl GPIO<init_state::Enabled> {
@@ -74,7 +76,7 @@ impl GPIO<init_state::Enabled> {
     pub unsafe fn new_enabled(gpio: pac::GPIO) -> Self {
         GPIO {
             gpio,
-            _state: init_state::Enabled(()),
+            _state: PhantomData,
         }
     }
 }
@@ -91,7 +93,7 @@ impl GPIO<init_state::Disabled> {
     pub fn new(gpio: pac::GPIO) -> Self {
         GPIO {
             gpio,
-            _state: init_state::Disabled,
+            _state: PhantomData,
         }
     }
     /// Enable the GPIO peripheral
@@ -113,7 +115,7 @@ impl GPIO<init_state::Disabled> {
 
         GPIO {
             gpio: self.gpio,
-            _state: init_state::Enabled(()),
+            _state: PhantomData,
         }
     }
 }
@@ -138,7 +140,7 @@ impl GPIO<init_state::Enabled> {
 
         GPIO {
             gpio: self.gpio,
-            _state: init_state::Disabled,
+            _state: PhantomData,
         }
     }
 }

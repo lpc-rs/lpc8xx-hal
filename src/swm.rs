@@ -33,7 +33,7 @@ use self::state::{Assigned, Unassigned};
 /// [module documentation]: index.html
 pub struct SWM<State = init_state::Enabled> {
     swm: pac::SWM0,
-    state: State,
+    state: PhantomData<State>,
 }
 
 impl SWM<init_state::Disabled> {
@@ -53,7 +53,7 @@ impl SWM<init_state::Disabled> {
     pub unsafe fn new(swm: pac::SWM0) -> Self {
         SWM {
             swm,
-            state: init_state::Disabled,
+            state: PhantomData,
         }
     }
 }
@@ -70,7 +70,7 @@ impl SWM<init_state::Enabled> {
     pub unsafe fn new_enabled(swm: pac::SWM0) -> Self {
         SWM {
             swm,
-            state: init_state::Enabled(()),
+            state: PhantomData,
         }
     }
 }
@@ -83,7 +83,7 @@ impl<STATE> SWM<STATE> {
     /// using [`SWM::free`] after you've called this method.
     pub fn split(self) -> Parts<STATE> {
         Parts {
-            handle: Handle::new(self.swm, self.state),
+            handle: Handle::new(self.swm),
             movable_functions: MovableFunctions::new(),
             fixed_functions: FixedFunctions::new(),
         }
@@ -135,12 +135,15 @@ pub struct Parts<STATE> {
 /// [module documentation]: index.html
 pub struct Handle<State = init_state::Enabled> {
     swm: pac::SWM0,
-    _state: State,
+    _state: PhantomData<State>,
 }
 
 impl<STATE> Handle<STATE> {
-    pub(crate) fn new(swm: pac::SWM0, state: STATE) -> Self {
-        Handle { swm, _state: state }
+    pub(crate) fn new(swm: pac::SWM0) -> Self {
+        Handle {
+            swm,
+            _state: PhantomData,
+        }
     }
 }
 
@@ -164,7 +167,7 @@ impl Handle<init_state::Disabled> {
 
         Handle {
             swm: self.swm,
-            _state: init_state::Enabled(()),
+            _state: PhantomData,
         }
     }
 }
@@ -192,7 +195,7 @@ impl Handle<init_state::Enabled> {
 
         Handle {
             swm: self.swm,
-            _state: init_state::Disabled,
+            _state: PhantomData,
         }
     }
 }
