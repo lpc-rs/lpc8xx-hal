@@ -73,7 +73,8 @@ impl GPIO<init_state::Enabled> {
     /// [`Enabled`] state. It's up to the caller to verify this assumption.
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub unsafe fn new_enabled(gpio: pac::GPIO) -> Self {
+    #[cfg(feature = "82x")]
+    pub(crate) unsafe fn new_enabled(gpio: pac::GPIO) -> Self {
         GPIO {
             gpio,
             _state: PhantomData,
@@ -90,7 +91,8 @@ impl GPIO<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Enabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn new(gpio: pac::GPIO) -> Self {
+    #[cfg(feature = "845")]
+    pub(crate) fn new(gpio: pac::GPIO) -> Self {
         GPIO {
             gpio,
             _state: PhantomData,

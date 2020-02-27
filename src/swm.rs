@@ -50,7 +50,8 @@ impl SWM<init_state::Disabled> {
     ///
     /// [`Disabled`]: ../init_state/struct.Enabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub unsafe fn new(swm: pac::SWM0) -> Self {
+    #[cfg(feature = "845")]
+    pub(crate) unsafe fn new(swm: pac::SWM0) -> Self {
         SWM {
             swm,
             state: PhantomData,
@@ -67,7 +68,8 @@ impl SWM<init_state::Enabled> {
     /// default [`Enabled`] state. It's up to the caller to verify this assumption.
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub unsafe fn new_enabled(swm: pac::SWM0) -> Self {
+    #[cfg(feature = "82x")]
+    pub(crate) unsafe fn new_enabled(swm: pac::SWM0) -> Self {
         SWM {
             swm,
             state: PhantomData,
