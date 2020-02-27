@@ -186,6 +186,12 @@ use self::state::PinState;
 /// lpc845-pac crates, [`lpc82x::IOCON`] and [`lpc82x::ADC`], after you have put
 /// the pin into the ADC state.
 ///
+/// [`PIO0_0`]: struct.PIO0_0.html
+/// [`PIO0_1`]: struct.PIO0_1.html
+/// [`state::Unused`]: state/struct.Unused.html
+/// [`state::Gpio`]: state/struct.Gpio.html
+/// [`state::Swm`]: state/struct.Swm.html
+/// [`state::Analog`]: state/struct.Analog.html
 /// [`direction::Unknown`]: ../gpio/direction/struct.Unknown.html
 /// [`direction::Input`]: ../gpio/direction/struct.Input.html
 /// [`direction::Output`]: ../gpio/direction/struct.Output.html
@@ -370,7 +376,7 @@ macro_rules! pins {
         /// which pins are actually available on your specific part, and only
         /// use those.
         ///
-        /// [`swm::Parts`]: struct.Parts.html
+        /// [`swm::Parts`]: ../swm/struct.Parts.html
         #[allow(missing_docs)]
         pub struct Pins {
             $(pub $field: Pin<$type, $default_state_ty>,)*
@@ -395,7 +401,7 @@ macro_rules! pins {
             ///
             /// Pins can be accessed via the field `pins` of [`swm::Parts`].
             ///
-            /// [`swm::Parts`]: struct.Parts.html
+            /// [`swm::Parts`]: ../swm/struct.Parts.html
             #[allow(non_camel_case_types)]
             pub struct $type(());
 
