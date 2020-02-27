@@ -2,180 +2,7 @@
 
 use crate::gpio::{self, GPIO};
 
-use self::pin_state::PinState;
-
-/// Implemented by types that identify pins
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
-/// be considered breaking changes.
-///
-/// Please refer to [`Pin`] for the public API used to control pins.
-pub trait PinTrait {
-    /// A number that indentifies the port
-    ///
-    /// This is `0` for [`PIO0_0`] and `1` for [`PIO1_0`]
-    const PORT: usize;
-    /// A number that identifies the pin
-    ///
-    /// This is `0` for [`PIO0_0`], `1` for [`PIO0_1`] and so forth.
-    const ID: u8;
-
-    /// The pin's bit mask
-    ///
-    /// This is `0x00000001` for [`PIO0_0`], `0x00000002` for [`PIO0_1`],
-    /// `0x00000004` for [`PIO0_2`], and so forth.
-    const MASK: u32;
-}
-
-macro_rules! pins {
-    ($(
-        $field:ident,
-        $type:ident,
-        $port:expr,
-        $id:expr,
-        $default_state_ty:ty,
-        $default_state_val:expr;
-    )*) => {
-        /// Provides access to all pins
-        ///
-        /// This struct is a part of [`swm::Parts`].
-        ///
-        /// # Limitations
-        ///
-        /// This struct currently provides access to all pins that can be
-        /// available on an LPC8xx part. Please make sure that you are aware of
-        /// which pins are actually available on your specific part, and only
-        /// use those.
-        ///
-        /// [`swm::Parts`]: struct.Parts.html
-        #[allow(missing_docs)]
-        pub struct Pins {
-            $(pub $field: Pin<$type, $default_state_ty>,)*
-        }
-
-        impl Pins {
-            pub(crate) fn new() -> Self {
-                Pins {
-                    $(
-                        $field: Pin {
-                            ty   : $type(()),
-                            state: $default_state_val,
-                        },
-                    )*
-                }
-            }
-        }
-
-
-        $(
-            /// Identifies a specific pin
-            ///
-            /// Pins can be accessed via the field `pins` of [`swm::Parts`].
-            ///
-            /// [`swm::Parts`]: struct.Parts.html
-            #[allow(non_camel_case_types)]
-            pub struct $type(());
-
-            impl PinTrait for $type {
-                const PORT: usize = $port;
-                const ID  : u8    = $id;
-                const MASK: u32   = 0x1 << $id;
-            }
-        )*
-    }
-}
-
-#[cfg(feature = "82x")]
-pins!(
-    pio0_0 , PIO0_0 , 0, 0x00, pin_state::Unused        , pin_state::Unused;
-    pio0_1 , PIO0_1 , 0, 0x01, pin_state::Unused        , pin_state::Unused;
-    pio0_2 , PIO0_2 , 0, 0x02, pin_state::Swm<((),), ()>, pin_state::Swm::new();
-    pio0_3 , PIO0_3 , 0, 0x03, pin_state::Swm<((),), ()>, pin_state::Swm::new();
-    pio0_4 , PIO0_4 , 0, 0x04, pin_state::Unused        , pin_state::Unused;
-    pio0_5 , PIO0_5 , 0, 0x05, pin_state::Swm<(), ((),)>, pin_state::Swm::new();
-    pio0_6 , PIO0_6 , 0, 0x06, pin_state::Unused        , pin_state::Unused;
-    pio0_7 , PIO0_7 , 0, 0x07, pin_state::Unused        , pin_state::Unused;
-    pio0_8 , PIO0_8 , 0, 0x08, pin_state::Unused        , pin_state::Unused;
-    pio0_9 , PIO0_9 , 0, 0x09, pin_state::Unused        , pin_state::Unused;
-    pio0_10, PIO0_10, 0, 0x0a, pin_state::Unused        , pin_state::Unused;
-    pio0_11, PIO0_11, 0, 0x0b, pin_state::Unused        , pin_state::Unused;
-    pio0_12, PIO0_12, 0, 0x0c, pin_state::Unused        , pin_state::Unused;
-    pio0_13, PIO0_13, 0, 0x0d, pin_state::Unused        , pin_state::Unused;
-    pio0_14, PIO0_14, 0, 0x0e, pin_state::Unused        , pin_state::Unused;
-    pio0_15, PIO0_15, 0, 0x0f, pin_state::Unused        , pin_state::Unused;
-    pio0_16, PIO0_16, 0, 0x10, pin_state::Unused        , pin_state::Unused;
-    pio0_17, PIO0_17, 0, 0x11, pin_state::Unused        , pin_state::Unused;
-    pio0_18, PIO0_18, 0, 0x12, pin_state::Unused        , pin_state::Unused;
-    pio0_19, PIO0_19, 0, 0x13, pin_state::Unused        , pin_state::Unused;
-    pio0_20, PIO0_20, 0, 0x14, pin_state::Unused        , pin_state::Unused;
-    pio0_21, PIO0_21, 0, 0x15, pin_state::Unused        , pin_state::Unused;
-    pio0_22, PIO0_22, 0, 0x16, pin_state::Unused        , pin_state::Unused;
-    pio0_23, PIO0_23, 0, 0x17, pin_state::Unused        , pin_state::Unused;
-    pio0_24, PIO0_24, 0, 0x18, pin_state::Unused        , pin_state::Unused;
-    pio0_25, PIO0_25, 0, 0x19, pin_state::Unused        , pin_state::Unused;
-    pio0_26, PIO0_26, 0, 0x1a, pin_state::Unused        , pin_state::Unused;
-    pio0_27, PIO0_27, 0, 0x1b, pin_state::Unused        , pin_state::Unused;
-    pio0_28, PIO0_28, 0, 0x1c, pin_state::Unused        , pin_state::Unused;
-);
-
-#[cfg(feature = "845")]
-pins!(
-    pio0_0 , PIO0_0 , 0, 0x00, pin_state::Unused        , pin_state::Unused;
-    pio0_1 , PIO0_1 , 0, 0x01, pin_state::Unused        , pin_state::Unused;
-    pio0_2 , PIO0_2 , 0, 0x02, pin_state::Swm<((),), ()>, pin_state::Swm::new();
-    pio0_3 , PIO0_3 , 0, 0x03, pin_state::Swm<((),), ()>, pin_state::Swm::new();
-    pio0_4 , PIO0_4 , 0, 0x04, pin_state::Unused        , pin_state::Unused;
-    pio0_5 , PIO0_5 , 0, 0x05, pin_state::Swm<(), ((),)>, pin_state::Swm::new();
-    pio0_6 , PIO0_6 , 0, 0x06, pin_state::Unused        , pin_state::Unused;
-    pio0_7 , PIO0_7 , 0, 0x07, pin_state::Unused        , pin_state::Unused;
-    pio0_8 , PIO0_8 , 0, 0x08, pin_state::Unused        , pin_state::Unused;
-    pio0_9 , PIO0_9 , 0, 0x09, pin_state::Unused        , pin_state::Unused;
-    pio0_10, PIO0_10, 0, 0x0a, pin_state::Unused        , pin_state::Unused;
-    pio0_11, PIO0_11, 0, 0x0b, pin_state::Unused        , pin_state::Unused;
-    pio0_12, PIO0_12, 0, 0x0c, pin_state::Unused        , pin_state::Unused;
-    pio0_13, PIO0_13, 0, 0x0d, pin_state::Unused        , pin_state::Unused;
-    pio0_14, PIO0_14, 0, 0x0e, pin_state::Unused        , pin_state::Unused;
-    pio0_15, PIO0_15, 0, 0x0f, pin_state::Unused        , pin_state::Unused;
-    pio0_16, PIO0_16, 0, 0x10, pin_state::Unused        , pin_state::Unused;
-    pio0_17, PIO0_17, 0, 0x11, pin_state::Unused        , pin_state::Unused;
-    pio0_18, PIO0_18, 0, 0x12, pin_state::Unused        , pin_state::Unused;
-    pio0_19, PIO0_19, 0, 0x13, pin_state::Unused        , pin_state::Unused;
-    pio0_20, PIO0_20, 0, 0x14, pin_state::Unused        , pin_state::Unused;
-    pio0_21, PIO0_21, 0, 0x15, pin_state::Unused        , pin_state::Unused;
-    pio0_22, PIO0_22, 0, 0x16, pin_state::Unused        , pin_state::Unused;
-    pio0_23, PIO0_23, 0, 0x17, pin_state::Unused        , pin_state::Unused;
-    pio0_24, PIO0_24, 0, 0x18, pin_state::Unused        , pin_state::Unused;
-    pio0_25, PIO0_25, 0, 0x19, pin_state::Unused        , pin_state::Unused;
-    pio0_26, PIO0_26, 0, 0x1a, pin_state::Unused        , pin_state::Unused;
-    pio0_27, PIO0_27, 0, 0x1b, pin_state::Unused        , pin_state::Unused;
-    pio0_28, PIO0_28, 0, 0x1c, pin_state::Unused        , pin_state::Unused;
-    pio0_29, PIO0_29, 0, 0x1d, pin_state::Unused        , pin_state::Unused;
-    pio0_30, PIO0_30, 0, 0x1e, pin_state::Unused        , pin_state::Unused;
-    pio0_31, PIO0_31, 0, 0x1f, pin_state::Unused        , pin_state::Unused;
-    pio1_0 , PIO1_0 , 1, 0x00, pin_state::Unused        , pin_state::Unused;
-    pio1_1 , PIO1_1 , 1, 0x01, pin_state::Unused        , pin_state::Unused;
-    pio1_2 , PIO1_2 , 1, 0x02, pin_state::Unused        , pin_state::Unused;
-    pio1_3 , PIO1_3 , 1, 0x03, pin_state::Unused        , pin_state::Unused;
-    pio1_4 , PIO1_4 , 1, 0x04, pin_state::Unused        , pin_state::Unused;
-    pio1_5 , PIO1_5 , 1, 0x05, pin_state::Unused        , pin_state::Unused;
-    pio1_6 , PIO1_6 , 1, 0x06, pin_state::Unused        , pin_state::Unused;
-    pio1_7 , PIO1_7 , 1, 0x07, pin_state::Unused        , pin_state::Unused;
-    pio1_8 , PIO1_8 , 1, 0x08, pin_state::Unused        , pin_state::Unused;
-    pio1_9 , PIO1_9 , 1, 0x09, pin_state::Unused        , pin_state::Unused;
-    pio1_10, PIO1_10, 1, 0x0a, pin_state::Unused        , pin_state::Unused;
-    pio1_11, PIO1_11, 1, 0x0b, pin_state::Unused        , pin_state::Unused;
-    pio1_12, PIO1_12, 1, 0x0c, pin_state::Unused        , pin_state::Unused;
-    pio1_13, PIO1_13, 1, 0x0d, pin_state::Unused        , pin_state::Unused;
-    pio1_14, PIO1_14, 1, 0x0e, pin_state::Unused        , pin_state::Unused;
-    pio1_15, PIO1_15, 1, 0x0f, pin_state::Unused        , pin_state::Unused;
-    pio1_16, PIO1_16, 1, 0x10, pin_state::Unused        , pin_state::Unused;
-    pio1_17, PIO1_17, 1, 0x11, pin_state::Unused        , pin_state::Unused;
-    pio1_18, PIO1_18, 1, 0x12, pin_state::Unused        , pin_state::Unused;
-    pio1_19, PIO1_19, 1, 0x13, pin_state::Unused        , pin_state::Unused;
-    pio1_20, PIO1_20, 1, 0x14, pin_state::Unused        , pin_state::Unused;
-    pio1_21, PIO1_21, 1, 0x15, pin_state::Unused        , pin_state::Unused;
-);
+use self::state::PinState;
 
 /// Main API for controlling pins
 ///
@@ -185,12 +12,12 @@ pins!(
 /// - `S`, to indicate which state the represented pin is currently in
 ///
 /// A pin instance can be in one of the following states:
-/// - [`pin_state::Unused`], to indicate that the pin is currently not used
-/// - [`pin_state::Gpio`], to indicate that the pin is being used for
+/// - [`state::Unused`], to indicate that the pin is currently not used
+/// - [`state::Gpio`], to indicate that the pin is being used for
 ///   general-purpose I/O
-/// - [`pin_state::Swm`], to indicate that the pin is available for switch
+/// - [`state::Swm`], to indicate that the pin is available for switch
 ///   matrix function assignment
-/// - [`pin_state::Analog`], to indicate that the pin is being used for analog
+/// - [`state::Analog`], to indicate that the pin is being used for analog
 ///   input
 ///
 /// # State Management
@@ -352,13 +179,12 @@ pins!(
 /// );
 /// ```
 ///
-/// Using the pin for analog input once it is in the ADC state is currently not
-/// supported by this API. If you need this feature, [please let us know](https://github.com/lpc-rs/lpc8xx-hal/issues/51)!
-///
-/// As a wokraround, you can use the raw register mappings from the lpc82x-pac &
-/// lpc845-pac crates, [`lpc82x::IOCON`] and [`lpc82x::ADC`], after you have put
-/// the pin into the ADC state.
-///
+/// [`PIO0_0`]: struct.PIO0_0.html
+/// [`PIO0_1`]: struct.PIO0_1.html
+/// [`state::Unused`]: state/struct.Unused.html
+/// [`state::Gpio`]: state/struct.Gpio.html
+/// [`state::Swm`]: state/struct.Swm.html
+/// [`state::Analog`]: state/struct.Analog.html
 /// [`direction::Unknown`]: ../gpio/direction/struct.Unknown.html
 /// [`direction::Input`]: ../gpio/direction/struct.Input.html
 /// [`direction::Output`]: ../gpio/direction/struct.Output.html
@@ -369,7 +195,7 @@ pub struct Pin<T: PinTrait, S: PinState> {
     pub(crate) state: S,
 }
 
-impl<T> Pin<T, pin_state::Unused>
+impl<T> Pin<T, state::Unused>
 where
     T: PinTrait,
 {
@@ -406,29 +232,31 @@ where
     pub fn into_gpio_pin(
         self,
         gpio: &GPIO,
-    ) -> Pin<T, pin_state::Gpio<gpio::direction::Unknown>> {
-        // Isn't used for lpc845
-        #[allow(unused_imports)]
-        use core::slice;
+    ) -> Pin<T, state::Gpio<gpio::direction::Unknown>> {
         #[cfg(feature = "82x")]
-        let registers = pin_state::GpioRegisters {
-            dirset: slice::from_ref(&gpio.gpio.dirset0),
-            dirclr: slice::from_ref(&gpio.gpio.dirclr0),
-            pin: slice::from_ref(&gpio.gpio.pin0),
-            set: slice::from_ref(&gpio.gpio.set0),
-            clr: slice::from_ref(&gpio.gpio.clr0),
+        let registers = {
+            use core::slice;
+
+            state::GpioRegisters {
+                dirset: slice::from_ref(&gpio.gpio.dirset0),
+                dirclr: slice::from_ref(&gpio.gpio.dirclr0),
+                pin: slice::from_ref(&gpio.gpio.pin0),
+                set: slice::from_ref(&gpio.gpio.set0),
+                clr: slice::from_ref(&gpio.gpio.clr0),
+            }
         };
         #[cfg(feature = "845")]
-        let registers = pin_state::GpioRegisters {
+        let registers = state::GpioRegisters {
             dirset: &gpio.gpio.dirset,
             dirclr: &gpio.gpio.dirclr,
             pin: &gpio.gpio.pin,
             set: &gpio.gpio.set,
             clr: &gpio.gpio.clr,
         };
+
         Pin {
             ty: self.ty,
-            state: pin_state::Gpio {
+            state: state::Gpio {
                 registers,
                 _direction: gpio::direction::Unknown,
             },
@@ -463,15 +291,15 @@ where
     /// ```
     ///
     /// [State Management]: #state-management
-    pub fn into_swm_pin(self) -> Pin<T, pin_state::Swm<(), ()>> {
+    pub fn into_swm_pin(self) -> Pin<T, state::Swm<(), ()>> {
         Pin {
             ty: self.ty,
-            state: pin_state::Swm::new(),
+            state: state::Swm::new(),
         }
     }
 }
 
-impl<T> Pin<T, pin_state::Swm<(), ()>>
+impl<T> Pin<T, state::Swm<(), ()>>
 where
     T: PinTrait,
 {
@@ -490,18 +318,190 @@ where
     /// pin states.
     ///
     /// [State Management]: #state-management
-    pub fn into_unused_pin(self) -> Pin<T, pin_state::Unused> {
+    pub fn into_unused_pin(self) -> Pin<T, state::Unused> {
         Pin {
             ty: self.ty,
-            state: pin_state::Unused,
+            state: state::Unused,
         }
     }
 }
 
+/// Implemented by types that identify pins
+///
+/// This trait is an internal implementation detail and should neither be
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
+/// be considered breaking changes.
+///
+/// Please refer to [`Pin`] for the public API used to control pins.
+pub trait PinTrait {
+    /// A number that indentifies the port
+    ///
+    /// This is `0` for [`PIO0_0`] and `1` for [`PIO1_0`]
+    const PORT: usize;
+    /// A number that identifies the pin
+    ///
+    /// This is `0` for [`PIO0_0`], `1` for [`PIO0_1`] and so forth.
+    const ID: u8;
+
+    /// The pin's bit mask
+    ///
+    /// This is `0x00000001` for [`PIO0_0`], `0x00000002` for [`PIO0_1`],
+    /// `0x00000004` for [`PIO0_2`], and so forth.
+    const MASK: u32;
+}
+
+macro_rules! pins {
+    ($(
+        $field:ident,
+        $type:ident,
+        $port:expr,
+        $id:expr,
+        $default_state_ty:ty;
+    )*) => {
+        /// Provides access to all pins
+        ///
+        /// This struct is a part of [`swm::Parts`].
+        ///
+        /// # Limitations
+        ///
+        /// This struct currently provides access to all pins that can be
+        /// available on an LPC8xx part. Please make sure that you are aware of
+        /// which pins are actually available on your specific part, and only
+        /// use those.
+        ///
+        /// [`swm::Parts`]: ../swm/struct.Parts.html
+        #[allow(missing_docs)]
+        pub struct Pins {
+            $(pub $field: Pin<$type, $default_state_ty>,)*
+        }
+
+        impl Pins {
+            pub(crate) fn new() -> Self {
+                Pins {
+                    $(
+                        $field: Pin {
+                            ty   : $type(()),
+                            state: <$default_state_ty>::new(),
+                        },
+                    )*
+                }
+            }
+        }
+
+
+        $(
+            /// Identifies a specific pin
+            ///
+            /// Pins can be accessed via the field `pins` of [`swm::Parts`].
+            ///
+            /// [`swm::Parts`]: ../swm/struct.Parts.html
+            #[allow(non_camel_case_types)]
+            pub struct $type(());
+
+            impl PinTrait for $type {
+                const PORT: usize = $port;
+                const ID  : u8    = $id;
+                const MASK: u32   = 0x1 << $id;
+            }
+        )*
+    }
+}
+
+#[cfg(feature = "82x")]
+pins!(
+    pio0_0 , PIO0_0 , 0, 0x00, state::Unused;
+    pio0_1 , PIO0_1 , 0, 0x01, state::Unused;
+    pio0_2 , PIO0_2 , 0, 0x02, state::Swm<((),), ()>;
+    pio0_3 , PIO0_3 , 0, 0x03, state::Swm<((),), ()>;
+    pio0_4 , PIO0_4 , 0, 0x04, state::Unused;
+    pio0_5 , PIO0_5 , 0, 0x05, state::Swm<(), ((),)>;
+    pio0_6 , PIO0_6 , 0, 0x06, state::Unused;
+    pio0_7 , PIO0_7 , 0, 0x07, state::Unused;
+    pio0_8 , PIO0_8 , 0, 0x08, state::Unused;
+    pio0_9 , PIO0_9 , 0, 0x09, state::Unused;
+    pio0_10, PIO0_10, 0, 0x0a, state::Unused;
+    pio0_11, PIO0_11, 0, 0x0b, state::Unused;
+    pio0_12, PIO0_12, 0, 0x0c, state::Unused;
+    pio0_13, PIO0_13, 0, 0x0d, state::Unused;
+    pio0_14, PIO0_14, 0, 0x0e, state::Unused;
+    pio0_15, PIO0_15, 0, 0x0f, state::Unused;
+    pio0_16, PIO0_16, 0, 0x10, state::Unused;
+    pio0_17, PIO0_17, 0, 0x11, state::Unused;
+    pio0_18, PIO0_18, 0, 0x12, state::Unused;
+    pio0_19, PIO0_19, 0, 0x13, state::Unused;
+    pio0_20, PIO0_20, 0, 0x14, state::Unused;
+    pio0_21, PIO0_21, 0, 0x15, state::Unused;
+    pio0_22, PIO0_22, 0, 0x16, state::Unused;
+    pio0_23, PIO0_23, 0, 0x17, state::Unused;
+    pio0_24, PIO0_24, 0, 0x18, state::Unused;
+    pio0_25, PIO0_25, 0, 0x19, state::Unused;
+    pio0_26, PIO0_26, 0, 0x1a, state::Unused;
+    pio0_27, PIO0_27, 0, 0x1b, state::Unused;
+    pio0_28, PIO0_28, 0, 0x1c, state::Unused;
+);
+
+#[cfg(feature = "845")]
+pins!(
+    pio0_0 , PIO0_0 , 0, 0x00, state::Unused;
+    pio0_1 , PIO0_1 , 0, 0x01, state::Unused;
+    pio0_2 , PIO0_2 , 0, 0x02, state::Swm<((),), ()>;
+    pio0_3 , PIO0_3 , 0, 0x03, state::Swm<((),), ()>;
+    pio0_4 , PIO0_4 , 0, 0x04, state::Unused;
+    pio0_5 , PIO0_5 , 0, 0x05, state::Swm<(), ((),)>;
+    pio0_6 , PIO0_6 , 0, 0x06, state::Unused;
+    pio0_7 , PIO0_7 , 0, 0x07, state::Unused;
+    pio0_8 , PIO0_8 , 0, 0x08, state::Unused;
+    pio0_9 , PIO0_9 , 0, 0x09, state::Unused;
+    pio0_10, PIO0_10, 0, 0x0a, state::Unused;
+    pio0_11, PIO0_11, 0, 0x0b, state::Unused;
+    pio0_12, PIO0_12, 0, 0x0c, state::Unused;
+    pio0_13, PIO0_13, 0, 0x0d, state::Unused;
+    pio0_14, PIO0_14, 0, 0x0e, state::Unused;
+    pio0_15, PIO0_15, 0, 0x0f, state::Unused;
+    pio0_16, PIO0_16, 0, 0x10, state::Unused;
+    pio0_17, PIO0_17, 0, 0x11, state::Unused;
+    pio0_18, PIO0_18, 0, 0x12, state::Unused;
+    pio0_19, PIO0_19, 0, 0x13, state::Unused;
+    pio0_20, PIO0_20, 0, 0x14, state::Unused;
+    pio0_21, PIO0_21, 0, 0x15, state::Unused;
+    pio0_22, PIO0_22, 0, 0x16, state::Unused;
+    pio0_23, PIO0_23, 0, 0x17, state::Unused;
+    pio0_24, PIO0_24, 0, 0x18, state::Unused;
+    pio0_25, PIO0_25, 0, 0x19, state::Unused;
+    pio0_26, PIO0_26, 0, 0x1a, state::Unused;
+    pio0_27, PIO0_27, 0, 0x1b, state::Unused;
+    pio0_28, PIO0_28, 0, 0x1c, state::Unused;
+    pio0_29, PIO0_29, 0, 0x1d, state::Unused;
+    pio0_30, PIO0_30, 0, 0x1e, state::Unused;
+    pio0_31, PIO0_31, 0, 0x1f, state::Unused;
+    pio1_0 , PIO1_0 , 1, 0x00, state::Unused;
+    pio1_1 , PIO1_1 , 1, 0x01, state::Unused;
+    pio1_2 , PIO1_2 , 1, 0x02, state::Unused;
+    pio1_3 , PIO1_3 , 1, 0x03, state::Unused;
+    pio1_4 , PIO1_4 , 1, 0x04, state::Unused;
+    pio1_5 , PIO1_5 , 1, 0x05, state::Unused;
+    pio1_6 , PIO1_6 , 1, 0x06, state::Unused;
+    pio1_7 , PIO1_7 , 1, 0x07, state::Unused;
+    pio1_8 , PIO1_8 , 1, 0x08, state::Unused;
+    pio1_9 , PIO1_9 , 1, 0x09, state::Unused;
+    pio1_10, PIO1_10, 1, 0x0a, state::Unused;
+    pio1_11, PIO1_11, 1, 0x0b, state::Unused;
+    pio1_12, PIO1_12, 1, 0x0c, state::Unused;
+    pio1_13, PIO1_13, 1, 0x0d, state::Unused;
+    pio1_14, PIO1_14, 1, 0x0e, state::Unused;
+    pio1_15, PIO1_15, 1, 0x0f, state::Unused;
+    pio1_16, PIO1_16, 1, 0x10, state::Unused;
+    pio1_17, PIO1_17, 1, 0x11, state::Unused;
+    pio1_18, PIO1_18, 1, 0x12, state::Unused;
+    pio1_19, PIO1_19, 1, 0x13, state::Unused;
+    pio1_20, PIO1_20, 1, 0x14, state::Unused;
+    pio1_21, PIO1_21, 1, 0x15, state::Unused;
+);
+
 /// Contains types that indicate pin states
 ///
 /// Please refer to [`Pin`] for documentation about how these types are used.
-pub mod pin_state {
+pub mod state {
     use core::marker::PhantomData;
 
     use crate::gpio::direction::Direction;
@@ -527,6 +527,12 @@ pub mod pin_state {
     ///
     /// [`Pin`]: ../struct.Pin.html
     pub struct Unused;
+
+    impl Unused {
+        pub(crate) fn new() -> Self {
+            Self
+        }
+    }
 
     impl PinState for Unused {}
 

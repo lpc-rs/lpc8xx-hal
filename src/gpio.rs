@@ -36,7 +36,7 @@ use void::Void;
 
 use crate::{
     init_state, pac,
-    pins::{pin_state, Pin, PinTrait},
+    pins::{self, Pin, PinTrait},
     syscon,
 };
 
@@ -156,7 +156,7 @@ impl<State> GPIO<State> {
     }
 }
 
-impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
+impl<'gpio, T, D> Pin<T, pins::state::Gpio<'gpio, D>>
 where
     T: PinTrait,
     D: direction::NotOutput,
@@ -191,14 +191,14 @@ where
     /// ```
     pub fn into_output(
         self,
-    ) -> Pin<T, pin_state::Gpio<'gpio, direction::Output>> {
+    ) -> Pin<T, pins::state::Gpio<'gpio, direction::Output>> {
         self.state.registers.dirset[T::PORT]
             .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
 
         Pin {
             ty: self.ty,
 
-            state: pin_state::Gpio {
+            state: pins::state::Gpio {
                 registers: self.state.registers,
 
                 _direction: direction::Output,
@@ -207,7 +207,7 @@ where
     }
 }
 
-impl<'gpio, T> OutputPin for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
+impl<'gpio, T> OutputPin for Pin<T, pins::state::Gpio<'gpio, direction::Output>>
 where
     T: PinTrait,
 {
@@ -249,7 +249,7 @@ where
 }
 
 impl<'gpio, T> StatefulOutputPin
-    for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
+    for Pin<T, pins::state::Gpio<'gpio, direction::Output>>
 where
     T: PinTrait,
 {
@@ -291,13 +291,13 @@ where
 }
 
 impl<'gpio, T> toggleable::Default
-    for Pin<T, pin_state::Gpio<'gpio, direction::Output>>
+    for Pin<T, pins::state::Gpio<'gpio, direction::Output>>
 where
     T: PinTrait,
 {
 }
 
-impl<'gpio, T, D> Pin<T, pin_state::Gpio<'gpio, D>>
+impl<'gpio, T, D> Pin<T, pins::state::Gpio<'gpio, D>>
 where
     T: PinTrait,
     D: direction::NotInput,
@@ -335,14 +335,14 @@ where
     /// ```
     pub fn into_input(
         self,
-    ) -> Pin<T, pin_state::Gpio<'gpio, direction::Input>> {
+    ) -> Pin<T, pins::state::Gpio<'gpio, direction::Input>> {
         self.state.registers.dirclr[T::PORT]
             .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
 
         Pin {
             ty: self.ty,
 
-            state: pin_state::Gpio {
+            state: pins::state::Gpio {
                 registers: self.state.registers,
                 _direction: direction::Input,
             },
@@ -350,7 +350,7 @@ where
     }
 }
 
-impl<'gpio, T> InputPin for Pin<T, pin_state::Gpio<'gpio, direction::Input>>
+impl<'gpio, T> InputPin for Pin<T, pins::state::Gpio<'gpio, direction::Input>>
 where
     T: PinTrait,
 {
@@ -404,7 +404,7 @@ pub mod direction {
     /// be used for this parameter. Other than that, this trait should not be
     /// relevant to users of this crate.
     ///
-    /// [`Gpio`]: ../../swm/pin_state/struct.Gpio.html
+    /// [`Gpio`]: ../../pins/state/struct.Gpio.html
     pub trait Direction {}
 
     /// Marks a GPIO pin's direction as being unknown
@@ -416,8 +416,8 @@ pub mod direction {
     /// As we can't know what happened to the hardware before the HAL was
     /// initialized, this is the initial state of GPIO pins.
     ///
-    /// [`Gpio`]: ../../swm/pin_state/struct.Gpio.html
-    /// [`Pin`]: ../../swm/struct.Pin.html
+    /// [`Gpio`]: ../../pins/state/struct.Gpio.html
+    /// [`Pin`]: ../../pins/struct.Pin.html
     pub struct Unknown;
     impl Direction for Unknown {}
 
@@ -427,8 +427,8 @@ pub mod direction {
     /// as a type parameter of [`Pin`]. Please refer to the documentation of
     /// [`Pin`] to see how this type is used.
     ///
-    /// [`Gpio`]: ../../swm/pin_state/struct.Gpio.html
-    /// [`Pin`]: ../../swm/struct.Pin.html
+    /// [`Gpio`]: ../../pins/state/struct.Gpio.html
+    /// [`Pin`]: ../../pins/struct.Pin.html
     pub struct Input;
     impl Direction for Input {}
 
@@ -438,8 +438,8 @@ pub mod direction {
     /// as a type parameter of [`Pin`]. Please refer to the documentation of
     /// [`Pin`] to see how this type is used.
     ///
-    /// [`Gpio`]: ../../swm/pin_state/struct.Gpio.html
-    /// [`Pin`]: ../../swm/struct.Pin.html
+    /// [`Gpio`]: ../../pins/state/struct.Gpio.html
+    /// [`Pin`]: ../../pins/struct.Pin.html
     pub struct Output;
     impl Direction for Output {}
 
@@ -449,7 +449,7 @@ pub mod direction {
     /// [`Pin`] by allowing `impl` blocks to be defined precisely. It should not
     /// be relevant to users of this crate.
     ///
-    /// [`Pin`]: ../../swm/struct.Pin.html
+    /// [`Pin`]: ../../pins/struct.Pin.html
     pub trait NotOutput: Direction {}
 
     impl NotOutput for Unknown {}
@@ -461,7 +461,7 @@ pub mod direction {
     /// [`Pin`] by allowing `impl` blocks to be defined precisely. It should not
     /// be relevant to users of this crate.
     ///
-    /// [`Pin`]: ../../swm/struct.Pin.html
+    /// [`Pin`]: ../../pins/struct.Pin.html
     pub trait NotInput: Direction {}
 
     impl NotInput for Unknown {}

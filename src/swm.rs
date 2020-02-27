@@ -9,11 +9,11 @@ use core::marker::PhantomData;
 
 use crate::{
     init_state, pac,
-    pins::{self, pin_state, Pin, PinTrait},
+    pins::{self, state::PinState, Pin, PinTrait},
     syscon,
 };
 
-use self::pin_state::PinState;
+use self::state::{Assigned, Unassigned};
 
 /// Entry point to the switch matrix (SWM) API
 ///
@@ -197,78 +197,79 @@ impl Handle<init_state::Enabled> {
     }
 }
 
-impl<T, F, O, Is> AssignFunction<F, Input> for Pin<T, pin_state::Swm<O, Is>>
+impl<T, F, O, Is> AssignFunction<F, Input> for Pin<T, pins::state::Swm<O, Is>>
 where
     T: PinTrait,
     F: FunctionTrait<T, Kind = Input>,
 {
-    type Assigned = Pin<T, pin_state::Swm<O, (Is,)>>;
+    type Assigned = Pin<T, pins::state::Swm<O, (Is,)>>;
 
     fn assign(self) -> Self::Assigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Swm::new(),
+            state: pins::state::Swm::new(),
         }
     }
 }
 
-impl<T, F, Is> AssignFunction<F, Output> for Pin<T, pin_state::Swm<(), Is>>
+impl<T, F, Is> AssignFunction<F, Output> for Pin<T, pins::state::Swm<(), Is>>
 where
     T: PinTrait,
     F: FunctionTrait<T, Kind = Output>,
 {
-    type Assigned = Pin<T, pin_state::Swm<((),), Is>>;
+    type Assigned = Pin<T, pins::state::Swm<((),), Is>>;
 
     fn assign(self) -> Self::Assigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Swm::new(),
+            state: pins::state::Swm::new(),
         }
     }
 }
 
 impl<T, F, O, Is> UnassignFunction<F, Input>
-    for Pin<T, pin_state::Swm<O, (Is,)>>
+    for Pin<T, pins::state::Swm<O, (Is,)>>
 where
     T: PinTrait,
     F: FunctionTrait<T, Kind = Input>,
 {
-    type Unassigned = Pin<T, pin_state::Swm<O, Is>>;
+    type Unassigned = Pin<T, pins::state::Swm<O, Is>>;
 
     fn unassign(self) -> Self::Unassigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Swm::new(),
+            state: pins::state::Swm::new(),
         }
     }
 }
 
-impl<T, F, Is> UnassignFunction<F, Output> for Pin<T, pin_state::Swm<((),), Is>>
+impl<T, F, Is> UnassignFunction<F, Output>
+    for Pin<T, pins::state::Swm<((),), Is>>
 where
     T: PinTrait,
     F: FunctionTrait<T, Kind = Output>,
 {
-    type Unassigned = Pin<T, pin_state::Swm<(), Is>>;
+    type Unassigned = Pin<T, pins::state::Swm<(), Is>>;
 
     fn unassign(self) -> Self::Unassigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Swm::new(),
+            state: pins::state::Swm::new(),
         }
     }
 }
 
-impl<T, F> AssignFunction<F, Analog> for Pin<T, pin_state::Swm<(), ()>>
+impl<T, F> AssignFunction<F, Analog> for Pin<T, pins::state::Swm<(), ()>>
 where
     T: PinTrait,
     F: FunctionTrait<T, Kind = Analog>,
 {
-    type Assigned = Pin<T, pin_state::Analog>;
+    type Assigned = Pin<T, pins::state::Analog>;
 
     fn assign(self) -> Self::Assigned {
         Pin {
             ty: self.ty,
-            state: pin_state::Analog,
+            state: pins::state::Analog,
         }
     }
 }
@@ -283,13 +284,13 @@ pub struct Function<T, State> {
     _state: State,
 }
 
-impl<T> Function<T, state::Unassigned> {
+impl<T> Function<T, Unassigned> {
     /// Assign this function to a pin
     ///
     /// This method is only available if a number of requirements are met:
     /// - `Function` must be in the [`Unassigned`] state, as a function can only
     ///   be assigned to one pin.
-    /// - The [`Pin`] must be in the SWM state ([`pin_state::Swm`]). See
+    /// - The [`Pin`] must be in the SWM state ([`pins::state::Swm`]). See
     ///   documentation on [`Pin`] for information on pin state management.
     /// - The function must be assignable to the pin. Movable functions can be
     ///   assigned to any pin, but fixed functions can be assigned to only one
@@ -337,7 +338,7 @@ impl<T> Function<T, state::Unassigned> {
         mut pin: Pin<P, S>,
         swm: &mut Handle,
     ) -> (
-        Function<T, state::Assigned<P>>,
+        Function<T, Assigned<P>>,
         <Pin<P, S> as AssignFunction<T, T::Kind>>::Assigned,
     )
     where
@@ -350,14 +351,14 @@ impl<T> Function<T, state::Unassigned> {
 
         let function = Function {
             ty: self.ty,
-            _state: state::Assigned(PhantomData),
+            _state: Assigned(PhantomData),
         };
 
         (function, pin.assign())
     }
 }
 
-impl<T, P> Function<T, state::Assigned<P>> {
+impl<T, P> Function<T, Assigned<P>> {
     /// Unassign this function from a pin
     ///
     /// This method is only available if a number of requirements are met:
@@ -365,7 +366,7 @@ impl<T, P> Function<T, state::Assigned<P>> {
     ///   `Function` must be in the [`Assigned`] state, and the type parameter
     ///   of [`Assigned`] must indicate that the function is assigned to the
     ///   same pin that is provided as an argument.
-    /// - The [`Pin`] must be in the SWM state ([`pin_state::Swm`]), and the
+    /// - The [`Pin`] must be in the SWM state ([`pins::state::Swm`]), and the
     ///   state must indicate that a function of this `Function`'s type is
     ///   currently assigned. This should always be the case, if the previous
     ///   condition is met, as it should be impossible to create inconsistent
@@ -409,7 +410,7 @@ impl<T, P> Function<T, state::Assigned<P>> {
         mut pin: Pin<P, S>,
         swm: &mut Handle,
     ) -> (
-        Function<T, state::Unassigned>,
+        Function<T, Unassigned>,
         <Pin<P, S> as UnassignFunction<T, T::Kind>>::Unassigned,
     )
     where
@@ -422,7 +423,7 @@ impl<T, P> Function<T, state::Assigned<P>> {
 
         let function = Function {
             ty: self.ty,
-            _state: state::Unassigned,
+            _state: Unassigned,
         };
 
         (function, pin.unassign())
@@ -519,7 +520,7 @@ macro_rules! movable_functions {
         /// [`swm::Parts`]: struct.Parts.html
         #[allow(missing_docs)]
         pub struct MovableFunctions {
-            $(pub $field: Function<$type, state::Unassigned>,)*
+            $(pub $field: Function<$type, Unassigned>,)*
         }
 
         impl MovableFunctions {
@@ -527,7 +528,7 @@ macro_rules! movable_functions {
                 MovableFunctions {
                     $($field: Function {
                         ty    : $type(()),
-                        _state: state::Unassigned,
+                        _state: Unassigned,
                     },)*
                 }
             }
@@ -805,73 +806,73 @@ macro_rules! fixed_functions {
 
 #[cfg(feature = "82x")]
 fixed_functions!(
-    ACMP_I1 , Input , pinenable0, acmp_i1 , PIO0_0 , state::Unassigned;
-    ACMP_I2 , Input , pinenable0, acmp_i2 , PIO0_1 , state::Unassigned;
-    ACMP_I3 , Input , pinenable0, acmp_i3 , PIO0_14, state::Unassigned;
-    ACMP_I4 , Input , pinenable0, acmp_i4 , PIO0_23, state::Unassigned;
-    SWCLK   , Output, pinenable0, swclk   , PIO0_3 , state::Assigned<pins::PIO0_3>;
-    SWDIO   , Output, pinenable0, swdio   , PIO0_2 , state::Assigned<pins::PIO0_2>;
-    XTALIN  , Input , pinenable0, xtalin  , PIO0_8 , state::Unassigned;
-    XTALOUT , Output, pinenable0, xtalout , PIO0_9 , state::Unassigned;
-    RESETN  , Input , pinenable0, resetn  , PIO0_5 , state::Assigned<pins::PIO0_5>;
-    CLKIN   , Input , pinenable0, clkin   , PIO0_1 , state::Unassigned;
-    VDDCMP  , Input , pinenable0, vddcmp  , PIO0_6 , state::Unassigned;
-    I2C0_SDA, Output, pinenable0, i2c0_sda, PIO0_11, state::Unassigned;
-    I2C0_SCL, Output, pinenable0, i2c0_scl, PIO0_10, state::Unassigned;
-    ADC_0   , Analog, pinenable0, adc_0   , PIO0_7 , state::Unassigned;
-    ADC_1   , Analog, pinenable0, adc_1   , PIO0_6 , state::Unassigned;
-    ADC_2   , Analog, pinenable0, adc_2   , PIO0_14, state::Unassigned;
-    ADC_3   , Analog, pinenable0, adc_3   , PIO0_23, state::Unassigned;
-    ADC_4   , Analog, pinenable0, adc_4   , PIO0_22, state::Unassigned;
-    ADC_5   , Analog, pinenable0, adc_5   , PIO0_21, state::Unassigned;
-    ADC_6   , Analog, pinenable0, adc_6   , PIO0_20, state::Unassigned;
-    ADC_7   , Analog, pinenable0, adc_7   , PIO0_19, state::Unassigned;
-    ADC_8   , Analog, pinenable0, adc_8   , PIO0_18, state::Unassigned;
-    ADC_9   , Analog, pinenable0, adc_9   , PIO0_17, state::Unassigned;
-    ADC_10  , Analog, pinenable0, adc_10  , PIO0_13, state::Unassigned;
-    ADC_11  , Analog, pinenable0, adc_11  , PIO0_4 , state::Unassigned;
+    ACMP_I1 , Input , pinenable0, acmp_i1 , PIO0_0 , Unassigned;
+    ACMP_I2 , Input , pinenable0, acmp_i2 , PIO0_1 , Unassigned;
+    ACMP_I3 , Input , pinenable0, acmp_i3 , PIO0_14, Unassigned;
+    ACMP_I4 , Input , pinenable0, acmp_i4 , PIO0_23, Unassigned;
+    SWCLK   , Output, pinenable0, swclk   , PIO0_3 , Assigned<pins::PIO0_3>;
+    SWDIO   , Output, pinenable0, swdio   , PIO0_2 , Assigned<pins::PIO0_2>;
+    XTALIN  , Input , pinenable0, xtalin  , PIO0_8 , Unassigned;
+    XTALOUT , Output, pinenable0, xtalout , PIO0_9 , Unassigned;
+    RESETN  , Input , pinenable0, resetn  , PIO0_5 , Assigned<pins::PIO0_5>;
+    CLKIN   , Input , pinenable0, clkin   , PIO0_1 , Unassigned;
+    VDDCMP  , Input , pinenable0, vddcmp  , PIO0_6 , Unassigned;
+    I2C0_SDA, Output, pinenable0, i2c0_sda, PIO0_11, Unassigned;
+    I2C0_SCL, Output, pinenable0, i2c0_scl, PIO0_10, Unassigned;
+    ADC_0   , Analog, pinenable0, adc_0   , PIO0_7 , Unassigned;
+    ADC_1   , Analog, pinenable0, adc_1   , PIO0_6 , Unassigned;
+    ADC_2   , Analog, pinenable0, adc_2   , PIO0_14, Unassigned;
+    ADC_3   , Analog, pinenable0, adc_3   , PIO0_23, Unassigned;
+    ADC_4   , Analog, pinenable0, adc_4   , PIO0_22, Unassigned;
+    ADC_5   , Analog, pinenable0, adc_5   , PIO0_21, Unassigned;
+    ADC_6   , Analog, pinenable0, adc_6   , PIO0_20, Unassigned;
+    ADC_7   , Analog, pinenable0, adc_7   , PIO0_19, Unassigned;
+    ADC_8   , Analog, pinenable0, adc_8   , PIO0_18, Unassigned;
+    ADC_9   , Analog, pinenable0, adc_9   , PIO0_17, Unassigned;
+    ADC_10  , Analog, pinenable0, adc_10  , PIO0_13, Unassigned;
+    ADC_11  , Analog, pinenable0, adc_11  , PIO0_4 , Unassigned;
 );
 
 #[cfg(feature = "845")]
 fixed_functions!(
-    ACMP_I1 , Input , pinenable0, acmp_i1 , PIO0_0 , state::Unassigned;
-    ACMP_I2 , Input , pinenable0, acmp_i2 , PIO0_1 , state::Unassigned;
-    ACMP_I3 , Input , pinenable0, acmp_i3 , PIO0_14, state::Unassigned;
-    ACMP_I4 , Input , pinenable0, acmp_i4 , PIO0_23, state::Unassigned;
-    SWCLK   , Output, pinenable0, swclk   , PIO0_3 , state::Assigned<pins::PIO0_3>;
-    SWDIO   , Output, pinenable0, swdio   , PIO0_2 , state::Assigned<pins::PIO0_2>;
-    XTALIN  , Input , pinenable0, xtalin  , PIO0_8 , state::Unassigned;
-    XTALOUT , Output, pinenable0, xtalout , PIO0_9 , state::Unassigned;
-    RESETN  , Input , pinenable0, resetn  , PIO0_5 , state::Assigned<pins::PIO0_5>;
-    CLKIN   , Input , pinenable0, clkin   , PIO0_1 , state::Unassigned;
-    VDDCMP  , Input , pinenable0, vddcmp  , PIO0_6 , state::Unassigned;
-    I2C0_SDA, Output, pinenable0, i2c0_sda, PIO0_11, state::Unassigned;
-    I2C0_SCL, Output, pinenable0, i2c0_scl, PIO0_10, state::Unassigned;
-    ADC_0   , Analog, pinenable0, adc_0   , PIO0_7 , state::Unassigned;
-    ADC_1   , Analog, pinenable0, adc_1   , PIO0_6 , state::Unassigned;
-    ADC_2   , Analog, pinenable0, adc_2   , PIO0_14, state::Unassigned;
-    ADC_3   , Analog, pinenable0, adc_3   , PIO0_23, state::Unassigned;
-    ADC_4   , Analog, pinenable0, adc_4   , PIO0_22, state::Unassigned;
-    ADC_5   , Analog, pinenable0, adc_5   , PIO0_21, state::Unassigned;
-    ADC_6   , Analog, pinenable0, adc_6   , PIO0_20, state::Unassigned;
-    ADC_7   , Analog, pinenable0, adc_7   , PIO0_19, state::Unassigned;
-    ADC_8   , Analog, pinenable0, adc_8   , PIO0_18, state::Unassigned;
-    ADC_9   , Analog, pinenable0, adc_9   , PIO0_17, state::Unassigned;
-    ADC_10  , Analog, pinenable0, adc_10  , PIO0_13, state::Unassigned;
-    ADC_11  , Analog, pinenable0, adc_11  , PIO0_4 , state::Unassigned;
-    DACOUT0 , Analog, pinenable0, dacout0 , PIO0_17, state::Unassigned;
-    DACOUT1 , Analog, pinenable0, dacout1 , PIO0_29, state::Unassigned;
-    CAPT_X0 , Analog, pinenable0, capt_x0 , PIO0_31, state::Unassigned;
-    CAPT_X1 , Analog, pinenable0, capt_x1 , PIO1_0 , state::Unassigned;
-    CAPT_X2 , Analog, pinenable0, capt_x2 , PIO1_1 , state::Unassigned;
-    CAPT_X3 , Analog, pinenable0, capt_x3 , PIO1_2 , state::Unassigned;
-    CAPT_X4 , Analog, pinenable1, capt_x4 , PIO1_3 , state::Unassigned;
-    CAPT_X5 , Analog, pinenable1, capt_x5 , PIO1_4 , state::Unassigned;
-    CAPT_X6 , Analog, pinenable1, capt_x6 , PIO1_5 , state::Unassigned;
-    CAPT_X7 , Analog, pinenable1, capt_x7 , PIO1_6 , state::Unassigned;
-    CAPT_X8 , Analog, pinenable1, capt_x8 , PIO1_7 , state::Unassigned;
-    CAPT_YL , Analog, pinenable1, capt_yl , PIO1_8 , state::Unassigned;
-    CAPT_YH , Analog, pinenable1, capt_yh , PIO1_8 , state::Unassigned;
+    ACMP_I1 , Input , pinenable0, acmp_i1 , PIO0_0 , Unassigned;
+    ACMP_I2 , Input , pinenable0, acmp_i2 , PIO0_1 , Unassigned;
+    ACMP_I3 , Input , pinenable0, acmp_i3 , PIO0_14, Unassigned;
+    ACMP_I4 , Input , pinenable0, acmp_i4 , PIO0_23, Unassigned;
+    SWCLK   , Output, pinenable0, swclk   , PIO0_3 , Assigned<pins::PIO0_3>;
+    SWDIO   , Output, pinenable0, swdio   , PIO0_2 , Assigned<pins::PIO0_2>;
+    XTALIN  , Input , pinenable0, xtalin  , PIO0_8 , Unassigned;
+    XTALOUT , Output, pinenable0, xtalout , PIO0_9 , Unassigned;
+    RESETN  , Input , pinenable0, resetn  , PIO0_5 , Assigned<pins::PIO0_5>;
+    CLKIN   , Input , pinenable0, clkin   , PIO0_1 , Unassigned;
+    VDDCMP  , Input , pinenable0, vddcmp  , PIO0_6 , Unassigned;
+    I2C0_SDA, Output, pinenable0, i2c0_sda, PIO0_11, Unassigned;
+    I2C0_SCL, Output, pinenable0, i2c0_scl, PIO0_10, Unassigned;
+    ADC_0   , Analog, pinenable0, adc_0   , PIO0_7 , Unassigned;
+    ADC_1   , Analog, pinenable0, adc_1   , PIO0_6 , Unassigned;
+    ADC_2   , Analog, pinenable0, adc_2   , PIO0_14, Unassigned;
+    ADC_3   , Analog, pinenable0, adc_3   , PIO0_23, Unassigned;
+    ADC_4   , Analog, pinenable0, adc_4   , PIO0_22, Unassigned;
+    ADC_5   , Analog, pinenable0, adc_5   , PIO0_21, Unassigned;
+    ADC_6   , Analog, pinenable0, adc_6   , PIO0_20, Unassigned;
+    ADC_7   , Analog, pinenable0, adc_7   , PIO0_19, Unassigned;
+    ADC_8   , Analog, pinenable0, adc_8   , PIO0_18, Unassigned;
+    ADC_9   , Analog, pinenable0, adc_9   , PIO0_17, Unassigned;
+    ADC_10  , Analog, pinenable0, adc_10  , PIO0_13, Unassigned;
+    ADC_11  , Analog, pinenable0, adc_11  , PIO0_4 , Unassigned;
+    DACOUT0 , Analog, pinenable0, dacout0 , PIO0_17, Unassigned;
+    DACOUT1 , Analog, pinenable0, dacout1 , PIO0_29, Unassigned;
+    CAPT_X0 , Analog, pinenable0, capt_x0 , PIO0_31, Unassigned;
+    CAPT_X1 , Analog, pinenable0, capt_x1 , PIO1_0 , Unassigned;
+    CAPT_X2 , Analog, pinenable0, capt_x2 , PIO1_1 , Unassigned;
+    CAPT_X3 , Analog, pinenable0, capt_x3 , PIO1_2 , Unassigned;
+    CAPT_X4 , Analog, pinenable1, capt_x4 , PIO1_3 , Unassigned;
+    CAPT_X5 , Analog, pinenable1, capt_x5 , PIO1_4 , Unassigned;
+    CAPT_X6 , Analog, pinenable1, capt_x6 , PIO1_5 , Unassigned;
+    CAPT_X7 , Analog, pinenable1, capt_x7 , PIO1_6 , Unassigned;
+    CAPT_X8 , Analog, pinenable1, capt_x8 , PIO1_7 , Unassigned;
+    CAPT_YL , Analog, pinenable1, capt_yl , PIO1_8 , Unassigned;
+    CAPT_YH , Analog, pinenable1, capt_yh , PIO1_8 , Unassigned;
 );
 
 /// Contains types that indicate the state of fixed or movable functions
