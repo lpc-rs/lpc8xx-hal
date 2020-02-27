@@ -1,5 +1,7 @@
 //! API to control pins
 
+use core::marker::PhantomData;
+
 use crate::gpio::{direction, GpioPin, GPIO};
 
 use self::state::PinState;
@@ -350,6 +352,50 @@ macro_rules! pins {
                 const MASK: u32   = 0x1 << $id;
             }
         )*
+
+
+        /// Contains a token for each pin
+        ///
+        /// This is used by the GPIO API to uphold certain guarantees regarding
+        /// pins. Please refer to [`GPIO`] for more information.
+        ///
+        /// [`GPIO`]: ../gpio/struct.GPIO.html
+        pub struct Tokens<State> {
+            $(
+                /// A token representing a pin
+                pub $field: Token<$type, State>,
+            )*
+        }
+
+        impl<State> Tokens<State> {
+            pub(crate) fn new() -> Self {
+                Self {
+                    $(
+                        $field: Token($type(()), PhantomData),
+                    )*
+                }
+            }
+
+            /// Switches the state of all tokens
+            ///
+            /// Since this consumes `self`, it can only be called if all tokens
+            /// are available.
+            pub(crate) fn switch_state<NewState>(self) -> Tokens<NewState> {
+                Tokens {
+                    $(
+                        $field: Token(self.$field.0, PhantomData),
+                    )*
+                }
+            }
+        }
+
+        /// A token representing a pin
+        ///
+        /// Used by [`GPIO`] to uphold correctness guarantees. Please refer to
+        /// [`GPIO`] for more information.
+        ///
+        /// [`GPIO`]: ../gpio/struct.GPIO.html
+        pub struct Token<T, State>(T, PhantomData<State>);
     }
 }
 

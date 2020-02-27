@@ -36,7 +36,11 @@ use embedded_hal::digital::v2::{
 };
 use void::Void;
 
-use crate::{init_state, pac, pins::PinTrait, syscon};
+use crate::{
+    init_state, pac,
+    pins::{self, PinTrait},
+    syscon,
+};
 
 #[cfg(feature = "845")]
 use crate::pac::gpio::{CLR, DIRCLR, DIRSET, PIN, SET};
@@ -62,6 +66,18 @@ use self::direction::Direction;
 pub struct GPIO<State = init_state::Enabled> {
     pub(crate) gpio: pac::GPIO,
     _state: PhantomData<State>,
+
+    /// Tokens representing each pins
+    ///
+    /// Since the `enable` and `disable` methods consume `self`, they can only
+    /// be called, if all tokens are available. This means, any tokens that have
+    /// been moved out while the peripheral was enabled, prevent the peripheral
+    /// from being disabled (unless those tokens are moved back in their
+    /// original place).
+    ///
+    /// As using a pin for GPIO requires such a token, it is impossible to
+    /// disable the GPIO peripheral while pins are used for GPIO.
+    pub tokens: pins::Tokens<State>,
 }
 
 impl<State> GPIO<State> {
@@ -69,6 +85,8 @@ impl<State> GPIO<State> {
         GPIO {
             gpio,
             _state: PhantomData,
+
+            tokens: pins::Tokens::new(),
         }
     }
 
@@ -107,9 +125,13 @@ impl GPIO<init_state::Disabled> {
     ) -> GPIO<init_state::Enabled> {
         syscon.enable_clock(&self.gpio);
 
+        // Only works, if all tokens are available.
+        let tokens = self.tokens.switch_state();
+
         GPIO {
             gpio: self.gpio,
             _state: PhantomData,
+            tokens,
         }
     }
 }
@@ -132,9 +154,13 @@ impl GPIO<init_state::Enabled> {
     ) -> GPIO<init_state::Disabled> {
         syscon.disable_clock(&self.gpio);
 
+        // Only works, if all tokens are available.
+        let tokens = self.tokens.switch_state();
+
         GPIO {
             gpio: self.gpio,
             _state: PhantomData,
+            tokens,
         }
     }
 }
