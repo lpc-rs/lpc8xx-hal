@@ -179,13 +179,6 @@ use self::state::PinState;
 /// );
 /// ```
 ///
-/// Using the pin for analog input once it is in the ADC state is currently not
-/// supported by this API. If you need this feature, [please let us know](https://github.com/lpc-rs/lpc8xx-hal/issues/51)!
-///
-/// As a wokraround, you can use the raw register mappings from the lpc82x-pac &
-/// lpc845-pac crates, [`lpc82x::IOCON`] and [`lpc82x::ADC`], after you have put
-/// the pin into the ADC state.
-///
 /// [`PIO0_0`]: struct.PIO0_0.html
 /// [`PIO0_1`]: struct.PIO0_1.html
 /// [`state::Unused`]: state/struct.Unused.html
