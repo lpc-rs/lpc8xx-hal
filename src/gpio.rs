@@ -34,11 +34,16 @@ use embedded_hal::digital::v2::{
 };
 use void::Void;
 
-use crate::{
-    init_state, pac,
-    pins::{self, Pin, PinTrait},
-    syscon,
+use crate::{init_state, pac, pins::PinTrait, syscon};
+
+#[cfg(feature = "845")]
+use crate::pac::gpio::{CLR, DIRCLR, DIRSET, PIN, SET};
+#[cfg(feature = "82x")]
+use crate::pac::gpio::{
+    CLR0 as CLR, DIRCLR0 as DIRCLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET,
 };
+
+use self::direction::Direction;
 
 /// Interface to the GPIO peripheral
 ///
@@ -156,10 +161,51 @@ impl<State> GPIO<State> {
     }
 }
 
-impl<'gpio, T, D> Pin<T, pins::state::Gpio<'gpio, D>>
+/// A pin used for general purpose I/O (GPIO)
+pub struct GpioPin<'gpio, T, D> {
+    ty: T,
+    registers: GpioRegisters<'gpio>,
+    _direction: D,
+}
+
+impl<'gpio, T, D> GpioPin<'gpio, T, D>
 where
     T: PinTrait,
-    D: direction::NotOutput,
+    D: Direction,
+{
+    pub(crate) fn new(ty: T, gpio: &'gpio GPIO) -> Self {
+        #[cfg(feature = "82x")]
+        let registers = {
+            use core::slice;
+
+            GpioRegisters {
+                dirset: slice::from_ref(&gpio.gpio.dirset0),
+                dirclr: slice::from_ref(&gpio.gpio.dirclr0),
+                pin: slice::from_ref(&gpio.gpio.pin0),
+                set: slice::from_ref(&gpio.gpio.set0),
+                clr: slice::from_ref(&gpio.gpio.clr0),
+            }
+        };
+        #[cfg(feature = "845")]
+        let registers = GpioRegisters {
+            dirset: &gpio.gpio.dirset,
+            dirclr: &gpio.gpio.dirclr,
+            pin: &gpio.gpio.pin,
+            set: &gpio.gpio.set,
+            clr: &gpio.gpio.clr,
+        };
+
+        Self {
+            ty,
+            registers,
+            _direction: D::switch::<T>(registers),
+        }
+    }
+}
+
+impl<'gpio, T> GpioPin<'gpio, T, direction::Input>
+where
+    T: PinTrait,
 {
     /// Set pin direction to output
     ///
@@ -189,25 +235,16 @@ where
     /// pin.set_high();
     /// pin.set_low();
     /// ```
-    pub fn into_output(
-        self,
-    ) -> Pin<T, pins::state::Gpio<'gpio, direction::Output>> {
-        self.state.registers.dirset[T::PORT]
-            .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
-
-        Pin {
+    pub fn into_output(self) -> GpioPin<'gpio, T, direction::Output> {
+        GpioPin {
             ty: self.ty,
-
-            state: pins::state::Gpio {
-                registers: self.state.registers,
-
-                _direction: direction::Output,
-            },
+            registers: self.registers,
+            _direction: direction::Output::switch::<T>(self.registers),
         }
     }
 }
 
-impl<'gpio, T> OutputPin for Pin<T, pins::state::Gpio<'gpio, direction::Output>>
+impl<'gpio, T> OutputPin for GpioPin<'gpio, T, direction::Output>
 where
     T: PinTrait,
 {
@@ -225,7 +262,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_high(&mut self) -> Result<(), Self::Error> {
-        self.state.registers.set[T::PORT]
+        self.registers.set[T::PORT]
             .write(|w| unsafe { w.setp().bits(T::MASK) });
         Ok(())
     }
@@ -242,14 +279,13 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_low(&mut self) -> Result<(), Self::Error> {
-        self.state.registers.clr[T::PORT]
+        self.registers.clr[T::PORT]
             .write(|w| unsafe { w.clrp().bits(T::MASK) });
         Ok(())
     }
 }
 
-impl<'gpio, T> StatefulOutputPin
-    for Pin<T, pins::state::Gpio<'gpio, direction::Output>>
+impl<'gpio, T> StatefulOutputPin for GpioPin<'gpio, T, direction::Output>
 where
     T: PinTrait,
 {
@@ -265,10 +301,8 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_high(&self) -> Result<bool, Self::Error> {
-        Ok(
-            self.state.registers.pin[T::PORT].read().port().bits() & T::MASK
-                == T::MASK,
-        )
+        Ok(self.registers.pin[T::PORT].read().port().bits() & T::MASK
+            == T::MASK)
     }
 
     /// Indicates whether the pin output is currently set to LOW
@@ -283,24 +317,19 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_low(&self) -> Result<bool, Self::Error> {
-        Ok(
-            !self.state.registers.pin[T::PORT].read().port().bits() & T::MASK
-                == T::MASK,
-        )
+        Ok(!self.registers.pin[T::PORT].read().port().bits() & T::MASK
+            == T::MASK)
     }
 }
 
-impl<'gpio, T> toggleable::Default
-    for Pin<T, pins::state::Gpio<'gpio, direction::Output>>
-where
-    T: PinTrait,
+impl<'gpio, T> toggleable::Default for GpioPin<'gpio, T, direction::Output> where
+    T: PinTrait
 {
 }
 
-impl<'gpio, T, D> Pin<T, pins::state::Gpio<'gpio, D>>
+impl<'gpio, T> GpioPin<'gpio, T, direction::Output>
 where
     T: PinTrait,
-    D: direction::NotInput,
 {
     /// Set pin direction to input
     ///
@@ -333,24 +362,16 @@ where
     ///     // The pin is low
     /// }
     /// ```
-    pub fn into_input(
-        self,
-    ) -> Pin<T, pins::state::Gpio<'gpio, direction::Input>> {
-        self.state.registers.dirclr[T::PORT]
-            .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
-
-        Pin {
+    pub fn into_input(self) -> GpioPin<'gpio, T, direction::Input> {
+        GpioPin {
             ty: self.ty,
-
-            state: pins::state::Gpio {
-                registers: self.state.registers,
-                _direction: direction::Input,
-            },
+            registers: self.registers,
+            _direction: direction::Input::switch::<T>(self.registers),
         }
     }
 }
 
-impl<'gpio, T> InputPin for Pin<T, pins::state::Gpio<'gpio, direction::Input>>
+impl<'gpio, T> InputPin for GpioPin<'gpio, T, direction::Input>
 where
     T: PinTrait,
 {
@@ -368,10 +389,8 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_input`]: #method.into_input
     fn is_high(&self) -> Result<bool, Self::Error> {
-        Ok(
-            self.state.registers.pin[T::PORT].read().port().bits() & T::MASK
-                == T::MASK,
-        )
+        Ok(self.registers.pin[T::PORT].read().port().bits() & T::MASK
+            == T::MASK)
     }
 
     /// Indicates wether the pin input is HIGH
@@ -386,17 +405,29 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_input`]: #method.into_input
     fn is_low(&self) -> Result<bool, Self::Error> {
-        Ok(
-            !self.state.registers.pin[T::PORT].read().port().bits() & T::MASK
-                == T::MASK,
-        )
+        Ok(!self.registers.pin[T::PORT].read().port().bits() & T::MASK
+            == T::MASK)
     }
+}
+
+/// This is an internal type that should be of no concern to users of this crate
+#[derive(Clone, Copy)]
+pub struct GpioRegisters<'gpio> {
+    pub(crate) dirset: &'gpio [DIRSET],
+    pub(crate) dirclr: &'gpio [DIRCLR],
+    pub(crate) pin: &'gpio [PIN],
+    pub(crate) set: &'gpio [SET],
+    pub(crate) clr: &'gpio [CLR],
 }
 
 /// Contains types to indicate the direction of GPIO pins
 ///
 /// Please refer to [`Pin`] for documentation on how these types are used.
 pub mod direction {
+    use crate::pins::PinTrait;
+
+    use super::GpioRegisters;
+
     /// Implemented by types that indicate GPIO pin direction
     ///
     /// The [`Gpio`] type uses this trait as a bound for its type parameter.
@@ -405,21 +436,13 @@ pub mod direction {
     /// relevant to users of this crate.
     ///
     /// [`Gpio`]: ../../pins/state/struct.Gpio.html
-    pub trait Direction {}
-
-    /// Marks a GPIO pin's direction as being unknown
-    ///
-    /// This type is used as a type parameter of [`Gpio`], which in turn is used
-    /// as a type parameter of [`Pin`]. Please refer to the documentation of
-    /// [`Pin`] to see how this type is used.
-    ///
-    /// As we can't know what happened to the hardware before the HAL was
-    /// initialized, this is the initial state of GPIO pins.
-    ///
-    /// [`Gpio`]: ../../pins/state/struct.Gpio.html
-    /// [`Pin`]: ../../pins/struct.Pin.html
-    pub struct Unknown;
-    impl Direction for Unknown {}
+    pub trait Direction {
+        /// Switch a pin to this direction
+        ///
+        /// This method is for internal use only. Any changes to it won't be
+        /// considered breaking changes.
+        fn switch<T: PinTrait>(_: GpioRegisters) -> Self;
+    }
 
     /// Marks a GPIO pin as being configured for input
     ///
@@ -429,8 +452,15 @@ pub mod direction {
     ///
     /// [`Gpio`]: ../../pins/state/struct.Gpio.html
     /// [`Pin`]: ../../pins/struct.Pin.html
-    pub struct Input;
-    impl Direction for Input {}
+    pub struct Input(());
+
+    impl Direction for Input {
+        fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
+            registers.dirclr[T::PORT]
+                .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
+            Self(())
+        }
+    }
 
     /// Marks a GPIO pin as being configured for output
     ///
@@ -440,30 +470,13 @@ pub mod direction {
     ///
     /// [`Gpio`]: ../../pins/state/struct.Gpio.html
     /// [`Pin`]: ../../pins/struct.Pin.html
-    pub struct Output;
-    impl Direction for Output {}
+    pub struct Output(());
 
-    /// Marks a direction as not being output (i.e. being unknown or input)
-    ///
-    /// This is a helper trait used only to prevent some code duplication in
-    /// [`Pin`] by allowing `impl` blocks to be defined precisely. It should not
-    /// be relevant to users of this crate.
-    ///
-    /// [`Pin`]: ../../pins/struct.Pin.html
-    pub trait NotOutput: Direction {}
-
-    impl NotOutput for Unknown {}
-    impl NotOutput for Input {}
-
-    /// Marks a direction as not being input (i.e. being unknown or output)
-    ///
-    /// This is a helper trait used only to prevent some code duplication in
-    /// [`Pin`] by allowing `impl` blocks to be defined precisely. It should not
-    /// be relevant to users of this crate.
-    ///
-    /// [`Pin`]: ../../pins/struct.Pin.html
-    pub trait NotInput: Direction {}
-
-    impl NotInput for Unknown {}
-    impl NotInput for Output {}
+    impl Direction for Output {
+        fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
+            registers.dirset[T::PORT]
+                .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
+            Self(())
+        }
+    }
 }

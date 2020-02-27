@@ -1,6 +1,6 @@
 //! API to control pins
 
-use crate::gpio::{self, GPIO};
+use crate::gpio::{direction, GpioPin, GPIO};
 
 use self::state::PinState;
 
@@ -192,75 +192,21 @@ use self::state::PinState;
 /// [`lpc82x::ADC`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.ADC.html
 pub struct Pin<T: PinTrait, S: PinState> {
     pub(crate) ty: T,
-    pub(crate) state: S,
+    pub(crate) _state: S,
 }
 
 impl<T> Pin<T, state::Unused>
 where
     T: PinTrait,
 {
-    /// Transition pin to GPIO state
-    ///
-    /// This method is only available while the pin is in the unused state. Code
-    /// that attempts to call this method while the pin is in any other state
-    /// will not compile. See [State Management] for more information on
-    /// managing pin states.
-    ///
-    /// Consumes this pin instance and returns a new instance that is in the
-    /// GPIO state, allowing you to use the pin for general-purpose I/O. As long
-    /// as the pin is in the GPIO state, it needs the GPIO peripheral to be
-    /// enabled to function correctly. To statically guarantee that this is the
-    /// case, this method takes a shared reference to [`GPIO`], which the pin
-    /// keeps around until it leaves the GPIO state.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// use lpc82x_hal::Peripherals;
-    ///
-    /// let p = Peripherals::take().unwrap();
-    ///
-    /// let swm = p.SWM.split();
-    ///
-    /// let pin = swm.pins.pio0_12
-    ///     .into_gpio_pin(&p.GPIO);
-    ///
-    /// // `pin` is now available for general-purpose I/O
-    /// ```
-    ///
-    /// [State Management]: #state-management
-    pub fn into_gpio_pin(
-        self,
-        gpio: &GPIO,
-    ) -> Pin<T, state::Gpio<gpio::direction::Unknown>> {
-        #[cfg(feature = "82x")]
-        let registers = {
-            use core::slice;
+    /// Transition pin to GPIO input mode
+    pub fn into_input_pin(self, gpio: &GPIO) -> GpioPin<T, direction::Input> {
+        GpioPin::new(self.ty, gpio)
+    }
 
-            state::GpioRegisters {
-                dirset: slice::from_ref(&gpio.gpio.dirset0),
-                dirclr: slice::from_ref(&gpio.gpio.dirclr0),
-                pin: slice::from_ref(&gpio.gpio.pin0),
-                set: slice::from_ref(&gpio.gpio.set0),
-                clr: slice::from_ref(&gpio.gpio.clr0),
-            }
-        };
-        #[cfg(feature = "845")]
-        let registers = state::GpioRegisters {
-            dirset: &gpio.gpio.dirset,
-            dirclr: &gpio.gpio.dirclr,
-            pin: &gpio.gpio.pin,
-            set: &gpio.gpio.set,
-            clr: &gpio.gpio.clr,
-        };
-
-        Pin {
-            ty: self.ty,
-            state: state::Gpio {
-                registers,
-                _direction: gpio::direction::Unknown,
-            },
-        }
+    /// Transition pin to GPIO output mode
+    pub fn into_output_pin(self, gpio: &GPIO) -> GpioPin<T, direction::Output> {
+        GpioPin::new(self.ty, gpio)
     }
 
     /// Transition pin to SWM state
@@ -294,7 +240,7 @@ where
     pub fn into_swm_pin(self) -> Pin<T, state::Swm<(), ()>> {
         Pin {
             ty: self.ty,
-            state: state::Swm::new(),
+            _state: state::Swm::new(),
         }
     }
 }
@@ -321,7 +267,7 @@ where
     pub fn into_unused_pin(self) -> Pin<T, state::Unused> {
         Pin {
             ty: self.ty,
-            state: state::Unused,
+            _state: state::Unused,
         }
     }
 }
@@ -380,8 +326,8 @@ macro_rules! pins {
                 Pins {
                     $(
                         $field: Pin {
-                            ty   : $type(()),
-                            state: <$default_state_ty>::new(),
+                            ty:     $type(()),
+                            _state: <$default_state_ty>::new(),
                         },
                     )*
                 }
@@ -504,15 +450,6 @@ pins!(
 pub mod state {
     use core::marker::PhantomData;
 
-    use crate::gpio::direction::Direction;
-    #[cfg(feature = "845")]
-    use crate::pac::gpio::{CLR, DIRCLR, DIRSET, PIN, SET};
-    #[cfg(feature = "82x")]
-    use crate::pac::gpio::{
-        CLR0 as CLR, DIRCLR0 as DIRCLR, DIRSET0 as DIRSET, PIN0 as PIN,
-        SET0 as SET,
-    };
-
     /// Implemented by types that indicate pin state
     ///
     /// [`Pin`] uses this type as a trait bound for the type parameter that
@@ -542,24 +479,6 @@ pub mod state {
     pub struct Analog;
 
     impl PinState for Analog {}
-
-    /// Marks a [`Pin`]  as being assigned to general-purpose I/O
-    ///
-    /// [`Pin`]: ../struct.Pin.html
-    pub struct Gpio<'gpio, D: Direction> {
-        pub(crate) registers: GpioRegisters<'gpio>,
-        pub(crate) _direction: D,
-    }
-
-    pub(crate) struct GpioRegisters<'gpio> {
-        pub(crate) dirset: &'gpio [DIRSET],
-        pub(crate) dirclr: &'gpio [DIRCLR],
-        pub(crate) pin: &'gpio [PIN],
-        pub(crate) set: &'gpio [SET],
-        pub(crate) clr: &'gpio [CLR],
-    }
-
-    impl<'gpio, D> PinState for Gpio<'gpio, D> where D: Direction {}
 
     /// Marks a [`Pin`]  as being available for switch matrix function assigment
     ///

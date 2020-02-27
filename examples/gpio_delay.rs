@@ -35,7 +35,7 @@ fn main() -> ! {
 
     // Configure the LED pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.
-    let mut led = led.into_gpio_pin(&gpio).into_output();
+    let mut led = led.into_output_pin(&gpio);
 
     // Blink the LED using the systick with the delay traits
     loop {

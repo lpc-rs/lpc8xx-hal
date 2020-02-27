@@ -32,7 +32,7 @@ fn main() -> ! {
 
     // Configure the LED pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.
-    let mut led = led.into_gpio_pin(&gpio).into_output();
+    let mut led = led.into_output_pin(&gpio);
 
     // Start the timer with an intervall of 12_000_000 ticks
     timer.start(12_000_000u32);

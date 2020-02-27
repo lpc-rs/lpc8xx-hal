@@ -207,7 +207,7 @@ where
     fn assign(self) -> Self::Assigned {
         Pin {
             ty: self.ty,
-            state: pins::state::Swm::new(),
+            _state: pins::state::Swm::new(),
         }
     }
 }
@@ -222,7 +222,7 @@ where
     fn assign(self) -> Self::Assigned {
         Pin {
             ty: self.ty,
-            state: pins::state::Swm::new(),
+            _state: pins::state::Swm::new(),
         }
     }
 }
@@ -238,7 +238,7 @@ where
     fn unassign(self) -> Self::Unassigned {
         Pin {
             ty: self.ty,
-            state: pins::state::Swm::new(),
+            _state: pins::state::Swm::new(),
         }
     }
 }
@@ -254,7 +254,7 @@ where
     fn unassign(self) -> Self::Unassigned {
         Pin {
             ty: self.ty,
-            state: pins::state::Swm::new(),
+            _state: pins::state::Swm::new(),
         }
     }
 }
@@ -269,7 +269,7 @@ where
     fn assign(self) -> Self::Assigned {
         Pin {
             ty: self.ty,
-            state: pins::state::Analog,
+            _state: pins::state::Analog,
         }
     }
 }

@@ -15,7 +15,7 @@ const APP: () = {
         let mut syscon = p.SYSCON.split();
         let gpio = p.GPIO.enable(&mut syscon.handle);
 
-        let mut led = p.pins.pio1_1.into_gpio_pin(&gpio).into_output();
+        let mut led = p.pins.pio1_1.into_output_pin(&gpio);
 
         loop {
             led.set_high().unwrap();
