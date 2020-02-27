@@ -64,40 +64,7 @@ pub struct GPIO<State = init_state::Enabled> {
     _state: PhantomData<State>,
 }
 
-impl GPIO<init_state::Enabled> {
-    /// Create an enabled gpio peripheral
-    ///
-    /// # Safety
-    ///
-    /// This method creates an `GPIO` instance that it assumes is already in the
-    /// [`Enabled`] state. It's up to the caller to verify this assumption.
-    ///
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
-    #[cfg(feature = "82x")]
-    pub(crate) fn new_enabled(gpio: pac::GPIO) -> Self {
-        GPIO {
-            gpio,
-            _state: PhantomData,
-        }
-    }
-}
-
 impl GPIO<init_state::Disabled> {
-    /// Create an disabled gpio peripheral
-    ///
-    /// This method creates an `GPIO` instance that it assumes is in the
-    /// [`Disabled`] state. As it's only possible to enable a [`Disabled`] `GPIO`
-    /// instance, it's also safe to pass an already [`Enabled`] instance.
-    ///
-    /// [`Disabled`]: ../init_state/struct.Enabled.html
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
-    #[cfg(feature = "845")]
-    pub(crate) fn new(gpio: pac::GPIO) -> Self {
-        GPIO {
-            gpio,
-            _state: PhantomData,
-        }
-    }
     /// Enable the GPIO peripheral
     ///
     /// This method is only available, if `GPIO` is in the [`Disabled`] state.
@@ -148,6 +115,13 @@ impl GPIO<init_state::Enabled> {
 }
 
 impl<State> GPIO<State> {
+    pub(crate) fn new(gpio: pac::GPIO) -> Self {
+        GPIO {
+            gpio,
+            _state: PhantomData,
+        }
+    }
+
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the

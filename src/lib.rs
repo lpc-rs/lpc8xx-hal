@@ -482,18 +482,12 @@ impl Peripherals {
             #[cfg(feature = "845")]
             CTIMER0: CTimer::new(p.CTIMER0),
             DMA: DMA::new(p.DMA0),
-            #[cfg(feature = "82x")]
-            GPIO: GPIO::new_enabled(p.GPIO),
-            #[cfg(feature = "845")]
             GPIO: GPIO::new(p.GPIO),
             I2C0: I2C::new(p.I2C0),
             MRT0: MRT::new(p.MRT0),
             PMU: PMU::new(p.PMU),
             SPI0: SPI::new(p.SPI0),
             SPI1: SPI::new(p.SPI1),
-            #[cfg(feature = "82x")]
-            SWM: SWM::new_enabled(p.SWM0),
-            #[cfg(feature = "845")]
             SWM: SWM::new(p.SWM0),
             SYSCON: SYSCON::new(p.SYSCON),
             USART0: USART::new(p.USART0),

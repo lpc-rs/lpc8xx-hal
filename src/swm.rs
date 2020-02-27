@@ -36,48 +36,14 @@ pub struct SWM<State = init_state::Enabled> {
     state: PhantomData<State>,
 }
 
-impl SWM<init_state::Disabled> {
-    /// Create a disabled SWM peripheral
-    ///
-    /// This method creates an `SWM` instance that it assumes is in the
-    /// [`Disabled`] state. As it's only possible to enable a [`Disabled`] `SWM`
-    /// instance, it's also safe to pass an already [`Enabled`] instance.
-    ///
-    /// # Safety
-    ///
-    /// This method creates an `SWM` instance that it assumes is in the default
-    /// state. It's up to the caller to verify this assumption.
-    ///
-    /// [`Disabled`]: ../init_state/struct.Enabled.html
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
-    #[cfg(feature = "845")]
+impl<STATE> SWM<STATE> {
     pub(crate) fn new(swm: pac::SWM0) -> Self {
         SWM {
             swm,
             state: PhantomData,
         }
     }
-}
 
-impl SWM<init_state::Enabled> {
-    /// Create a enabled SWM peripheral
-    ///
-    /// # Safety
-    ///
-    /// This method creates an `SWM` instance that it assumes is already in the
-    /// default [`Enabled`] state. It's up to the caller to verify this assumption.
-    ///
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
-    #[cfg(feature = "82x")]
-    pub(crate) fn new_enabled(swm: pac::SWM0) -> Self {
-        SWM {
-            swm,
-            state: PhantomData,
-        }
-    }
-}
-
-impl<STATE> SWM<STATE> {
     /// Splits the SWM API into its component parts
     ///
     /// This is the regular way to access the SWM API. It exists as an explicit
