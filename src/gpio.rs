@@ -178,26 +178,7 @@ where
     D: Direction,
 {
     pub(crate) fn new(ty: T, gpio: &'gpio GPIO) -> Self {
-        #[cfg(feature = "82x")]
-        let registers = {
-            use core::slice;
-
-            Registers {
-                dirset: slice::from_ref(&gpio.gpio.dirset0),
-                dirclr: slice::from_ref(&gpio.gpio.dirclr0),
-                pin: slice::from_ref(&gpio.gpio.pin0),
-                set: slice::from_ref(&gpio.gpio.set0),
-                clr: slice::from_ref(&gpio.gpio.clr0),
-            }
-        };
-        #[cfg(feature = "845")]
-        let registers = Registers {
-            dirset: &gpio.gpio.dirset,
-            dirclr: &gpio.gpio.dirclr,
-            pin: &gpio.gpio.pin,
-            set: &gpio.gpio.set,
-            clr: &gpio.gpio.clr,
-        };
+        let registers = Registers::new(&gpio.gpio);
 
         Self {
             ty,
@@ -422,6 +403,40 @@ pub struct Registers<'gpio> {
     pub(crate) pin: &'gpio [PIN],
     pub(crate) set: &'gpio [SET],
     pub(crate) clr: &'gpio [CLR],
+}
+
+impl<'gpio> Registers<'gpio> {
+    /// Create a new instance of `Registers` from the provided register block
+    ///
+    /// If the reference to `RegisterBlock` is not exclusively owned by the
+    /// caller, accessing all registers is still completely race-free, as long
+    /// as the following rules are upheld:
+    /// - Never write to `pin`, only use it for reading.
+    /// - For all other registers, only set bits that no other callers are
+    ///   setting.
+    fn new(gpio: &'gpio pac::gpio::RegisterBlock) -> Self {
+        #[cfg(feature = "82x")]
+        {
+            use core::slice;
+
+            Self {
+                dirset: slice::from_ref(&gpio.dirset0),
+                dirclr: slice::from_ref(&gpio.dirclr0),
+                pin: slice::from_ref(&gpio.pin0),
+                set: slice::from_ref(&gpio.set0),
+                clr: slice::from_ref(&gpio.clr0),
+            }
+        }
+
+        #[cfg(feature = "845")]
+        Self {
+            dirset: &gpio.dirset,
+            dirclr: &gpio.dirclr,
+            pin: &gpio.pin,
+            set: &gpio.set,
+            clr: &gpio.clr,
+        }
+    }
 }
 
 /// Contains types to indicate the direction of GPIO pins
