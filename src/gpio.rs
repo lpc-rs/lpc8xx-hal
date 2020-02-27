@@ -64,6 +64,31 @@ pub struct GPIO<State = init_state::Enabled> {
     _state: PhantomData<State>,
 }
 
+impl<State> GPIO<State> {
+    pub(crate) fn new(gpio: pac::GPIO) -> Self {
+        GPIO {
+            gpio,
+            _state: PhantomData,
+        }
+    }
+
+    /// Return the raw peripheral
+    ///
+    /// This method serves as an escape hatch from the HAL API. It returns the
+    /// raw peripheral, allowing you to do whatever you want with it, without
+    /// limitations imposed by the API.
+    ///
+    /// If you are using this method because a feature you need is missing from
+    /// the HAL API, please [open an issue] or, if an issue for your feature
+    /// request already exists, comment on the existing issue, so we can
+    /// prioritize it accordingly.
+    ///
+    /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
+    pub fn free(self) -> pac::GPIO {
+        self.gpio
+    }
+}
+
 impl GPIO<init_state::Disabled> {
     /// Enable the GPIO peripheral
     ///
@@ -111,31 +136,6 @@ impl GPIO<init_state::Enabled> {
             gpio: self.gpio,
             _state: PhantomData,
         }
-    }
-}
-
-impl<State> GPIO<State> {
-    pub(crate) fn new(gpio: pac::GPIO) -> Self {
-        GPIO {
-            gpio,
-            _state: PhantomData,
-        }
-    }
-
-    /// Return the raw peripheral
-    ///
-    /// This method serves as an escape hatch from the HAL API. It returns the
-    /// raw peripheral, allowing you to do whatever you want with it, without
-    /// limitations imposed by the API.
-    ///
-    /// If you are using this method because a feature you need is missing from
-    /// the HAL API, please [open an issue] or, if an issue for your feature
-    /// request already exists, comment on the existing issue, so we can
-    /// prioritize it accordingly.
-    ///
-    /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> pac::GPIO {
-        self.gpio
     }
 }
 
