@@ -168,7 +168,7 @@ impl GPIO<init_state::Enabled> {
 /// A pin used for general purpose I/O (GPIO)
 pub struct GpioPin<'gpio, T, D> {
     ty: T,
-    registers: GpioRegisters<'gpio>,
+    registers: Registers<'gpio>,
     _direction: D,
 }
 
@@ -182,7 +182,7 @@ where
         let registers = {
             use core::slice;
 
-            GpioRegisters {
+            Registers {
                 dirset: slice::from_ref(&gpio.gpio.dirset0),
                 dirclr: slice::from_ref(&gpio.gpio.dirclr0),
                 pin: slice::from_ref(&gpio.gpio.pin0),
@@ -191,7 +191,7 @@ where
             }
         };
         #[cfg(feature = "845")]
-        let registers = GpioRegisters {
+        let registers = Registers {
             dirset: &gpio.gpio.dirset,
             dirclr: &gpio.gpio.dirclr,
             pin: &gpio.gpio.pin,
@@ -416,7 +416,7 @@ where
 
 /// This is an internal type that should be of no concern to users of this crate
 #[derive(Clone, Copy)]
-pub struct GpioRegisters<'gpio> {
+pub struct Registers<'gpio> {
     pub(crate) dirset: &'gpio [DIRSET],
     pub(crate) dirclr: &'gpio [DIRCLR],
     pub(crate) pin: &'gpio [PIN],
@@ -430,7 +430,7 @@ pub struct GpioRegisters<'gpio> {
 pub mod direction {
     use crate::pins::PinTrait;
 
-    use super::GpioRegisters;
+    use super::Registers;
 
     /// Implemented by types that indicate GPIO pin direction
     ///
@@ -445,7 +445,7 @@ pub mod direction {
         ///
         /// This method is for internal use only. Any changes to it won't be
         /// considered breaking changes.
-        fn switch<T: PinTrait>(_: GpioRegisters) -> Self;
+        fn switch<T: PinTrait>(_: Registers) -> Self;
     }
 
     /// Marks a GPIO pin as being configured for input
@@ -459,7 +459,7 @@ pub mod direction {
     pub struct Input(());
 
     impl Direction for Input {
-        fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
+        fn switch<T: PinTrait>(registers: Registers) -> Self {
             registers.dirclr[T::PORT]
                 .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
             Self(())
@@ -477,7 +477,7 @@ pub mod direction {
     pub struct Output(());
 
     impl Direction for Output {
-        fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
+        fn switch<T: PinTrait>(registers: Registers) -> Self {
             registers.dirset[T::PORT]
                 .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
             Self(())
