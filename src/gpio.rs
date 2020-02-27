@@ -74,7 +74,7 @@ impl GPIO<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     #[cfg(feature = "82x")]
-    pub(crate) unsafe fn new_enabled(gpio: pac::GPIO) -> Self {
+    pub(crate) fn new_enabled(gpio: pac::GPIO) -> Self {
         GPIO {
             gpio,
             _state: PhantomData,

@@ -51,7 +51,7 @@ impl SWM<init_state::Disabled> {
     /// [`Disabled`]: ../init_state/struct.Enabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     #[cfg(feature = "845")]
-    pub(crate) unsafe fn new(swm: pac::SWM0) -> Self {
+    pub(crate) fn new(swm: pac::SWM0) -> Self {
         SWM {
             swm,
             state: PhantomData,
@@ -69,7 +69,7 @@ impl SWM<init_state::Enabled> {
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     #[cfg(feature = "82x")]
-    pub(crate) unsafe fn new_enabled(swm: pac::SWM0) -> Self {
+    pub(crate) fn new_enabled(swm: pac::SWM0) -> Self {
         SWM {
             swm,
             state: PhantomData,
