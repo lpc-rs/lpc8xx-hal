@@ -1,21 +1,40 @@
 #![no_main]
 #![no_std]
 
-use lpc8xx_hal::{delay::Delay, prelude::*, Peripherals};
+use lpc8xx_hal::{
+    delay::Delay,
+    gpio::{direction::Output, GpioPin},
+    pins::PIO1_1,
+    prelude::*,
+    Peripherals,
+};
 use panic_halt as _;
 
 #[rtfm::app(device = lpc8xx_hal::pac)]
 const APP: () = {
+    struct Resources {
+        delay: Delay,
+        led: GpioPin<PIO1_1, Output>,
+    }
+
     #[init]
-    fn init(cx: init::Context) {
+    fn init(cx: init::Context) -> init::LateResources {
         let p = Peripherals::take().unwrap();
 
-        let mut delay = Delay::new(cx.core.SYST);
+        let delay = Delay::new(cx.core.SYST);
 
         let mut syscon = p.SYSCON.split();
         let gpio = p.GPIO.enable(&mut syscon.handle);
 
-        let mut led = p.pins.pio1_1.into_output_pin(gpio.tokens.pio1_1);
+        let led = p.pins.pio1_1.into_output_pin(gpio.tokens.pio1_1);
+
+        init::LateResources { delay, led }
+    }
+
+    #[idle(resources = [delay, led])]
+    fn idle(cx: idle::Context) -> ! {
+        let delay = cx.resources.delay;
+        let led = cx.resources.led;
 
         loop {
             led.set_high().unwrap();
