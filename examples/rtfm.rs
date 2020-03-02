@@ -3,7 +3,7 @@
 
 use lpc8xx_hal::{
     delay::Delay,
-    gpio::{direction::Output, GpioPin},
+    gpio::{direction::Output, GpioPin, Level},
     pins::PIO1_1,
     prelude::*,
     Peripherals,
@@ -26,7 +26,10 @@ const APP: () = {
         let mut syscon = p.SYSCON.split();
         let gpio = p.GPIO.enable(&mut syscon.handle);
 
-        let led = p.pins.pio1_1.into_output_pin(gpio.tokens.pio1_1);
+        let led = p
+            .pins
+            .pio1_1
+            .into_output_pin(gpio.tokens.pio1_1, Level::Low);
 
         init::LateResources { delay, led }
     }

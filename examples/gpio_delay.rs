@@ -4,7 +4,8 @@
 extern crate panic_halt;
 
 use lpc8xx_hal::{
-    cortex_m_rt::entry, delay::Delay, prelude::*, CorePeripherals, Peripherals,
+    cortex_m_rt::entry, delay::Delay, gpio::Level, prelude::*, CorePeripherals,
+    Peripherals,
 };
 
 #[entry]
@@ -35,7 +36,7 @@ fn main() -> ! {
 
     // Configure the LED pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.
-    let mut led = led.into_output_pin(token);
+    let mut led = led.into_output_pin(token, Level::Low);
 
     // Blink the LED using the systick with the delay traits
     loop {

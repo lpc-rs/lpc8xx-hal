@@ -3,7 +3,7 @@
 use core::marker::PhantomData;
 
 use crate::{
-    gpio::{direction, GpioPin},
+    gpio::{direction, GpioPin, Level},
     init_state,
 };
 
@@ -209,15 +209,16 @@ where
         self,
         token: Token<T, init_state::Enabled>,
     ) -> GpioPin<T, direction::Input> {
-        GpioPin::new(token)
+        GpioPin::new(token, ())
     }
 
     /// Transition pin to GPIO output mode
     pub fn into_output_pin(
         self,
         token: Token<T, init_state::Enabled>,
+        initial: Level,
     ) -> GpioPin<T, direction::Output> {
-        GpioPin::new(token)
+        GpioPin::new(token, initial)
     }
 
     /// Transition pin to SWM state

@@ -4,7 +4,8 @@
 extern crate panic_halt;
 
 use lpc8xx_hal::{
-    clock::Ticks, cortex_m_rt::entry, prelude::*, sleep, Peripherals,
+    clock::Ticks, cortex_m_rt::entry, gpio::Level, prelude::*, sleep,
+    Peripherals,
 };
 
 #[entry]
@@ -36,7 +37,7 @@ fn main() -> ! {
 
     // Configure the LED pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.
-    let mut led = led.into_output_pin(token);
+    let mut led = led.into_output_pin(token, Level::Low);
 
     // Let's already initialize the durations that we're going to sleep for
     // between changing the LED state. We do this by specifying the number of

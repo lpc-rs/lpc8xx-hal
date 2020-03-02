@@ -177,7 +177,10 @@ where
     T: PinTrait,
     D: Direction,
 {
-    pub(crate) fn new(token: Token<T, init_state::Enabled>) -> Self {
+    pub(crate) fn new(
+        token: Token<T, init_state::Enabled>,
+        arg: D::SwitchArg,
+    ) -> Self {
         // This is sound, as we only write to stateless registers, restricting
         // ourselves to the bit that belongs to the pin represented by `T`.
         // Since all other instances of `GpioPin` are doing the same, there are
@@ -185,7 +188,7 @@ where
         let gpio = unsafe { &*pac::GPIO::ptr() };
 
         let registers = Registers::new(gpio);
-        let direction = D::switch::<T>(&registers);
+        let direction = D::switch::<T>(&registers, arg);
 
         Self {
             token,
@@ -227,8 +230,9 @@ where
     /// pin.set_high();
     /// pin.set_low();
     /// ```
-    pub fn into_output(self) -> GpioPin<T, direction::Output> {
-        let direction = direction::Output::switch::<T>(&self.registers);
+    pub fn into_output(self, initial: Level) -> GpioPin<T, direction::Output> {
+        let direction =
+            direction::Output::switch::<T>(&self.registers, initial);
 
         GpioPin {
             token: self.token,
@@ -256,8 +260,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_high(&mut self) -> Result<(), Self::Error> {
-        self.registers.set[T::PORT]
-            .write(|w| unsafe { w.setp().bits(T::MASK) });
+        set_high::<T>(&self.registers);
         Ok(())
     }
 
@@ -273,8 +276,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_low(&mut self) -> Result<(), Self::Error> {
-        self.registers.clr[T::PORT]
-            .write(|w| unsafe { w.clrp().bits(T::MASK) });
+        set_low::<T>(&self.registers);
         Ok(())
     }
 }
@@ -354,7 +356,7 @@ where
     /// }
     /// ```
     pub fn into_input(self) -> GpioPin<T, direction::Input> {
-        let direction = direction::Input::switch::<T>(&self.registers);
+        let direction = direction::Input::switch::<T>(&self.registers, ());
 
         GpioPin {
             token: self.token,
@@ -401,6 +403,23 @@ where
         Ok(!self.registers.pin[T::PORT].read().port().bits() & T::MASK
             == T::MASK)
     }
+}
+
+/// The voltage level of a pin
+pub enum Level {
+    /// High voltage
+    High,
+
+    /// Low voltage
+    Low,
+}
+
+fn set_high<T: PinTrait>(registers: &Registers) {
+    registers.set[T::PORT].write(|w| unsafe { w.setp().bits(T::MASK) });
+}
+
+fn set_low<T: PinTrait>(registers: &Registers) {
+    registers.clr[T::PORT].write(|w| unsafe { w.clrp().bits(T::MASK) });
 }
 
 /// This is an internal type that should be of no concern to users of this crate
@@ -452,7 +471,7 @@ impl<'gpio> Registers<'gpio> {
 pub mod direction {
     use crate::pins::PinTrait;
 
-    use super::Registers;
+    use super::{Level, Registers};
 
     /// Implemented by types that indicate GPIO pin direction
     ///
@@ -463,11 +482,14 @@ pub mod direction {
     ///
     /// [`Gpio`]: ../../pins/state/struct.Gpio.html
     pub trait Direction {
+        /// The argument of the `switch` method
+        type SwitchArg;
+
         /// Switch a pin to this direction
         ///
         /// This method is for internal use only. Any changes to it won't be
         /// considered breaking changes.
-        fn switch<T: PinTrait>(_: &Registers) -> Self;
+        fn switch<T: PinTrait>(_: &Registers, _: Self::SwitchArg) -> Self;
     }
 
     /// Marks a GPIO pin as being configured for input
@@ -481,7 +503,12 @@ pub mod direction {
     pub struct Input(());
 
     impl Direction for Input {
-        fn switch<T: PinTrait>(registers: &Registers) -> Self {
+        type SwitchArg = ();
+
+        fn switch<T: PinTrait>(
+            registers: &Registers,
+            _: Self::SwitchArg,
+        ) -> Self {
             registers.dirclr[T::PORT]
                 .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
             Self(())
@@ -499,9 +526,21 @@ pub mod direction {
     pub struct Output(());
 
     impl Direction for Output {
-        fn switch<T: PinTrait>(registers: &Registers) -> Self {
+        type SwitchArg = Level;
+
+        fn switch<T: PinTrait>(registers: &Registers, initial: Level) -> Self {
+            // First set the output level, before we switch the mode.
+            match initial {
+                Level::High => super::set_high::<T>(registers),
+                Level::Low => super::set_low::<T>(registers),
+            }
+
+            // Now that the output level is configured, we can safely switch to
+            // output mode, without risking an undesired signal between now and
+            // the first call to `set_high`/`set_low`.
             registers.dirset[T::PORT]
                 .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
+
             Self(())
         }
     }
