@@ -185,11 +185,12 @@ where
         let gpio = unsafe { &*pac::GPIO::ptr() };
 
         let registers = Registers::new(gpio);
+        let direction = D::switch::<T>(&registers);
 
         Self {
             token,
             registers,
-            _direction: D::switch::<T>(&registers),
+            _direction: direction,
         }
     }
 }
@@ -227,10 +228,12 @@ where
     /// pin.set_low();
     /// ```
     pub fn into_output(self) -> GpioPin<T, direction::Output> {
+        let direction = direction::Output::switch::<T>(&self.registers);
+
         GpioPin {
             token: self.token,
             registers: self.registers,
-            _direction: direction::Output::switch::<T>(&self.registers),
+            _direction: direction,
         }
     }
 }
@@ -351,10 +354,12 @@ where
     /// }
     /// ```
     pub fn into_input(self) -> GpioPin<T, direction::Input> {
+        let direction = direction::Input::switch::<T>(&self.registers);
+
         GpioPin {
             token: self.token,
             registers: self.registers,
-            _direction: direction::Input::switch::<T>(&self.registers),
+            _direction: direction,
         }
     }
 }
@@ -399,7 +404,6 @@ where
 }
 
 /// This is an internal type that should be of no concern to users of this crate
-#[derive(Clone, Copy)]
 pub struct Registers<'gpio> {
     dirset: &'gpio [DIRSET],
     dirclr: &'gpio [DIRCLR],
