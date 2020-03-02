@@ -189,7 +189,7 @@ where
         Self {
             token,
             registers,
-            _direction: D::switch::<T>(registers),
+            _direction: D::switch::<T>(&registers),
         }
     }
 }
@@ -230,7 +230,7 @@ where
         GpioPin {
             token: self.token,
             registers: self.registers,
-            _direction: direction::Output::switch::<T>(self.registers),
+            _direction: direction::Output::switch::<T>(&self.registers),
         }
     }
 }
@@ -354,7 +354,7 @@ where
         GpioPin {
             token: self.token,
             registers: self.registers,
-            _direction: direction::Input::switch::<T>(self.registers),
+            _direction: direction::Input::switch::<T>(&self.registers),
         }
     }
 }
@@ -463,7 +463,7 @@ pub mod direction {
         ///
         /// This method is for internal use only. Any changes to it won't be
         /// considered breaking changes.
-        fn switch<T: PinTrait>(_: Registers) -> Self;
+        fn switch<T: PinTrait>(_: &Registers) -> Self;
     }
 
     /// Marks a GPIO pin as being configured for input
@@ -477,7 +477,7 @@ pub mod direction {
     pub struct Input(());
 
     impl Direction for Input {
-        fn switch<T: PinTrait>(registers: Registers) -> Self {
+        fn switch<T: PinTrait>(registers: &Registers) -> Self {
             registers.dirclr[T::PORT]
                 .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
             Self(())
@@ -495,7 +495,7 @@ pub mod direction {
     pub struct Output(());
 
     impl Direction for Output {
-        fn switch<T: PinTrait>(registers: Registers) -> Self {
+        fn switch<T: PinTrait>(registers: &Registers) -> Self {
             registers.dirset[T::PORT]
                 .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
             Self(())
