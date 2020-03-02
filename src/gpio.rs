@@ -38,7 +38,7 @@ use void::Void;
 
 use crate::{
     init_state, pac,
-    pins::{self, PinTrait},
+    pins::{self, PinTrait, Token},
     syscon,
 };
 
@@ -166,29 +166,35 @@ impl GPIO<init_state::Enabled> {
 }
 
 /// A pin used for general purpose I/O (GPIO)
-pub struct GpioPin<'gpio, T, D> {
-    ty: T,
-    registers: Registers<'gpio>,
+pub struct GpioPin<T, D> {
+    token: pins::Token<T, init_state::Enabled>,
+    registers: Registers<'static>,
     _direction: D,
 }
 
-impl<'gpio, T, D> GpioPin<'gpio, T, D>
+impl<T, D> GpioPin<T, D>
 where
     T: PinTrait,
     D: Direction,
 {
-    pub(crate) fn new(ty: T, gpio: &'gpio GPIO) -> Self {
-        let registers = Registers::new(&gpio.gpio);
+    pub(crate) fn new(token: Token<T, init_state::Enabled>) -> Self {
+        // This is sound, as we only write to stateless registers, restricting
+        // ourselves to the bit that belongs to the pin represented by `T`.
+        // Since all other instances of `GpioPin` are doing the same, there are
+        // no race conditions.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+
+        let registers = Registers::new(gpio);
 
         Self {
-            ty,
+            token,
             registers,
             _direction: D::switch::<T>(registers),
         }
     }
 }
 
-impl<'gpio, T> GpioPin<'gpio, T, direction::Input>
+impl<T> GpioPin<T, direction::Input>
 where
     T: PinTrait,
 {
@@ -220,16 +226,16 @@ where
     /// pin.set_high();
     /// pin.set_low();
     /// ```
-    pub fn into_output(self) -> GpioPin<'gpio, T, direction::Output> {
+    pub fn into_output(self) -> GpioPin<T, direction::Output> {
         GpioPin {
-            ty: self.ty,
+            token: self.token,
             registers: self.registers,
             _direction: direction::Output::switch::<T>(self.registers),
         }
     }
 }
 
-impl<'gpio, T> OutputPin for GpioPin<'gpio, T, direction::Output>
+impl<T> OutputPin for GpioPin<T, direction::Output>
 where
     T: PinTrait,
 {
@@ -270,7 +276,7 @@ where
     }
 }
 
-impl<'gpio, T> StatefulOutputPin for GpioPin<'gpio, T, direction::Output>
+impl<T> StatefulOutputPin for GpioPin<T, direction::Output>
 where
     T: PinTrait,
 {
@@ -307,12 +313,9 @@ where
     }
 }
 
-impl<'gpio, T> toggleable::Default for GpioPin<'gpio, T, direction::Output> where
-    T: PinTrait
-{
-}
+impl<T> toggleable::Default for GpioPin<T, direction::Output> where T: PinTrait {}
 
-impl<'gpio, T> GpioPin<'gpio, T, direction::Output>
+impl<T> GpioPin<T, direction::Output>
 where
     T: PinTrait,
 {
@@ -347,16 +350,16 @@ where
     ///     // The pin is low
     /// }
     /// ```
-    pub fn into_input(self) -> GpioPin<'gpio, T, direction::Input> {
+    pub fn into_input(self) -> GpioPin<T, direction::Input> {
         GpioPin {
-            ty: self.ty,
+            token: self.token,
             registers: self.registers,
             _direction: direction::Input::switch::<T>(self.registers),
         }
     }
 }
 
-impl<'gpio, T> InputPin for GpioPin<'gpio, T, direction::Input>
+impl<T> InputPin for GpioPin<T, direction::Input>
 where
     T: PinTrait,
 {

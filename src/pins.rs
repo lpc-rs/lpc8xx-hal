@@ -2,7 +2,10 @@
 
 use core::marker::PhantomData;
 
-use crate::gpio::{direction, GpioPin, GPIO};
+use crate::{
+    gpio::{direction, GpioPin},
+    init_state,
+};
 
 use self::state::PinState;
 
@@ -202,13 +205,19 @@ where
     T: PinTrait,
 {
     /// Transition pin to GPIO input mode
-    pub fn into_input_pin(self, gpio: &GPIO) -> GpioPin<T, direction::Input> {
-        GpioPin::new(self.ty, gpio)
+    pub fn into_input_pin(
+        self,
+        token: Token<T, init_state::Enabled>,
+    ) -> GpioPin<T, direction::Input> {
+        GpioPin::new(token)
     }
 
     /// Transition pin to GPIO output mode
-    pub fn into_output_pin(self, gpio: &GPIO) -> GpioPin<T, direction::Output> {
-        GpioPin::new(self.ty, gpio)
+    pub fn into_output_pin(
+        self,
+        token: Token<T, init_state::Enabled>,
+    ) -> GpioPin<T, direction::Output> {
+        GpioPin::new(token)
     }
 
     /// Transition pin to SWM state
