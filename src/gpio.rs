@@ -29,6 +29,8 @@
 //! [`swm`]: ../swm/index.html
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
+use core::marker::PhantomData;
+
 use embedded_hal::digital::v2::{
     toggleable, InputPin, OutputPin, StatefulOutputPin,
 };
@@ -59,41 +61,35 @@ use self::direction::Direction;
 /// [module documentation]: index.html
 pub struct GPIO<State = init_state::Enabled> {
     pub(crate) gpio: pac::GPIO,
-    _state: State,
+    _state: PhantomData<State>,
 }
 
-impl GPIO<init_state::Enabled> {
-    /// Create an enabled gpio peripheral
-    ///
-    /// # Safety
-    ///
-    /// This method creates an `GPIO` instance that it assumes is already in the
-    /// [`Enabled`] state. It's up to the caller to verify this assumption.
-    ///
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub unsafe fn new_enabled(gpio: pac::GPIO) -> Self {
+impl<State> GPIO<State> {
+    pub(crate) fn new(gpio: pac::GPIO) -> Self {
         GPIO {
             gpio,
-            _state: init_state::Enabled(()),
+            _state: PhantomData,
         }
+    }
+
+    /// Return the raw peripheral
+    ///
+    /// This method serves as an escape hatch from the HAL API. It returns the
+    /// raw peripheral, allowing you to do whatever you want with it, without
+    /// limitations imposed by the API.
+    ///
+    /// If you are using this method because a feature you need is missing from
+    /// the HAL API, please [open an issue] or, if an issue for your feature
+    /// request already exists, comment on the existing issue, so we can
+    /// prioritize it accordingly.
+    ///
+    /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
+    pub fn free(self) -> pac::GPIO {
+        self.gpio
     }
 }
 
 impl GPIO<init_state::Disabled> {
-    /// Create an disabled gpio peripheral
-    ///
-    /// This method creates an `GPIO` instance that it assumes is in the
-    /// [`Disabled`] state. As it's only possible to enable a [`Disabled`] `GPIO`
-    /// instance, it's also safe to pass an already [`Enabled`] instance.
-    ///
-    /// [`Disabled`]: ../init_state/struct.Enabled.html
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn new(gpio: pac::GPIO) -> Self {
-        GPIO {
-            gpio,
-            _state: init_state::Disabled,
-        }
-    }
     /// Enable the GPIO peripheral
     ///
     /// This method is only available, if `GPIO` is in the [`Disabled`] state.
@@ -113,7 +109,7 @@ impl GPIO<init_state::Disabled> {
 
         GPIO {
             gpio: self.gpio,
-            _state: init_state::Enabled(()),
+            _state: PhantomData,
         }
     }
 }
@@ -138,26 +134,8 @@ impl GPIO<init_state::Enabled> {
 
         GPIO {
             gpio: self.gpio,
-            _state: init_state::Disabled,
+            _state: PhantomData,
         }
-    }
-}
-
-impl<State> GPIO<State> {
-    /// Return the raw peripheral
-    ///
-    /// This method serves as an escape hatch from the HAL API. It returns the
-    /// raw peripheral, allowing you to do whatever you want with it, without
-    /// limitations imposed by the API.
-    ///
-    /// If you are using this method because a feature you need is missing from
-    /// the HAL API, please [open an issue] or, if an issue for your feature
-    /// request already exists, comment on the existing issue, so we can
-    /// prioritize it accordingly.
-    ///
-    /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> pac::GPIO {
-        self.gpio
     }
 }
 

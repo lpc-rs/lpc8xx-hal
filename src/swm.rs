@@ -33,49 +33,17 @@ use self::state::{Assigned, Unassigned};
 /// [module documentation]: index.html
 pub struct SWM<State = init_state::Enabled> {
     swm: pac::SWM0,
-    state: State,
-}
-
-impl SWM<init_state::Disabled> {
-    /// Create a disabled SWM peripheral
-    ///
-    /// This method creates an `SWM` instance that it assumes is in the
-    /// [`Disabled`] state. As it's only possible to enable a [`Disabled`] `SWM`
-    /// instance, it's also safe to pass an already [`Enabled`] instance.
-    ///
-    /// # Safety
-    ///
-    /// This method creates an `SWM` instance that it assumes is in the default
-    /// state. It's up to the caller to verify this assumption.
-    ///
-    /// [`Disabled`]: ../init_state/struct.Enabled.html
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub unsafe fn new(swm: pac::SWM0) -> Self {
-        SWM {
-            swm,
-            state: init_state::Disabled,
-        }
-    }
-}
-
-impl SWM<init_state::Enabled> {
-    /// Create a enabled SWM peripheral
-    ///
-    /// # Safety
-    ///
-    /// This method creates an `SWM` instance that it assumes is already in the
-    /// default [`Enabled`] state. It's up to the caller to verify this assumption.
-    ///
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub unsafe fn new_enabled(swm: pac::SWM0) -> Self {
-        SWM {
-            swm,
-            state: init_state::Enabled(()),
-        }
-    }
+    state: PhantomData<State>,
 }
 
 impl<STATE> SWM<STATE> {
+    pub(crate) fn new(swm: pac::SWM0) -> Self {
+        SWM {
+            swm,
+            state: PhantomData,
+        }
+    }
+
     /// Splits the SWM API into its component parts
     ///
     /// This is the regular way to access the SWM API. It exists as an explicit
@@ -83,7 +51,7 @@ impl<STATE> SWM<STATE> {
     /// using [`SWM::free`] after you've called this method.
     pub fn split(self) -> Parts<STATE> {
         Parts {
-            handle: Handle::new(self.swm, self.state),
+            handle: Handle::new(self.swm),
             movable_functions: MovableFunctions::new(),
             fixed_functions: FixedFunctions::new(),
         }
@@ -135,12 +103,15 @@ pub struct Parts<STATE> {
 /// [module documentation]: index.html
 pub struct Handle<State = init_state::Enabled> {
     swm: pac::SWM0,
-    _state: State,
+    _state: PhantomData<State>,
 }
 
 impl<STATE> Handle<STATE> {
-    pub(crate) fn new(swm: pac::SWM0, state: STATE) -> Self {
-        Handle { swm, _state: state }
+    pub(crate) fn new(swm: pac::SWM0) -> Self {
+        Handle {
+            swm,
+            _state: PhantomData,
+        }
     }
 }
 
@@ -164,7 +135,7 @@ impl Handle<init_state::Disabled> {
 
         Handle {
             swm: self.swm,
-            _state: init_state::Enabled(()),
+            _state: PhantomData,
         }
     }
 }
@@ -192,7 +163,7 @@ impl Handle<init_state::Enabled> {
 
         Handle {
             swm: self.swm,
-            _state: init_state::Disabled,
+            _state: PhantomData,
         }
     }
 }

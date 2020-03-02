@@ -482,21 +482,13 @@ impl Peripherals {
             #[cfg(feature = "845")]
             CTIMER0: CTimer::new(p.CTIMER0),
             DMA: DMA::new(p.DMA0),
-            // NOTE(unsafe) The init state of the gpio peripheral is enabled,
-            // thus it's safe to create an already initialized gpio port
-            #[cfg(feature = "82x")]
-            GPIO: unsafe { GPIO::new_enabled(p.GPIO) },
-            #[cfg(feature = "845")]
             GPIO: GPIO::new(p.GPIO),
             I2C0: I2C::new(p.I2C0),
             MRT0: MRT::new(p.MRT0),
             PMU: PMU::new(p.PMU),
             SPI0: SPI::new(p.SPI0),
             SPI1: SPI::new(p.SPI1),
-            #[cfg(feature = "82x")]
-            SWM: unsafe { SWM::new_enabled(p.SWM0) },
-            #[cfg(feature = "845")]
-            SWM: unsafe { SWM::new(p.SWM0) },
+            SWM: SWM::new(p.SWM0),
             SYSCON: SYSCON::new(p.SYSCON),
             USART0: USART::new(p.USART0),
             USART1: USART::new(p.USART1),
