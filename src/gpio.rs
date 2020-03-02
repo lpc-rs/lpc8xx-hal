@@ -401,11 +401,11 @@ where
 /// This is an internal type that should be of no concern to users of this crate
 #[derive(Clone, Copy)]
 pub struct Registers<'gpio> {
-    pub(crate) dirset: &'gpio [DIRSET],
-    pub(crate) dirclr: &'gpio [DIRCLR],
-    pub(crate) pin: &'gpio [PIN],
-    pub(crate) set: &'gpio [SET],
-    pub(crate) clr: &'gpio [CLR],
+    dirset: &'gpio [DIRSET],
+    dirclr: &'gpio [DIRCLR],
+    pin: &'gpio [PIN],
+    set: &'gpio [SET],
+    clr: &'gpio [CLR],
 }
 
 impl<'gpio> Registers<'gpio> {
