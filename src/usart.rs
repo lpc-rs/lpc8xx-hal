@@ -81,7 +81,7 @@ use crate::{
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct USART<I: Instance, State = init_state::Enabled> {
+pub struct USART<I, State = init_state::Enabled> {
     /// USART Receiver
     pub rx: Rx<I, State>,
 
@@ -357,7 +357,7 @@ where
 }
 
 /// USART receiver
-pub struct Rx<I: Instance, State = init_state::Enabled> {
+pub struct Rx<I, State = init_state::Enabled> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,
 }
@@ -444,7 +444,7 @@ where
 }
 
 /// USART transmitter
-pub struct Tx<I: Instance, State = init_state::Enabled> {
+pub struct Tx<I, State = init_state::Enabled> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,
 }
