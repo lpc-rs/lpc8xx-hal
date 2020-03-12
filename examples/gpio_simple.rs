@@ -3,7 +3,7 @@
 
 extern crate panic_halt;
 
-use lpc8xx_hal::{cortex_m_rt::entry, prelude::*, Peripherals};
+use lpc8xx_hal::{cortex_m_rt::entry, gpio::Level, prelude::*, Peripherals};
 
 #[entry]
 fn main() -> ! {
@@ -31,7 +31,7 @@ fn main() -> ! {
 
     // Configure the LED pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.
-    let mut led = led.into_output_pin(token);
+    let mut led = led.into_output_pin(token, Level::Low);
 
     // Blink the LED
     //
