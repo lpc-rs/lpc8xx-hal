@@ -28,11 +28,11 @@ fn main() -> ! {
 
     // Configure the LED pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.
-    let mut led = led.into_output_pin(&gpio);
+    let mut led = led.into_output_pin(gpio.tokens.pio1_1);
 
     // Configure the button pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.
-    let button = button.into_input_pin(&gpio);
+    let button = button.into_input_pin(gpio.tokens.pio0_4);
 
     // Display the state of the button on the led
     loop {

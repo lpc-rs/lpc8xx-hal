@@ -30,13 +30,13 @@ fn main() -> ! {
 
     // Select pin for LED
     #[cfg(feature = "82x")]
-    let led = p.pins.pio0_12;
+    let (led, token) = (p.pins.pio0_12, gpio.tokens.pio0_12);
     #[cfg(feature = "845")]
-    let led = p.pins.pio1_1;
+    let (led, token) = (p.pins.pio1_1, gpio.tokens.pio1_1);
 
     // Configure the LED pin. The API tracks the state of pins at compile time,
     // to prevent any mistakes.
-    let mut led = led.into_output_pin(&gpio);
+    let mut led = led.into_output_pin(token);
 
     // Let's already initialize the durations that we're going to sleep for
     // between changing the LED state. We do this by specifying the number of

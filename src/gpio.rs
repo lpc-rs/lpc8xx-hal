@@ -36,7 +36,11 @@ use embedded_hal::digital::v2::{
 };
 use void::Void;
 
-use crate::{init_state, pac, pins::PinTrait, syscon};
+use crate::{
+    init_state, pac,
+    pins::{self, PinTrait, Token},
+    syscon,
+};
 
 #[cfg(feature = "845")]
 use crate::pac::gpio::{CLR, DIRCLR, DIRSET, PIN, SET};
@@ -62,6 +66,18 @@ use self::direction::Direction;
 pub struct GPIO<State = init_state::Enabled> {
     pub(crate) gpio: pac::GPIO,
     _state: PhantomData<State>,
+
+    /// Tokens representing each pins
+    ///
+    /// Since the `enable` and `disable` methods consume `self`, they can only
+    /// be called, if all tokens are available. This means, any tokens that have
+    /// been moved out while the peripheral was enabled, prevent the peripheral
+    /// from being disabled (unless those tokens are moved back in their
+    /// original place).
+    ///
+    /// As using a pin for GPIO requires such a token, it is impossible to
+    /// disable the GPIO peripheral while pins are used for GPIO.
+    pub tokens: pins::Tokens<State>,
 }
 
 impl<State> GPIO<State> {
@@ -69,6 +85,8 @@ impl<State> GPIO<State> {
         GPIO {
             gpio,
             _state: PhantomData,
+
+            tokens: pins::Tokens::new(),
         }
     }
 
@@ -107,9 +125,13 @@ impl GPIO<init_state::Disabled> {
     ) -> GPIO<init_state::Enabled> {
         syscon.enable_clock(&self.gpio);
 
+        // Only works, if all tokens are available.
+        let tokens = self.tokens.switch_state();
+
         GPIO {
             gpio: self.gpio,
             _state: PhantomData,
+            tokens,
         }
     }
 }
@@ -132,56 +154,47 @@ impl GPIO<init_state::Enabled> {
     ) -> GPIO<init_state::Disabled> {
         syscon.disable_clock(&self.gpio);
 
+        // Only works, if all tokens are available.
+        let tokens = self.tokens.switch_state();
+
         GPIO {
             gpio: self.gpio,
             _state: PhantomData,
+            tokens,
         }
     }
 }
 
 /// A pin used for general purpose I/O (GPIO)
-pub struct GpioPin<'gpio, T, D> {
-    ty: T,
-    registers: GpioRegisters<'gpio>,
+pub struct GpioPin<T, D> {
+    token: pins::Token<T, init_state::Enabled>,
+    registers: Registers<'static>,
     _direction: D,
 }
 
-impl<'gpio, T, D> GpioPin<'gpio, T, D>
+impl<T, D> GpioPin<T, D>
 where
     T: PinTrait,
     D: Direction,
 {
-    pub(crate) fn new(ty: T, gpio: &'gpio GPIO) -> Self {
-        #[cfg(feature = "82x")]
-        let registers = {
-            use core::slice;
+    pub(crate) fn new(token: Token<T, init_state::Enabled>) -> Self {
+        // This is sound, as we only write to stateless registers, restricting
+        // ourselves to the bit that belongs to the pin represented by `T`.
+        // Since all other instances of `GpioPin` are doing the same, there are
+        // no race conditions.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
 
-            GpioRegisters {
-                dirset: slice::from_ref(&gpio.gpio.dirset0),
-                dirclr: slice::from_ref(&gpio.gpio.dirclr0),
-                pin: slice::from_ref(&gpio.gpio.pin0),
-                set: slice::from_ref(&gpio.gpio.set0),
-                clr: slice::from_ref(&gpio.gpio.clr0),
-            }
-        };
-        #[cfg(feature = "845")]
-        let registers = GpioRegisters {
-            dirset: &gpio.gpio.dirset,
-            dirclr: &gpio.gpio.dirclr,
-            pin: &gpio.gpio.pin,
-            set: &gpio.gpio.set,
-            clr: &gpio.gpio.clr,
-        };
+        let registers = Registers::new(gpio);
 
         Self {
-            ty,
+            token,
             registers,
             _direction: D::switch::<T>(registers),
         }
     }
 }
 
-impl<'gpio, T> GpioPin<'gpio, T, direction::Input>
+impl<T> GpioPin<T, direction::Input>
 where
     T: PinTrait,
 {
@@ -213,16 +226,16 @@ where
     /// pin.set_high();
     /// pin.set_low();
     /// ```
-    pub fn into_output(self) -> GpioPin<'gpio, T, direction::Output> {
+    pub fn into_output(self) -> GpioPin<T, direction::Output> {
         GpioPin {
-            ty: self.ty,
+            token: self.token,
             registers: self.registers,
             _direction: direction::Output::switch::<T>(self.registers),
         }
     }
 }
 
-impl<'gpio, T> OutputPin for GpioPin<'gpio, T, direction::Output>
+impl<T> OutputPin for GpioPin<T, direction::Output>
 where
     T: PinTrait,
 {
@@ -263,7 +276,7 @@ where
     }
 }
 
-impl<'gpio, T> StatefulOutputPin for GpioPin<'gpio, T, direction::Output>
+impl<T> StatefulOutputPin for GpioPin<T, direction::Output>
 where
     T: PinTrait,
 {
@@ -300,12 +313,9 @@ where
     }
 }
 
-impl<'gpio, T> toggleable::Default for GpioPin<'gpio, T, direction::Output> where
-    T: PinTrait
-{
-}
+impl<T> toggleable::Default for GpioPin<T, direction::Output> where T: PinTrait {}
 
-impl<'gpio, T> GpioPin<'gpio, T, direction::Output>
+impl<T> GpioPin<T, direction::Output>
 where
     T: PinTrait,
 {
@@ -340,16 +350,16 @@ where
     ///     // The pin is low
     /// }
     /// ```
-    pub fn into_input(self) -> GpioPin<'gpio, T, direction::Input> {
+    pub fn into_input(self) -> GpioPin<T, direction::Input> {
         GpioPin {
-            ty: self.ty,
+            token: self.token,
             registers: self.registers,
             _direction: direction::Input::switch::<T>(self.registers),
         }
     }
 }
 
-impl<'gpio, T> InputPin for GpioPin<'gpio, T, direction::Input>
+impl<T> InputPin for GpioPin<T, direction::Input>
 where
     T: PinTrait,
 {
@@ -390,12 +400,46 @@ where
 
 /// This is an internal type that should be of no concern to users of this crate
 #[derive(Clone, Copy)]
-pub struct GpioRegisters<'gpio> {
+pub struct Registers<'gpio> {
     pub(crate) dirset: &'gpio [DIRSET],
     pub(crate) dirclr: &'gpio [DIRCLR],
     pub(crate) pin: &'gpio [PIN],
     pub(crate) set: &'gpio [SET],
     pub(crate) clr: &'gpio [CLR],
+}
+
+impl<'gpio> Registers<'gpio> {
+    /// Create a new instance of `Registers` from the provided register block
+    ///
+    /// If the reference to `RegisterBlock` is not exclusively owned by the
+    /// caller, accessing all registers is still completely race-free, as long
+    /// as the following rules are upheld:
+    /// - Never write to `pin`, only use it for reading.
+    /// - For all other registers, only set bits that no other callers are
+    ///   setting.
+    fn new(gpio: &'gpio pac::gpio::RegisterBlock) -> Self {
+        #[cfg(feature = "82x")]
+        {
+            use core::slice;
+
+            Self {
+                dirset: slice::from_ref(&gpio.dirset0),
+                dirclr: slice::from_ref(&gpio.dirclr0),
+                pin: slice::from_ref(&gpio.pin0),
+                set: slice::from_ref(&gpio.set0),
+                clr: slice::from_ref(&gpio.clr0),
+            }
+        }
+
+        #[cfg(feature = "845")]
+        Self {
+            dirset: &gpio.dirset,
+            dirclr: &gpio.dirclr,
+            pin: &gpio.pin,
+            set: &gpio.set,
+            clr: &gpio.clr,
+        }
+    }
 }
 
 /// Contains types to indicate the direction of GPIO pins
@@ -404,7 +448,7 @@ pub struct GpioRegisters<'gpio> {
 pub mod direction {
     use crate::pins::PinTrait;
 
-    use super::GpioRegisters;
+    use super::Registers;
 
     /// Implemented by types that indicate GPIO pin direction
     ///
@@ -419,7 +463,7 @@ pub mod direction {
         ///
         /// This method is for internal use only. Any changes to it won't be
         /// considered breaking changes.
-        fn switch<T: PinTrait>(_: GpioRegisters) -> Self;
+        fn switch<T: PinTrait>(_: Registers) -> Self;
     }
 
     /// Marks a GPIO pin as being configured for input
@@ -433,7 +477,7 @@ pub mod direction {
     pub struct Input(());
 
     impl Direction for Input {
-        fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
+        fn switch<T: PinTrait>(registers: Registers) -> Self {
             registers.dirclr[T::PORT]
                 .write(|w| unsafe { w.dirclrp().bits(T::MASK) });
             Self(())
@@ -451,7 +495,7 @@ pub mod direction {
     pub struct Output(());
 
     impl Direction for Output {
-        fn switch<T: PinTrait>(registers: GpioRegisters) -> Self {
+        fn switch<T: PinTrait>(registers: Registers) -> Self {
             registers.dirset[T::PORT]
                 .write(|w| unsafe { w.dirsetp().bits(T::MASK) });
             Self(())
