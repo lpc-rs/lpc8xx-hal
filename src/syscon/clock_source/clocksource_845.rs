@@ -1,10 +1,9 @@
-use crate::pac;
+use core::marker::PhantomData;
+
 use crate::{
-    pac::syscon::fclksel::SEL_A,
+    pac::{self, syscon::fclksel::SEL_A},
     syscon::{self, frg, PeripheralClock, IOSC},
 };
-
-use core::marker::PhantomData;
 
 use super::UsartClock;
 

@@ -1,5 +1,6 @@
-use crate::syscon::{self, PeripheralClock, UARTFRG};
 use core::marker::PhantomData;
+
+use crate::syscon::{self, PeripheralClock, UARTFRG};
 
 use super::UsartClock;
 
