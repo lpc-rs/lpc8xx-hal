@@ -37,10 +37,11 @@ impl AdcClock {
 }
 
 /// Defines the clock configuration for a usart
-pub struct UsartClock<PeriphClock> {
+pub struct UsartClock<Clock> {
     pub(crate) psc: u16,
     pub(crate) osrval: u8,
-    _periphclock: PhantomData<PeriphClock>,
+
+    _clock: PhantomData<Clock>,
 }
 
 // `impl` blocks are defined in the target-specific sub-modules.

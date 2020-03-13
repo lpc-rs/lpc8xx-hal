@@ -73,7 +73,7 @@ impl<PERIPH: crate::usart::Instance, CLOCK: PeripheralClockSource>
         Self {
             psc,
             osrval,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 }
@@ -98,7 +98,7 @@ impl<PERIPH: crate::usart::Instance + PeripheralClockSelector>
         Self {
             psc,
             osrval,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 }

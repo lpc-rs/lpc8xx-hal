@@ -14,7 +14,7 @@ impl<PERIPH: crate::usart::Instance> UsartClock<PERIPH> {
         Self {
             psc,
             osrval,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 }
