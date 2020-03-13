@@ -12,7 +12,7 @@ use lpc8xx_hal::{
     cortex_m_rt::entry,
     delay::Delay,
     prelude::*,
-    syscon::clocksource::{AdcClock, UsartClock},
+    syscon::clock_source::{AdcClock, UsartClock},
     CorePeripherals, Peripherals,
 };
 

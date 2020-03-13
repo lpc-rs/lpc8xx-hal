@@ -49,7 +49,7 @@ use crate::{
     init_state, pac,
     pins::PinTrait,
     swm::{self, FunctionTrait},
-    syscon::{self, clocksource::SpiClock, PeripheralClock},
+    syscon::{self, clock_source::SpiClock, PeripheralClock},
 };
 
 /// Interface to a SPI peripheral

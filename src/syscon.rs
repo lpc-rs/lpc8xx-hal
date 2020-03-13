@@ -15,7 +15,7 @@ pub mod frg;
 #[cfg(feature = "845")]
 pub use self::frg::FRG;
 
-pub mod clocksource;
+pub mod clock_source;
 
 use core::marker::PhantomData;
 

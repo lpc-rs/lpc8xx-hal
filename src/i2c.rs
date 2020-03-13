@@ -52,7 +52,7 @@ use crate::{
     init_state,
     pac::{self, Interrupt},
     swm::{self},
-    syscon::{self, clocksource::I2cClock, PeripheralClock},
+    syscon::{self, clock_source::I2cClock, PeripheralClock},
 };
 
 /// Interface to an I2C peripheral

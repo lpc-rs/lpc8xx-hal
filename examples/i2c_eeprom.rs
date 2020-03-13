@@ -18,7 +18,7 @@ use lpc8xx_hal::{
     cortex_m_rt::entry,
     delay::Delay,
     prelude::*,
-    syscon::clocksource::{I2cClock, UsartClock},
+    syscon::clock_source::{I2cClock, UsartClock},
     CorePeripherals, Peripherals,
 };
 

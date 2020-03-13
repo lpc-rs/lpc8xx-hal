@@ -4,7 +4,7 @@
 extern crate panic_halt;
 
 use lpc8xx_hal::{
-    cortex_m_rt::entry, prelude::*, syscon::clocksource::SpiClock, Peripherals,
+    cortex_m_rt::entry, prelude::*, syscon::clock_source::SpiClock, Peripherals,
 };
 
 use embedded_hal::spi::{Mode, Phase, Polarity};

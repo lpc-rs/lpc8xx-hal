@@ -18,7 +18,7 @@ use core::fmt::Write;
 use lpc8xx_hal::{
     cortex_m_rt::entry,
     prelude::*,
-    syscon::clocksource::{I2cClock, UsartClock},
+    syscon::clock_source::{I2cClock, UsartClock},
     Peripherals,
 };
 
