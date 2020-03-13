@@ -36,7 +36,7 @@ impl AdcClock {
     }
 }
 
-/// Defines the clock configuration for a usart
+/// Defines the clock configuration for a USART instance
 pub struct UsartClock<Clock> {
     pub(crate) psc: u16,
     pub(crate) osrval: u8,
