@@ -6,6 +6,8 @@ use crate::{
 
 use core::marker::PhantomData;
 
+use super::UsartClock;
+
 /// Internal trait used for defining the fclksel index for a peripheral
 ///
 /// This trait is an internal implementation detail and should neither be
@@ -56,13 +58,6 @@ impl PeripheralClockSource for frg::FRG<frg::FRG1> {
 
 impl PeripheralClockSource for IOSC {
     const CLOCK: SEL_A = SEL_A::FRO;
-}
-
-/// Defines the clock configuration for a usart
-pub struct UsartClock<PeriphClock> {
-    pub(crate) psc: u16,
-    pub(crate) osrval: u8,
-    _periphclock: PhantomData<PeriphClock>,
 }
 
 impl<PERIPH: crate::usart::Instance, CLOCK: PeripheralClockSource>

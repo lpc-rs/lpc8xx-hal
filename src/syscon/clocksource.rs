@@ -10,6 +10,8 @@ pub use clocksource_82x::*;
 #[cfg(feature = "845")]
 pub use clocksource_845::*;
 
+use core::marker::PhantomData;
+
 /// A struct containing the clock configuration for the ADC peripheral
 pub struct AdcClock {
     pub(crate) caldiv: u8,
@@ -33,3 +35,12 @@ impl AdcClock {
         Self { caldiv: 24, div: 0 }
     }
 }
+
+/// Defines the clock configuration for a usart
+pub struct UsartClock<PeriphClock> {
+    pub(crate) psc: u16,
+    pub(crate) osrval: u8,
+    _periphclock: PhantomData<PeriphClock>,
+}
+
+// `impl` blocks are defined in the target-specific sub-modules.

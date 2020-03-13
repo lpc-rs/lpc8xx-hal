@@ -1,12 +1,7 @@
 use crate::syscon::{self, PeripheralClock, UARTFRG};
 use core::marker::PhantomData;
 
-/// Defines the clock configuration for a usart
-pub struct UsartClock<PeriphClock> {
-    pub(crate) psc: u16,
-    pub(crate) osrval: u8,
-    _periphclock: PhantomData<PeriphClock>,
-}
+use super::UsartClock;
 
 impl<PERIPH: crate::usart::Instance> UsartClock<PERIPH> {
     /// Create the clock config for the uart
