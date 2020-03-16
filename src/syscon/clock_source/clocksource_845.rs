@@ -3,7 +3,6 @@ use core::marker::PhantomData;
 use crate::{
     pac::{self, syscon::fclksel::SEL_A},
     syscon::{self, frg, IOSC},
-    usart,
 };
 
 use super::{PeripheralClock, PeripheralClockSelector, PeripheralClockSource};
@@ -33,54 +32,6 @@ impl PeripheralClockSource for frg::FRG<frg::FRG1> {
 
 impl PeripheralClockSource for IOSC {
     const CLOCK: SEL_A = SEL_A::FRO;
-}
-
-impl<CLOCK: PeripheralClockSource> usart::Clock<CLOCK> {
-    /// Create the clock config for the uart
-    ///
-    /// `osrval` has to be between 5-16
-    pub fn new(_: &CLOCK, psc: u16, osrval: u8) -> Self {
-        let osrval = osrval - 1;
-        assert!(osrval > 3 && osrval < 0x10);
-
-        Self {
-            psc,
-            osrval,
-            _clock: PhantomData,
-        }
-    }
-}
-
-impl usart::Clock<IOSC> {
-    /// Create a new configuration with a specified baudrate
-    ///
-    /// Assumes the internal oscillator runs at 12 MHz
-    pub fn new_with_baudrate(baudrate: u32) -> Self {
-        // We want something with 5% tolerance
-        let calc = baudrate * 20;
-        let mut osrval = 5;
-        for i in (5..=16).rev() {
-            if calc * (i as u32) < 12_000_000 {
-                osrval = i;
-            }
-        }
-        let psc = (12_000_000 / (baudrate * osrval as u32) - 1) as u16;
-        let osrval = osrval - 1;
-        Self {
-            psc,
-            osrval,
-            _clock: PhantomData,
-        }
-    }
-}
-
-impl<PERIPH: usart::Instance, CLOCK: PeripheralClockSource>
-    PeripheralClock<PERIPH> for usart::Clock<CLOCK>
-{
-    fn select_clock(&self, syscon: &mut syscon::Handle) {
-        syscon.fclksel[PERIPH::REGISTER_NUM]
-            .write(|w| w.sel().variant(CLOCK::CLOCK));
-    }
 }
 
 /// A struct containing the clock configuration for a peripheral
