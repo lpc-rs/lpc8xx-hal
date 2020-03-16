@@ -726,7 +726,6 @@ wakeup_interrupt!(I2c3Wakeup, i2c3);
 /// This trait is an internal implementation detail and should neither be
 /// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
-///
 pub trait PeripheralClock<PERIPH> {
     /// Selects the clock
     fn select_clock(&self, handle: &mut Handle);
