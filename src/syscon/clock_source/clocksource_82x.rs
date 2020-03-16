@@ -5,9 +5,14 @@ use crate::{
     usart,
 };
 
-use super::PeripheralClock;
+use super::{PeripheralClock, PeripheralClockSource};
 
-impl usart::Clock<()> {
+impl PeripheralClockSource for UARTFRG {}
+
+impl<C> usart::Clock<C>
+where
+    C: PeripheralClockSource,
+{
     /// Create the clock config for the uart
     ///
     /// `osrval` has to be between 5-16
@@ -23,7 +28,9 @@ impl usart::Clock<()> {
     }
 }
 
-impl<USART: crate::usart::Instance> PeripheralClock<USART> for usart::Clock<()> {
+impl<USART: crate::usart::Instance> PeripheralClock<USART>
+    for usart::Clock<UARTFRG>
+{
     fn select_clock(&self, _: &mut syscon::Handle) {
         // NOOP, selected by default
     }
