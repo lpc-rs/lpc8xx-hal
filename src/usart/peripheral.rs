@@ -11,7 +11,7 @@ use crate::{
     pac::NVIC,
     pins::PinTrait,
     swm::{self, FunctionTrait},
-    syscon::{self, PeripheralClock},
+    syscon::{self, clock_source::PeripheralClock},
 };
 
 use super::{

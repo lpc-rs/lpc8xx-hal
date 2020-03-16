@@ -2,9 +2,11 @@ use core::marker::PhantomData;
 
 use crate::{
     pac::{self, syscon::fclksel::SEL_A},
-    syscon::{self, frg, PeripheralClock, IOSC},
+    syscon::{self, frg, IOSC},
     usart,
 };
+
+use super::PeripheralClock;
 
 /// Internal trait used for defining the fclksel index for a peripheral
 ///

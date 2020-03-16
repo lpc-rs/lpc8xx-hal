@@ -721,16 +721,6 @@ wakeup_interrupt!(WktWakeup, wkt);
 wakeup_interrupt!(I2c2Wakeup, i2c2);
 wakeup_interrupt!(I2c3Wakeup, i2c3);
 
-/// Internal trait used configure clocking of peripheals
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
-/// be considered breaking changes.
-pub trait PeripheralClock<PERIPH> {
-    /// Selects the clock
-    fn select_clock(&self, handle: &mut Handle);
-}
-
 reg!(PDRUNCFG, PDRUNCFG, pac::SYSCON, pdruncfg);
 #[cfg(feature = "82x")]
 reg!(PRESETCTRL0, PRESETCTRL0, pac::SYSCON, presetctrl);

@@ -1,9 +1,11 @@
 use core::marker::PhantomData;
 
 use crate::{
-    syscon::{self, PeripheralClock, UARTFRG},
+    syscon::{self, UARTFRG},
     usart,
 };
+
+use super::PeripheralClock;
 
 impl<PERIPH: crate::usart::Instance> usart::Clock<PERIPH> {
     /// Create the clock config for the uart
