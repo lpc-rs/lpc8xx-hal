@@ -45,9 +45,7 @@ impl PeripheralClockSource for IOSC {
     const CLOCK: SEL_A = SEL_A::FRO;
 }
 
-impl<PERIPH: crate::usart::Instance, CLOCK: PeripheralClockSource>
-    usart::Clock<(PERIPH, CLOCK)>
-{
+impl<CLOCK: PeripheralClockSource> usart::Clock<CLOCK> {
     /// Create the clock config for the uart
     ///
     /// `osrval` has to be between 5-16
@@ -63,7 +61,7 @@ impl<PERIPH: crate::usart::Instance, CLOCK: PeripheralClockSource>
     }
 }
 
-impl<PERIPH: crate::usart::Instance> usart::Clock<(PERIPH, IOSC)> {
+impl usart::Clock<IOSC> {
     /// Create a new configuration with a specified baudrate
     ///
     /// Assumes the internal oscillator runs at 12 MHz
@@ -87,7 +85,7 @@ impl<PERIPH: crate::usart::Instance> usart::Clock<(PERIPH, IOSC)> {
 }
 
 impl<PERIPH: usart::Instance, CLOCK: PeripheralClockSource>
-    PeripheralClock<PERIPH> for usart::Clock<(PERIPH, CLOCK)>
+    PeripheralClock<PERIPH> for usart::Clock<CLOCK>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
         syscon.fclksel[PERIPH::REGISTER_NUM]

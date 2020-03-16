@@ -7,7 +7,7 @@ use crate::{
 
 use super::PeripheralClock;
 
-impl<PERIPH: crate::usart::Instance> usart::Clock<PERIPH> {
+impl usart::Clock<()> {
     /// Create the clock config for the uart
     ///
     /// `osrval` has to be between 5-16
@@ -23,9 +23,7 @@ impl<PERIPH: crate::usart::Instance> usart::Clock<PERIPH> {
     }
 }
 
-impl<USART: crate::usart::Instance> PeripheralClock<USART>
-    for usart::Clock<USART>
-{
+impl<USART: crate::usart::Instance> PeripheralClock<USART> for usart::Clock<()> {
     fn select_clock(&self, _: &mut syscon::Handle) {
         // NOOP, selected by default
     }
