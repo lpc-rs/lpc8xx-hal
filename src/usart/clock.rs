@@ -34,7 +34,10 @@ where
 }
 
 #[cfg(feature = "82x")]
-impl<USART: Instance> PeripheralClock<USART> for Clock<crate::syscon::UARTFRG> {
+impl<I> PeripheralClock<I> for Clock<crate::syscon::UARTFRG>
+where
+    I: Instance,
+{
     fn select_clock(&self, _: &mut syscon::Handle) {
         // NOOP, selected by default
     }
@@ -65,11 +68,12 @@ impl Clock<crate::syscon::IOSC> {
 }
 
 #[cfg(feature = "845")]
-impl<PERIPH: Instance, CLOCK: PeripheralClockSource> PeripheralClock<PERIPH>
-    for Clock<CLOCK>
+impl<I, C> PeripheralClock<I> for Clock<C>
+where
+    I: Instance,
+    C: PeripheralClockSource,
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
-        syscon.fclksel[PERIPH::REGISTER_NUM]
-            .write(|w| w.sel().variant(CLOCK::CLOCK));
+        syscon.fclksel[I::REGISTER_NUM].write(|w| w.sel().variant(C::CLOCK));
     }
 }
