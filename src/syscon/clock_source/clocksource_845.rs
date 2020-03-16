@@ -6,17 +6,7 @@ use crate::{
     usart,
 };
 
-use super::PeripheralClock;
-
-/// Internal trait used for defining the fclksel index for a peripheral
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
-/// be considered breaking changes.
-pub trait PeripheralClockSelector {
-    /// The index
-    const REGISTER_NUM: usize;
-}
+use super::{PeripheralClock, PeripheralClockSelector};
 
 macro_rules! periph_clock_selector {
     ($peripheral:ident, $num:expr) => {

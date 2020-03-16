@@ -22,6 +22,16 @@ pub trait PeripheralClock<PERIPH> {
     fn select_clock(&self, handle: &mut syscon::Handle);
 }
 
+/// Internal trait used for defining the fclksel index for a peripheral
+///
+/// This trait is an internal implementation detail and should neither be
+/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
+/// be considered breaking changes.
+pub trait PeripheralClockSelector {
+    /// The index
+    const REGISTER_NUM: usize;
+}
+
 /// A struct containing the clock configuration for the ADC peripheral
 pub struct AdcClock {
     pub(crate) caldiv: u8,
