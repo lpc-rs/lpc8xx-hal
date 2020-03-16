@@ -6,7 +6,7 @@ use crate::{
     usart,
 };
 
-use super::{PeripheralClock, PeripheralClockSelector};
+use super::{PeripheralClock, PeripheralClockSelector, PeripheralClockSource};
 
 macro_rules! periph_clock_selector {
     ($peripheral:ident, $num:expr) => {
@@ -22,16 +22,6 @@ periph_clock_selector!(I2C2, 7);
 periph_clock_selector!(I2C3, 8);
 periph_clock_selector!(SPI0, 9);
 periph_clock_selector!(SPI1, 10);
-
-/// Internal trait used for defining valid peripheal clock sources
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
-/// be considered breaking changes.
-pub trait PeripheralClockSource {
-    /// The variant
-    const CLOCK: SEL_A;
-}
 
 impl PeripheralClockSource for frg::FRG<frg::FRG0> {
     const CLOCK: SEL_A = SEL_A::FRG0CLK;
