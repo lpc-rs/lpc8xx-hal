@@ -10,8 +10,8 @@ use lpc8xx_hal::{
     pac::{Interrupt, NVIC},
     pmu::LowPowerClock,
     prelude::*,
-    syscon::clock_source::UsartClock,
     syscon::WktWakeup,
+    usart::UsartClock,
     CorePeripherals, Peripherals,
 };
 

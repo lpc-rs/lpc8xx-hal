@@ -4,8 +4,7 @@
 extern crate panic_halt;
 
 use lpc8xx_hal::{
-    cortex_m_rt::entry, prelude::*, syscon::clock_source::UsartClock,
-    Peripherals,
+    cortex_m_rt::entry, prelude::*, usart::UsartClock, Peripherals,
 };
 
 #[entry]

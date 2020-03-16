@@ -9,11 +9,9 @@ use core::fmt::Write;
 use nb::block;
 
 use lpc8xx_hal::{
-    cortex_m_rt::entry,
-    delay::Delay,
-    prelude::*,
-    syscon::clock_source::{AdcClock, UsartClock},
-    CorePeripherals, Peripherals,
+    cortex_m_rt::entry, delay::Delay, prelude::*,
+    syscon::clock_source::AdcClock, usart::UsartClock, CorePeripherals,
+    Peripherals,
 };
 
 #[entry]

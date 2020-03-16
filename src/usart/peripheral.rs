@@ -11,10 +11,11 @@ use crate::{
     pac::NVIC,
     pins::PinTrait,
     swm::{self, FunctionTrait},
-    syscon::{self, clock_source::UsartClock, PeripheralClock},
+    syscon::{self, PeripheralClock},
 };
 
 use super::{
+    clock::UsartClock,
     instances::Instance,
     rx::{Error, Rx},
     tx::Tx,
