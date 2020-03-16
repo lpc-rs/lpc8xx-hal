@@ -15,6 +15,7 @@ pub trait Instance:
     Deref<Target = pac::usart0::RegisterBlock>
     + syscon::ClockControl
     + syscon::ResetControl
+    + PeripheralClockSelector
 {
     /// The interrupt that is triggered for this USART peripheral
     const INTERRUPT: Interrupt;

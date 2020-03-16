@@ -63,9 +63,7 @@ impl<PERIPH: crate::usart::Instance, CLOCK: PeripheralClockSource>
     }
 }
 
-impl<PERIPH: crate::usart::Instance + PeripheralClockSelector>
-    usart::Clock<(PERIPH, IOSC)>
-{
+impl<PERIPH: crate::usart::Instance> usart::Clock<(PERIPH, IOSC)> {
     /// Create a new configuration with a specified baudrate
     ///
     /// Assumes the internal oscillator runs at 12 MHz
@@ -88,7 +86,7 @@ impl<PERIPH: crate::usart::Instance + PeripheralClockSelector>
     }
 }
 
-impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
+impl<PERIPH: usart::Instance, CLOCK: PeripheralClockSource>
     PeripheralClock<PERIPH> for usart::Clock<(PERIPH, CLOCK)>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
