@@ -16,8 +16,7 @@ use core::fmt::Write;
 
 use lpc8xx_hal::{
     cortex_m_rt::entry, delay::Delay, prelude::*,
-    syscon::clock_source::I2cClock, usart::UsartClock, CorePeripherals,
-    Peripherals,
+    syscon::clock_source::I2cClock, usart, CorePeripherals, Peripherals,
 };
 
 #[entry]
@@ -43,11 +42,11 @@ fn main() -> ! {
         syscon.uartfrg.set_clkdiv(6);
         syscon.uartfrg.set_frgmult(22);
         syscon.uartfrg.set_frgdiv(0xff);
-        UsartClock::new(&syscon.uartfrg, 0, 16)
+        usart::Clock::new(&syscon.uartfrg, 0, 16)
     };
     #[cfg(feature = "845")]
     // Set baud rate to 115200 baud
-    let clock_config = UsartClock::new_with_baudrate(115200);
+    let clock_config = usart::Clock::new_with_baudrate(115200);
     #[cfg(feature = "82x")]
     let tx_pin = p.pins.pio0_7.into_swm_pin();
     #[cfg(feature = "82x")]

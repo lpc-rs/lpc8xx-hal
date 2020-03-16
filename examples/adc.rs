@@ -10,8 +10,7 @@ use nb::block;
 
 use lpc8xx_hal::{
     cortex_m_rt::entry, delay::Delay, prelude::*,
-    syscon::clock_source::AdcClock, usart::UsartClock, CorePeripherals,
-    Peripherals,
+    syscon::clock_source::AdcClock, usart, CorePeripherals, Peripherals,
 };
 
 #[entry]
@@ -26,7 +25,7 @@ fn main() -> ! {
     let mut handle = swm.handle.enable(&mut syscon.handle); // SWM isn't enabled by default on LPC845.
 
     // Set baud rate to 115200 baud
-    let clock_config = UsartClock::new_with_baudrate(115200);
+    let clock_config = usart::Clock::new_with_baudrate(115200);
 
     let tx_pin = p.pins.pio0_25.into_swm_pin();
     let rx_pin = p.pins.pio0_24.into_swm_pin();

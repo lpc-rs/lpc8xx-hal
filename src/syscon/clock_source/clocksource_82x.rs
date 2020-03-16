@@ -2,10 +2,10 @@ use core::marker::PhantomData;
 
 use crate::{
     syscon::{self, PeripheralClock, UARTFRG},
-    usart::UsartClock,
+    usart,
 };
 
-impl<PERIPH: crate::usart::Instance> UsartClock<PERIPH> {
+impl<PERIPH: crate::usart::Instance> usart::Clock<PERIPH> {
     /// Create the clock config for the uart
     ///
     /// `osrval` has to be between 5-16
@@ -22,7 +22,7 @@ impl<PERIPH: crate::usart::Instance> UsartClock<PERIPH> {
 }
 
 impl<USART: crate::usart::Instance> PeripheralClock<USART>
-    for UsartClock<USART>
+    for usart::Clock<USART>
 {
     fn select_clock(&self, _: &mut syscon::Handle) {
         // NOOP, selected by default

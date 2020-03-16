@@ -3,7 +3,7 @@ use core::marker::PhantomData;
 use crate::{
     pac::{self, syscon::fclksel::SEL_A},
     syscon::{self, frg, PeripheralClock, IOSC},
-    usart::UsartClock,
+    usart,
 };
 
 /// Internal trait used for defining the fclksel index for a peripheral
@@ -59,7 +59,7 @@ impl PeripheralClockSource for IOSC {
 }
 
 impl<PERIPH: crate::usart::Instance, CLOCK: PeripheralClockSource>
-    UsartClock<(PERIPH, CLOCK)>
+    usart::Clock<(PERIPH, CLOCK)>
 {
     /// Create the clock config for the uart
     ///
@@ -77,7 +77,7 @@ impl<PERIPH: crate::usart::Instance, CLOCK: PeripheralClockSource>
 }
 
 impl<PERIPH: crate::usart::Instance + PeripheralClockSelector>
-    UsartClock<(PERIPH, IOSC)>
+    usart::Clock<(PERIPH, IOSC)>
 {
     /// Create a new configuration with a specified baudrate
     ///
@@ -102,7 +102,7 @@ impl<PERIPH: crate::usart::Instance + PeripheralClockSelector>
 }
 
 impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
-    PeripheralClock<PERIPH> for UsartClock<(PERIPH, CLOCK)>
+    PeripheralClock<PERIPH> for usart::Clock<(PERIPH, CLOCK)>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
         syscon.fclksel[PERIPH::REGISTER_NUM]
