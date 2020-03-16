@@ -28,7 +28,9 @@ pub trait PeripheralClock<PERIPH> {
 /// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 pub trait PeripheralClockSelector {
-    /// The index
+    /// The index of the FCLKSEL register
+    ///
+    /// This is not relevant on LPC82x.
     const REGISTER_NUM: usize;
 }
 
