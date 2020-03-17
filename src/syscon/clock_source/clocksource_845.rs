@@ -1,20 +1,11 @@
-use crate::pac;
-use crate::{
-    pac::syscon::fclksel::SEL_A,
-    syscon::{self, frg, PeripheralClock, IOSC},
-};
-
 use core::marker::PhantomData;
 
-/// Internal trait used for defining the fclksel index for a peripheral
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
-/// be considered breaking changes.
-pub trait PeripheralClockSelector {
-    /// The index
-    const REGISTER_NUM: usize;
-}
+use crate::{
+    pac::{self, syscon::fclksel::SEL_A},
+    syscon::{self, frg, IOSC},
+};
+
+use super::{PeripheralClock, PeripheralClockSelector, PeripheralClockSource};
 
 macro_rules! periph_clock_selector {
     ($peripheral:ident, $num:expr) => {
@@ -24,27 +15,12 @@ macro_rules! periph_clock_selector {
     };
 }
 
-periph_clock_selector!(USART0, 0);
-periph_clock_selector!(USART1, 1);
-periph_clock_selector!(USART2, 2);
-periph_clock_selector!(USART3, 3);
-periph_clock_selector!(USART4, 4);
 periph_clock_selector!(I2C0, 5);
 periph_clock_selector!(I2C1, 6);
 periph_clock_selector!(I2C2, 7);
 periph_clock_selector!(I2C3, 8);
 periph_clock_selector!(SPI0, 9);
 periph_clock_selector!(SPI1, 10);
-
-/// Internal trait used for defining valid peripheal clock sources
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
-/// be considered breaking changes.
-pub trait PeripheralClockSource {
-    /// The variant
-    const CLOCK: SEL_A;
-}
 
 impl PeripheralClockSource for frg::FRG<frg::FRG0> {
     const CLOCK: SEL_A = SEL_A::FRG0CLK;
@@ -56,65 +32,6 @@ impl PeripheralClockSource for frg::FRG<frg::FRG1> {
 
 impl PeripheralClockSource for IOSC {
     const CLOCK: SEL_A = SEL_A::FRO;
-}
-
-/// Defines the clock configuration for a usart
-pub struct UsartClock<PeriphClock> {
-    pub(crate) psc: u16,
-    pub(crate) osrval: u8,
-    _periphclock: PhantomData<PeriphClock>,
-}
-
-impl<PERIPH: crate::usart::Instance, CLOCK: PeripheralClockSource>
-    UsartClock<(PERIPH, CLOCK)>
-{
-    /// Create the clock config for the uart
-    ///
-    /// `osrval` has to be between 5-16
-    pub fn new(_: &CLOCK, psc: u16, osrval: u8) -> Self {
-        let osrval = osrval - 1;
-        assert!(osrval > 3 && osrval < 0x10);
-
-        Self {
-            psc,
-            osrval,
-            _periphclock: PhantomData,
-        }
-    }
-}
-
-impl<PERIPH: crate::usart::Instance + PeripheralClockSelector>
-    UsartClock<(PERIPH, IOSC)>
-{
-    /// Create a new configuration with a specified baudrate
-    ///
-    /// Assumes the internal oscillator runs at 12 MHz
-    pub fn new_with_baudrate(baudrate: u32) -> Self {
-        // We want something with 5% tolerance
-        let calc = baudrate * 20;
-        let mut osrval = 5;
-        for i in (5..=16).rev() {
-            if calc * (i as u32) < 12_000_000 {
-                osrval = i;
-            }
-        }
-        let psc = (12_000_000 / (baudrate * osrval as u32) - 1) as u16;
-        let osrval = osrval - 1;
-        Self {
-            psc,
-            osrval,
-            _periphclock: PhantomData,
-        }
-    }
-}
-
-impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
-    PeripheralClock<PERIPH> for UsartClock<(PERIPH, CLOCK)>
-{
-    fn select_clock(&self, syscon: &mut syscon::Handle) {
-        syscon.fclksel[PERIPH::REGISTER_NUM]
-            .write(|w| w.sel().variant(CLOCK::CLOCK));
-    }
 }
 
 /// A struct containing the clock configuration for a peripheral

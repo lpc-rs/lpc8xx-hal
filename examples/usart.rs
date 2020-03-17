@@ -3,10 +3,7 @@
 
 extern crate panic_halt;
 
-use lpc8xx_hal::{
-    cortex_m_rt::entry, prelude::*, syscon::clocksource::UsartClock,
-    Peripherals,
-};
+use lpc8xx_hal::{cortex_m_rt::entry, prelude::*, usart, Peripherals};
 
 #[entry]
 fn main() -> ! {
@@ -49,12 +46,12 @@ fn main() -> ! {
         syscon.uartfrg.set_clkdiv(6);
         syscon.uartfrg.set_frgmult(22);
         syscon.uartfrg.set_frgdiv(0xff);
-        UsartClock::new(&syscon.uartfrg, 0, 16)
+        usart::Clock::new(&syscon.uartfrg, 0, 16)
     };
 
     #[cfg(feature = "845")]
     // Set baud rate to 115200 baud
-    let clock_config = UsartClock::new_with_baudrate(115200);
+    let clock_config = usart::Clock::new_with_baudrate(115200);
 
     // Make the rx & tx pins available to the switch matrix API, by changing
     // their state using `into_swm_pin`. This is required, because we're going

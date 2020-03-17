@@ -11,10 +11,11 @@ use crate::{
     pac::NVIC,
     pins::PinTrait,
     swm::{self, FunctionTrait},
-    syscon::{self, clocksource::UsartClock, PeripheralClock},
+    syscon::{self, clock_source::PeripheralClock},
 };
 
 use super::{
+    clock::Clock,
     instances::Instance,
     rx::{Error, Rx},
     tx::Tx,
@@ -79,7 +80,7 @@ where
     /// [module documentation]: index.html
     pub fn enable<RxPin, TxPin, CLOCK>(
         self,
-        clock: &UsartClock<CLOCK>,
+        clock: &Clock<CLOCK>,
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
         _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
@@ -89,7 +90,7 @@ where
         TxPin: PinTrait,
         I::Rx: FunctionTrait<RxPin>,
         I::Tx: FunctionTrait<TxPin>,
-        UsartClock<CLOCK>: PeripheralClock<I>,
+        Clock<CLOCK>: PeripheralClock<I>,
     {
         syscon.enable_clock(&self.usart);
 

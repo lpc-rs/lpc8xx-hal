@@ -1,36 +1,10 @@
-use crate::syscon::{self, PeripheralClock, UARTFRG};
 use core::marker::PhantomData;
 
-/// Defines the clock configuration for a usart
-pub struct UsartClock<PeriphClock> {
-    pub(crate) psc: u16,
-    pub(crate) osrval: u8,
-    _periphclock: PhantomData<PeriphClock>,
-}
+use crate::syscon::{self, UARTFRG};
 
-impl<PERIPH: crate::usart::Instance> UsartClock<PERIPH> {
-    /// Create the clock config for the uart
-    ///
-    /// `osrval` has to be between 5-16
-    pub fn new(_: &UARTFRG, psc: u16, osrval: u8) -> Self {
-        let osrval = osrval - 1;
-        assert!(osrval > 3 && osrval < 0x10);
+use super::{PeripheralClock, PeripheralClockSource};
 
-        Self {
-            psc,
-            osrval,
-            _periphclock: PhantomData,
-        }
-    }
-}
-
-impl<USART: crate::usart::Instance> PeripheralClock<USART>
-    for UsartClock<USART>
-{
-    fn select_clock(&self, _: &mut syscon::Handle) {
-        // NOOP, selected by default
-    }
-}
+impl PeripheralClockSource for UARTFRG {}
 
 /// A struct containing the clock configuration for a peripheral
 pub struct I2cClock<PeriphClock> {

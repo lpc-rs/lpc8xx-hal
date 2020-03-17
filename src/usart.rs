@@ -55,12 +55,14 @@
 //!
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
+mod clock;
 mod instances;
 mod peripheral;
 mod rx;
 mod tx;
 
 pub use self::{
+    clock::Clock,
     instances::Instance,
     peripheral::USART,
     rx::{Error, Rx},

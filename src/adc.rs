@@ -34,7 +34,7 @@ use embedded_hal::adc::{Channel, OneShot};
 
 use crate::{
     init_state, pac, swm,
-    syscon::{self, clocksource::AdcClock},
+    syscon::{self, clock_source::AdcClock},
 };
 
 /// Interface to the ADC peripheral
