@@ -38,7 +38,7 @@ use void::Void;
 
 use crate::{
     init_state, pac,
-    pins::{self, PinTrait, Token},
+    pins::{self, Token},
     syscon,
 };
 
@@ -174,7 +174,7 @@ pub struct GpioPin<T, D> {
 
 impl<T, D> GpioPin<T, D>
 where
-    T: PinTrait,
+    T: pins::Trait,
     D: Direction,
 {
     pub(crate) fn new(
@@ -200,7 +200,7 @@ where
 
 impl<T> GpioPin<T, direction::Input>
 where
-    T: PinTrait,
+    T: pins::Trait,
 {
     /// Set pin direction to output
     ///
@@ -244,7 +244,7 @@ where
 
 impl<T> OutputPin for GpioPin<T, direction::Output>
 where
-    T: PinTrait,
+    T: pins::Trait,
 {
     type Error = Void;
 
@@ -283,7 +283,7 @@ where
 
 impl<T> StatefulOutputPin for GpioPin<T, direction::Output>
 where
-    T: PinTrait,
+    T: pins::Trait,
 {
     /// Indicates whether the pin output is currently set to HIGH
     ///
@@ -318,11 +318,14 @@ where
     }
 }
 
-impl<T> toggleable::Default for GpioPin<T, direction::Output> where T: PinTrait {}
+impl<T> toggleable::Default for GpioPin<T, direction::Output> where
+    T: pins::Trait
+{
+}
 
 impl<T> GpioPin<T, direction::Output>
 where
-    T: PinTrait,
+    T: pins::Trait,
 {
     /// Set pin direction to input
     ///
@@ -368,7 +371,7 @@ where
 
 impl<T> InputPin for GpioPin<T, direction::Input>
 where
-    T: PinTrait,
+    T: pins::Trait,
 {
     type Error = Void;
 
@@ -414,11 +417,11 @@ pub enum Level {
     Low,
 }
 
-fn set_high<T: PinTrait>(registers: &Registers) {
+fn set_high<T: pins::Trait>(registers: &Registers) {
     registers.set[T::PORT].write(|w| unsafe { w.setp().bits(T::MASK) });
 }
 
-fn set_low<T: PinTrait>(registers: &Registers) {
+fn set_low<T: pins::Trait>(registers: &Registers) {
     registers.clr[T::PORT].write(|w| unsafe { w.clrp().bits(T::MASK) });
 }
 
@@ -469,7 +472,7 @@ impl<'gpio> Registers<'gpio> {
 ///
 /// Please refer to [`Pin`] for documentation on how these types are used.
 pub mod direction {
-    use crate::pins::PinTrait;
+    use crate::pins;
 
     use super::{Level, Registers};
 
@@ -489,7 +492,7 @@ pub mod direction {
         ///
         /// This method is for internal use only. Any changes to it won't be
         /// considered breaking changes.
-        fn switch<T: PinTrait>(_: &Registers, _: Self::SwitchArg) -> Self;
+        fn switch<T: pins::Trait>(_: &Registers, _: Self::SwitchArg) -> Self;
     }
 
     /// Marks a GPIO pin as being configured for input
@@ -505,7 +508,7 @@ pub mod direction {
     impl Direction for Input {
         type SwitchArg = ();
 
-        fn switch<T: PinTrait>(
+        fn switch<T: pins::Trait>(
             registers: &Registers,
             _: Self::SwitchArg,
         ) -> Self {
@@ -528,7 +531,10 @@ pub mod direction {
     impl Direction for Output {
         type SwitchArg = Level;
 
-        fn switch<T: PinTrait>(registers: &Registers, initial: Level) -> Self {
+        fn switch<T: pins::Trait>(
+            registers: &Registers,
+            initial: Level,
+        ) -> Self {
             // First set the output level, before we switch the mode.
             match initial {
                 Level::High => super::set_high::<T>(registers),

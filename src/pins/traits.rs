@@ -5,7 +5,7 @@
 /// be considered breaking changes.
 ///
 /// Please refer to [`Pin`] for the public API used to control pins.
-pub trait PinTrait {
+pub trait Trait {
     /// A number that indentifies the port
     ///
     /// This is `0` for [`PIO0_0`] and `1` for [`PIO1_0`]

@@ -6,4 +6,4 @@ mod traits;
 
 pub mod state;
 
-pub use self::{gen::*, pin::Pin, state::State, traits::PinTrait};
+pub use self::{gen::*, pin::Pin, state::State, traits::Trait};

@@ -2,7 +2,7 @@
 
 use core::marker::PhantomData;
 
-use super::{pin::Pin, state, traits::PinTrait};
+use super::{pin::Pin, state, traits::Trait};
 
 macro_rules! pins {
     ($(
@@ -52,7 +52,7 @@ macro_rules! pins {
             #[allow(non_camel_case_types)]
             pub struct $type(());
 
-            impl PinTrait for $type {
+            impl Trait for $type {
                 const PORT: usize = $port;
                 const ID  : u8    = $id;
                 const MASK: u32   = 0x1 << $id;

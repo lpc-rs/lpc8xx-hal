@@ -6,7 +6,7 @@ use crate::{
 use super::{
     gen::Token,
     state::{self, State},
-    traits::PinTrait,
+    traits::Trait,
 };
 
 /// Main API for controlling pins
@@ -195,14 +195,14 @@ use super::{
 /// [`direction::Output`]: ../gpio/direction/struct.Output.html
 /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.IOCON.html
 /// [`lpc82x::ADC`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.ADC.html
-pub struct Pin<T: PinTrait, S: State> {
+pub struct Pin<T: Trait, S: State> {
     pub(crate) ty: T,
     pub(crate) _state: S,
 }
 
 impl<T> Pin<T, state::Unused>
 where
-    T: PinTrait,
+    T: Trait,
 {
     /// Transition pin to GPIO input mode
     pub fn into_input_pin(
@@ -259,7 +259,7 @@ where
 
 impl<T> Pin<T, state::Swm<(), ()>>
 where
-    T: PinTrait,
+    T: Trait,
 {
     /// Transitions this pin from the SWM state to the unused state
     ///

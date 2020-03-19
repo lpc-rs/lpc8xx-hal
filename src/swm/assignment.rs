@@ -1,4 +1,4 @@
-use crate::pins::{self, Pin, PinTrait};
+use crate::pins::{self, Pin};
 
 use super::{
     function_kind::{Analog, Input, Output},
@@ -39,7 +39,7 @@ pub trait UnassignFunction<Function, Kind> {
 
 impl<T, F, O, Is> AssignFunction<F, Input> for Pin<T, pins::state::Swm<O, Is>>
 where
-    T: PinTrait,
+    T: pins::Trait,
     F: FunctionTrait<T, Kind = Input>,
 {
     type Assigned = Pin<T, pins::state::Swm<O, (Is,)>>;
@@ -54,7 +54,7 @@ where
 
 impl<T, F, Is> AssignFunction<F, Output> for Pin<T, pins::state::Swm<(), Is>>
 where
-    T: PinTrait,
+    T: pins::Trait,
     F: FunctionTrait<T, Kind = Output>,
 {
     type Assigned = Pin<T, pins::state::Swm<((),), Is>>;
@@ -70,7 +70,7 @@ where
 impl<T, F, O, Is> UnassignFunction<F, Input>
     for Pin<T, pins::state::Swm<O, (Is,)>>
 where
-    T: PinTrait,
+    T: pins::Trait,
     F: FunctionTrait<T, Kind = Input>,
 {
     type Unassigned = Pin<T, pins::state::Swm<O, Is>>;
@@ -86,7 +86,7 @@ where
 impl<T, F, Is> UnassignFunction<F, Output>
     for Pin<T, pins::state::Swm<((),), Is>>
 where
-    T: PinTrait,
+    T: pins::Trait,
     F: FunctionTrait<T, Kind = Output>,
 {
     type Unassigned = Pin<T, pins::state::Swm<(), Is>>;
@@ -101,7 +101,7 @@ where
 
 impl<T, F> AssignFunction<F, Analog> for Pin<T, pins::state::Swm<(), ()>>
 where
-    T: PinTrait,
+    T: pins::Trait,
     F: FunctionTrait<T, Kind = Analog>,
 {
     type Assigned = Pin<T, pins::state::Analog>;
