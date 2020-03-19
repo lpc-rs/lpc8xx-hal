@@ -12,7 +12,7 @@ use core::marker::PhantomData;
 /// this trait should not be relevant to users of this crate.
 ///
 /// [`Pin`]: ../struct.Pin.html
-pub trait PinState {}
+pub trait State {}
 
 /// Marks a [`Pin`] as being unused
 ///
@@ -25,14 +25,14 @@ impl Unused {
     }
 }
 
-impl PinState for Unused {}
+impl State for Unused {}
 
 /// Marks a [`Pin`]  as being assigned to the analog-to-digital converter
 ///
 /// [`Pin`]: ../struct.Pin.html
 pub struct Analog;
 
-impl PinState for Analog {}
+impl State for Analog {}
 
 /// Marks a [`Pin`]  as being available for switch matrix function assigment
 ///
@@ -64,4 +64,4 @@ impl<Output, Inputs> Swm<Output, Inputs> {
     }
 }
 
-impl<Output, Inputs> PinState for Swm<Output, Inputs> {}
+impl<Output, Inputs> State for Swm<Output, Inputs> {}

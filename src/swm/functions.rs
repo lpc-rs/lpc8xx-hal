@@ -1,6 +1,6 @@
 use core::marker::PhantomData;
 
-use crate::pins::{state::PinState, Pin, PinTrait};
+use crate::pins::{self, Pin, PinTrait};
 
 use super::{
     assignment::{AssignFunction, UnassignFunction},
@@ -91,7 +91,7 @@ impl<T> Function<T, Unassigned> {
     where
         T: FunctionTrait<P>,
         P: PinTrait,
-        S: PinState,
+        S: pins::State,
         Pin<P, S>: AssignFunction<T, T::Kind>,
     {
         self.ty.assign(&mut pin.ty, swm);
@@ -163,7 +163,7 @@ impl<T, P> Function<T, Assigned<P>> {
     where
         T: FunctionTrait<P>,
         P: PinTrait,
-        S: PinState,
+        S: pins::State,
         Pin<P, S>: UnassignFunction<T, T::Kind>,
     {
         self.ty.unassign(&mut pin.ty, swm);

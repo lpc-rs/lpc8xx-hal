@@ -5,7 +5,7 @@ use crate::{
 
 use super::{
     gen::Token,
-    state::{self, PinState},
+    state::{self, State},
     traits::PinTrait,
 };
 
@@ -195,7 +195,7 @@ use super::{
 /// [`direction::Output`]: ../gpio/direction/struct.Output.html
 /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.IOCON.html
 /// [`lpc82x::ADC`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.ADC.html
-pub struct Pin<T: PinTrait, S: PinState> {
+pub struct Pin<T: PinTrait, S: State> {
     pub(crate) ty: T,
     pub(crate) _state: S,
 }
