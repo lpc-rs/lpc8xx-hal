@@ -171,7 +171,6 @@ impl GPIO<init_state::Enabled> {
 /// A pin used for general purpose I/O (GPIO)
 pub struct GpioPin<T, D> {
     token: pins::Token<T, init_state::Enabled>,
-    registers: Registers<'static>,
     _direction: D,
 }
 
@@ -195,7 +194,6 @@ where
 
         Self {
             token,
-            registers,
             _direction: direction,
         }
     }
@@ -232,12 +230,15 @@ where
     /// pin.set_low();
     /// ```
     pub fn into_output(self, initial: Level) -> GpioPin<T, direction::Output> {
-        let direction =
-            direction::Output::switch::<T>(&self.registers, initial);
+        // This is sound, as we only do a stateless write to a bit that no other
+        // `GpioPin` instance writes to.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        let direction = direction::Output::switch::<T>(&registers, initial);
 
         GpioPin {
             token: self.token,
-            registers: self.registers,
             _direction: direction,
         }
     }
@@ -277,11 +278,15 @@ where
     /// }
     /// ```
     pub fn into_input(self) -> GpioPin<T, direction::Input> {
-        let direction = direction::Input::switch::<T>(&self.registers, ());
+        // This is sound, as we only do a stateless write to a bit that no other
+        // `GpioPin` instance writes to.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        let direction = direction::Input::switch::<T>(&registers, ());
 
         GpioPin {
             token: self.token,
-            registers: self.registers,
             _direction: direction,
         }
     }
@@ -305,8 +310,12 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_input`]: #method.into_input
     fn is_high(&self) -> Result<bool, Self::Error> {
-        Ok(self.registers.pin[T::PORT].read().port().bits() & T::MASK
-            == T::MASK)
+        // This is sound, as we only do a stateless write to a bit that no other
+        // `GpioPin` instance writes to.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        Ok(registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK)
     }
 
     /// Indicates wether the pin input is HIGH
@@ -321,8 +330,12 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_input`]: #method.into_input
     fn is_low(&self) -> Result<bool, Self::Error> {
-        Ok(!self.registers.pin[T::PORT].read().port().bits() & T::MASK
-            == T::MASK)
+        // This is sound, as we only do a stateless write to a bit that no other
+        // `GpioPin` instance writes to.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        Ok(!registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK)
     }
 }
 
@@ -344,7 +357,13 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_high(&mut self) -> Result<(), Self::Error> {
-        set_high::<T>(&self.registers);
+        // This is sound, as we only do a stateless write to a bit that no other
+        // `GpioPin` instance writes to.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        set_high::<T>(&registers);
+
         Ok(())
     }
 
@@ -360,7 +379,13 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn set_low(&mut self) -> Result<(), Self::Error> {
-        set_low::<T>(&self.registers);
+        // This is sound, as we only do a stateless write to a bit that no other
+        // `GpioPin` instance writes to.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        set_low::<T>(&registers);
+
         Ok(())
     }
 }
@@ -381,8 +406,12 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_high(&self) -> Result<bool, Self::Error> {
-        Ok(self.registers.pin[T::PORT].read().port().bits() & T::MASK
-            == T::MASK)
+        // This is sound, as we only do a stateless write to a bit that no other
+        // `GpioPin` instance writes to.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        Ok(registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK)
     }
 
     /// Indicates whether the pin output is currently set to LOW
@@ -397,8 +426,12 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_low(&self) -> Result<bool, Self::Error> {
-        Ok(!self.registers.pin[T::PORT].read().port().bits() & T::MASK
-            == T::MASK)
+        // This is sound, as we only do a stateless write to a bit that no other
+        // `GpioPin` instance writes to.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        Ok(!registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK)
     }
 }
 
