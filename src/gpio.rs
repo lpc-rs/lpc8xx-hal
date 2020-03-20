@@ -243,87 +243,6 @@ where
     }
 }
 
-impl<T> OutputPin for GpioPin<T, direction::Output>
-where
-    T: pins::Trait,
-{
-    type Error = Void;
-
-    /// Set the pin output to HIGH
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
-    /// [`into_output`]: #method.into_output
-    fn set_high(&mut self) -> Result<(), Self::Error> {
-        set_high::<T>(&self.registers);
-        Ok(())
-    }
-
-    /// Set the pin output to LOW
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
-    /// [`into_output`]: #method.into_output
-    fn set_low(&mut self) -> Result<(), Self::Error> {
-        set_low::<T>(&self.registers);
-        Ok(())
-    }
-}
-
-impl<T> StatefulOutputPin for GpioPin<T, direction::Output>
-where
-    T: pins::Trait,
-{
-    /// Indicates whether the pin output is currently set to HIGH
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
-    /// [`into_output`]: #method.into_output
-    fn is_set_high(&self) -> Result<bool, Self::Error> {
-        Ok(self.registers.pin[T::PORT].read().port().bits() & T::MASK
-            == T::MASK)
-    }
-
-    /// Indicates whether the pin output is currently set to LOW
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
-    /// [`into_output`]: #method.into_output
-    fn is_set_low(&self) -> Result<bool, Self::Error> {
-        Ok(!self.registers.pin[T::PORT].read().port().bits() & T::MASK
-            == T::MASK)
-    }
-}
-
-impl<T> toggleable::Default for GpioPin<T, direction::Output> where
-    T: pins::Trait
-{
-}
-
 impl<T> GpioPin<T, direction::Output>
 where
     T: pins::Trait,
@@ -405,6 +324,87 @@ where
         Ok(!self.registers.pin[T::PORT].read().port().bits() & T::MASK
             == T::MASK)
     }
+}
+
+impl<T> OutputPin for GpioPin<T, direction::Output>
+where
+    T: pins::Trait,
+{
+    type Error = Void;
+
+    /// Set the pin output to HIGH
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    fn set_high(&mut self) -> Result<(), Self::Error> {
+        set_high::<T>(&self.registers);
+        Ok(())
+    }
+
+    /// Set the pin output to LOW
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    fn set_low(&mut self) -> Result<(), Self::Error> {
+        set_low::<T>(&self.registers);
+        Ok(())
+    }
+}
+
+impl<T> StatefulOutputPin for GpioPin<T, direction::Output>
+where
+    T: pins::Trait,
+{
+    /// Indicates whether the pin output is currently set to HIGH
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    fn is_set_high(&self) -> Result<bool, Self::Error> {
+        Ok(self.registers.pin[T::PORT].read().port().bits() & T::MASK
+            == T::MASK)
+    }
+
+    /// Indicates whether the pin output is currently set to LOW
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    fn is_set_low(&self) -> Result<bool, Self::Error> {
+        Ok(!self.registers.pin[T::PORT].read().port().bits() & T::MASK
+            == T::MASK)
+    }
+}
+
+impl<T> toggleable::Default for GpioPin<T, direction::Output> where
+    T: pins::Trait
+{
 }
 
 /// The voltage level of a pin
