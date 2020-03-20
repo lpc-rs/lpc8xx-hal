@@ -9,7 +9,7 @@ use void::Void;
 use crate::{
     dma, init_state,
     pac::NVIC,
-    pins::PinTrait,
+    pins,
     swm::{self, FunctionTrait},
     syscon::{self, clock_source::PeripheralClock},
 };
@@ -86,8 +86,8 @@ where
         _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
     ) -> USART<I, init_state::Enabled>
     where
-        RxPin: PinTrait,
-        TxPin: PinTrait,
+        RxPin: pins::Trait,
+        TxPin: pins::Trait,
         I::Rx: FunctionTrait<RxPin>,
         I::Tx: FunctionTrait<TxPin>,
         Clock<CLOCK>: PeripheralClock<I>,

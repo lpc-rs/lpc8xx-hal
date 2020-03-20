@@ -1,4 +1,4 @@
-use crate::pins::{self, PinTrait};
+use crate::pins::{self, Trait as _};
 
 use super::{
     function_kind::{Input, Output},

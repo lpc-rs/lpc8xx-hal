@@ -36,7 +36,7 @@ use crate::{
         ctimer0::{MR, MSR},
         CTIMER0,
     },
-    pins::PinTrait,
+    pins,
     reg_proxy::RegProxy,
     swm::{self, T0_MAT0, T0_MAT1, T0_MAT2},
     syscon,
@@ -163,7 +163,7 @@ impl<CTOutput> DetachedPwmPin<CTOutput> {
         _: swm::Function<CTOutput, swm::state::Assigned<PWM>>,
     ) -> CTimerPwmPin
     where
-        PWM: PinTrait,
+        PWM: pins::Trait,
     {
         CTimerPwmPin {
             mr: self.mr,

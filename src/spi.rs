@@ -46,8 +46,7 @@ use core::ops::Deref;
 use embedded_hal::spi::{FullDuplex, Mode, Phase, Polarity};
 
 use crate::{
-    init_state, pac,
-    pins::PinTrait,
+    init_state, pac, pins,
     swm::{self, FunctionTrait},
     syscon::{
         self,
@@ -107,9 +106,9 @@ where
         _: swm::Function<I::Miso, swm::state::Assigned<MisoPin>>,
     ) -> SPI<I, init_state::Enabled>
     where
-        SckPin: PinTrait,
-        MosiPin: PinTrait,
-        MisoPin: PinTrait,
+        SckPin: pins::Trait,
+        MosiPin: pins::Trait,
+        MisoPin: pins::Trait,
         I::Sck: FunctionTrait<SckPin>,
         I::Mosi: FunctionTrait<MosiPin>,
         I::Miso: FunctionTrait<MisoPin>,

@@ -1,6 +1,6 @@
 use core::marker::PhantomData;
 
-use crate::pins::{state::PinState, Pin, PinTrait};
+use crate::pins::{self, Pin};
 
 use super::{
     assignment::{AssignFunction, UnassignFunction},
@@ -90,8 +90,8 @@ impl<T> Function<T, Unassigned> {
     )
     where
         T: FunctionTrait<P>,
-        P: PinTrait,
-        S: PinState,
+        P: pins::Trait,
+        S: pins::State,
         Pin<P, S>: AssignFunction<T, T::Kind>,
     {
         self.ty.assign(&mut pin.ty, swm);
@@ -162,8 +162,8 @@ impl<T, P> Function<T, Assigned<P>> {
     )
     where
         T: FunctionTrait<P>,
-        P: PinTrait,
-        S: PinState,
+        P: pins::Trait,
+        S: pins::State,
         Pin<P, S>: UnassignFunction<T, T::Kind>,
     {
         self.ty.unassign(&mut pin.ty, swm);
@@ -185,7 +185,7 @@ impl<T, P> Function<T, Assigned<P>> {
 ///
 /// Please refer [`Function::assign`] and [`Function::unassign`] for the public
 /// API that uses this trait.
-pub trait FunctionTrait<P: PinTrait> {
+pub trait FunctionTrait<P: pins::Trait> {
     /// Whether this is an input or output function
     ///
     /// There are also bidirectional functions, but for our purposes, they are
