@@ -14,16 +14,12 @@ macro_rules! pins {
     )*) => {
         /// Provides access to all pins
         ///
-        /// This struct is a part of [`swm::Parts`].
-        ///
         /// # Limitations
         ///
         /// This struct currently provides access to all pins that can be
         /// available on an LPC8xx part. Please make sure that you are aware of
         /// which pins are actually available on your specific part, and only
         /// use those.
-        ///
-        /// [`swm::Parts`]: ../swm/struct.Parts.html
         #[allow(missing_docs)]
         pub struct Pins {
             $(pub $field: Pin<$type, $default_state_ty>,)*
