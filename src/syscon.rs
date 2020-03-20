@@ -446,6 +446,9 @@ impl_clock_control!(pac::ADC0, adc);
 impl_clock_control!(MTB, mtb);
 impl_clock_control!(pac::DMA0, dma);
 #[cfg(feature = "845")]
+impl_clock_control!(pac::PINT, gpio_int);
+
+#[cfg(feature = "845")]
 impl ClockControl for pac::GPIO {
     fn enable_clock<'w>(
         &self,
@@ -533,6 +536,8 @@ impl_reset_control!(pac::I2C2, i2c2_rst_n);
 impl_reset_control!(pac::I2C3, i2c3_rst_n);
 impl_reset_control!(pac::ADC0, adc_rst_n);
 impl_reset_control!(pac::DMA0, dma_rst_n);
+#[cfg(feature = "845")]
+impl_reset_control!(pac::PINT, gpioint_rst_n);
 
 #[cfg(feature = "845")]
 impl<'a> ResetControl for pac::GPIO {
