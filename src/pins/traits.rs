@@ -10,11 +10,13 @@
 pub trait Trait {
     /// A number that indentifies the port
     ///
-    /// This is `0` for [`PIO0_0`] and `1` for [`PIO1_0`]
+    /// This is `0` for PIO0 pins (e.g. [`PIO0_0`]) and `1` for PIO1 pins (e.g.
+    /// [`PIO1_0`]).
     ///
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO1_0`]: struct.PIO1_0.html
     const PORT: usize;
+
     /// A number that identifies the pin
     ///
     /// This is `0` for [`PIO0_0`], `1` for [`PIO0_1`] and so forth.
