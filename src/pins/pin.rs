@@ -80,54 +80,7 @@ use super::{
 /// To set up a pin for GPIO use, you need to call [`Pin::into_input_pin`] or
 /// [`Pin::into_output_pin`] when it is in its unused state.
 ///
-/// ``` no_run
-/// use lpc82x_hal::Peripherals;
-///
-/// let mut p = Peripherals::take().unwrap();
-///
-/// let mut swm = p.SWM.split();
-///
-/// // The pin takes a shared reference to `GPIO`, which it keeps around as long
-/// // as the pin is in the GPIO state. This ensures the GPIO peripheral can't
-/// // be disabled while we're still using the pin for GPIO.
-/// let pin = swm.pins.pio0_12.into_gpio_pin(&p.GPIO);
-/// ```
-///
-/// Now `pin` is in the GPIO state. The GPIO state has the following sub-states:
-/// - [`direction::Unknown`], to indicate that the current GPIO configuration is
-///   not known
-/// - [`direction::Input`], to indicate that the pin is configured for digital
-///   input
-/// - [`direction::Output`], to indicate that the pin is configured for digital
-///   output
-///
-/// To use a pin, that we previously configured for GPIO (see example above),
-/// for digital output, we need to set the pin direction using
-/// [`Pin::into_output`].
-///
-/// ``` no_run
-/// # use lpc82x_hal::Peripherals;
-/// #
-/// # let p = Peripherals::take().unwrap();
-/// #
-/// # let mut swm = p.SWM.split();
-/// #
-/// # let pin = swm.pins.pio0_12
-/// #     .into_gpio_pin(&p.GPIO);
-/// #
-/// use lpc82x_hal::prelude::*;
-///
-/// // Configure pin for digital output. This assumes that the pin is currently
-/// // in the GPIO state.
-/// let mut pin = pin.into_output();
-///
-/// // Now we can change the output signal as we like.
-/// pin.set_high();
-/// pin.set_low();
-/// ```
-///
-/// Using pins for digital input is currently not supported by the API. If you
-/// need this feature, [please speak up](https://github.com/lpc-rs/lpc8xx-hal/issues/50).
+/// This will return a [`GpioPin`], which provides the GPIO API.
 ///
 /// # Fixed and Movable Functions
 ///
@@ -192,9 +145,7 @@ use super::{
 /// [`state::Analog`]: state/struct.Analog.html
 /// [`Pin::into_input_pin`]: struct.Pin.html#method.into_input_pin
 /// [`Pin::into_output_pin`]: struct.Pin.html#method.into_output_pin
-/// [`direction::Unknown`]: ../gpio/direction/struct.Unknown.html
-/// [`direction::Input`]: ../gpio/direction/struct.Input.html
-/// [`direction::Output`]: ../gpio/direction/struct.Output.html
+/// [`GpioPin`]: ../gpio/struct.GpioPin.html
 /// [`Pin::into_swm_pin`]: struct.Pin.html#method.into_swm_pin
 /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.IOCON.html
 /// [`lpc82x::ADC`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.ADC.html
