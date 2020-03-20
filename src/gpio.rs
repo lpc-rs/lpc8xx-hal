@@ -1,8 +1,8 @@
 //! API for General Purpose I/O (GPIO)
 //!
 //! The entry point to this API is [`GPIO`]. It can be used to initialize the
-//! peripheral, and is required by instances of [`Pin`] for GPIO functionality.
-//! All [`Pin`] instances live in the [`swm`] module.
+//! peripheral, and is required to convert instances of [`Pin`] to a
+//! [`GpioPin`], which provides the core GPIO API.
 //!
 //! The GPIO peripheral is described in the user manual, chapter 9.
 //!
@@ -26,7 +26,9 @@
 //!
 //! Please refer to the [examples in the repository] for more example code.
 //!
-//! [`swm`]: ../swm/index.html
+//! [`GPIO`]: struct.GPIO.html
+//! [`Pin`]: ../pins/struct.Pin.html
+//! [`GpioPin`]: struct.GpioPin.html
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
 use core::marker::PhantomData;
@@ -55,12 +57,13 @@ use self::direction::Direction;
 ///
 /// Controls the GPIO peripheral. Can be used to enable, disable, or free the
 /// peripheral. For GPIO-functionality directly related to pins, please refer
-/// to [`Pin`].
+/// to [`GpioPin`].
 ///
 /// Use [`Peripherals`] to gain access to an instance of this struct.
 ///
 /// Please refer to the [module documentation] for more information.
 ///
+/// [`GpioPin`]: struct.GpioPin.html
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct GPIO<State = init_state::Enabled> {
@@ -204,9 +207,7 @@ where
 {
     /// Set pin direction to output
     ///
-    /// This method is only available, if the pin is in the GPIO state and the
-    /// pin is not already in output mode, i.e. the pin direction is input or
-    /// unknown. You can enter the GPIO state using [`Pin::into_gpio_pin`].
+    /// This method is only available while the pin is in input mode.
     ///
     /// Consumes the pin instance and returns a new instance that is in output
     /// mode, making the methods to set the output level available.
@@ -329,9 +330,7 @@ where
 {
     /// Set pin direction to input
     ///
-    /// This method is only available, if the pin is in the GPIO state and the
-    /// pin is not already in input mode, i.e. the pin direction is output or
-    /// unknown. You can enter the GPIO state using [`Pin::into_gpio_pin`].
+    /// This method is only available while the pin is in output mode.
     ///
     /// Consumes the pin instance and returns a new instance that is in output
     /// mode, making the methods to set the output level available.
@@ -470,7 +469,9 @@ impl<'gpio> Registers<'gpio> {
 
 /// Contains types to indicate the direction of GPIO pins
 ///
-/// Please refer to [`Pin`] for documentation on how these types are used.
+/// Please refer to [`GpioPin`] for documentation on how these types are used.
+///
+/// [`GpioPin`]: ../struct.GpioPin.html
 pub mod direction {
     use crate::pins;
 
@@ -478,12 +479,12 @@ pub mod direction {
 
     /// Implemented by types that indicate GPIO pin direction
     ///
-    /// The [`Gpio`] type uses this trait as a bound for its type parameter.
+    /// The [`GpioPin`] type uses this trait as a bound for its type parameter.
     /// This is done for documentation purposes, to clearly show which types can
     /// be used for this parameter. Other than that, this trait should not be
     /// relevant to users of this crate.
     ///
-    /// [`Gpio`]: ../../pins/state/struct.Gpio.html
+    /// [`GpioPin`]: ../struct.GpioPin.html
     pub trait Direction {
         /// The argument of the `switch` method
         type SwitchArg;
@@ -497,12 +498,10 @@ pub mod direction {
 
     /// Marks a GPIO pin as being configured for input
     ///
-    /// This type is used as a type parameter of [`Gpio`], which in turn is used
-    /// as a type parameter of [`Pin`]. Please refer to the documentation of
-    /// [`Pin`] to see how this type is used.
+    /// This type is used as a type parameter of [`GpioPin`]. Please refer to
+    /// the documentation there to see how this type is used.
     ///
-    /// [`Gpio`]: ../../pins/state/struct.Gpio.html
-    /// [`Pin`]: ../../pins/struct.Pin.html
+    /// [`GpioPin`]: ../struct.GpioPin.html
     pub struct Input(());
 
     impl Direction for Input {
@@ -520,12 +519,10 @@ pub mod direction {
 
     /// Marks a GPIO pin as being configured for output
     ///
-    /// This type is used as a type parameter of [`Gpio`], which in turn is used
-    /// as a type parameter of [`Pin`]. Please refer to the documentation of
-    /// [`Pin`] to see how this type is used.
+    /// This type is used as a type parameter of [`GpioPin`]. Please refer to
+    /// the documentation there to see how this type is used.
     ///
-    /// [`Gpio`]: ../../pins/state/struct.Gpio.html
-    /// [`Pin`]: ../../pins/struct.Pin.html
+    /// [`GpioPin`]: ../struct.GpioPin.html
     pub struct Output(());
 
     impl Direction for Output {
