@@ -77,8 +77,8 @@ use super::{
 ///
 /// All pins can be used for general-purpose I/O (GPIO), meaning they can be
 /// used for reading digital input signals and writing digital output signals.
-/// To set up a pin for GPIO use, you need to call [`Pin::into_gpio_pin`] when
-/// it is in its unused state.
+/// To set up a pin for GPIO use, you need to call [`Pin::into_input_pin`] or
+/// [`Pin::into_output_pin`] when it is in its unused state.
 ///
 /// ``` no_run
 /// use lpc82x_hal::Peripherals;
@@ -190,9 +190,12 @@ use super::{
 /// [`state::Gpio`]: state/struct.Gpio.html
 /// [`state::Swm`]: state/struct.Swm.html
 /// [`state::Analog`]: state/struct.Analog.html
+/// [`Pin::into_input_pin`]: struct.Pin.html#method.into_input_pin
+/// [`Pin::into_output_pin`]: struct.Pin.html#method.into_output_pin
 /// [`direction::Unknown`]: ../gpio/direction/struct.Unknown.html
 /// [`direction::Input`]: ../gpio/direction/struct.Input.html
 /// [`direction::Output`]: ../gpio/direction/struct.Output.html
+/// [`Pin::into_swm_pin`]: struct.Pin.html#method.into_swm_pin
 /// [`lpc82x::IOCON`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.IOCON.html
 /// [`lpc82x::ADC`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.ADC.html
 pub struct Pin<T: Trait, S: State> {

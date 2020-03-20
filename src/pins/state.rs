@@ -1,6 +1,8 @@
 //! Contains types that indicate pin states
 //!
 //! Please refer to [`Pin`] for documentation about how these types are used.
+//!
+//! [`Pin`]: ../struct.Pins.html
 
 use core::marker::PhantomData;
 
