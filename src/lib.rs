@@ -383,7 +383,7 @@ pub struct Peripherals {
 
     /// Pin interrupt and pattern match engine
     ///
-    /// A HAL API for this peripheral has not been implemented yet for LPC8x. In
+    /// A HAL API for this peripheral has not been implemented yet for LPC82x. In
     /// the meantime, this field provides you with the raw register mappings,
     /// which allow you full, unprotected access to the peripheral.
     ///
