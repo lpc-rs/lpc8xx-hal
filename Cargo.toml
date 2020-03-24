@@ -127,6 +127,10 @@ name              = "i2c_eeprom"
 required-features = ["rt-selected"]
 
 [[example]]
+name              = "pinint"
+required-features = ["rt-selected", "845"]
+
+[[example]]
 name              = "pmu"
 required-features = ["rt-selected", "82x"]
 

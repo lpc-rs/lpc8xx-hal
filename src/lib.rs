@@ -118,6 +118,8 @@ pub mod dma;
 pub mod gpio;
 pub mod i2c;
 pub mod mrt;
+#[cfg(feature = "845")]
+pub mod pinint;
 pub mod pins;
 pub mod pmu;
 pub mod sleep;
@@ -159,6 +161,8 @@ pub use self::dma::DMA;
 pub use self::gpio::GPIO;
 pub use self::i2c::I2C;
 pub use self::mrt::MRT;
+#[cfg(feature = "845")]
+pub use self::pinint::PININT;
 pub use self::pmu::PMU;
 pub use self::spi::SPI;
 pub use self::swm::SWM;
@@ -234,6 +238,10 @@ pub struct Peripherals {
 
     /// Multi-Rate Timer (MRT)
     pub MRT0: MRT,
+
+    /// Pin interrupt and pattern match engine
+    #[cfg(feature = "845")]
+    pub PININT: PININT<init_state::Disabled>,
 
     /// Power Management Unit
     pub PMU: PMU,
@@ -375,10 +383,17 @@ pub struct Peripherals {
 
     /// Pin interrupt and pattern match engine
     ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub PINT: pac::PINT,
+    /// A HAL API for this peripheral has not been implemented yet for LPC82x. In
+    /// the meantime, this field provides you with the raw register mappings,
+    /// which allow you full, unprotected access to the peripheral.
+    ///
+    /// A HAL API for this peripheral is available for LPC845. Even though the
+    /// peripherals are largely identical on both targets, on LPC82x PININT
+    /// shares a peripheral clock with GPIO, which is not the case on LPC845.
+    /// Porting the API to LPC82x would require additional effort for that
+    /// reason.
+    #[cfg(feature = "82x")]
+    pub PININT: pac::PINT,
 
     /// State Configurable Timer (SCT)
     ///
@@ -485,6 +500,8 @@ impl Peripherals {
             GPIO: GPIO::new(p.GPIO),
             I2C0: I2C::new(p.I2C0),
             MRT0: MRT::new(p.MRT0),
+            #[cfg(feature = "845")]
+            PININT: PININT::new(p.PINT),
             PMU: PMU::new(p.PMU),
             SPI0: SPI::new(p.SPI0),
             SPI1: SPI::new(p.SPI1),
@@ -514,7 +531,8 @@ impl Peripherals {
             I2C3: p.I2C3,
             INPUTMUX: p.INPUTMUX,
             IOCON: p.IOCON,
-            PINT: p.PINT,
+            #[cfg(feature = "82x")]
+            PININT: p.PINT,
             SCT0: p.SCT0,
             WWDT: p.WWDT,
         }
