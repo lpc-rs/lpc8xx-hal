@@ -441,6 +441,7 @@ impl<T> toggleable::Default for GpioPin<T, direction::Output> where
 }
 
 /// The voltage level of a pin
+#[derive(Debug)]
 pub enum Level {
     /// High voltage
     High,
