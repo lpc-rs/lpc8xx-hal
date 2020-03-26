@@ -8,4 +8,6 @@ mod interrupt;
 mod peripheral;
 mod traits;
 
-pub use self::{gen::*, interrupt::Interrupt, peripheral::PININT};
+pub use self::{
+    gen::*, interrupt::Interrupt, peripheral::PININT, traits::Trait,
+};
