@@ -40,7 +40,7 @@ pub struct MRT {
 }
 
 /// Represent a MRT0 channel
-pub struct MrtChannel {
+pub struct Channel {
     channel: u8,
     channels: RegProxy<CHANNEL>,
 }
@@ -56,22 +56,22 @@ impl MRT {
     }
 
     /// Enables the MRT and splits it into it's four channels
-    pub fn split(self, syscon: &mut syscon::Handle) -> [MrtChannel; 4] {
+    pub fn split(self, syscon: &mut syscon::Handle) -> [Channel; 4] {
         syscon.enable_clock(&self.mrt);
         [
-            MrtChannel {
+            Channel {
                 channel: 0,
                 channels: RegProxy::new(),
             },
-            MrtChannel {
+            Channel {
                 channel: 1,
                 channels: RegProxy::new(),
             },
-            MrtChannel {
+            Channel {
                 channel: 2,
                 channels: RegProxy::new(),
             },
-            MrtChannel {
+            Channel {
                 channel: 3,
                 channels: RegProxy::new(),
             },
@@ -95,7 +95,7 @@ impl MRT {
     }
 }
 
-impl CountDown for MrtChannel {
+impl CountDown for Channel {
     /// The timer operates in clock ticks from the system clock, that means it
     /// runs at 12_000_000 ticks per second if you haven't changed it.
     ///
@@ -140,6 +140,6 @@ impl CountDown for MrtChannel {
     }
 }
 
-impl Periodic for MrtChannel {}
+impl Periodic for Channel {}
 
 reg!(CHANNEL, [CHANNEL; 4], MRT0, channel);
