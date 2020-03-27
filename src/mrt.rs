@@ -53,22 +53,10 @@ impl MRT {
     pub fn split(self, syscon: &mut syscon::Handle) -> [Channel; 4] {
         syscon.enable_clock(&self.mrt);
         [
-            Channel {
-                channel: 0,
-                channels: RegProxy::new(),
-            },
-            Channel {
-                channel: 1,
-                channels: RegProxy::new(),
-            },
-            Channel {
-                channel: 2,
-                channels: RegProxy::new(),
-            },
-            Channel {
-                channel: 3,
-                channels: RegProxy::new(),
-            },
+            Channel::new(0),
+            Channel::new(1),
+            Channel::new(2),
+            Channel::new(3),
         ]
     }
 
@@ -93,6 +81,15 @@ impl MRT {
 pub struct Channel {
     channel: u8,
     channels: RegProxy<CHANNEL>,
+}
+
+impl Channel {
+    fn new(channel: u8) -> Self {
+        Self {
+            channel,
+            channels: RegProxy::new(),
+        }
+    }
 }
 
 impl CountDown for Channel {
