@@ -99,9 +99,9 @@ impl CountDown for Channel {
     /// It can also only use values smaller than 0x7FFFFFFF.
     type Time = u32;
 
-    fn start<T>(&mut self, count: T)
+    fn start<Time>(&mut self, count: Time)
     where
-        T: Into<Self::Time>,
+        Time: Into<Self::Time>,
     {
         let reload: Self::Time = count.into();
         debug_assert!(reload < (1 << 31) - 1);
