@@ -39,12 +39,6 @@ pub struct MRT {
     mrt: MRT0,
 }
 
-/// Represent a MRT0 channel
-pub struct Channel {
-    channel: u8,
-    channels: RegProxy<CHANNEL>,
-}
-
 impl MRT {
     /// Assumes peripheral is in reset state
     ///
@@ -93,6 +87,12 @@ impl MRT {
     pub fn free(self) -> MRT0 {
         self.mrt
     }
+}
+
+/// Represent a MRT0 channel
+pub struct Channel {
+    channel: u8,
+    channels: RegProxy<CHANNEL>,
 }
 
 impl CountDown for Channel {
