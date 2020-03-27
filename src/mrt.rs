@@ -25,7 +25,7 @@
 //! ```
 
 use crate::{
-    pac::{mrt0::CHANNEL, MRT0},
+    pac::{self, mrt0::CHANNEL},
     reg_proxy::RegProxy,
     syscon,
 };
@@ -36,7 +36,7 @@ use void::Void;
 
 /// Represent a MRT0 instance
 pub struct MRT {
-    mrt: MRT0,
+    mrt: pac::MRT0,
 }
 
 impl MRT {
@@ -45,7 +45,7 @@ impl MRT {
     /// This means:
     /// - Each channel is in repeat mode
     /// - All channel interrupts are disabled
-    pub(crate) fn new(mrt: MRT0) -> Self {
+    pub(crate) fn new(mrt: pac::MRT0) -> Self {
         Self { mrt }
     }
 
@@ -72,7 +72,7 @@ impl MRT {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> MRT0 {
+    pub fn free(self) -> pac::MRT0 {
         self.mrt
     }
 }
@@ -139,4 +139,4 @@ impl CountDown for Channel {
 
 impl Periodic for Channel {}
 
-reg!(CHANNEL, [CHANNEL; 4], MRT0, channel);
+reg!(CHANNEL, [CHANNEL; 4], pac::MRT0, channel);
