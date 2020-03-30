@@ -81,10 +81,15 @@ pub struct Channel<T: Reg>(RegProxy<T>);
 
 impl<T> Channel<T>
 where
-    T: Reg,
+    T: Reg<Target = CHANNEL>,
 {
     fn new() -> Self {
         Self(RegProxy::new())
+    }
+
+    /// Returns the current timer value
+    pub fn value(&self) -> u32 {
+        self.0.timer.read().value().bits()
     }
 }
 
