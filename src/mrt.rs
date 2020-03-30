@@ -73,6 +73,9 @@ impl MRT {
     }
 }
 
+/// The maximum timer value
+pub const MAX_VALUE: u32 = 0x7fff_ffff - 1;
+
 /// Represent a MRT0 channel
 pub struct Channel<T: Reg>(RegProxy<T>);
 
@@ -95,12 +98,18 @@ where
     /// It can also only use values smaller than 0x7FFFFFFF.
     type Time = u32;
 
+    /// Start counting down from the given count
+    ///
+    /// The `reload` argument must be smaller than or equal to [`MAX_VALUE`].
+    ///
+    /// [`MAX_VALUE`]: constant.MAX_VALUE.html
     fn start<Time>(&mut self, count: Time)
     where
         Time: Into<Self::Time>,
     {
         let reload: Self::Time = count.into();
-        debug_assert!(reload < (1 << 31) - 1);
+        debug_assert!(reload <= MAX_VALUE);
+
         // This stops the timer, to prevent race conditions when resetting the
         // interrupt bit
         self.0.intval.write(|w| {
