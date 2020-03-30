@@ -34,7 +34,7 @@ use embedded_hal::timer::{CountDown, Periodic};
 use nb::{Error, Result};
 use void::Void;
 
-/// Represent a MRT0 instance
+/// Represents the MRT instance
 pub struct MRT {
     mrt: pac::MRT0,
 }
