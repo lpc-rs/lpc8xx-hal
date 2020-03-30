@@ -76,7 +76,7 @@ impl MRT {
 /// The maximum timer value
 pub const MAX_VALUE: u32 = 0x7fff_ffff - 1;
 
-/// Represent a MRT0 channel
+/// Represents a MRT0 channel
 pub struct Channel<T: Reg>(RegProxy<T>);
 
 impl<T> Channel<T>
