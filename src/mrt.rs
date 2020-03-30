@@ -50,14 +50,10 @@ impl MRT {
     }
 
     /// Enables the MRT and splits it into it's four channels
-    pub fn split(self, syscon: &mut syscon::Handle) -> [Channel; 4] {
+    pub fn split(self, syscon: &mut syscon::Handle) -> Channels {
         syscon.enable_clock(&self.mrt);
-        [
-            Channel::new(0),
-            Channel::new(1),
-            Channel::new(2),
-            Channel::new(3),
-        ]
+
+        Channels::new()
     }
 
     /// Return the raw peripheral
@@ -138,5 +134,32 @@ impl CountDown for Channel {
 }
 
 impl Periodic for Channel {}
+
+macro_rules! channels {
+    ($($field:ident, $index:expr;)*) => {
+        /// Provides access to the MRT channels
+        pub struct Channels {
+            $(
+                #[allow(missing_docs)]
+                pub $field: Channel,
+            )*
+        }
+
+        impl Channels {
+            fn new() -> Self {
+                Self {
+                    $($field: Channel::new($index),)*
+                }
+            }
+        }
+    }
+}
+
+channels!(
+    mrt0, 0;
+    mrt1, 1;
+    mrt2, 2;
+    mrt3, 3;
+);
 
 reg!(CHANNEL, [CHANNEL; 4], pac::MRT0, channel);
