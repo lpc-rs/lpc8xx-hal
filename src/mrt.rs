@@ -26,7 +26,7 @@
 
 use crate::{
     pac::{self, mrt0::CHANNEL},
-    reg_proxy::RegProxy,
+    reg_proxy::{Reg, RegProxy},
     syscon,
 };
 
@@ -74,21 +74,25 @@ impl MRT {
 }
 
 /// Represent a MRT0 channel
-pub struct Channel {
-    channel: u8,
-    channels: RegProxy<CHANNEL>,
+pub struct Channel<T: Reg> {
+    channel: RegProxy<T>,
 }
 
-impl Channel {
-    fn new(channel: u8) -> Self {
+impl<T> Channel<T>
+where
+    T: Reg,
+{
+    fn new() -> Self {
         Self {
-            channel,
-            channels: RegProxy::new(),
+            channel: RegProxy::new(),
         }
     }
 }
 
-impl CountDown for Channel {
+impl<T> CountDown for Channel<T>
+where
+    T: Reg<Target = CHANNEL>,
+{
     /// The timer operates in clock ticks from the system clock, that means it
     /// runs at 12_000_000 ticks per second if you haven't changed it.
     ///
@@ -103,29 +107,20 @@ impl CountDown for Channel {
         debug_assert!(reload < (1 << 31) - 1);
         // This stops the timer, to prevent race conditions when resetting the
         // interrupt bit
-        self.channels[self.channel as usize].intval.write(|w| {
+        self.channel.intval.write(|w| {
             w.load().set_bit();
             unsafe { w.ivalue().bits(0) }
         });
-        self.channels[self.channel as usize]
-            .stat
-            .write(|w| w.intflag().set_bit());
-        self.channels[self.channel as usize]
+        self.channel.stat.write(|w| w.intflag().set_bit());
+        self.channel
             .intval
             .write(|w| unsafe { w.ivalue().bits(reload + 1) });
     }
 
     fn wait(&mut self) -> Result<(), Void> {
-        if self.channels[self.channel as usize]
-            .stat
-            .read()
-            .intflag()
-            .is_pending_interrupt()
-        {
+        if self.channel.stat.read().intflag().is_pending_interrupt() {
             // Reset the interrupt flag
-            self.channels[self.channel as usize]
-                .stat
-                .write(|w| w.intflag().set_bit());
+            self.channel.stat.write(|w| w.intflag().set_bit());
             Ok(())
         } else {
             Err(Error::WouldBlock)
@@ -133,33 +128,40 @@ impl CountDown for Channel {
     }
 }
 
-impl Periodic for Channel {}
+impl<T> Periodic for Channel<T> where T: Reg {}
 
 macro_rules! channels {
-    ($($field:ident, $index:expr;)*) => {
+    ($($channel:ident, $field:ident, $index:expr;)*) => {
         /// Provides access to the MRT channels
         pub struct Channels {
             $(
                 #[allow(missing_docs)]
-                pub $field: Channel,
+                pub $field: Channel<$channel>,
             )*
         }
 
         impl Channels {
             fn new() -> Self {
                 Self {
-                    $($field: Channel::new($index),)*
+                    $($field: Channel::new(),)*
                 }
             }
         }
+
+        $(
+            /// Represents one of the MRT channels
+            ///
+            /// Used as a type parameter for [`Channel`].
+            pub struct $channel;
+
+            reg_cluster_array!($channel, CHANNEL, pac::MRT0, channel, $index);
+        )*
     }
 }
 
 channels!(
-    mrt0, 0;
-    mrt1, 1;
-    mrt2, 2;
-    mrt3, 3;
+    MRT0, mrt0, 0;
+    MRT1, mrt1, 1;
+    MRT2, mrt2, 2;
+    MRT3, mrt3, 3;
 );
-
-reg!(CHANNEL, [CHANNEL; 4], pac::MRT0, channel);
