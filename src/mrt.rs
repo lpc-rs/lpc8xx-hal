@@ -81,7 +81,7 @@ pub struct Channel<T: Reg>(RegProxy<T>);
 
 impl<T> Channel<T>
 where
-    T: Reg<Target = CHANNEL>,
+    T: Trait,
 {
     fn new() -> Self {
         Self(RegProxy::new())
@@ -95,7 +95,7 @@ where
 
 impl<T> CountDown for Channel<T>
 where
-    T: Reg<Target = CHANNEL>,
+    T: Trait,
 {
     /// The timer operates in clock ticks from the system clock, that means it
     /// runs at 12_000_000 ticks per second if you haven't changed it.
@@ -138,7 +138,10 @@ where
     }
 }
 
-impl<T> Periodic for Channel<T> where T: Reg {}
+impl<T> Periodic for Channel<T> where T: Trait {}
+
+/// Implemented for types that identify MRT channels
+pub trait Trait: Reg<Target = CHANNEL> + sealed::Sealed {}
 
 macro_rules! channels {
     ($($channel:ident, $field:ident, $index:expr;)*) => {
@@ -165,6 +168,9 @@ macro_rules! channels {
             pub struct $channel;
 
             reg_cluster_array!($channel, CHANNEL, pac::MRT0, channel, $index);
+
+            impl sealed::Sealed for $channel {}
+            impl Trait for $channel {}
         )*
     }
 }
@@ -175,3 +181,7 @@ channels!(
     MRT2, mrt2, 2;
     MRT3, mrt3, 3;
 );
+
+mod sealed {
+    pub trait Sealed {}
+}
