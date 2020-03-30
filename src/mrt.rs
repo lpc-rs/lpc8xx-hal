@@ -74,18 +74,14 @@ impl MRT {
 }
 
 /// Represent a MRT0 channel
-pub struct Channel<T: Reg> {
-    channel: RegProxy<T>,
-}
+pub struct Channel<T: Reg>(RegProxy<T>);
 
 impl<T> Channel<T>
 where
     T: Reg,
 {
     fn new() -> Self {
-        Self {
-            channel: RegProxy::new(),
-        }
+        Self(RegProxy::new())
     }
 }
 
@@ -107,20 +103,20 @@ where
         debug_assert!(reload < (1 << 31) - 1);
         // This stops the timer, to prevent race conditions when resetting the
         // interrupt bit
-        self.channel.intval.write(|w| {
+        self.0.intval.write(|w| {
             w.load().set_bit();
             unsafe { w.ivalue().bits(0) }
         });
-        self.channel.stat.write(|w| w.intflag().set_bit());
-        self.channel
+        self.0.stat.write(|w| w.intflag().set_bit());
+        self.0
             .intval
             .write(|w| unsafe { w.ivalue().bits(reload + 1) });
     }
 
     fn wait(&mut self) -> Result<(), Void> {
-        if self.channel.stat.read().intflag().is_pending_interrupt() {
+        if self.0.stat.read().intflag().is_pending_interrupt() {
             // Reset the interrupt flag
-            self.channel.stat.write(|w| w.intflag().set_bit());
+            self.0.stat.write(|w| w.intflag().set_bit());
             Ok(())
         } else {
             Err(Error::WouldBlock)
