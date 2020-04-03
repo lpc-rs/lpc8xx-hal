@@ -9,5 +9,9 @@ if [ "$TRAVIS_RUST_VERSION" != beta ] && [ "$TRAVIS_RUST_VERSION" != nightly ]; 
     cargo fmt -- --check
 fi
 
-cargo build --verbose --features=82x-rt,no-target-warning --examples
-cargo build --verbose --features=845-rt,no-target-warning --examples
+function build() {
+    cargo build --verbose --features=$1-rt,no-target-warning --examples
+}
+
+build 82x
+build 845
