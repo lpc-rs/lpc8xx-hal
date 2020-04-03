@@ -25,8 +25,8 @@
 //! ```
 
 use crate::{
-    pac::{mrt0::CHANNEL, MRT0},
-    reg_proxy::RegProxy,
+    pac::{self, mrt0::CHANNEL},
+    reg_proxy::{Reg, RegProxy},
     syscon,
 };
 
@@ -34,15 +34,9 @@ use embedded_hal::timer::{CountDown, Periodic};
 use nb::{Error, Result};
 use void::Void;
 
-/// Represent a MRT0 instance
+/// Represents the MRT instance
 pub struct MRT {
-    mrt: MRT0,
-}
-
-/// Represent a MRT0 channel
-pub struct MrtChannel {
-    channel: u8,
-    channels: RegProxy<CHANNEL>,
+    mrt: pac::MRT0,
 }
 
 impl MRT {
@@ -51,31 +45,15 @@ impl MRT {
     /// This means:
     /// - Each channel is in repeat mode
     /// - All channel interrupts are disabled
-    pub(crate) fn new(mrt: MRT0) -> Self {
+    pub(crate) fn new(mrt: pac::MRT0) -> Self {
         Self { mrt }
     }
 
     /// Enables the MRT and splits it into it's four channels
-    pub fn split(self, syscon: &mut syscon::Handle) -> [MrtChannel; 4] {
+    pub fn split(self, syscon: &mut syscon::Handle) -> Channels {
         syscon.enable_clock(&self.mrt);
-        [
-            MrtChannel {
-                channel: 0,
-                channels: RegProxy::new(),
-            },
-            MrtChannel {
-                channel: 1,
-                channels: RegProxy::new(),
-            },
-            MrtChannel {
-                channel: 2,
-                channels: RegProxy::new(),
-            },
-            MrtChannel {
-                channel: 3,
-                channels: RegProxy::new(),
-            },
-        ]
+
+        Channels::new()
     }
 
     /// Return the raw peripheral
@@ -90,49 +68,69 @@ impl MRT {
     /// prioritize it accordingly.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> MRT0 {
+    pub fn free(self) -> pac::MRT0 {
         self.mrt
     }
 }
 
-impl CountDown for MrtChannel {
+/// The maximum timer value
+pub const MAX_VALUE: u32 = 0x7fff_ffff - 1;
+
+/// Represents a MRT0 channel
+pub struct Channel<T: Reg>(RegProxy<T>);
+
+impl<T> Channel<T>
+where
+    T: Trait,
+{
+    fn new() -> Self {
+        Self(RegProxy::new())
+    }
+
+    /// Returns the current timer value
+    pub fn value(&self) -> u32 {
+        self.0.timer.read().value().bits()
+    }
+}
+
+impl<T> CountDown for Channel<T>
+where
+    T: Trait,
+{
     /// The timer operates in clock ticks from the system clock, that means it
     /// runs at 12_000_000 ticks per second if you haven't changed it.
     ///
     /// It can also only use values smaller than 0x7FFFFFFF.
     type Time = u32;
 
-    fn start<T>(&mut self, count: T)
+    /// Start counting down from the given count
+    ///
+    /// The `reload` argument must be smaller than or equal to [`MAX_VALUE`].
+    ///
+    /// [`MAX_VALUE`]: constant.MAX_VALUE.html
+    fn start<Time>(&mut self, count: Time)
     where
-        T: Into<Self::Time>,
+        Time: Into<Self::Time>,
     {
         let reload: Self::Time = count.into();
-        debug_assert!(reload < (1 << 31) - 1);
+        debug_assert!(reload <= MAX_VALUE);
+
         // This stops the timer, to prevent race conditions when resetting the
         // interrupt bit
-        self.channels[self.channel as usize].intval.write(|w| {
+        self.0.intval.write(|w| {
             w.load().set_bit();
             unsafe { w.ivalue().bits(0) }
         });
-        self.channels[self.channel as usize]
-            .stat
-            .write(|w| w.intflag().set_bit());
-        self.channels[self.channel as usize]
+        self.0.stat.write(|w| w.intflag().set_bit());
+        self.0
             .intval
             .write(|w| unsafe { w.ivalue().bits(reload + 1) });
     }
 
     fn wait(&mut self) -> Result<(), Void> {
-        if self.channels[self.channel as usize]
-            .stat
-            .read()
-            .intflag()
-            .is_pending_interrupt()
-        {
+        if self.0.stat.read().intflag().is_pending_interrupt() {
             // Reset the interrupt flag
-            self.channels[self.channel as usize]
-                .stat
-                .write(|w| w.intflag().set_bit());
+            self.0.stat.write(|w| w.intflag().set_bit());
             Ok(())
         } else {
             Err(Error::WouldBlock)
@@ -140,6 +138,50 @@ impl CountDown for MrtChannel {
     }
 }
 
-impl Periodic for MrtChannel {}
+impl<T> Periodic for Channel<T> where T: Trait {}
 
-reg!(CHANNEL, [CHANNEL; 4], MRT0, channel);
+/// Implemented for types that identify MRT channels
+pub trait Trait: Reg<Target = CHANNEL> + sealed::Sealed {}
+
+macro_rules! channels {
+    ($($channel:ident, $field:ident, $index:expr;)*) => {
+        /// Provides access to the MRT channels
+        pub struct Channels {
+            $(
+                #[allow(missing_docs)]
+                pub $field: Channel<$channel>,
+            )*
+        }
+
+        impl Channels {
+            fn new() -> Self {
+                Self {
+                    $($field: Channel::new(),)*
+                }
+            }
+        }
+
+        $(
+            /// Represents one of the MRT channels
+            ///
+            /// Used as a type parameter for [`Channel`].
+            pub struct $channel;
+
+            reg_cluster_array!($channel, CHANNEL, pac::MRT0, channel, $index);
+
+            impl sealed::Sealed for $channel {}
+            impl Trait for $channel {}
+        )*
+    }
+}
+
+channels!(
+    MRT0, mrt0, 0;
+    MRT1, mrt1, 1;
+    MRT2, mrt2, 2;
+    MRT3, mrt3, 3;
+);
+
+mod sealed {
+    pub trait Sealed {}
+}

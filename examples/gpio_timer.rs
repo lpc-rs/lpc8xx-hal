@@ -17,7 +17,8 @@ fn main() -> ! {
 
     // Initialize the APIs of the peripherals we need.
     let mut syscon = p.SYSCON.split();
-    let [mut timer, _, _, _] = p.MRT0.split(&mut syscon.handle);
+    let mrt_channels = p.MRT0.split(&mut syscon.handle);
+    let mut timer = mrt_channels.mrt0;
 
     #[cfg(feature = "82x")]
     let gpio = p.GPIO; // GPIO is initialized by default on LPC82x.
