@@ -5,24 +5,6 @@
 //!
 //! The MRT consists of 4 channels, which are mostly separate and can each act
 //! as a run-of-the-mill timer.
-//!
-//! # Example
-//!
-//! ``` no_run
-//! use lpc8xx_hal::prelude::*;
-//! use lpc8xx_hal::Peripherals;
-//!
-//! use nb::block;
-//!
-//! let mut p = Peripherals::take().unwrap();
-//!
-//! let mut syscon = p.SYSCON.split();
-//! let [mut timer, _, _, _] = p.SYST.enable_delay();
-//! timer.start(12_000_000u32);
-//! loop {
-//!     block!(timer.wait()).unwrap();
-//! }
-//! ```
 
 use crate::{
     pac::{self, mrt0::CHANNEL},
