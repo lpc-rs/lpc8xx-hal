@@ -94,11 +94,8 @@
 //! [GPIO example]: https://github.com/lpc-rs/lpc8xx-hal/blob/master/examples/gpio_delay.rs
 //! [available from NXP]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
 
-#![no_std]
+#![cfg_attr(not(test), no_std)]
 #![deny(missing_docs)]
-
-#[cfg(test)]
-extern crate std;
 
 pub extern crate cortex_m;
 #[cfg(feature = "rt-selected")]
