@@ -6,12 +6,17 @@
 //! ``` no_run
 //! use lpc8xx_hal::prelude::*;
 //! use lpc8xx_hal::Peripherals;
-//! use lpc8xx_hal::syscon::clocksource::AdcClock;
+//! use lpc8xx_hal::syscon::clock_source::AdcClock;
 //!
 //! let mut p = Peripherals::take().unwrap();
 //!
 //! let mut syscon = p.SYSCON.split();
 //! let mut swm    = p.SWM.split();
+//!
+//! #[cfg(feature = "82x")]
+//! let mut swm_handle = swm.handle;
+//! #[cfg(feature = "845")]
+//! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! let adc_clock = AdcClock::new_default();
 //! let mut adc = p.ADC.enable(&adc_clock, &mut syscon.handle);
@@ -19,10 +24,10 @@
 //! let (mut adc_pin, _) = swm
 //!     .fixed_functions
 //!     .adc_0
-//!     .assign(swm.pins.pio0_7.into_swm_pin(), &mut swm.handle);
+//!     .assign(p.pins.pio0_7.into_swm_pin(), &mut swm_handle);
 //!
 //! // Read a single value
-//! let adc_value = block!(adc.read(&mut adc_pin))
+//! let adc_value = nb::block!(adc.read(&mut adc_pin))
 //!     .expect("Read should never fail");
 //! ```
 //!

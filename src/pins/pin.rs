@@ -33,16 +33,22 @@ use super::{
 /// an invalid state transition will simply not compile:
 ///
 /// ``` no_run
-/// # use lpc82x_hal::Peripherals;
+/// # use lpc8xx_hal::Peripherals;
 /// #
 /// # let mut p = Peripherals::take().unwrap();
 /// #
+/// # let mut syscon = p.SYSCON.split();
 /// # let mut swm = p.SWM.split();
+/// #
+/// # #[cfg(feature = "82x")]
+/// # let mut swm_handle = swm.handle;
+/// # #[cfg(feature = "845")]
+/// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 /// #
 /// // Assign a function to a pin
 /// let (clkout, pio0_12) = swm.movable_functions.clkout.assign(
-///     swm.pins.pio0_12.into_swm_pin(),
-///     &mut swm.handle,
+///     p.pins.pio0_12.into_swm_pin(),
+///     &mut swm_handle,
 /// );
 ///
 /// // As long as the function is assigned, we can't use the pin for
@@ -55,22 +61,33 @@ use super::{
 /// movable function and transition the pin to the unused state:
 ///
 /// ``` no_run
-/// # use lpc82x_hal::Peripherals;
+/// # use lpc8xx_hal::Peripherals;
 /// #
 /// # let mut p = Peripherals::take().unwrap();
 /// #
+/// # let mut syscon = p.SYSCON.split();
 /// # let mut swm = p.SWM.split();
 /// #
+/// # #[cfg(feature = "82x")]
+/// # let mut swm_handle = swm.handle;
+/// # #[cfg(feature = "845")]
+/// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+/// #
 /// # let (clkout, pio0_12) = swm.movable_functions.clkout.assign(
-/// #     swm.pins.pio0_12.into_swm_pin(),
-/// #     &mut swm.handle,
+/// #     p.pins.pio0_12.into_swm_pin(),
+/// #     &mut swm_handle,
 /// # );
 /// #
-/// let (clkout, pio0_12) = clkout.unassign(pio0_12, &mut swm.handle);
+/// #[cfg(feature = "82x")]
+/// let gpio = p.GPIO;
+/// #[cfg(feature = "845")]
+/// let gpio = p.GPIO.enable(&mut syscon.handle);
+///
+/// let (clkout, pio0_12) = clkout.unassign(pio0_12, &mut swm_handle);
 /// let pio0_12 = pio0_12.into_unused_pin();
 ///
-/// // Now we can transition the pin into the GPIO state.
-/// let pio0_12 = pio0_12.into_gpio_pin(&p.GPIO);
+/// // Now we can transition the pin into a GPIO state.
+/// let pio0_12 = pio0_12.into_input_pin(gpio.tokens.pio0_12);
 /// ```
 ///
 /// # General Purpose I/O
@@ -92,13 +109,11 @@ use super::{
 /// the unused state to the SWM state using [`Pin::into_swm_pin`].
 ///
 /// ``` no_run
-/// # use lpc82x_hal::Peripherals;
+/// # use lpc8xx_hal::Peripherals;
 /// #
 /// # let p = Peripherals::take().unwrap();
 /// #
-/// # let swm = p.SWM.split();
-/// #
-/// let pin = swm.pins.pio0_12
+/// let pin = p.pins.pio0_12
 ///     .into_swm_pin();
 ///
 /// // Functions can be assigned now using the methods on `Function`
@@ -124,16 +139,22 @@ use super::{
 /// To use a pin for analog input, you need to assign an ADC function:
 ///
 /// ``` no_run
-/// use lpc82x_hal::Peripherals;
+/// use lpc8xx_hal::Peripherals;
 ///
 /// let p = Peripherals::take().unwrap();
 ///
+/// let mut syscon = p.SYSCON.split();
 /// let mut swm = p.SWM.split();
+///
+/// #[cfg(feature = "82x")]
+/// let mut swm_handle = swm.handle;
+/// #[cfg(feature = "845")]
+/// let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 ///
 /// // Transition pin into ADC state
 /// let (adc_2, pio0_14) = swm.fixed_functions.adc_2.assign(
-///     swm.pins.pio0_14.into_swm_pin(),
-///     &mut swm.handle,
+///     p.pins.pio0_14.into_swm_pin(),
+///     &mut swm_handle,
 /// );
 /// ```
 ///
@@ -190,13 +211,11 @@ where
     /// # Example
     ///
     /// ``` no_run
-    /// use lpc82x_hal::Peripherals;
+    /// use lpc8xx_hal::Peripherals;
     ///
     /// let p = Peripherals::take().unwrap();
     ///
-    /// let swm = p.SWM.split();
-    ///
-    /// let pin = swm.pins.pio0_12
+    /// let pin = p.pins.pio0_12
     ///     .into_swm_pin();
     ///
     /// // `pin` is now ready for function assignment

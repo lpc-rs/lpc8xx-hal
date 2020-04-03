@@ -60,22 +60,28 @@ impl<T> Function<T, Unassigned> {
     /// Assign one output and one input function to the same pin:
     ///
     /// ``` no_run
-    /// use lpc82x_hal::Peripherals;
+    /// use lpc8xx_hal::Peripherals;
     ///
     /// let p = Peripherals::take().unwrap();
     ///
+    /// let mut syscon = p.SYSCON.split();
     /// let mut swm = p.SWM.split();
+    ///
+    /// #[cfg(feature = "82x")]
+    /// let mut swm_handle = swm.handle;
+    /// #[cfg(feature = "845")]
+    /// let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     ///
     /// // Assign output function to a pin
     /// let (u0_txd, pio0_0) = swm.movable_functions.u0_txd.assign(
-    ///     swm.pins.pio0_0.into_swm_pin(),
-    ///     &mut swm.handle,
+    ///     p.pins.pio0_0.into_swm_pin(),
+    ///     &mut swm_handle,
     /// );
     ///
     /// // Assign input function to the same pin
     /// let (u1_rxd, pio0_0) = swm.movable_functions.u1_rxd.assign(
     ///     pio0_0,
-    ///     &mut swm.handle,
+    ///     &mut swm_handle,
     /// );
     /// ```
     ///
@@ -133,22 +139,28 @@ impl<T, P> Function<T, Assigned<P>> {
     /// Unassign a function that has been previously assigned to a pin:
     ///
     /// ``` no_run
-    /// # use lpc82x_hal::Peripherals;
+    /// # use lpc8xx_hal::Peripherals;
     /// #
     /// # let p = Peripherals::take().unwrap();
     /// #
     /// # let mut swm = p.SWM.split();
+    /// # let mut syscon = p.SYSCON.split();
+    /// #
+    /// # #[cfg(feature = "82x")]
+    /// # let mut swm_handle = swm.handle;
+    /// # #[cfg(feature = "845")]
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
     /// #
     /// # // Assign output function to a pin
     /// # let (u0_txd, pio0_0) = swm.movable_functions.u0_txd.assign(
-    /// #     swm.pins.pio0_0.into_swm_pin(),
-    /// #     &mut swm.handle,
+    /// #     p.pins.pio0_0.into_swm_pin(),
+    /// #     &mut swm_handle,
     /// # );
     /// #
     /// // U0_TXD must have been previously assigned to the pin, or the
     /// // following code will not compile. See documentation of
     /// // `Function::assign`.
-    /// let (u0_txd, pio0_0) = u0_txd.unassign(pio0_0, &mut swm.handle);
+    /// let (u0_txd, pio0_0) = u0_txd.unassign(pio0_0, &mut swm_handle);
     /// ```
     ///
     /// [`Assigned`]: state/struct.Assigned.html

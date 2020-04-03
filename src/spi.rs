@@ -2,26 +2,39 @@
 //!
 //! # Example
 //!
-//! ```
-//! use lpc8xx_hal::prelude::*;
-//! use lpc8xx_hal::Peripherals;
+//! ``` no_run
+//! use lpc8xx_hal::{
+//!     prelude::*,
+//!     Peripherals,
+//!     syscon::clock_source::SpiClock,
+//! };
 //!
 //! let mut p  = Peripherals::take().unwrap();
 //! let mut swm = p.SWM.split();
 //! let mut syscon = p.SYSCON.split();
 //!
-//! let (spi0_sck, _) =
-//!     swm.movable_functions.spi0_sck.assign(swm.pins.pio0_13.into_swm_pin(), &mut handle);
+//! #[cfg(feature = "82x")]
+//! let mut swm_handle = swm.handle;
+//! #[cfg(feature = "845")]
+//! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+//!
+//! let (spi0_sck, _) = swm.movable_functions.spi0_sck.assign(
+//!     p.pins.pio0_13.into_swm_pin(),
+//!     &mut swm_handle,
+//! );
 //! let (spi0_mosi, _) = swm
 //!     .movable_functions
 //!     .spi0_mosi
-//!     .assign(swm.pins.pio0_14.into_swm_pin(), &mut handle);
+//!     .assign(p.pins.pio0_14.into_swm_pin(), &mut swm_handle);
 //! let (spi0_miso, _) = swm
 //!     .movable_functions
 //!     .spi0_miso
-//!     .assign(swm.pins.pio0_15.into_swm_pin(), &mut handle);
+//!     .assign(p.pins.pio0_15.into_swm_pin(), &mut swm_handle);
 //!
-//! let spi_clock = lpc8xx_hal::syscon::clocksource::SpiClock::new(&syscon.iosc, 0);
+//! #[cfg(feature = "82x")]
+//! let spi_clock = SpiClock::new(0);
+//! #[cfg(feature = "845")]
+//! let spi_clock = SpiClock::new(&syscon.iosc, 0);
 //!
 //! // Enable SPI0
 //! let mut spi = p.SPI0.enable(
@@ -34,7 +47,8 @@
 //! );
 //!
 //! let mut tx_data = [0x00, 0x01];
-//! let rx_data spi.transfer(&mut spi_data).expect("Transfer shouldn't fail");
+//! let rx_data = spi.transfer(&mut tx_data)
+//!     .expect("Transfer shouldn't fail");
 //! ```
 //!
 //! Please refer to the [examples in the repository] for more example code.

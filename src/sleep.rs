@@ -49,19 +49,19 @@ where
 /// # Examples
 ///
 /// ``` no_run
-/// use lpc82x_hal::prelude::*;
-/// use lpc82x_hal::{
-///     sleep,
+/// use lpc8xx_hal::{
+///     prelude::*,
 ///     Peripherals,
+///     clock::Ticks,
+///     sleep,
 /// };
-/// use lpc82x_hal::clock::Ticks;
 ///
 /// let mut p = Peripherals::take().unwrap();
 ///
 /// let mut syscon = p.SYSCON.split();
 /// let mut wkt    = p.WKT.enable(&mut syscon.handle);
 ///
-/// let clock = syscon.irc_derived_clock;
+/// let clock = syscon.iosc_derived_clock;
 ///
 /// let mut sleep = sleep::Busy::prepare(&mut wkt);
 ///
@@ -118,26 +118,26 @@ where
 /// # Examples
 ///
 /// ``` no_run
-/// use lpc82x_hal::prelude::*;
-/// use lpc82x_hal::{
-///     raw,
-///     sleep,
+/// use lpc8xx_hal::{
+///     prelude::*,
 ///     Peripherals,
+///     clock::Ticks,
+///     pac::CorePeripherals,
+///     sleep,
 /// };
-/// use lpc82x_hal::clock::Ticks;
 ///
+/// let mut cp = CorePeripherals::take().unwrap();
 /// let mut p = Peripherals::take().unwrap();
 ///
 /// let mut pmu    = p.PMU.split();
 /// let mut syscon = p.SYSCON.split();
 /// let mut wkt    = p.WKT.enable(&mut syscon.handle);
 ///
-/// let clock = syscon.irc_derived_clock;
+/// let clock = syscon.iosc_derived_clock;
 ///
 /// let mut sleep = sleep::Regular::prepare(
-///     &mut p.NVIC,
 ///     &mut pmu.handle,
-///     &mut p.SCB,
+///     &mut cp.SCB,
 ///     &mut wkt,
 /// );
 ///

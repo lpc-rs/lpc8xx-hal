@@ -5,28 +5,38 @@
 //! # Example
 //!
 //! ```no_run
-//! use lpc8xx_hal::{delay::Delay, prelude::*, Peripherals};
+//! use lpc8xx_hal::{
+//!     delay::Delay,
+//!     prelude::*,
+//!     Peripherals,
+//!     pac::CorePeripherals,
+//! };
 //!
+//! let cp = CorePeripherals::take().unwrap();
 //! let p = Peripherals::take().unwrap();
 //!
 //! let swm = p.SWM.split();
-//! let mut delay = Delay::new(p.SYST);
+//! let mut delay = Delay::new(cp.SYST);
 //! let mut syscon = p.SYSCON.split();
 //!
+//! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! // Use 8 bit pwm
 //! let (pwm_channel,_, _ ) =
 //!     p.CTIMER0.start_pwm(256, 0, &mut syscon.handle);
 //!
-//! let pwm_output = swm.pins.pio1_2.into_swm_pin();
+//! let pwm_output = p.pins.pio1_2.into_swm_pin();
 //!
-//! let (pwm_output, _) = swm.movable_functions.t0_mat0.assign(pwm_output, &mut handle);
+//! let (pwm_output, _) = swm.movable_functions.t0_mat0.assign(
+//!     pwm_output,
+//!     &mut swm_handle,
+//! );
 //!
 //! let mut pwm_pin = pwm_channel.attach(pwm_output);
 //! loop {
-//!     for i in 0..red.get_max_duty() {
+//!     for i in 0..pwm_pin.get_max_duty() {
 //!         delay.delay_ms(4_u8);
-//!         red.set_duty(i);
+//!         pwm_pin.set_duty(i);
 //!     }
 //! }
 //! ```

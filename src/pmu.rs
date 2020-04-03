@@ -10,18 +10,19 @@
 //! Use the PMU to enter sleep mode:
 //!
 //! ``` no_run
-//! use lpc82x_hal::{
-//!     raw,
+//! use lpc8xx_hal::{
 //!     Peripherals,
+//!     pac::CorePeripherals,
 //! };
 //!
+//! let mut cp = CorePeripherals::take().unwrap();
 //! let mut p = Peripherals::take().unwrap();
 //!
 //! let mut pmu = p.PMU.split();
 //!
 //! // Enters sleep mode. Unless we set up some interrupts, we won't wake up
 //! // from this again.
-//! pmu.handle.enter_sleep_mode(&mut p.SCB);
+//! pmu.handle.enter_sleep_mode(&mut cp.SCB);
 //! ```
 //!
 //! Please refer to the [examples in the repository] for more example code.
