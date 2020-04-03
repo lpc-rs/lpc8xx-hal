@@ -119,6 +119,10 @@ name              = "gpio_input"
 required-features = ["rt-selected", "845"]
 
 [[example]]
+name              = "gpio_timer"
+required-features = ["rt-selected"]
+
+[[example]]
 name              = "i2c_vl53l0x"
 required-features = ["rt-selected", "82x"]
 
@@ -148,7 +152,7 @@ required-features = ["rt-selected", "845"]
 
 [[example]]
 name              = "rtfm"
-required-features = ["845"]
+required-features = ["rt-selected", "845"]
 
 [[example]]
 name              = "spi_apa102"

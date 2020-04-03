@@ -94,11 +94,8 @@
 //! [GPIO example]: https://github.com/lpc-rs/lpc8xx-hal/blob/master/examples/gpio_delay.rs
 //! [available from NXP]: https://www.nxp.com/docs/en/user-guide/UM10800.pdf
 
-#![no_std]
+#![cfg_attr(not(test), no_std)]
 #![deny(missing_docs)]
-
-#[cfg(test)]
-extern crate std;
 
 pub extern crate cortex_m;
 #[cfg(feature = "rt-selected")]
@@ -136,7 +133,7 @@ pub mod wkt;
 /// you should be good to go:
 ///
 /// ``` rust
-/// use lpc82x_hal::prelude::*;
+/// use lpc8xx_hal::prelude::*;
 /// ```
 ///
 /// The traits in this module have been renamed, to avoid collisions with other
@@ -433,7 +430,7 @@ impl Peripherals {
     /// # Example
     ///
     /// ``` no_run
-    /// use lpc82x_hal::Peripherals;
+    /// use lpc8xx_hal::Peripherals;
     ///
     /// // This code should be at the beginning of your program. As long as this
     /// // is the only place that calls `take`, the following should never

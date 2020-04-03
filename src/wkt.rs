@@ -7,11 +7,10 @@
 //! # Examples
 //!
 //! ``` no_run
-//! extern crate lpc82x_hal;
-//! extern crate nb;
-//!
-//! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::Peripherals;
+//! use lpc8xx_hal::{
+//!     prelude::*,
+//!     Peripherals,
+//! };
 //!
 //! let mut p = Peripherals::take().unwrap();
 //!

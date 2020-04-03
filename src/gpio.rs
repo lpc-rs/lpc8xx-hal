@@ -11,17 +11,25 @@
 //! Initialize a GPIO pin and set its output to HIGH:
 //!
 //! ``` no_run
-//! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::Peripherals;
+//! use lpc8xx_hal::{
+//!     prelude::*,
+//!     Peripherals,
+//!     gpio,
+//! };
 //!
 //! let mut p = Peripherals::take().unwrap();
 //!
-//! let swm = p.SWM.split();
+//! let mut syscon = p.SYSCON.split();
 //!
-//! let pio0_12 = swm.pins.pio0_12
-//!     .into_gpio_pin(&p.GPIO)
-//!     .into_output()
-//!     .set_high();
+//! #[cfg(feature = "82x")]
+//! let gpio = p.GPIO;
+//! #[cfg(feature = "845")]
+//! let gpio = p.GPIO.enable(&mut syscon.handle);
+//!
+//! let pio0_12 = p.pins.pio0_12.into_output_pin(
+//!     gpio.tokens.pio0_12,
+//!     gpio::Level::High,
+//! );
 //! ```
 //!
 //! Please refer to the [examples in the repository] for more example code.
@@ -213,17 +221,27 @@ where
     /// # Example
     ///
     /// ``` no_run
-    /// use lpc82x_hal::prelude::*;
-    /// use lpc82x_hal::Peripherals;
+    /// use lpc8xx_hal::{
+    ///     prelude::*,
+    ///     Peripherals,
+    ///     gpio,
+    /// };
     ///
     /// let p = Peripherals::take().unwrap();
     ///
+    /// let mut syscon = p.SYSCON.split();
     /// let swm = p.SWM.split();
     ///
+    /// #[cfg(feature = "82x")]
+    /// let gpio = p.GPIO;
+    /// #[cfg(feature = "845")]
+    /// let gpio = p.GPIO.enable(&mut syscon.handle);
+    ///
     /// // Transition pin into GPIO state, then set it to output
-    /// let mut pin = swm.pins.pio0_12
-    ///     .into_gpio_pin(&p.GPIO)
-    ///     .into_output();
+    /// let mut pin = p.pins.pio0_12.into_output_pin(
+    ///     gpio.tokens.pio0_12,
+    ///     gpio::Level::Low,
+    /// );
     ///
     /// // Output level can now be controlled
     /// pin.set_high();
@@ -258,20 +276,25 @@ where
     /// # Example
     ///
     /// ``` no_run
-    /// use lpc82x_hal::prelude::*;
-    /// use lpc82x_hal::Peripherals;
+    /// use lpc8xx_hal::prelude::*;
+    /// use lpc8xx_hal::Peripherals;
     ///
     /// let p = Peripherals::take().unwrap();
     ///
+    /// let mut syscon = p.SYSCON.split();
     /// let swm = p.SWM.split();
     ///
+    /// #[cfg(feature = "82x")]
+    /// let gpio = p.GPIO;
+    /// #[cfg(feature = "845")]
+    /// let gpio = p.GPIO.enable(&mut syscon.handle);
+    ///
     /// // Transition pin into GPIO state, then set it to output
-    /// let mut pin = swm.pins.pio0_12
-    ///     .into_gpio_pin(&p.GPIO)
-    ///     .into_input();
+    /// let mut pin = p.pins.pio0_12
+    ///     .into_input_pin(gpio.tokens.pio0_12);
     ///
     /// // Input level can now be read
-    /// if pin.is_high() {
+    /// if pin.is_high().unwrap() {
     ///     // The pin is high
     /// } else {
     ///     // The pin is low

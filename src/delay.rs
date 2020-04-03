@@ -6,12 +6,15 @@
 //! # Example
 //!
 //! ``` no_run
-//! use lpc82x_hal::prelude::*;
-//! use lpc82x_hal::Peripherals;
+//! use lpc8xx_hal::{
+//!     prelude::*,
+//!     delay::Delay,
+//!     pac::CorePeripherals,
+//! };
 //!
-//! let mut p = Peripherals::take().unwrap();
+//! let mut cp = CorePeripherals::take().unwrap();
 //!
-//! let mut delay = p.SYST.enable_delay();
+//! let mut delay = Delay::new(cp.SYST);
 //! loop {
 //!     delay.delay_ms(1_000_u16);
 //! }
