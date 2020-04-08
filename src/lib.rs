@@ -60,6 +60,7 @@
 //! [`Peripherals`], which is the entry point to the whole API.
 //!
 //! [`Cargo.toml`]: https://github.com/lpc-rs/lpc8xx-hal/blob/master/Cargo.toml
+//! [`Peripherals`]: struct.Peripherals.html
 //!
 //!
 //! ## Examples
@@ -201,6 +202,9 @@ use embedded_hal as hal;
 /// make sure you know what you're doing. In specific terms, this means you
 /// should be fully aware of what your code does, and whether that is a valid
 /// use of the hardware.
+///
+/// [`Peripherals::take`]: #method.take
+/// [`Peripherals::steal`]: #method.steal
 #[allow(non_snake_case)]
 pub struct Peripherals {
     /// Pins that can be used for GPIO or other functions
