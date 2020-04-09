@@ -5,6 +5,10 @@ use crate::{embedded_hal::serial::Read, init_state};
 use super::instances::Instance;
 
 /// USART receiver
+///
+/// This struct implements the [`embedded_hal::serial::Read`] trait.
+///
+/// [`embedded_hal::serial::Read`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/serial/trait.Read.html
 pub struct Rx<I, State = init_state::Enabled> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,
@@ -100,7 +104,7 @@ pub enum Error {
     /// Corrupted character received
     Noise,
 
-    /// Character received, while receiver buffer was still in use
+    /// Character received, while receive buffer was still in use
     Overrun,
 
     /// Parity error detected in received character

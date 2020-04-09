@@ -1,7 +1,6 @@
 //! API for USART
 //!
-//! The entry point to this API is [`USART`]. Currently, only some limited UART
-//! functionality is implemented.
+//! The entry point to this API is the [`USART`] struct.
 //!
 //! The USART peripheral is described in the user manual, chapter 13.
 //!
@@ -65,6 +64,7 @@
 //!
 //! Please refer to the [examples in the repository] for more example code.
 //!
+//! [`USART`]: struct.USART.html
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
 mod clock;
