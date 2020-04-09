@@ -39,10 +39,9 @@ macro_rules! movable_functions {
         $(
             /// Represents a movable function
             ///
-            /// Movable functions can be accessed via the field
-            /// `movable_functions` of [`swm::Parts`].
+            /// Movable functions can be accessed through [`MovableFunctions`].
             ///
-            /// [`swm::Parts`]: struct.Parts.html
+            /// [`MovableFunctions`]: struct.MovableFunctions.html
             #[allow(non_camel_case_types)]
             pub struct $type(());
 

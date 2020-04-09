@@ -3,7 +3,11 @@
 //! The entry point to this API is [`SWM`]. Please refer to [`SWM`]'s
 //! documentation for additional information.
 //!
-//! The switch matrix is described in the user manual, chapter 7.
+//! The switch matrix is described in the following user manuals:
+//! - LPC82x user manual, chapter 7
+//! - LPC84x user manual, chapter 10
+//!
+//! [`SWM`]: struct.SWM.html
 
 pub mod state;
 

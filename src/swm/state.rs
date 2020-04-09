@@ -5,8 +5,8 @@ use core::marker::PhantomData;
 /// Implemented by types that indicate the state of SWM functions
 ///
 /// This trait is implemented by types that indicate the state of SWM functions.
-/// It exists only to document which types those are. The user should not need
-/// to implement this trait, nor use it directly.
+/// It exists only to document which types those are. Users should not need to
+/// implement this trait, nor use it directly.
 pub trait State {
     /// Returns an instance of the state
     ///
