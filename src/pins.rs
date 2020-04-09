@@ -1,4 +1,9 @@
 //! API to control pins
+//!
+//! The most important part of this API is [`Pin`]. Please refer to its
+//! documentation, to learn how to use this module.
+//!
+//! [`Pin`]: struct.Pin.html
 
 mod gen;
 mod pin;

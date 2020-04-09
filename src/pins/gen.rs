@@ -14,12 +14,17 @@ macro_rules! pins {
     )*) => {
         /// Provides access to all pins
         ///
+        /// You can get access to an instance of this struct through
+        ///[`Peripherals`].
+        ///
         /// # Limitations
         ///
         /// This struct currently provides access to all pins that can be
         /// available on an LPC8xx part. Please make sure that you are aware of
         /// which pins are actually available on your specific part, and only
         /// use those.
+        ///
+        /// [`Peripherals`]: ../struct.Peripherals.html
         #[allow(missing_docs)]
         pub struct Pins {
             $(pub $field: Pin<$type, $default_state_ty>,)*
@@ -42,9 +47,10 @@ macro_rules! pins {
         $(
             /// Identifies a specific pin
             ///
-            /// Pins can be accessed via the field `pins` of [`swm::Parts`].
+            /// This type is used as a type parameter on [`Pin`]. Check out
+            /// [`Pin`]'s documentation for more information.
             ///
-            /// [`swm::Parts`]: ../swm/struct.Parts.html
+            /// [`Pin`]: struct.Pin.html
             #[allow(non_camel_case_types)]
             pub struct $type(());
 

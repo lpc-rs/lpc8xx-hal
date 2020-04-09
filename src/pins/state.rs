@@ -42,13 +42,13 @@ impl State for Analog {}
 /// functions have been assigned to a pin:
 ///
 /// - `Output` tracks whether an output function has been assigned. Zero or
-///   one output functions can be assigned to a pin.
+///   one output functions can be assigned to a pin at a time.
 /// - `Inputs` tracks the number of assigned input functions. Any number of
 ///   input functions can be assigned to a pin at the same time.
 ///
 /// Both type parameters use nested tuples to count the number of assigned
-/// functions. The empty tuple (`()`) represents zero assigned functions,
-/// the empty tuple nested in another tuple (`((),)`) represents one
+/// functions. The empty tuple, `()`, represents zero assigned functions,
+/// the empty tuple nested in another tuple, `((),)`, represents one
 /// function being assigned, `(((),))` represents two assigned functions,
 /// and so forth. This is a bit of a hack, of course, but it should do until
 /// [const generics] become available.
