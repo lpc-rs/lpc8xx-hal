@@ -81,6 +81,12 @@ use crate::{
 /// Additional limitations are documented on the specific methods that they
 /// apply to.
 ///
+/// # `embedded-hal` traits
+/// - [`embedded_hal::blocking::i2c::Read`] for synchronous reading
+/// - [`embedded_hal::blocking::i2c::Write`] for synchronous writing
+///
+/// [`embedded_hal::blocking::i2c::Read`]: #impl-Read
+/// [`embedded_hal::blocking::i2c::Write`]: #impl-Write
 /// [module documentation]: index.html
 pub struct I2C<I, State = init_state::Enabled> {
     i2c: I,

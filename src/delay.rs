@@ -29,6 +29,13 @@ const SYSTICK_RANGE: u32 = 0x0100_0000;
 const SYSTEM_CLOCK: u32 = 12_000_000;
 
 /// System timer (SysTick) as a delay provider
+///
+/// # `embedded-hal` traits
+/// - [`embedded_hal::blocking::delay::DelayUs`]
+/// - [`embedded_hal::blocking::delay::DelayMs`]
+///
+/// [`embedded_hal::blocking::delay::DelayUs`]: #impl-DelayUs%3Cu32%3E
+/// [`embedded_hal::blocking::delay::DelayMs`]: #impl-DelayMs%3Cu32%3E
 #[derive(Clone)]
 pub struct Delay {
     scale: u32,
@@ -52,6 +59,7 @@ impl Delay {
 }
 
 impl DelayMs<u32> for Delay {
+    /// Pauses execution for `ms` milliseconds
     // At 30 MHz (the maximum frequency), calling delay_us with ms * 1_000 directly overflows at 0x418937 (over the max u16 value)
     // So we implement a separate, higher level, delay loop
     fn delay_ms(&mut self, mut ms: u32) {
@@ -65,6 +73,7 @@ impl DelayMs<u32> for Delay {
 }
 
 impl DelayMs<u16> for Delay {
+    /// Pauses execution for `ms` milliseconds
     fn delay_ms(&mut self, ms: u16) {
         // Call delay_us directly, since we don't have to use the additional
         // delay loop the u32 variant uses
@@ -73,6 +82,7 @@ impl DelayMs<u16> for Delay {
 }
 
 impl DelayMs<u8> for Delay {
+    /// Pauses execution for `ms` milliseconds
     fn delay_ms(&mut self, ms: u8) {
         self.delay_ms(ms as u16);
     }
@@ -80,6 +90,7 @@ impl DelayMs<u8> for Delay {
 
 // At 30MHz (the maximum frequency), this overflows at approx. 2^32 / 30 = 146 seconds
 impl DelayUs<u32> for Delay {
+    /// Pauses execution for `us` milliseconds
     fn delay_us(&mut self, us: u32) {
         // The SysTick Reload Value register supports values between 1 and 0x00FFFFFF.
         // Here half the maximum is used so we have some play if there's a long running interrupt.
@@ -108,12 +119,14 @@ impl DelayUs<u32> for Delay {
 }
 
 impl DelayUs<u16> for Delay {
+    /// Pauses execution for `us` milliseconds
     fn delay_us(&mut self, us: u16) {
         self.delay_us(us as u32)
     }
 }
 
 impl DelayUs<u8> for Delay {
+    /// Pauses execution for `us` milliseconds
     fn delay_us(&mut self, us: u8) {
         self.delay_us(us as u32)
     }

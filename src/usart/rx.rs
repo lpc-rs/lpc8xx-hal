@@ -6,9 +6,11 @@ use super::instances::Instance;
 
 /// USART receiver
 ///
-/// This struct implements the [`embedded_hal::serial::Read`] trait.
+/// # `embedded-hal` traits
+/// - [`embedded_hal::serial::Read`] for asynchronous receiving
 ///
-/// [`embedded_hal::serial::Read`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/serial/trait.Read.html
+///
+/// [`embedded_hal::serial::Read`]: #impl-Read%3Cu8%3E
 pub struct Rx<I, State = init_state::Enabled> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,

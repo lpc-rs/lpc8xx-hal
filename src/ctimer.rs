@@ -81,6 +81,11 @@ pub struct DetachedPwmPin<CTOutput> {
 }
 
 /// Represents a pwm channel assigned to an output pin
+///
+/// # `embedded-hal` traits
+/// - [`embedded_hal::PwmPin`]
+///
+/// [`embedded_hal::PwmPin`]: #impl-PwmPin
 pub struct CTimerPwmPin {
     mr: RegProxy<MR>,
     msr: RegProxy<MSR>,
@@ -195,14 +200,17 @@ impl PwmPin for CTimerPwmPin {
     // and would involve a hidden `CriticalSection`
     fn disable(&mut self) {}
 
+    /// Returns the current duty cycle
     fn get_duty(&self) -> Self::Duty {
         self.msr[self.number as usize].read().match_shadow().bits()
     }
 
+    /// Returns the maximum duty cycle value
     fn get_max_duty(&self) -> Self::Duty {
         self.mr[3].read().match_().bits()
     }
 
+    /// Sets a new duty cycle
     fn set_duty(&mut self, duty: Self::Duty) {
         unsafe {
             self.msr[self.number as usize]

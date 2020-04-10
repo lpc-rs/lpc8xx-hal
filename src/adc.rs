@@ -49,8 +49,12 @@ use crate::{
 ///
 /// Please refer to the [module documentation] for more information.
 ///
+/// # `embedded-hal` traits
+/// - [`embedded_hal::adc::OneShot`] for measuring the voltage on a pin
+///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
+/// [`embedded_hal::adc::OneShot`]: #impl-OneShot%3CADC%3CEnabled%3C()%3E%3E%2C%20u16%2C%20PIN%3E
 pub struct ADC<State = init_state::Enabled> {
     adc: pac::ADC0,
     _state: State,
@@ -153,6 +157,7 @@ where
 {
     type Error = ();
 
+    /// Request that the ADC begin a conversion on the specified pin
     fn read(&mut self, _: &mut PIN) -> nb::Result<u16, Self::Error> {
         // Start the measurement of the given channel
         // Follows the description in the um

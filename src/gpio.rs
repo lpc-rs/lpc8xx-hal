@@ -183,19 +183,20 @@ impl GPIO<init_state::Enabled> {
 /// You can get access to an instance of this struct by switching a pin to the
 /// GPIO state, using [`Pin::into_input_pin`] or [`Pin::into_output_pin`].
 ///
-/// While in input mode, this struct implements the [`InputPin`] trait.
-///
-/// While in output mode, this struct implements the following traits:
-/// - [`OutputPin`]
-/// - [`StatefulOutputPin`]
-/// - [`ToggleableOutputPin`]
+/// # `embedded-hal` traits
+/// - While in input mode
+///   - [`embedded_hal::digital::v2::InputPin`] for reading the pin state
+/// - While in output mode
+///   - [`embedded_hal::digital::v2::OutputPin`] for setting the pin state
+///   - [`embedded_hal::digital::v2::StatefulOutputPin`] for reading the pin output state
+///   - [`embedded_hal::digital::v2::ToggleableOutputPin`] for toggling the pin state
 ///
 /// [`Pin::into_input_pin`]: ../pins/struct.Pin.html#method.into_input_pin
 /// [`Pin::into_output_pin`]: ../pins/struct.Pin.html#method.into_output_pin
-/// [`InputPin`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/digital/v2/trait.InputPin.html
-/// [`OutputPin`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/digital/v2/trait.OutputPin.html
-/// [`StatefulOutputPin`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/digital/v2/trait.StatefulOutputPin.html
-/// [`ToggleableOutputPin`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/digital/v2/trait.ToggleableOutputPin.html
+/// [`embedded_hal::digital::v2::InputPin`]: #impl-InputPin
+/// [`embedded_hal::digital::v2::OutputPin`]: #impl-OutputPin
+/// [`embedded_hal::digital::v2::StatefulOutputPin`]: #impl-StatefulOutputPin
+/// [`embedded_hal::digital::v2::ToggleableOutputPin`]: #impl-ToggleableOutputPin
 pub struct GpioPin<T, D> {
     token: pins::Token<T, init_state::Enabled>,
     _direction: D,
