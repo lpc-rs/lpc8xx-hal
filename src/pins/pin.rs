@@ -12,25 +12,26 @@ use super::{
 /// Main API for controlling pins
 ///
 /// `Pin` has two type parameters:
-/// - `T`, to indicate which specific pin this instance of `Pin` represents (so,
-///   [`PIO0_0`], [`PIO0_1`], and so on)
-/// - `S`, to indicate which state the represented pin is currently in
+/// - `T`, to indicate which specific pin this instance of `Pin` represents
+///   ([`PIO0_0`], [`PIO0_1`], and so on).
+/// - `S`, to indicate which state the represented pin is currently in.
 ///
 /// A pin instance can be in one of the following states:
-/// - [`state::Unused`], to indicate that the pin is currently not used
-/// - [`state::Gpio`], to indicate that the pin is being used for
-///   general-purpose I/O
+/// - [`state::Unused`], to indicate that the pin is currently not used.
 /// - [`state::Swm`], to indicate that the pin is available for switch
-///   matrix function assignment
+///   matrix function assignment.
 /// - [`state::Analog`], to indicate that the pin is being used for analog
-///   input
+///   input.
+///
+/// A pin that is in the GPIO state is represented by its own struct,
+/// [`GpioPin`].
 ///
 /// # State Management
 ///
 /// All pins start out in their initial state, as defined in the user manual. To
-/// prevent us from making mistakes, only the methods that induce a valid state
-/// transition are available. Code that tries to call a method that would cause
-/// an invalid state transition will simply not compile:
+/// prevent the user from making a mistake, only the methods that induce a valid
+/// state transition are available. Code that tries to call a method that would
+/// cause an invalid state transition will simply not compile:
 ///
 /// ``` no_run
 /// # use lpc8xx_hal::Peripherals;
@@ -51,10 +52,10 @@ use super::{
 ///     &mut swm_handle,
 /// );
 ///
-/// // As long as the function is assigned, we can't use the pin for
-/// // general-purpose I/O. Therefore the following method call would cause a
-/// // compile-time error.
-/// // let pio0_12 = pio0_12.into_gpio_pin(&p.GPIO);
+/// // As long as a function is assigned, we can't use the pin for general-
+/// // purpose I/O. Therefore the following method call would cause a compile-
+/// // time error.
+/// // let pio0_12 = pio0_12.into_input_pin(&p.GPIO);
 /// ```
 ///
 /// To use the pin in the above example for GPIO, we first have to unassign the
@@ -78,10 +79,10 @@ use super::{
 /// #     &mut swm_handle,
 /// # );
 /// #
-/// #[cfg(feature = "82x")]
-/// let gpio = p.GPIO;
-/// #[cfg(feature = "845")]
-/// let gpio = p.GPIO.enable(&mut syscon.handle);
+/// # #[cfg(feature = "82x")]
+/// # let gpio = p.GPIO;
+/// # #[cfg(feature = "845")]
+/// # let gpio = p.GPIO.enable(&mut syscon.handle);
 ///
 /// let (clkout, pio0_12) = clkout.unassign(pio0_12, &mut swm_handle);
 /// let pio0_12 = pio0_12.into_unused_pin();
@@ -116,7 +117,7 @@ use super::{
 /// let pin = p.pins.pio0_12
 ///     .into_swm_pin();
 ///
-/// // Functions can be assigned now using the methods on `Function`
+/// // Functions can be assigned now using the SWM API
 /// ```
 ///
 /// As mentioned above, a function can be fixed or movable. But there is also
@@ -132,7 +133,7 @@ use super::{
 /// topic, [please help us figure this out](https://github.com/lpc-rs/lpc8xx-hal/issues/44).
 ///
 /// Once a pin is in the SWM state, you can assign functions to it. Please refer
-/// to [`Function`] for more information on how to do that.
+/// to the [SWM API] for more information on how to do that.
 ///
 /// # Analog Input
 ///
@@ -151,7 +152,7 @@ use super::{
 /// #[cfg(feature = "845")]
 /// let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 ///
-/// // Transition pin into ADC state
+/// // Transition pin to ADC state
 /// let (adc_2, pio0_14) = swm.fixed_functions.adc_2.assign(
 ///     p.pins.pio0_14.into_swm_pin(),
 ///     &mut swm_handle,
@@ -168,8 +169,7 @@ use super::{
 /// [`Pin::into_output_pin`]: struct.Pin.html#method.into_output_pin
 /// [`GpioPin`]: ../gpio/struct.GpioPin.html
 /// [`Pin::into_swm_pin`]: struct.Pin.html#method.into_swm_pin
-/// [`lpc82x::IOCON`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.IOCON.html
-/// [`lpc82x::ADC`]: https://docs.rs/lpc82x-pac/0.7.*/lpc82x_pac/struct.ADC.html
+/// [SWM API]: ../swm/index.html
 pub struct Pin<T: Trait, S: State> {
     pub(crate) ty: T,
     pub(crate) _state: S,
@@ -180,6 +180,22 @@ where
     T: Trait,
 {
     /// Transition pin to GPIO input mode
+    ///
+    /// This method is only available while the pin is in the unused state. Code
+    /// that attempts to call this method while the pin is in any other state
+    /// will not compile. See [State Management] for more information on
+    /// managing pin states.
+    ///
+    /// Consumes this `Pin` instance and returns an instance of [`GpioPin`],
+    /// which provides access to all GPIO functions.
+    ///
+    /// This method requires a GPIO token from the [`GPIO`] struct, to ensure
+    /// that the GPIO peripheral is enabled, and stays enabled while the pin is
+    /// in the GPIO mode.
+    ///
+    /// [State Management]: #state-management
+    /// [`GpioPin`]: ../gpio/struct.GpioPin.html
+    /// [`GPIO`]: ../gpio/struct.GPIO.html
     pub fn into_input_pin(
         self,
         token: Token<T, init_state::Enabled>,
@@ -188,6 +204,22 @@ where
     }
 
     /// Transition pin to GPIO output mode
+    ///
+    /// This method is only available while the pin is in the unused state. Code
+    /// that attempts to call this method while the pin is in any other state
+    /// will not compile. See [State Management] for more information on
+    /// managing pin states.
+    ///
+    /// Consumes this `Pin` instance and returns an instance of [`GpioPin`],
+    /// which provides access to all GPIO functions.
+    ///
+    /// This method requires a GPIO token from the [`GPIO`] struct, to ensure
+    /// that the GPIO peripheral is enabled, and stays enabled while the pin is
+    /// in the GPIO mode.
+    ///
+    /// [State Management]: #state-management
+    /// [`GpioPin`]: ../gpio/struct.GpioPin.html
+    /// [`GPIO`]: ../gpio/struct.GPIO.html
     pub fn into_output_pin(
         self,
         token: Token<T, init_state::Enabled>,
@@ -196,7 +228,7 @@ where
         GpioPin::new(token, initial)
     }
 
-    /// Transition pin to SWM state
+    /// Transition pin to SWM mode
     ///
     /// This method is only available while the pin is in the unused state. Code
     /// that attempts to call this method while the pin is in any other state
@@ -206,7 +238,8 @@ where
     /// Consumes this pin instance and returns a new instance that is in the SWM
     /// state, making this pin available for switch matrix function assignment.
     ///
-    /// Please refer [`Function`] to learn more about SWM function assignment.
+    /// Please refer to the [SWM API] to learn more about SWM function
+    /// assignment.
     ///
     /// # Example
     ///
@@ -222,6 +255,7 @@ where
     /// ```
     ///
     /// [State Management]: #state-management
+    /// [SWM API]: ../swm/index.html
     pub fn into_swm_pin(self) -> Pin<T, state::Swm<(), ()>> {
         Pin {
             ty: self.ty,

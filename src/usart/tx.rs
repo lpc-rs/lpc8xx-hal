@@ -11,6 +11,13 @@ use crate::{dma, init_state};
 use super::instances::Instance;
 
 /// USART transmitter
+///
+/// This struct implements the following traits:
+/// - [`embedded_hal::serial::Write`]
+/// - [`embedded_hal::blocking::serial::Write`]
+///
+/// [`embedded_hal::serial::Write`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/serial/trait.Write.html
+/// [`embedded_hal::blocking::serial::Write`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/blocking/serial/trait.Write.html
 pub struct Tx<I, State = init_state::Enabled> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,

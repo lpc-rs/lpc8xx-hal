@@ -21,6 +21,8 @@ use super::{
 /// Please refer to the [module documentation] for more information.
 ///
 /// [`swm::Parts`]: struct.Parts.html
+/// [`SWM::split`]: #method.split
+/// [`SWM::free`]: #method.free
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct SWM<State = init_state::Enabled> {
@@ -41,6 +43,8 @@ impl<STATE> SWM<STATE> {
     /// This is the regular way to access the SWM API. It exists as an explicit
     /// step, as it's no longer possible to gain access to the raw peripheral
     /// using [`SWM::free`] after you've called this method.
+    ///
+    /// [`SWM::free`]: #method.free
     pub fn split(self) -> Parts<STATE> {
         Parts {
             handle: Handle::new(self.swm),
@@ -68,9 +72,12 @@ impl<STATE> SWM<STATE> {
 
 /// The main API for the switch matrix (SWM)
 ///
-/// Provides access to all types that make up the SWM API. Please refer to the
-/// [module documentation] for more information.
+/// Provides access to all types that make up the SWM API. You gain access to
+/// this struct by calling [`SWM::split`].
 ///
+/// Please refer to the [module documentation] for more information.
+///
+/// [`SWM::split`]: struct.SWM.html#method.split
 /// [module documentation]: index.html
 pub struct Parts<STATE> {
     /// Handle to the switch matrix

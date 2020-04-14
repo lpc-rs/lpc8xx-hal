@@ -26,15 +26,27 @@ use super::{
 /// Controls the USART.  Use [`Peripherals`] to gain access to an instance of
 /// this struct.
 ///
+/// You can either use this struct as-is, if you need to send and receive in the
+/// same place, or you can move the `rx` and `tx` fields out of this struct, to
+/// use the sender and receiver from different contexts.
+///
+/// This struct implement the following traits:
+/// - [`embedded_hal::serial::Read`]
+/// - [`embedded_hal::serial::Write`]
+/// - [`embedded_hal::blocking::serial::Write`]
+///
 /// Please refer to the [module documentation] for more information.
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
+/// [`embedded_hal::serial::Read`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/serial/trait.Read.html
+/// [`embedded_hal::serial::Write`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/serial/trait.Write.html
+/// [`embedded_hal::blocking::serial::Write`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/blocking/serial/trait.Write.html
 /// [module documentation]: index.html
 pub struct USART<I, State = init_state::Enabled> {
-    /// USART Receiver
+    /// The USART Receiver
     pub rx: Rx<I, State>,
 
-    /// USART Transmitter
+    /// The USART Transmitter
     pub tx: Tx<I, State>,
 
     usart: I,

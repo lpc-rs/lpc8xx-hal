@@ -4,7 +4,9 @@
 //! peripheral, and is required to convert instances of [`Pin`] to a
 //! [`GpioPin`], which provides the core GPIO API.
 //!
-//! The GPIO peripheral is described in the user manual, chapter 9.
+//! The GPIO peripheral is described in the following user manuals:
+//! - LPC82x user manual, chapter 9
+//! - LPC84x user manual, chapter 12
 //!
 //! # Examples
 //!
@@ -177,6 +179,23 @@ impl GPIO<init_state::Enabled> {
 }
 
 /// A pin used for general purpose I/O (GPIO)
+///
+/// You can get access to an instance of this struct by switching a pin to the
+/// GPIO state, using [`Pin::into_input_pin`] or [`Pin::into_output_pin`].
+///
+/// While in input mode, this struct implements the [`InputPin`] trait.
+///
+/// While in output mode, this struct implements the following traits:
+/// - [`OutputPin`]
+/// - [`StatefulOutputPin`]
+/// - [`ToggleableOutputPin`]
+///
+/// [`Pin::into_input_pin`]: ../pins/struct.Pin.html#method.into_input_pin
+/// [`Pin::into_output_pin`]: ../pins/struct.Pin.html#method.into_output_pin
+/// [`InputPin`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/digital/v2/trait.InputPin.html
+/// [`OutputPin`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/digital/v2/trait.OutputPin.html
+/// [`StatefulOutputPin`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/digital/v2/trait.StatefulOutputPin.html
+/// [`ToggleableOutputPin`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/digital/v2/trait.ToggleableOutputPin.html
 pub struct GpioPin<T, D> {
     token: pins::Token<T, init_state::Enabled>,
     _direction: D,

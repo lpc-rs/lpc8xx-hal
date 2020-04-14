@@ -14,6 +14,13 @@ use super::{
 /// The type parameter `T` identifies the fixed or movable function that an
 /// instance of `Function` controls. The other type paramter, `State`, tracks
 /// whether this function is assigned to a pin, and which pin it is assigned to.
+///
+/// You can gain access to the instances of this struct that represent fixed
+/// functions through [`FixedFunctions`], to those that represent movable
+/// functions through [`MovableFunctions`].
+///
+/// [`FixedFunctions`]: struct.FixedFunctions.html
+/// [`MovableFunctions`]: struct.MovableFunctions.html
 pub struct Function<T, S> {
     ty: T,
     _state: S,
@@ -41,7 +48,7 @@ impl<T> Function<T, Unassigned> {
     ///   documentation on [`Pin`] for information on pin state management.
     /// - The function must be assignable to the pin. Movable functions can be
     ///   assigned to any pin, but fixed functions can be assigned to only one
-    ///   pin.
+    ///   specific pin.
     /// - The state of the pin must allow another function of this type to be
     ///   assigned. Input functions can always be assigned, but only one output
     ///   or bidirectional function can be assigned to a given pin at any time.
@@ -86,6 +93,8 @@ impl<T> Function<T, Unassigned> {
     /// ```
     ///
     /// [`Unassigned`]: state/struct.Unassigned.html
+    /// [`Pin`]: ../pins/struct.Pin.html
+    /// [`pins::state::Swm`]: ../pins/state/struct.Swm.html
     pub fn assign<P, S>(
         mut self,
         mut pin: Pin<P, S>,
@@ -164,6 +173,8 @@ impl<T, P> Function<T, Assigned<P>> {
     /// ```
     ///
     /// [`Assigned`]: state/struct.Assigned.html
+    /// [`Pin`]: ../pins/struct.Pin.html
+    /// [`pins::state::Swm`]: ../pins/state/struct.Swm.html
     pub fn unassign<S>(
         mut self,
         mut pin: Pin<P, S>,
@@ -197,6 +208,9 @@ impl<T, P> Function<T, Assigned<P>> {
 ///
 /// Please refer [`Function::assign`] and [`Function::unassign`] for the public
 /// API that uses this trait.
+///
+/// [`Function::assign`]: struct.Function.html#method.assign
+/// [`Function::unassign`]: struct.Function.html#method.unassign
 pub trait FunctionTrait<P: pins::Trait> {
     /// Whether this is an input or output function
     ///

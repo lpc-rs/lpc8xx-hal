@@ -38,10 +38,9 @@ macro_rules! fixed_functions {
         $(
             /// Represents a fixed function
             ///
-            /// Fixed functions can be accessed via the field `fixed_functions`
-            /// of [`swm::Parts`].
+            /// Fixed functions can be accessed through [`FixedFunctions`].
             ///
-            /// [`swm::Parts`]: struct.Parts.html
+            /// [`FixedFunctions`]: struct.FixedFunctions.html
             #[allow(non_camel_case_types)]
             pub struct $type(());
 
