@@ -170,10 +170,6 @@ where
     ///
     /// Please refer to the [embedded-hal documentation] for details.
     ///
-    /// # Limitations
-    ///
-    /// Writing multiple bytes should work, but has not been tested.
-    ///
     /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Write.html#tymethod.write
     fn write(&mut self, address: u8, data: &[u8]) -> Result<(), Self::Error> {
         // Wait until peripheral is idle
