@@ -75,8 +75,17 @@ use crate::{
 ///
 /// Please refer to the [module documentation] for more information.
 ///
+/// # `embedded-hal` traits
+///
+/// - [`embedded_hal::spi::FullDuplex`] for asynchronous transfers
+/// - [`embedded_hal::blocking::spi::Transfer`] for synchronous transfers
+/// - [`embedded_hal::blocking::spi::Write`] for synchronous writes
+///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
+/// [`embedded_hal::spi::FullDuplex`]: #impl-FullDuplex%3Cu8%3E
+/// [`embedded_hal::blocking::spi::Transfer`]: #impl-Transfer%3CW%3E
+/// [`embedded_hal::blocking::spi::Write`]: #impl-Write%3CW%3E
 pub struct SPI<I, State = init_state::Enabled> {
     spi: I,
     _state: State,

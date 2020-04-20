@@ -59,6 +59,11 @@ impl MRT {
 pub const MAX_VALUE: u32 = 0x7fff_ffff - 1;
 
 /// Represents a MRT0 channel
+///
+/// # `embedded-hal` traits
+/// - [`embedded_hal::timer::CountDown`]
+///
+/// [`embedded_hal::timer::CountDown`]: #impl-CountDown
 pub struct Channel<T: Reg>(RegProxy<T>);
 
 impl<T> Channel<T>
@@ -109,6 +114,7 @@ where
             .write(|w| unsafe { w.ivalue().bits(reload + 1) });
     }
 
+    /// Non-blockingly "waits" until the count down finishes
     fn wait(&mut self) -> Result<(), Void> {
         if self.0.stat.read().intflag().is_pending_interrupt() {
             // Reset the interrupt flag

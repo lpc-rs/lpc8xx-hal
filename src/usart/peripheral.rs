@@ -30,18 +30,19 @@ use super::{
 /// same place, or you can move the `rx` and `tx` fields out of this struct, to
 /// use the sender and receiver from different contexts.
 ///
-/// This struct implement the following traits:
-/// - [`embedded_hal::serial::Read`]
-/// - [`embedded_hal::serial::Write`]
-/// - [`embedded_hal::blocking::serial::Write`]
-///
 /// Please refer to the [module documentation] for more information.
 ///
+/// # `embedded-hal` traits
+/// - [`embedded_hal::serial::Read`] for asynchronous receiving
+/// - [`embedded_hal::serial::Write`] for asynchronous sending
+/// - [`embedded_hal::blocking::serial::Write`] for synchronous sending
+///
+///
 /// [`Peripherals`]: ../struct.Peripherals.html
-/// [`embedded_hal::serial::Read`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/serial/trait.Read.html
-/// [`embedded_hal::serial::Write`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/serial/trait.Write.html
-/// [`embedded_hal::blocking::serial::Write`]: https://docs.rs/embedded-hal/0.2.3/embedded_hal/blocking/serial/trait.Write.html
 /// [module documentation]: index.html
+/// [`embedded_hal::serial::Read`]: #impl-Read%3Cu8%3E
+/// [`embedded_hal::serial::Write`]: #impl-Write%3Cu8%3E
+/// [`embedded_hal::blocking::serial::Write`]: #impl-Write
 pub struct USART<I, State = init_state::Enabled> {
     /// The USART Receiver
     pub rx: Rx<I, State>,
@@ -267,6 +268,7 @@ where
 {
     type Error = Error;
 
+    /// Reads a single word from the serial interface
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
         self.rx.read()
     }
@@ -278,10 +280,12 @@ where
 {
     type Error = Void;
 
+    /// Writes a single word to the serial interface
     fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
         self.tx.write(word)
     }
 
+    /// Ensures that none of the previously written words are still buffered
     fn flush(&mut self) -> nb::Result<(), Self::Error> {
         self.tx.flush()
     }
@@ -297,6 +301,7 @@ where
     Self: BlockingWriteDefault<u8>,
     I: Instance,
 {
+    /// Writes a string slice into this writer, returning whether the write succeeded.
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.tx.write_str(s)
     }

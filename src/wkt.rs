@@ -48,8 +48,12 @@ use crate::{
 ///
 /// Please refer to the [module documentation] for more information.
 ///
+/// # `embedded-hal` traits
+/// - [`embedded_hal::timer::CountDown`]
+///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
+/// [`embedded_hal::timer::CountDown`]: #impl-CountDown
 pub struct WKT<State = init_state::Enabled> {
     wkt: pac::WKT,
     _state: State,
@@ -142,6 +146,7 @@ impl WKT<init_state::Enabled> {
 impl timer::CountDown for WKT<init_state::Enabled> {
     type Time = u32;
 
+    /// Starts a new count down
     fn start<T>(&mut self, timeout: T)
     where
         T: Into<Self::Time>,
@@ -159,6 +164,7 @@ impl timer::CountDown for WKT<init_state::Enabled> {
             .write(|w| unsafe { w.value().bits(timeout.into()) });
     }
 
+    /// Non-blockingly "waits" until the count down finishes
     fn wait(&mut self) -> nb::Result<(), Void> {
         if self.wkt.ctrl.read().alarmflag().bit_is_set() {
             return Ok(());
