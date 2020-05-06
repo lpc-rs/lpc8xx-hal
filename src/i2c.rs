@@ -74,7 +74,6 @@ use crate::{
 /// # Limitations
 ///
 /// This API has the following limitations:
-/// - Only I2C0 is supported.
 /// - Only master mode is supported.
 /// - Errors are not handled.
 ///
@@ -117,9 +116,6 @@ where
     ///
     /// This method expects the mode for SDA & SCL pins to be set to
     /// standard/fast mode. This is the default value.
-    ///
-    /// The I2C clock frequency is hardcoded to a specific value. For unknown
-    /// reasons, this seems to be 79.6 kHz.
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
@@ -213,10 +209,6 @@ where
     /// Read from the I2C bus
     ///
     /// Please refer to the [embedded-hal documentation] for details.
-    ///
-    /// # Limitations
-    ///
-    /// Reading multiple bytes should work, but has not been tested.
     ///
     /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Read.html#tymethod.read
     fn read(
