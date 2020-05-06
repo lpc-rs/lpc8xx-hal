@@ -114,8 +114,13 @@ where
     ///
     /// # Limitations
     ///
-    /// This method expects the mode for SDA & SCL pins to be set to
-    /// standard/fast mode. This is the default value.
+    /// This method does not check that the supplied clock configuration matches
+    /// the configuration of the pins. You need to verify manually that this is
+    /// the case. What this means exactly may depend on your specific part.
+    /// Check out the LPC84x user manual, section 19.4, for example.
+    ///
+    /// If you don't mess with the IOCON configuration and use I2C clock rates
+    /// of up to 400 kHz, you should be fine.
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
