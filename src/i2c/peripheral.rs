@@ -65,15 +65,15 @@ where
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable<SdaPin, SclPin, Clock>(
+    pub fn enable<SdaPin, SclPin, C>(
         mut self,
-        clock: &I2cClock<Clock>,
+        clock: &I2cClock<C>,
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Sda, swm::state::Assigned<SdaPin>>,
         _: swm::Function<I::Scl, swm::state::Assigned<SclPin>>,
     ) -> I2C<I, init_state::Enabled>
     where
-        I2cClock<Clock>: PeripheralClock<I>,
+        I2cClock<C>: PeripheralClock<I>,
     {
         syscon.enable_clock(&mut self.i2c);
 
