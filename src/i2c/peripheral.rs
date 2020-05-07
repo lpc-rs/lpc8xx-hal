@@ -105,6 +105,27 @@ where
     }
 }
 
+impl<I, State> I2C<I, State>
+where
+    I: Instance,
+{
+    /// Return the raw peripheral
+    ///
+    /// This method serves as an escape hatch from the HAL API. It returns the
+    /// raw peripheral, allowing you to do whatever you want with it, without
+    /// limitations imposed by the API.
+    ///
+    /// If you are using this method because a feature you need is missing from
+    /// the HAL API, please [open an issue] or, if an issue for your feature
+    /// request already exists, comment on the existing issue, so we can
+    /// prioritize it accordingly.
+    ///
+    /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
+    pub fn free(self) -> I {
+        self.i2c
+    }
+}
+
 impl<I> i2c::Write for I2C<I, init_state::Enabled>
 where
     I: Instance,
@@ -191,26 +212,5 @@ where
         self.i2c.mstctl.modify(|_, w| w.mststop().stop());
 
         Ok(())
-    }
-}
-
-impl<I, State> I2C<I, State>
-where
-    I: Instance,
-{
-    /// Return the raw peripheral
-    ///
-    /// This method serves as an escape hatch from the HAL API. It returns the
-    /// raw peripheral, allowing you to do whatever you want with it, without
-    /// limitations imposed by the API.
-    ///
-    /// If you are using this method because a feature you need is missing from
-    /// the HAL API, please [open an issue] or, if an issue for your feature
-    /// request already exists, comment on the existing issue, so we can
-    /// prioritize it accordingly.
-    ///
-    /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn free(self) -> I {
-        self.i2c
     }
 }
