@@ -5,7 +5,9 @@ use crate::{
     syscon::{self, frg, IOSC},
 };
 
-use super::{PeripheralClock, PeripheralClockSelector, PeripheralClockSource};
+use super::{
+    I2cClock, PeripheralClock, PeripheralClockSelector, PeripheralClockSource,
+};
 
 macro_rules! periph_clock_selector {
     ($peripheral:ident, $num:expr) => {
@@ -32,14 +34,6 @@ impl PeripheralClockSource for frg::FRG<frg::FRG1> {
 
 impl PeripheralClockSource for IOSC {
     const CLOCK: SEL_A = SEL_A::FRO;
-}
-
-/// A struct containing the clock configuration for a peripheral
-pub struct I2cClock<PeriphClock> {
-    pub(crate) divval: u16,
-    pub(crate) mstsclhigh: u8,
-    pub(crate) mstscllow: u8,
-    _periphclock: PhantomData<PeriphClock>,
 }
 
 impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>

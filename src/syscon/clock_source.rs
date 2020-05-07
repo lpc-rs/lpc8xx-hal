@@ -10,6 +10,8 @@ pub use clocksource_82x::*;
 #[cfg(feature = "845")]
 pub use clocksource_845::*;
 
+use core::marker::PhantomData;
+
 use crate::syscon;
 
 /// Internal trait used configure clocking of peripheals
@@ -69,4 +71,12 @@ impl AdcClock {
     pub fn new_default() -> Self {
         Self { caldiv: 24, div: 0 }
     }
+}
+
+/// A struct containing the clock configuration for a peripheral
+pub struct I2cClock<PeriphClock> {
+    pub(crate) divval: u16,
+    pub(crate) mstsclhigh: u8,
+    pub(crate) mstscllow: u8,
+    _periphclock: PhantomData<PeriphClock>,
 }

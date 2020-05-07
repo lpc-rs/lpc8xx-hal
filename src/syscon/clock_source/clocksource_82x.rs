@@ -2,17 +2,9 @@ use core::marker::PhantomData;
 
 use crate::syscon::{self, UARTFRG};
 
-use super::{PeripheralClock, PeripheralClockSource};
+use super::{I2cClock, PeripheralClock, PeripheralClockSource};
 
 impl PeripheralClockSource for UARTFRG {}
-
-/// A struct containing the clock configuration for a peripheral
-pub struct I2cClock<PeriphClock> {
-    pub(crate) divval: u16,
-    pub(crate) mstsclhigh: u8,
-    pub(crate) mstscllow: u8,
-    _periphclock: PhantomData<PeriphClock>,
-}
 
 impl<PERIPH: crate::i2c::Instance> I2cClock<PERIPH> {
     /// Create the clock config for the i2c peripheral
