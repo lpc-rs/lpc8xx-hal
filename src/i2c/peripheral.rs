@@ -6,7 +6,7 @@ use crate::{
     syscon::{self, clock_source::PeripheralClock},
 };
 
-use super::{I2cClock, Instance};
+use super::{Clock, Instance};
 
 /// Interface to an I2C peripheral
 ///
@@ -67,13 +67,13 @@ where
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn enable<SdaPin, SclPin, C>(
         mut self,
-        clock: &I2cClock<C>,
+        clock: &Clock<C>,
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Sda, swm::state::Assigned<SdaPin>>,
         _: swm::Function<I::Scl, swm::state::Assigned<SclPin>>,
     ) -> I2C<I, init_state::Enabled>
     where
-        I2cClock<C>: PeripheralClock<I>,
+        Clock<C>: PeripheralClock<I>,
     {
         syscon.enable_clock(&mut self.i2c);
 

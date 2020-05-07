@@ -1,7 +1,7 @@
 use core::marker::PhantomData;
 
 use crate::{
-    i2c::I2cClock,
+    i2c,
     pac::{self, syscon::fclksel::SEL_A},
     syscon::{self, frg, IOSC},
 };
@@ -36,7 +36,7 @@ impl PeripheralClockSource for IOSC {
 }
 
 impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
-    I2cClock<(PERIPH, CLOCK)>
+    i2c::Clock<(PERIPH, CLOCK)>
 {
     /// Create the clock config for the i2c peripheral
     ///
@@ -53,7 +53,7 @@ impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
     }
 }
 
-impl<PERIPH: PeripheralClockSelector> I2cClock<(PERIPH, IOSC)> {
+impl<PERIPH: PeripheralClockSelector> i2c::Clock<(PERIPH, IOSC)> {
     /// Create a new i2c clock config for 400 kHz
     ///
     /// Assumes the internal oscillator runs at 12 MHz
@@ -68,7 +68,7 @@ impl<PERIPH: PeripheralClockSelector> I2cClock<(PERIPH, IOSC)> {
 }
 
 impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
-    PeripheralClock<PERIPH> for I2cClock<(PERIPH, CLOCK)>
+    PeripheralClock<PERIPH> for i2c::Clock<(PERIPH, CLOCK)>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
         syscon.fclksel[PERIPH::REGISTER_NUM]

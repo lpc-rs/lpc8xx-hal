@@ -1,7 +1,7 @@
 use core::marker::PhantomData;
 
 use crate::{
-    i2c::I2cClock,
+    i2c,
     syscon::{self, UARTFRG},
 };
 
@@ -9,7 +9,7 @@ use super::{PeripheralClock, PeripheralClockSource};
 
 impl PeripheralClockSource for UARTFRG {}
 
-impl<PERIPH: crate::i2c::Instance> I2cClock<PERIPH> {
+impl<PERIPH: crate::i2c::Instance> i2c::Clock<PERIPH> {
     /// Create the clock config for the i2c peripheral
     ///
     /// mstclhigh & mstcllow have to be between 2-9
@@ -38,7 +38,7 @@ impl<PERIPH: crate::i2c::Instance> I2cClock<PERIPH> {
 }
 
 impl<PERIPH: crate::i2c::Instance> PeripheralClock<PERIPH>
-    for I2cClock<PERIPH>
+    for i2c::Clock<PERIPH>
 {
     fn select_clock(&self, _: &mut syscon::Handle) {
         // NOOP, selected by default

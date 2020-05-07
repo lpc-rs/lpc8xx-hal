@@ -16,7 +16,7 @@
 //! use lpc8xx_hal::{
 //!     prelude::*,
 //!     Peripherals,
-//!     i2c::I2cClock,
+//!     i2c,
 //! };
 //!
 //! let mut p = Peripherals::take().unwrap();
@@ -39,7 +39,7 @@
 //! );
 //!
 //! let mut i2c = p.I2C0.enable(
-//!     &I2cClock::new_400khz(),
+//!     &i2c::Clock::new_400khz(),
 //!     &mut syscon.handle,
 //!     i2c0_sda,
 //!     i2c0_scl,
@@ -57,4 +57,4 @@ mod clock;
 mod instances;
 mod peripheral;
 
-pub use self::{clock::I2cClock, instances::Instance, peripheral::I2C};
+pub use self::{clock::Clock, instances::Instance, peripheral::I2C};
