@@ -2,7 +2,8 @@ use core::ops::Deref;
 
 use crate::{
     pac::{self, Interrupt},
-    swm, syscon,
+    swm,
+    syscon::{self, clock_source::PeripheralClockSelector},
 };
 
 /// Internal trait for I2C peripherals
@@ -29,6 +30,7 @@ macro_rules! instances {
     (
         $(
             $instance:ident,
+            $clock_num:expr,
             $interrupt:ident,
             $rx:ident,
             $tx:ident;
@@ -41,13 +43,17 @@ macro_rules! instances {
                 type Sda = swm::$rx;
                 type Scl = swm::$tx;
             }
+
+            impl PeripheralClockSelector for pac::$instance {
+                const REGISTER_NUM: usize = $clock_num;
+            }
         )*
     };
 }
 
 instances!(
-    I2C0, I2C0, I2C0_SDA, I2C0_SCL;
-    I2C1, I2C1, I2C1_SDA, I2C1_SCL;
-    I2C2, I2C2, I2C2_SDA, I2C2_SCL;
-    I2C3, I2C3, I2C3_SDA, I2C3_SCL;
+    I2C0, 5, I2C0, I2C0_SDA, I2C0_SCL;
+    I2C1, 6, I2C1, I2C1_SDA, I2C1_SCL;
+    I2C2, 7, I2C2, I2C2_SDA, I2C2_SCL;
+    I2C3, 8, I2C3, I2C3_SDA, I2C3_SCL;
 );

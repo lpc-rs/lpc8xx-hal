@@ -16,10 +16,6 @@ macro_rules! periph_clock_selector {
     };
 }
 
-periph_clock_selector!(I2C0, 5);
-periph_clock_selector!(I2C1, 6);
-periph_clock_selector!(I2C2, 7);
-periph_clock_selector!(I2C3, 8);
 periph_clock_selector!(SPI0, 9);
 periph_clock_selector!(SPI1, 10);
 
