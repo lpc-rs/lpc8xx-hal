@@ -1,8 +1,11 @@
 use core::marker::PhantomData;
 
-use crate::syscon::{self, UARTFRG};
+use crate::{
+    i2c::I2cClock,
+    syscon::{self, UARTFRG},
+};
 
-use super::{I2cClock, PeripheralClock, PeripheralClockSource};
+use super::{PeripheralClock, PeripheralClockSource};
 
 impl PeripheralClockSource for UARTFRG {}
 

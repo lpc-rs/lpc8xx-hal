@@ -3,13 +3,10 @@ use void::Void;
 
 use crate::{
     init_state, swm,
-    syscon::{
-        self,
-        clock_source::{I2cClock, PeripheralClock},
-    },
+    syscon::{self, clock_source::PeripheralClock},
 };
 
-use super::Instance;
+use super::{I2cClock, Instance};
 
 /// Interface to an I2C peripheral
 ///

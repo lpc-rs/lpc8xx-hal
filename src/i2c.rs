@@ -16,7 +16,7 @@
 //! use lpc8xx_hal::{
 //!     prelude::*,
 //!     Peripherals,
-//!     syscon::clock_source::I2cClock,
+//!     i2c::I2cClock,
 //! };
 //!
 //! let mut p = Peripherals::take().unwrap();
@@ -53,7 +53,8 @@
 //!
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
+mod clock;
 mod instances;
 mod peripheral;
 
-pub use self::{instances::Instance, peripheral::I2C};
+pub use self::{clock::I2cClock, instances::Instance, peripheral::I2C};

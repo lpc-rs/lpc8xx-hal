@@ -15,8 +15,8 @@ extern crate panic_halt;
 use core::fmt::Write;
 
 use lpc8xx_hal::{
-    cortex_m_rt::entry, delay::Delay, prelude::*,
-    syscon::clock_source::I2cClock, usart, CorePeripherals, Peripherals,
+    cortex_m_rt::entry, delay::Delay, i2c::I2cClock, prelude::*, usart,
+    CorePeripherals, Peripherals,
 };
 
 #[entry]
