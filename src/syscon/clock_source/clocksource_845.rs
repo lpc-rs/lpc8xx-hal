@@ -49,7 +49,7 @@ impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
             divval,
             mstsclhigh: mstsclhigh - 2,
             mstscllow: mstscllow - 2,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 }
@@ -63,7 +63,7 @@ impl<PERIPH: PeripheralClockSelector> I2cClock<(PERIPH, IOSC)> {
             divval: 5,
             mstsclhigh: 0,
             mstscllow: 1,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 }

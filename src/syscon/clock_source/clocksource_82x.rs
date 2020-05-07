@@ -17,7 +17,7 @@ impl<PERIPH: crate::i2c::Instance> I2cClock<PERIPH> {
             divval,
             mstsclhigh: mstsclhigh - 2,
             mstscllow: mstscllow - 2,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 
@@ -29,7 +29,7 @@ impl<PERIPH: crate::i2c::Instance> I2cClock<PERIPH> {
             divval: 5,
             mstsclhigh: 0,
             mstscllow: 1,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 }
