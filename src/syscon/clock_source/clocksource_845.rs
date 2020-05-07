@@ -31,7 +31,7 @@ impl PeripheralClockSource for IOSC {
     const CLOCK: SEL_A = SEL_A::FRO;
 }
 
-impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
+impl<PERIPH: i2c::Instance, CLOCK: PeripheralClockSource>
     i2c::Clock<(PERIPH, CLOCK)>
 {
     /// Create the clock config for the i2c peripheral
@@ -49,7 +49,7 @@ impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
     }
 }
 
-impl<PERIPH: PeripheralClockSelector> i2c::Clock<(PERIPH, IOSC)> {
+impl<PERIPH: i2c::Instance> i2c::Clock<(PERIPH, IOSC)> {
     /// Create a new i2c clock config for 400 kHz
     ///
     /// Assumes the internal oscillator runs at 12 MHz
@@ -63,7 +63,7 @@ impl<PERIPH: PeripheralClockSelector> i2c::Clock<(PERIPH, IOSC)> {
     }
 }
 
-impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
+impl<PERIPH: i2c::Instance, CLOCK: PeripheralClockSource>
     PeripheralClock<PERIPH> for i2c::Clock<(PERIPH, CLOCK)>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {

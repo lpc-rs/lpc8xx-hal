@@ -15,6 +15,7 @@ pub trait Instance:
     Deref<Target = pac::i2c0::RegisterBlock>
     + syscon::ClockControl
     + syscon::ResetControl
+    + PeripheralClockSelector
 {
     /// The interrupt that is triggered for this I2C peripheral
     const INTERRUPT: Interrupt;
