@@ -31,7 +31,11 @@ where
 #[cfg(feature = "82x")]
 mod target {
     use crate::{
-        syscon::{self, clock_source::PeripheralClock},
+        syscon::{
+            self,
+            clock_source::{PeripheralClock, PeripheralClockSource},
+            UARTFRG,
+        },
         usart::Instance,
     };
 
@@ -45,6 +49,8 @@ mod target {
             // NOOP, selected by default
         }
     }
+
+    impl PeripheralClockSource for UARTFRG {}
 }
 
 #[cfg(feature = "845")]
