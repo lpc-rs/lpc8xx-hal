@@ -1,6 +1,7 @@
 use core::marker::PhantomData;
 
 use crate::{
+    i2c,
     pac::{self, syscon::fclksel::SEL_A},
     syscon::{self, frg, IOSC},
 };
@@ -15,10 +16,6 @@ macro_rules! periph_clock_selector {
     };
 }
 
-periph_clock_selector!(I2C0, 5);
-periph_clock_selector!(I2C1, 6);
-periph_clock_selector!(I2C2, 7);
-periph_clock_selector!(I2C3, 8);
 periph_clock_selector!(SPI0, 9);
 periph_clock_selector!(SPI1, 10);
 
@@ -34,17 +31,7 @@ impl PeripheralClockSource for IOSC {
     const CLOCK: SEL_A = SEL_A::FRO;
 }
 
-/// A struct containing the clock configuration for a peripheral
-pub struct I2cClock<PeriphClock> {
-    pub(crate) divval: u16,
-    pub(crate) mstsclhigh: u8,
-    pub(crate) mstscllow: u8,
-    _periphclock: PhantomData<PeriphClock>,
-}
-
-impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
-    I2cClock<(PERIPH, CLOCK)>
-{
+impl<CLOCK: PeripheralClockSource> i2c::Clock<CLOCK> {
     /// Create the clock config for the i2c peripheral
     ///
     /// mstclhigh & mstcllow have to be between 2-9
@@ -55,12 +42,12 @@ impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
             divval,
             mstsclhigh: mstsclhigh - 2,
             mstscllow: mstscllow - 2,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 }
 
-impl<PERIPH: PeripheralClockSelector> I2cClock<(PERIPH, IOSC)> {
+impl i2c::Clock<IOSC> {
     /// Create a new i2c clock config for 400 kHz
     ///
     /// Assumes the internal oscillator runs at 12 MHz
@@ -69,13 +56,13 @@ impl<PERIPH: PeripheralClockSelector> I2cClock<(PERIPH, IOSC)> {
             divval: 5,
             mstsclhigh: 0,
             mstscllow: 1,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 }
 
-impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
-    PeripheralClock<PERIPH> for I2cClock<(PERIPH, CLOCK)>
+impl<PERIPH: i2c::Instance, CLOCK: PeripheralClockSource>
+    PeripheralClock<PERIPH> for i2c::Clock<CLOCK>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
         syscon.fclksel[PERIPH::REGISTER_NUM]

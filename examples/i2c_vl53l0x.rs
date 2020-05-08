@@ -15,10 +15,7 @@ extern crate panic_halt;
 
 use core::fmt::Write;
 
-use lpc8xx_hal::{
-    cortex_m_rt::entry, prelude::*, syscon::clock_source::I2cClock, usart,
-    Peripherals,
-};
+use lpc8xx_hal::{cortex_m_rt::entry, i2c, prelude::*, usart, Peripherals};
 
 #[entry]
 fn main() -> ! {
@@ -84,7 +81,7 @@ fn main() -> ! {
         .i2c0_scl
         .assign(p.pins.pio0_10.into_swm_pin(), &mut swm.handle);
 
-    let i2c_clock = I2cClock::new_400khz();
+    let i2c_clock = i2c::Clock::new_400khz();
     let mut i2c =
         i2c.enable(&i2c_clock, &mut syscon.handle, i2c0_sda, i2c0_scl);
 
