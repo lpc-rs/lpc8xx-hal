@@ -34,7 +34,7 @@ where
 }
 
 #[cfg(feature = "82x")]
-impl<I> PeripheralClock<I> for Clock<crate::syscon::UARTFRG>
+impl<I> PeripheralClock<I> for Clock<syscon::UARTFRG>
 where
     I: Instance,
 {
@@ -44,7 +44,7 @@ where
 }
 
 #[cfg(feature = "845")]
-impl Clock<crate::syscon::IOSC> {
+impl Clock<syscon::IOSC> {
     /// Create a new configuration with a specified baudrate
     ///
     /// Assumes the internal oscillator runs at 12 MHz
