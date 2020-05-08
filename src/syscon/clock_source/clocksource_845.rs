@@ -31,9 +31,7 @@ impl PeripheralClockSource for IOSC {
     const CLOCK: SEL_A = SEL_A::FRO;
 }
 
-impl<PERIPH: i2c::Instance, CLOCK: PeripheralClockSource>
-    i2c::Clock<(PERIPH, CLOCK)>
-{
+impl<CLOCK: PeripheralClockSource> i2c::Clock<CLOCK> {
     /// Create the clock config for the i2c peripheral
     ///
     /// mstclhigh & mstcllow have to be between 2-9
@@ -49,7 +47,7 @@ impl<PERIPH: i2c::Instance, CLOCK: PeripheralClockSource>
     }
 }
 
-impl<PERIPH: i2c::Instance> i2c::Clock<(PERIPH, IOSC)> {
+impl i2c::Clock<IOSC> {
     /// Create a new i2c clock config for 400 kHz
     ///
     /// Assumes the internal oscillator runs at 12 MHz
@@ -64,7 +62,7 @@ impl<PERIPH: i2c::Instance> i2c::Clock<(PERIPH, IOSC)> {
 }
 
 impl<PERIPH: i2c::Instance, CLOCK: PeripheralClockSource>
-    PeripheralClock<PERIPH> for i2c::Clock<(PERIPH, CLOCK)>
+    PeripheralClock<PERIPH> for i2c::Clock<CLOCK>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
         syscon.fclksel[PERIPH::REGISTER_NUM]
