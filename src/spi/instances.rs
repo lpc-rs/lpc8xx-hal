@@ -22,14 +22,26 @@ pub trait Instance:
     type Miso;
 }
 
-impl Instance for pac::SPI0 {
-    type Sck = swm::SPI0_SCK;
-    type Mosi = swm::SPI0_MOSI;
-    type Miso = swm::SPI0_MISO;
+macro_rules! instances {
+    (
+        $(
+            $instance:ident,
+            $sck:ident,
+            $mosi:ident,
+            $miso:ident;
+        )*
+    ) => {
+        $(
+            impl Instance for pac::$instance {
+                type Sck = swm::$sck;
+                type Mosi = swm::$mosi;
+                type Miso = swm::$miso;
+            }
+        )*
+    };
 }
 
-impl Instance for pac::SPI1 {
-    type Sck = swm::SPI1_SCK;
-    type Mosi = swm::SPI1_MOSI;
-    type Miso = swm::SPI1_MISO;
-}
+instances!(
+    SPI0, SPI0_SCK, SPI0_MOSI, SPI0_MISO;
+    SPI1, SPI1_SCK, SPI1_MOSI, SPI1_MISO;
+);
