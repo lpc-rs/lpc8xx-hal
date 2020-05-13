@@ -4,22 +4,43 @@ use crate::{
     i2c,
     pac::syscon::fclksel::SEL_A,
     spi,
-    syscon::{self, frg, IOSC},
+    syscon::{
+        self,
+        frg::{FRG, FRG0, FRG1},
+        IOSC,
+    },
 };
 
-use super::{PeripheralClock, PeripheralClockSource};
+use super::{PeripheralClock, PeripheralClockSelector};
 
-impl PeripheralClockSource for frg::FRG<frg::FRG0> {
-    const CLOCK: SEL_A = SEL_A::FRG0CLK;
+macro_rules! peripheral_clocks {
+    (
+        $(
+            $clock:ty,
+            $sel:ident;
+        )*
+     ) => {
+        $(
+            impl PeripheralClock for $clock {
+                const CLOCK: SEL_A = SEL_A::$sel;
+
+                fn select<S>(_: &S, syscon: &mut syscon::Handle)
+                where
+                    S: PeripheralClockSelector,
+                {
+                    syscon.fclksel[S::REGISTER_NUM]
+                        .write(|w| w.sel().variant(Self::CLOCK));
+                }
+            }
+        )*
+    };
 }
 
-impl PeripheralClockSource for frg::FRG<frg::FRG1> {
-    const CLOCK: SEL_A = SEL_A::FRG1CLK;
-}
-
-impl PeripheralClockSource for IOSC {
-    const CLOCK: SEL_A = SEL_A::FRO;
-}
+peripheral_clocks!(
+    FRG<FRG0>, FRG0CLK;
+    FRG<FRG1>, FRG1CLK;
+    IOSC, FRO;
+);
 
 impl<CLOCK: i2c::ClockSource> i2c::Clock<CLOCK> {
     /// Create the clock config for the i2c peripheral
@@ -51,15 +72,6 @@ impl i2c::Clock<IOSC> {
     }
 }
 
-impl<PERIPH: i2c::Instance, CLOCK: i2c::ClockSource> PeripheralClock<PERIPH>
-    for i2c::Clock<CLOCK>
-{
-    fn select_clock(&self, syscon: &mut syscon::Handle) {
-        syscon.fclksel[PERIPH::REGISTER_NUM]
-            .write(|w| w.sel().variant(CLOCK::CLOCK));
-    }
-}
-
 impl<CLOCK: spi::ClockSource> spi::Clock<CLOCK> {
     /// Create the clock config for the spi peripheral
     pub fn new(_: &CLOCK, divval: u16) -> Self {
@@ -67,14 +79,5 @@ impl<CLOCK: spi::ClockSource> spi::Clock<CLOCK> {
             divval,
             _clock: PhantomData,
         }
-    }
-}
-
-impl<PERIPH: spi::Instance, CLOCK: spi::ClockSource> PeripheralClock<PERIPH>
-    for spi::Clock<CLOCK>
-{
-    fn select_clock(&self, syscon: &mut syscon::Handle) {
-        syscon.fclksel[PERIPH::REGISTER_NUM]
-            .write(|w| w.sel().variant(CLOCK::CLOCK));
     }
 }

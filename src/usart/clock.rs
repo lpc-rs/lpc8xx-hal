@@ -1,6 +1,6 @@
 use core::marker::PhantomData;
 
-use crate::syscon::clock_source::PeripheralClockSource;
+use crate::syscon::{self, clock_source::PeripheralClockSelector};
 
 /// Defines the clock configuration for a USART instance
 pub struct Clock<Clock> {
@@ -29,45 +29,42 @@ where
 }
 
 /// Implemented for USART clock sources
-pub trait ClockSource: PeripheralClockSource + private::Sealed {}
+pub trait ClockSource: private::Sealed {
+    /// Select the clock source
+    ///
+    /// This method is used by the USART API internally. It should not be
+    /// relevant to most users.
+    ///
+    /// The `selector` argument should not be required to implement this trait,
+    /// but it makes sure that the caller has access to the peripheral they are
+    /// selecting the clock for.
+    fn select<S>(selector: &S, handle: &mut syscon::Handle)
+    where
+        S: PeripheralClockSelector;
+}
 
 #[cfg(feature = "82x")]
 mod target {
-    use crate::{
-        syscon::{
-            self,
-            clock_source::{PeripheralClock, PeripheralClockSource},
-            UARTFRG,
-        },
-        usart::Instance,
-    };
+    use crate::syscon::{self, UARTFRG};
 
-    use super::{Clock, ClockSource};
+    use super::ClockSource;
 
-    impl<I> PeripheralClock<I> for Clock<UARTFRG>
-    where
-        I: Instance,
-    {
-        fn select_clock(&self, _: &mut syscon::Handle) {
-            // NOOP, selected by default
+    impl super::private::Sealed for UARTFRG {}
+
+    impl ClockSource for UARTFRG {
+        fn select<S>(_: &S, _: &mut syscon::Handle) {
+            // nothing to do; selected by default
         }
     }
-
-    impl PeripheralClockSource for UARTFRG {}
-    impl super::private::Sealed for UARTFRG {}
-    impl ClockSource for UARTFRG {}
 }
 
 #[cfg(feature = "845")]
 mod target {
     use core::marker::PhantomData;
 
-    use crate::{
-        syscon::{
-            self,
-            clock_source::{PeripheralClock, PeripheralClockSource},
-        },
-        usart::Instance,
+    use crate::syscon::{
+        self,
+        clock_source::{PeripheralClock, PeripheralClockSelector},
     };
 
     use super::{Clock, ClockSource};
@@ -95,19 +92,19 @@ mod target {
         }
     }
 
-    impl<I, C> PeripheralClock<I> for Clock<C>
+    impl<T> super::private::Sealed for T where T: PeripheralClock {}
+
+    impl<T> ClockSource for T
     where
-        I: Instance,
-        C: ClockSource,
+        T: PeripheralClock,
     {
-        fn select_clock(&self, syscon: &mut syscon::Handle) {
-            syscon.fclksel[I::REGISTER_NUM]
-                .write(|w| w.sel().variant(C::CLOCK));
+        fn select<S>(selector: &S, handle: &mut syscon::Handle)
+        where
+            S: PeripheralClockSelector,
+        {
+            T::select(selector, handle);
         }
     }
-
-    impl<T> super::private::Sealed for T where T: PeripheralClockSource {}
-    impl<T> ClockSource for T where T: PeripheralClockSource {}
 }
 
 mod private {

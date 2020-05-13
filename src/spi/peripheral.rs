@@ -3,10 +3,10 @@ use embedded_hal::spi::{FullDuplex, Mode, Phase, Polarity};
 use crate::{
     init_state, pins,
     swm::{self, FunctionTrait},
-    syscon::{self, clock_source::PeripheralClock},
+    syscon,
 };
 
-use super::{Clock, Instance};
+use super::{Clock, ClockSource, Instance};
 
 /// Interface to a SPI peripheral
 ///
@@ -75,11 +75,11 @@ where
         I::Sck: FunctionTrait<SckPin>,
         I::Mosi: FunctionTrait<MosiPin>,
         I::Miso: FunctionTrait<MisoPin>,
-        Clock<CLOCK>: PeripheralClock<I>,
+        CLOCK: ClockSource,
     {
         syscon.enable_clock(&self.spi);
 
-        clock.select_clock(syscon);
+        CLOCK::select(&self.spi, syscon);
 
         self.spi
             .div
