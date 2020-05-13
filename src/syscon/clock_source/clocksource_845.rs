@@ -2,22 +2,12 @@ use core::marker::PhantomData;
 
 use crate::{
     i2c,
-    pac::{self, syscon::fclksel::SEL_A},
+    pac::syscon::fclksel::SEL_A,
+    spi,
     syscon::{self, frg, IOSC},
 };
 
-use super::{PeripheralClock, PeripheralClockSelector, PeripheralClockSource};
-
-macro_rules! periph_clock_selector {
-    ($peripheral:ident, $num:expr) => {
-        impl PeripheralClockSelector for pac::$peripheral {
-            const REGISTER_NUM: usize = $num;
-        }
-    };
-}
-
-periph_clock_selector!(SPI0, 9);
-periph_clock_selector!(SPI1, 10);
+use super::{PeripheralClock, PeripheralClockSource};
 
 impl PeripheralClockSource for frg::FRG<frg::FRG0> {
     const CLOCK: SEL_A = SEL_A::FRG0CLK;
@@ -70,27 +60,18 @@ impl<PERIPH: i2c::Instance, CLOCK: PeripheralClockSource>
     }
 }
 
-/// A struct containing the clock configuration for a peripheral
-pub struct SpiClock<PeriphClock> {
-    pub(crate) divval: u16,
-    // The fields in the DLY register are ignored, since SSEL & EOF aren't used
-    _periphclock: PhantomData<PeriphClock>,
-}
-
-impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
-    SpiClock<(PERIPH, CLOCK)>
-{
+impl<CLOCK: PeripheralClockSource> spi::Clock<CLOCK> {
     /// Create the clock config for the spi peripheral
     pub fn new(_: &CLOCK, divval: u16) -> Self {
         Self {
             divval,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 }
 
-impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
-    PeripheralClock<PERIPH> for SpiClock<(PERIPH, CLOCK)>
+impl<PERIPH: spi::Instance, CLOCK: PeripheralClockSource>
+    PeripheralClock<PERIPH> for spi::Clock<CLOCK>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
         syscon.fclksel[PERIPH::REGISTER_NUM]
