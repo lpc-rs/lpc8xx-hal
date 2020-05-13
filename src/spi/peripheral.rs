@@ -6,7 +6,7 @@ use crate::{
     syscon::{self, clock_source::PeripheralClock},
 };
 
-use super::{Instance, SpiClock};
+use super::{Clock, Instance};
 
 /// Interface to a SPI peripheral
 ///
@@ -61,7 +61,7 @@ where
     /// [module documentation]: index.html
     pub fn enable<SckPin, MosiPin, MisoPin, CLOCK>(
         self,
-        clock: &SpiClock<CLOCK>,
+        clock: &Clock<CLOCK>,
         syscon: &mut syscon::Handle,
         mode: Mode,
         _: swm::Function<I::Sck, swm::state::Assigned<SckPin>>,
@@ -75,7 +75,7 @@ where
         I::Sck: FunctionTrait<SckPin>,
         I::Mosi: FunctionTrait<MosiPin>,
         I::Miso: FunctionTrait<MisoPin>,
-        SpiClock<CLOCK>: PeripheralClock<I>,
+        Clock<CLOCK>: PeripheralClock<I>,
     {
         syscon.enable_clock(&self.spi);
 

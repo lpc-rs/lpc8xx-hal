@@ -3,7 +3,7 @@ use core::marker::PhantomData;
 use crate::{
     i2c,
     pac::{self, syscon::fclksel::SEL_A},
-    spi::SpiClock,
+    spi,
     syscon::{self, frg, IOSC},
 };
 
@@ -72,7 +72,7 @@ impl<PERIPH: i2c::Instance, CLOCK: PeripheralClockSource>
 }
 
 impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
-    SpiClock<(PERIPH, CLOCK)>
+    spi::Clock<(PERIPH, CLOCK)>
 {
     /// Create the clock config for the spi peripheral
     pub fn new(_: &CLOCK, divval: u16) -> Self {
@@ -84,7 +84,7 @@ impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
 }
 
 impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
-    PeripheralClock<PERIPH> for SpiClock<(PERIPH, CLOCK)>
+    PeripheralClock<PERIPH> for spi::Clock<(PERIPH, CLOCK)>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
         syscon.fclksel[PERIPH::REGISTER_NUM]

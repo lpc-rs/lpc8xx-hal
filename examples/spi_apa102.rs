@@ -3,7 +3,7 @@
 
 extern crate panic_halt;
 
-use lpc8xx_hal::{cortex_m_rt::entry, prelude::*, spi::SpiClock, Peripherals};
+use lpc8xx_hal::{cortex_m_rt::entry, prelude::*, spi, Peripherals};
 
 use embedded_hal::spi::{Mode, Phase, Polarity};
 
@@ -39,9 +39,9 @@ fn main() -> ! {
         .assign(miso_pin, &mut handle);
 
     #[cfg(feature = "82x")]
-    let spi_clock = SpiClock::new(0);
+    let spi_clock = spi::Clock::new(0);
     #[cfg(feature = "845")]
-    let spi_clock = SpiClock::new(&syscon.iosc, 0);
+    let spi_clock = spi::Clock::new(&syscon.iosc, 0);
 
     // Enable SPI0
     let mut spi = p.SPI0.enable(

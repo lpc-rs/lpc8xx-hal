@@ -6,7 +6,7 @@
 //! use lpc8xx_hal::{
 //!     prelude::*,
 //!     Peripherals,
-//!     spi::SpiClock,
+//!     spi,
 //! };
 //!
 //! let mut p  = Peripherals::take().unwrap();
@@ -32,9 +32,9 @@
 //!     .assign(p.pins.pio0_15.into_swm_pin(), &mut swm_handle);
 //!
 //! #[cfg(feature = "82x")]
-//! let spi_clock = SpiClock::new(0);
+//! let spi_clock = spi::Clock::new(0);
 //! #[cfg(feature = "845")]
-//! let spi_clock = SpiClock::new(&syscon.iosc, 0);
+//! let spi_clock = spi::Clock::new(&syscon.iosc, 0);
 //!
 //! // Enable SPI0
 //! let mut spi = p.SPI0.enable(
@@ -59,4 +59,4 @@ mod clock;
 mod instances;
 mod peripheral;
 
-pub use self::{clock::SpiClock, instances::Instance, peripheral::SPI};
+pub use self::{clock::Clock, instances::Instance, peripheral::SPI};

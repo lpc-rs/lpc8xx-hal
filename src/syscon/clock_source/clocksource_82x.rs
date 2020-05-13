@@ -1,8 +1,7 @@
 use core::marker::PhantomData;
 
 use crate::{
-    i2c,
-    spi::SpiClock,
+    i2c, spi,
     syscon::{self, UARTFRG},
 };
 
@@ -44,7 +43,7 @@ impl<PERIPH: crate::i2c::Instance> PeripheralClock<PERIPH> for i2c::Clock<()> {
     }
 }
 
-impl<PERIPH: crate::spi::Instance> SpiClock<PERIPH> {
+impl<PERIPH: crate::spi::Instance> spi::Clock<PERIPH> {
     /// Create the clock config for the spi peripheral
     pub fn new(divval: u16) -> Self {
         Self {
@@ -55,7 +54,7 @@ impl<PERIPH: crate::spi::Instance> SpiClock<PERIPH> {
 }
 
 impl<PERIPH: crate::spi::Instance> PeripheralClock<PERIPH>
-    for SpiClock<PERIPH>
+    for spi::Clock<PERIPH>
 {
     fn select_clock(&self, _: &mut syscon::Handle) {
         // NOOP, selected by default
