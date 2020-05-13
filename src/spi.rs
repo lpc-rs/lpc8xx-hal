@@ -6,7 +6,7 @@
 //! use lpc8xx_hal::{
 //!     prelude::*,
 //!     Peripherals,
-//!     syscon::clock_source::SpiClock,
+//!     spi::SpiClock,
 //! };
 //!
 //! let mut p  = Peripherals::take().unwrap();
@@ -55,7 +55,8 @@
 //!
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
+mod clock;
 mod instances;
 mod peripheral;
 
-pub use self::{instances::Instance, peripheral::SPI};
+pub use self::{clock::SpiClock, instances::Instance, peripheral::SPI};

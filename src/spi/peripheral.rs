@@ -3,13 +3,10 @@ use embedded_hal::spi::{FullDuplex, Mode, Phase, Polarity};
 use crate::{
     init_state, pins,
     swm::{self, FunctionTrait},
-    syscon::{
-        self,
-        clock_source::{PeripheralClock, SpiClock},
-    },
+    syscon::{self, clock_source::PeripheralClock},
 };
 
-use super::Instance;
+use super::{Instance, SpiClock};
 
 /// Interface to a SPI peripheral
 ///

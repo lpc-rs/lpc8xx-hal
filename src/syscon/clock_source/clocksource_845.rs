@@ -3,12 +3,11 @@ use core::marker::PhantomData;
 use crate::{
     i2c,
     pac::{self, syscon::fclksel::SEL_A},
+    spi::SpiClock,
     syscon::{self, frg, IOSC},
 };
 
-use super::{
-    PeripheralClock, PeripheralClockSelector, PeripheralClockSource, SpiClock,
-};
+use super::{PeripheralClock, PeripheralClockSelector, PeripheralClockSource};
 
 macro_rules! periph_clock_selector {
     ($peripheral:ident, $num:expr) => {
