@@ -14,6 +14,7 @@ pub trait Instance:
     Deref<Target = pac::spi0::RegisterBlock>
     + syscon::ClockControl
     + syscon::ResetControl
+    + PeripheralClockSelector
 {
     /// The movable function that needs to be assigned to this SPI's SCK pin
     type Sck;

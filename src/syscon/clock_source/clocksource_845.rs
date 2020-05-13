@@ -7,7 +7,7 @@ use crate::{
     syscon::{self, frg, IOSC},
 };
 
-use super::{PeripheralClock, PeripheralClockSelector, PeripheralClockSource};
+use super::{PeripheralClock, PeripheralClockSource};
 
 impl PeripheralClockSource for frg::FRG<frg::FRG0> {
     const CLOCK: SEL_A = SEL_A::FRG0CLK;
@@ -60,7 +60,7 @@ impl<PERIPH: i2c::Instance, CLOCK: PeripheralClockSource>
     }
 }
 
-impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
+impl<PERIPH: spi::Instance, CLOCK: PeripheralClockSource>
     spi::Clock<(PERIPH, CLOCK)>
 {
     /// Create the clock config for the spi peripheral
@@ -72,7 +72,7 @@ impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
     }
 }
 
-impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
+impl<PERIPH: spi::Instance, CLOCK: PeripheralClockSource>
     PeripheralClock<PERIPH> for spi::Clock<(PERIPH, CLOCK)>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
