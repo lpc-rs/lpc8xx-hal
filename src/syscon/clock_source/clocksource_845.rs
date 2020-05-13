@@ -79,7 +79,7 @@ impl<PERIPH: PeripheralClockSelector, CLOCK: PeripheralClockSource>
     pub fn new(_: &CLOCK, divval: u16) -> Self {
         Self {
             divval,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 }

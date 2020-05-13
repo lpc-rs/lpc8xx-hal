@@ -74,8 +74,8 @@ impl AdcClock {
 }
 
 /// A struct containing the clock configuration for a peripheral
-pub struct SpiClock<PERIPH> {
+pub struct SpiClock<Clock> {
     pub(crate) divval: u16,
     // The fields in the DLY register are ignored, since SSEL & EOF aren't used
-    _periphclock: PhantomData<PERIPH>,
+    _clock: PhantomData<Clock>,
 }

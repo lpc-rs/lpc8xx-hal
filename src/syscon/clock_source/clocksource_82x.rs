@@ -48,7 +48,7 @@ impl<PERIPH: crate::spi::Instance> SpiClock<PERIPH> {
     pub fn new(divval: u16) -> Self {
         Self {
             divval,
-            _periphclock: PhantomData,
+            _clock: PhantomData,
         }
     }
 }
