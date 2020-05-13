@@ -41,7 +41,7 @@ mod target {
 
     use super::Clock;
 
-    impl<I> PeripheralClock<I> for Clock<syscon::UARTFRG>
+    impl<I> PeripheralClock<I> for Clock<UARTFRG>
     where
         I: Instance,
     {
