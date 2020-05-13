@@ -1,6 +1,9 @@
 use core::ops::Deref;
 
-use crate::{pac, swm, syscon};
+use crate::{
+    pac, swm,
+    syscon::{self, clock_source::PeripheralClockSelector},
+};
 
 /// Internal trait for SPI peripherals
 ///
@@ -26,6 +29,7 @@ macro_rules! instances {
     (
         $(
             $instance:ident,
+            $clock_num:expr,
             $sck:ident,
             $mosi:ident,
             $miso:ident;
@@ -37,11 +41,15 @@ macro_rules! instances {
                 type Mosi = swm::$mosi;
                 type Miso = swm::$miso;
             }
+
+            impl PeripheralClockSelector for pac::$instance {
+                const REGISTER_NUM: usize = $clock_num;
+            }
         )*
     };
 }
 
 instances!(
-    SPI0, SPI0_SCK, SPI0_MOSI, SPI0_MISO;
-    SPI1, SPI1_SCK, SPI1_MOSI, SPI1_MISO;
+    SPI0,  9, SPI0_SCK, SPI0_MOSI, SPI0_MISO;
+    SPI1, 10, SPI1_SCK, SPI1_MOSI, SPI1_MISO;
 );

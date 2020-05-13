@@ -2,23 +2,12 @@ use core::marker::PhantomData;
 
 use crate::{
     i2c,
-    pac::{self, syscon::fclksel::SEL_A},
+    pac::syscon::fclksel::SEL_A,
     spi,
     syscon::{self, frg, IOSC},
 };
 
 use super::{PeripheralClock, PeripheralClockSelector, PeripheralClockSource};
-
-macro_rules! periph_clock_selector {
-    ($peripheral:ident, $num:expr) => {
-        impl PeripheralClockSelector for pac::$peripheral {
-            const REGISTER_NUM: usize = $num;
-        }
-    };
-}
-
-periph_clock_selector!(SPI0, 9);
-periph_clock_selector!(SPI1, 10);
 
 impl PeripheralClockSource for frg::FRG<frg::FRG0> {
     const CLOCK: SEL_A = SEL_A::FRG0CLK;
