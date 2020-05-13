@@ -5,7 +5,7 @@ use crate::{
     syscon::{self, UARTFRG},
 };
 
-use super::{PeripheralClock, PeripheralClockSource};
+use super::{PeripheralClock, PeripheralClockSource, SpiClock};
 
 impl PeripheralClockSource for UARTFRG {}
 
@@ -41,13 +41,6 @@ impl<PERIPH: crate::i2c::Instance> PeripheralClock<PERIPH> for i2c::Clock<()> {
     fn select_clock(&self, _: &mut syscon::Handle) {
         // NOOP, selected by default
     }
-}
-
-/// A struct containing the clock configuration for a peripheral
-pub struct SpiClock<PERIPH> {
-    pub(crate) divval: u16,
-    // The fields in the DLY register are ignored, since SSEL & EOF aren't used
-    _periphclock: PhantomData<PERIPH>,
 }
 
 impl<PERIPH: crate::spi::Instance> SpiClock<PERIPH> {

@@ -1,5 +1,7 @@
 //! Clock configuration for the peripherals
 
+use core::marker::PhantomData;
+
 #[cfg(feature = "82x")]
 mod clocksource_82x;
 #[cfg(feature = "845")]
@@ -69,4 +71,11 @@ impl AdcClock {
     pub fn new_default() -> Self {
         Self { caldiv: 24, div: 0 }
     }
+}
+
+/// A struct containing the clock configuration for a peripheral
+pub struct SpiClock<PERIPH> {
+    pub(crate) divval: u16,
+    // The fields in the DLY register are ignored, since SSEL & EOF aren't used
+    _periphclock: PhantomData<PERIPH>,
 }
