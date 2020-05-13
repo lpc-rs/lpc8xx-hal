@@ -43,7 +43,7 @@ impl<PERIPH: crate::i2c::Instance> PeripheralClock<PERIPH> for i2c::Clock<()> {
     }
 }
 
-impl<PERIPH: crate::spi::Instance> spi::Clock<PERIPH> {
+impl spi::Clock<()> {
     /// Create the clock config for the spi peripheral
     pub fn new(divval: u16) -> Self {
         Self {
@@ -53,9 +53,7 @@ impl<PERIPH: crate::spi::Instance> spi::Clock<PERIPH> {
     }
 }
 
-impl<PERIPH: crate::spi::Instance> PeripheralClock<PERIPH>
-    for spi::Clock<PERIPH>
-{
+impl<PERIPH: crate::spi::Instance> PeripheralClock<PERIPH> for spi::Clock<()> {
     fn select_clock(&self, _: &mut syscon::Handle) {
         // NOOP, selected by default
     }

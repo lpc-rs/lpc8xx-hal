@@ -60,9 +60,7 @@ impl<PERIPH: i2c::Instance, CLOCK: PeripheralClockSource>
     }
 }
 
-impl<PERIPH: spi::Instance, CLOCK: PeripheralClockSource>
-    spi::Clock<(PERIPH, CLOCK)>
-{
+impl<CLOCK: PeripheralClockSource> spi::Clock<CLOCK> {
     /// Create the clock config for the spi peripheral
     pub fn new(_: &CLOCK, divval: u16) -> Self {
         Self {
@@ -73,7 +71,7 @@ impl<PERIPH: spi::Instance, CLOCK: PeripheralClockSource>
 }
 
 impl<PERIPH: spi::Instance, CLOCK: PeripheralClockSource>
-    PeripheralClock<PERIPH> for spi::Clock<(PERIPH, CLOCK)>
+    PeripheralClock<PERIPH> for spi::Clock<CLOCK>
 {
     fn select_clock(&self, syscon: &mut syscon::Handle) {
         syscon.fclksel[PERIPH::REGISTER_NUM]
