@@ -11,7 +11,7 @@ pub struct Clock<Clock> {
 
 impl<C> Clock<C>
 where
-    C: PeripheralClockSource,
+    C: ClockSource,
 {
     /// Create the clock config for the uart
     ///
@@ -28,6 +28,9 @@ where
     }
 }
 
+/// Implemented for USART clock sources
+pub trait ClockSource: PeripheralClockSource + private::Sealed {}
+
 #[cfg(feature = "82x")]
 mod target {
     use crate::{
@@ -39,7 +42,7 @@ mod target {
         usart::Instance,
     };
 
-    use super::Clock;
+    use super::{Clock, ClockSource};
 
     impl<I> PeripheralClock<I> for Clock<UARTFRG>
     where
@@ -51,6 +54,8 @@ mod target {
     }
 
     impl PeripheralClockSource for UARTFRG {}
+    impl super::private::Sealed for UARTFRG {}
+    impl ClockSource for UARTFRG {}
 }
 
 #[cfg(feature = "845")]
@@ -65,7 +70,7 @@ mod target {
         usart::Instance,
     };
 
-    use super::Clock;
+    use super::{Clock, ClockSource};
 
     impl Clock<syscon::IOSC> {
         /// Create a new configuration with a specified baudrate
@@ -93,11 +98,18 @@ mod target {
     impl<I, C> PeripheralClock<I> for Clock<C>
     where
         I: Instance,
-        C: PeripheralClockSource,
+        C: ClockSource,
     {
         fn select_clock(&self, syscon: &mut syscon::Handle) {
             syscon.fclksel[I::REGISTER_NUM]
                 .write(|w| w.sel().variant(C::CLOCK));
         }
     }
+
+    impl<T> super::private::Sealed for T where T: PeripheralClockSource {}
+    impl<T> ClockSource for T where T: PeripheralClockSource {}
+}
+
+mod private {
+    pub trait Sealed {}
 }

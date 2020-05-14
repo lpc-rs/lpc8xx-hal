@@ -57,4 +57,8 @@ mod clock;
 mod instances;
 mod peripheral;
 
-pub use self::{clock::Clock, instances::Instance, peripheral::I2C};
+pub use self::{
+    clock::{Clock, ClockSource},
+    instances::Instance,
+    peripheral::I2C,
+};
