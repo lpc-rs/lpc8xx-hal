@@ -74,7 +74,7 @@ mod rx;
 mod tx;
 
 pub use self::{
-    clock::Clock,
+    clock::{Clock, ClockSource},
     instances::Instance,
     peripheral::USART,
     rx::{Error, Rx},

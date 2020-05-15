@@ -1,12 +1,9 @@
 use embedded_hal::blocking::i2c;
 use void::Void;
 
-use crate::{
-    init_state, swm,
-    syscon::{self, clock_source::PeripheralClock},
-};
+use crate::{init_state, swm, syscon};
 
-use super::{Clock, Instance};
+use super::{Clock, ClockSource, Instance};
 
 /// Interface to an I2C peripheral
 ///
@@ -73,11 +70,12 @@ where
         _: swm::Function<I::Scl, swm::state::Assigned<SclPin>>,
     ) -> I2C<I, init_state::Enabled>
     where
-        Clock<C>: PeripheralClock<I>,
+        C: ClockSource,
     {
         syscon.enable_clock(&mut self.i2c);
 
-        clock.select_clock(syscon);
+        C::select(&self.i2c, syscon);
+
         // We need the I2C mode for the pins set to standard/fast mode,
         // according to the user manual, section 15.3.1. This is already the
         // default value (see user manual, sections 8.5.8 and 8.5.9).

@@ -59,4 +59,8 @@ mod clock;
 mod instances;
 mod peripheral;
 
-pub use self::{clock::Clock, instances::Instance, peripheral::SPI};
+pub use self::{
+    clock::{Clock, ClockSource},
+    instances::Instance,
+    peripheral::SPI,
+};

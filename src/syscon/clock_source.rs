@@ -12,27 +12,26 @@ pub use clocksource_845::*;
 
 use crate::syscon;
 
-/// Internal trait used configure clocking of peripheals
+/// Internal trait used configure peripheral clock sources
 ///
 /// This trait is an internal implementation detail and should neither be
 /// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
-pub trait PeripheralClock<PERIPH> {
-    /// Selects the clock
-    fn select_clock(&self, handle: &mut syscon::Handle);
-}
-
-/// Internal trait used for defining valid peripheal clock sources
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
-/// be considered breaking changes.
-pub trait PeripheralClockSource {
+pub trait PeripheralClock {
     /// The variant of FCLKSEL.SEL that selects this clock source
     ///
     /// This is not available (or required) on LPC82x.
     #[cfg(feature = "845")]
     const CLOCK: crate::pac::syscon::fclksel::SEL_A;
+
+    /// Select the clock
+    ///
+    /// The `selector` argument should not be required to implement this trait,
+    /// but it makes sure that the caller has access to the peripheral they are
+    /// selecting the clock for.
+    fn select<S>(selector: &S, handle: &mut syscon::Handle)
+    where
+        S: PeripheralClockSelector;
 }
 
 /// Internal trait used for defining the fclksel index for a peripheral

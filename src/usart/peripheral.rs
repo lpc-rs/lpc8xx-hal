@@ -11,11 +11,11 @@ use crate::{
     pac::NVIC,
     pins,
     swm::{self, FunctionTrait},
-    syscon::{self, clock_source::PeripheralClock},
+    syscon,
 };
 
 use super::{
-    clock::Clock,
+    clock::{Clock, ClockSource},
     instances::Instance,
     rx::{Error, Rx},
     tx::Tx,
@@ -103,11 +103,11 @@ where
         TxPin: pins::Trait,
         I::Rx: FunctionTrait<RxPin>,
         I::Tx: FunctionTrait<TxPin>,
-        Clock<CLOCK>: PeripheralClock<I>,
+        CLOCK: ClockSource,
     {
         syscon.enable_clock(&self.usart);
 
-        clock.select_clock(syscon);
+        CLOCK::select(&self.usart, syscon);
         self.usart
             .brg
             .write(|w| unsafe { w.brgval().bits(clock.psc) });
