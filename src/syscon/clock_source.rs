@@ -3,9 +3,6 @@
 #[cfg(feature = "845")]
 mod clocksource_845;
 
-#[cfg(feature = "845")]
-pub use clocksource_845::*;
-
 use crate::syscon;
 
 /// Internal trait used configure peripheral clock sources
