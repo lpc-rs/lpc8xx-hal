@@ -10,6 +10,25 @@ pub struct Clock<Clock> {
     pub(crate) _clock: PhantomData<Clock>,
 }
 
+impl<C> Clock<C>
+where
+    C: ClockSource,
+{
+    /// Create the clock config for the I2C peripheral
+    ///
+    /// `mstclhigh` and `mstcllow` have to be between 2-9.
+    pub fn new(_: &C, divval: u16, mstsclhigh: u8, mstscllow: u8) -> Self {
+        assert!(mstsclhigh > 1 && mstsclhigh < 10);
+        assert!(mstscllow > 1 && mstscllow < 10);
+        Self {
+            divval,
+            mstsclhigh: mstsclhigh - 2,
+            mstscllow: mstscllow - 2,
+            _clock: PhantomData,
+        }
+    }
+}
+
 /// Implemented for I2C clock sources
 pub trait ClockSource: private::Sealed {
     /// Select the clock source

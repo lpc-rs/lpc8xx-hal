@@ -32,7 +32,7 @@
 //!     .assign(p.pins.pio0_15.into_swm_pin(), &mut swm_handle);
 //!
 //! #[cfg(feature = "82x")]
-//! let spi_clock = spi::Clock::new(0);
+//! let spi_clock = spi::Clock::new(&(), 0);
 //! #[cfg(feature = "845")]
 //! let spi_clock = spi::Clock::new(&syscon.iosc, 0);
 //!
