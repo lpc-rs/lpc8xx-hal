@@ -46,9 +46,11 @@ pub trait ClockSource: private::Sealed {
 
 #[cfg(feature = "82x")]
 mod target {
+    use core::marker::PhantomData;
+
     use crate::syscon;
 
-    use super::ClockSource;
+    use super::{Clock, ClockSource};
 
     impl super::private::Sealed for () {}
 
@@ -58,16 +60,33 @@ mod target {
             // default
         }
     }
+
+    impl Clock<()> {
+        /// Create a new i2c clock config for 400 kHz
+        ///
+        /// Assumes the internal oscillator runs at 12 MHz
+        pub fn new_400khz() -> Self {
+            Self {
+                divval: 5,
+                mstsclhigh: 0,
+                mstscllow: 1,
+                _clock: PhantomData,
+            }
+        }
+    }
 }
 
 #[cfg(feature = "845")]
 mod target {
+    use core::marker::PhantomData;
+
     use crate::syscon::{
         self,
         clock_source::{PeripheralClock, PeripheralClockSelector},
+        IOSC,
     };
 
-    use super::ClockSource;
+    use super::{Clock, ClockSource};
 
     impl<T> super::private::Sealed for T where T: PeripheralClock {}
     impl<T> ClockSource for T
@@ -79,6 +98,20 @@ mod target {
             S: PeripheralClockSelector,
         {
             T::select(selector, handle);
+        }
+    }
+
+    impl Clock<IOSC> {
+        /// Create a new i2c clock config for 400 kHz
+        ///
+        /// Assumes the internal oscillator runs at 12 MHz
+        pub fn new_400khz() -> Self {
+            Self {
+                divval: 5,
+                mstsclhigh: 0,
+                mstscllow: 1,
+                _clock: PhantomData,
+            }
         }
     }
 }
