@@ -99,6 +99,23 @@ where
     }
 }
 
+impl<I> I2C<I, init_state::Enabled>
+where
+    I: Instance,
+{
+    /// Read and clear a detected error
+    ///
+    /// The read and write method will return an error, if one was detected.
+    /// However, only one error will be returned, even though, theoretically,
+    /// multiple could have been detected.
+    ///
+    /// This method can be used to read and clear all currently detected errors
+    /// before resuming normal operation.
+    pub fn read_error(&mut self) -> Option<Error> {
+        Error::read(&self.i2c)
+    }
+}
+
 impl<I, State> I2C<I, State>
 where
     I: Instance,
