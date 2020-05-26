@@ -2,7 +2,7 @@ use embedded_hal::blocking::i2c;
 
 use crate::{init_state, swm, syscon};
 
-use super::{Clock, ClockSource, Instance};
+use super::{Clock, ClockSource, Instance, Interrupts};
 
 /// Interface to an I2C peripheral
 ///
@@ -103,6 +103,22 @@ impl<I> I2C<I, init_state::Enabled>
 where
     I: Instance,
 {
+    /// Enable interrupts
+    ///
+    /// Enables all interrupts set to `true` in `interrupts`. Interrupts set to
+    /// `false` are not affected.
+    pub fn enable_interrupts(&mut self, interrupts: Interrupts) {
+        interrupts.enable(&self.i2c);
+    }
+
+    /// Disable interrupts
+    ///
+    /// Disables all interrupts set to `true` in `interrupts`. Interrupts set to
+    /// `false` are not affected.
+    pub fn disable_interrupts(&mut self, interrupts: Interrupts) {
+        interrupts.disable(&self.i2c);
+    }
+
     /// Read and clear a detected error
     ///
     /// The read and write method will return an error, if one was detected.
