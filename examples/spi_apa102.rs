@@ -39,7 +39,7 @@ fn main() -> ! {
         .assign(miso_pin, &mut handle);
 
     #[cfg(feature = "82x")]
-    let spi_clock = spi::Clock::new(0);
+    let spi_clock = spi::Clock::new(&(), 0);
     #[cfg(feature = "845")]
     let spi_clock = spi::Clock::new(&syscon.iosc, 0);
 

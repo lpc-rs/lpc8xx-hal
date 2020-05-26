@@ -9,6 +9,19 @@ pub struct Clock<Clock> {
     pub(crate) _clock: PhantomData<Clock>,
 }
 
+impl<C> Clock<C>
+where
+    C: ClockSource,
+{
+    /// Create the clock config for the SPI peripheral
+    pub fn new(_: &C, divval: u16) -> Self {
+        Self {
+            divval,
+            _clock: PhantomData,
+        }
+    }
+}
+
 /// Implemented for SPI clock sources
 pub trait ClockSource: private::Sealed {
     /// Select the clock source

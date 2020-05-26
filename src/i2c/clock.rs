@@ -10,6 +10,25 @@ pub struct Clock<Clock> {
     pub(crate) _clock: PhantomData<Clock>,
 }
 
+impl<C> Clock<C>
+where
+    C: ClockSource,
+{
+    /// Create the clock config for the I2C peripheral
+    ///
+    /// `mstclhigh` and `mstcllow` have to be between 2-9.
+    pub fn new(_: &C, divval: u16, mstsclhigh: u8, mstscllow: u8) -> Self {
+        assert!(mstsclhigh > 1 && mstsclhigh < 10);
+        assert!(mstscllow > 1 && mstscllow < 10);
+        Self {
+            divval,
+            mstsclhigh: mstsclhigh - 2,
+            mstscllow: mstscllow - 2,
+            _clock: PhantomData,
+        }
+    }
+}
+
 /// Implemented for I2C clock sources
 pub trait ClockSource: private::Sealed {
     /// Select the clock source
@@ -27,9 +46,11 @@ pub trait ClockSource: private::Sealed {
 
 #[cfg(feature = "82x")]
 mod target {
+    use core::marker::PhantomData;
+
     use crate::syscon;
 
-    use super::ClockSource;
+    use super::{Clock, ClockSource};
 
     impl super::private::Sealed for () {}
 
@@ -39,16 +60,33 @@ mod target {
             // default
         }
     }
+
+    impl Clock<()> {
+        /// Create a new i2c clock config for 400 kHz
+        ///
+        /// Assumes the internal oscillator runs at 12 MHz
+        pub fn new_400khz() -> Self {
+            Self {
+                divval: 5,
+                mstsclhigh: 0,
+                mstscllow: 1,
+                _clock: PhantomData,
+            }
+        }
+    }
 }
 
 #[cfg(feature = "845")]
 mod target {
+    use core::marker::PhantomData;
+
     use crate::syscon::{
         self,
         clock_source::{PeripheralClock, PeripheralClockSelector},
+        IOSC,
     };
 
-    use super::ClockSource;
+    use super::{Clock, ClockSource};
 
     impl<T> super::private::Sealed for T where T: PeripheralClock {}
     impl<T> ClockSource for T
@@ -60,6 +98,20 @@ mod target {
             S: PeripheralClockSelector,
         {
             T::select(selector, handle);
+        }
+    }
+
+    impl Clock<IOSC> {
+        /// Create a new i2c clock config for 400 kHz
+        ///
+        /// Assumes the internal oscillator runs at 12 MHz
+        pub fn new_400khz() -> Self {
+            Self {
+                divval: 5,
+                mstsclhigh: 0,
+                mstscllow: 1,
+                _clock: PhantomData,
+            }
         }
     }
 }
