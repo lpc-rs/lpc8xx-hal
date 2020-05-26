@@ -60,5 +60,5 @@ mod peripheral;
 pub use self::{
     clock::{Clock, ClockSource},
     instances::Instance,
-    peripheral::I2C,
+    peripheral::{Error, I2C},
 };

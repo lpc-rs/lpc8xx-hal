@@ -1,5 +1,4 @@
 use embedded_hal::blocking::i2c;
-use void::Void;
 
 use crate::{init_state, swm, syscon};
 
@@ -125,7 +124,7 @@ impl<I> i2c::Write for I2C<I, init_state::Enabled>
 where
     I: Instance,
 {
-    type Error = Void;
+    type Error = Error;
 
     /// Write to the I2C bus
     ///
@@ -146,7 +145,11 @@ where
 
         for &b in data {
             // Wait until peripheral is ready to transmit
-            while self.i2c.stat.read().mstpending().is_in_progress() {}
+            while self.i2c.stat.read().mstpending().is_in_progress() {
+                if let Some(error) = Error::read(&self.i2c) {
+                    return Err(error);
+                }
+            }
 
             // Write byte
             self.i2c.mstdat.write(|w| unsafe { w.data().bits(b) });
@@ -156,7 +159,11 @@ where
         }
 
         // Wait until peripheral is ready to transmit
-        while self.i2c.stat.read().mstpending().is_in_progress() {}
+        while self.i2c.stat.read().mstpending().is_in_progress() {
+            if let Some(error) = Error::read(&self.i2c) {
+                return Err(error);
+            }
+        }
 
         // Stop transmission
         self.i2c.mstctl.modify(|_, w| w.mststop().stop());
@@ -169,7 +176,7 @@ impl<I> i2c::Read for I2C<I, init_state::Enabled>
 where
     I: Instance,
 {
-    type Error = Void;
+    type Error = Error;
 
     /// Read from the I2C bus
     ///
@@ -182,7 +189,11 @@ where
         buffer: &mut [u8],
     ) -> Result<(), Self::Error> {
         // Wait until peripheral is idle
-        while !self.i2c.stat.read().mststate().is_idle() {}
+        while !self.i2c.stat.read().mststate().is_idle() {
+            if let Some(error) = Error::read(&self.i2c) {
+                return Err(error);
+            }
+        }
 
         // Write slave address with rw bit set to 1
         self.i2c
@@ -197,7 +208,11 @@ where
             self.i2c.mstctl.write(|w| w.mstcontinue().continue_());
 
             // Wait until peripheral is ready to receive
-            while self.i2c.stat.read().mstpending().is_in_progress() {}
+            while self.i2c.stat.read().mstpending().is_in_progress() {
+                if let Some(error) = Error::read(&self.i2c) {
+                    return Err(error);
+                }
+            }
 
             // Read received byte
             *b = self.i2c.mstdat.read().data().bits();
@@ -207,5 +222,64 @@ where
         self.i2c.mstctl.modify(|_, w| w.mststop().stop());
 
         Ok(())
+    }
+}
+
+/// I2C error
+#[derive(Debug, Eq, PartialEq)]
+pub enum Error {
+    /// Event Timeout
+    ///
+    /// Corresponds to the EVENTTIMEOUT flag in the STAT register.
+    EventTimeout,
+
+    /// Master Arbitration Loss
+    ///
+    /// Corresponds to the MSTARBLOSS flag in the STAT register.
+    MasterArbitrationLoss,
+
+    /// Master Start/Stop Error
+    ///
+    /// Corresponds to the MSTSTSTPERR flag in the STAT register.
+    MasterStartStopError,
+
+    /// Monitor Overflow
+    ///
+    /// Corresponds to the MONOV flag in the STAT register.
+    MonitorOverflow,
+
+    /// SCL Timeout
+    ///
+    /// Corresponds to the SCLTIMEOUT flag in the STAT register.
+    SclTimeout,
+}
+
+impl Error {
+    fn read<I: Instance>(i2c: &I) -> Option<Self> {
+        let stat = i2c.stat.read();
+
+        // Check for error flags. If one is set, clear it and return the error.
+        if stat.mstarbloss().bit_is_set() {
+            i2c.stat.write(|w| w.mstarbloss().set_bit());
+            return Some(Self::MasterArbitrationLoss);
+        }
+        if stat.mstststperr().bit_is_set() {
+            i2c.stat.write(|w| w.mstststperr().set_bit());
+            return Some(Self::MasterStartStopError);
+        }
+        if stat.monov().bit_is_set() {
+            i2c.stat.write(|w| w.monov().set_bit());
+            return Some(Self::MonitorOverflow);
+        }
+        if stat.eventtimeout().bit_is_set() {
+            i2c.stat.write(|w| w.eventtimeout().set_bit());
+            return Some(Self::EventTimeout);
+        }
+        if stat.scltimeout().bit_is_set() {
+            i2c.stat.write(|w| w.scltimeout().set_bit());
+            return Some(Self::SclTimeout);
+        }
+
+        None
     }
 }
