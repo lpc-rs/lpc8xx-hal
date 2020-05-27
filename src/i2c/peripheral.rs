@@ -121,9 +121,9 @@ where
 
     /// Read and clear a detected error
     ///
-    /// The read and write method will return an error, if one was detected.
-    /// However, only one error will be returned, even though, theoretically,
-    /// multiple could have been detected.
+    /// The `read` and `write` methods will return an error and clear it, if one
+    /// was detected. However, if multiple errors occur, only one error will be
+    /// returned and cleared.
     ///
     /// This method can be used to read and clear all currently detected errors
     /// before resuming normal operation.
