@@ -55,10 +55,12 @@
 
 mod clock;
 mod instances;
+mod interrupts;
 mod peripheral;
 
 pub use self::{
     clock::{Clock, ClockSource},
     instances::Instance,
-    peripheral::I2C,
+    interrupts::Interrupts,
+    peripheral::{Error, I2C},
 };
