@@ -24,7 +24,7 @@ use super::{Clock, ClockSource, Instance, Interrupts};
 /// [`embedded_hal::blocking::i2c::Read`]: #impl-Read
 /// [`embedded_hal::blocking::i2c::Write`]: #impl-Write
 /// [module documentation]: index.html
-pub struct I2C<I, State = init_state::Enabled> {
+pub struct I2C<I, State> {
     i2c: I,
     _state: State,
 }
