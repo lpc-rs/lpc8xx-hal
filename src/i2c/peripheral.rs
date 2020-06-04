@@ -67,7 +67,7 @@ where
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Sda, swm::state::Assigned<SdaPin>>,
         _: swm::Function<I::Scl, swm::state::Assigned<SclPin>>,
-    ) -> I2C<I, init_state::Enabled>
+    ) -> I2C<I, init_state::Enabled<Master>>
     where
         C: ClockSource,
     {
@@ -94,12 +94,12 @@ where
 
         I2C {
             i2c: self.i2c,
-            _state: init_state::Enabled(()),
+            _state: init_state::Enabled(Master),
         }
     }
 }
 
-impl<I> I2C<I, init_state::Enabled>
+impl<I, Mode> I2C<I, init_state::Enabled<Mode>>
 where
     I: Instance,
 {
@@ -153,7 +153,7 @@ where
     }
 }
 
-impl<I> i2c::Write for I2C<I, init_state::Enabled>
+impl<I> i2c::Write for I2C<I, init_state::Enabled<Master>>
 where
     I: Instance,
 {
@@ -205,7 +205,7 @@ where
     }
 }
 
-impl<I> i2c::Read for I2C<I, init_state::Enabled>
+impl<I> i2c::Read for I2C<I, init_state::Enabled<Master>>
 where
     I: Instance,
 {
