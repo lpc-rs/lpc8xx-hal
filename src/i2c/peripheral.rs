@@ -40,7 +40,7 @@ where
         }
     }
 
-    /// Enable the I2C peripheral
+    /// Enable the I2C peripheral in master mode
     ///
     /// This method is only available, if `I2C` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
