@@ -258,6 +258,16 @@ where
     }
 }
 
+/// Used as a type parameter by [`I2C`] to indicate master mode
+///
+/// [`I2C`]: struct.I2C.html
+pub struct Master;
+
+/// Used as a type parameter by [`I2C`] to indicate slave mode
+///
+/// [`I2C`]: struct.I2C.html
+pub struct Slave;
+
 /// I2C error
 #[derive(Debug, Eq, PartialEq)]
 pub enum Error {

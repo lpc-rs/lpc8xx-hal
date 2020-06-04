@@ -62,5 +62,5 @@ pub use self::{
     clock::{Clock, ClockSource},
     instances::Instance,
     interrupts::Interrupts,
-    peripheral::{Error, I2C},
+    peripheral::{Error, Master, Slave, I2C},
 };
