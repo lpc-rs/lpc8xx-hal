@@ -61,7 +61,7 @@ where
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable<SdaPin, SclPin, C>(
+    pub fn enable_master<SdaPin, SclPin, C>(
         mut self,
         clock: &Clock<C>,
         syscon: &mut syscon::Handle,

@@ -38,7 +38,7 @@
 //!     &mut swm_handle,
 //! );
 //!
-//! let mut i2c = p.I2C0.enable(
+//! let mut i2c = p.I2C0.enable_master(
 //!     &i2c::Clock::new_400khz(),
 //!     &mut syscon.handle,
 //!     i2c0_sda,

@@ -78,7 +78,7 @@ fn main() -> ! {
 
     let i2c_clock = i2c::Clock::new_400khz();
     let mut i2c =
-        i2c.enable(&i2c_clock, &mut syscon.handle, i2c0_sda, i2c0_scl);
+        i2c.enable_master(&i2c_clock, &mut syscon.handle, i2c0_sda, i2c0_scl);
 
     // Address of the eeprom
     // ADJUST THIS
