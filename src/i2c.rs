@@ -54,13 +54,15 @@
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
 mod clock;
+mod error;
 mod instances;
 mod interrupts;
 mod peripheral;
 
 pub use self::{
     clock::{Clock, ClockSource},
+    error::Error,
     instances::Instance,
     interrupts::Interrupts,
-    peripheral::{Error, Master, Slave, I2C},
+    peripheral::{Master, Slave, I2C},
 };
