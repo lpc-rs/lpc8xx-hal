@@ -39,6 +39,9 @@ pub enum Error {
         /// represents an invalid bit pattern in the MSTSTATE field.
         actual: Result<master::State, u8>,
     },
+
+    /// While in slave mode, an unknown state was detected
+    UnknownSlaveState(u8),
 }
 
 impl Error {

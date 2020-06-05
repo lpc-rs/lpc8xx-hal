@@ -120,6 +120,44 @@ where
     }
 }
 
+impl<I, MasterMode>
+    I2C<I, init_state::Enabled, MasterMode, init_state::Disabled>
+where
+    I: Instance,
+{
+    /// Enable slave mode
+    ///
+    /// This method is only available, if the peripheral instance is enabled and
+    /// slave mode is disabled. Code that attempts to call this method when this
+    /// is not the case will not compile.
+    ///
+    /// Consumes this instance of `I2C` and returns another instance that has
+    /// its type state updated.
+    pub fn enable_slave_mode(
+        self,
+        address: u8,
+    ) -> I2C<I, init_state::Enabled, MasterMode, init_state::Enabled> {
+        // Enable slave mode
+        // Set all other configuration values to default.
+        self.i2c.cfg.modify(|_, w| w.slven().enabled());
+
+        // Set provided address
+        self.i2c.slvadr[0].write(|w| {
+            w.sadisable().enabled();
+
+            // Sound, as all possible 7-bit values are acceptable here.
+            unsafe { w.slvadr().bits(address >> 1) }
+        });
+
+        I2C {
+            master: Master::new(),
+            slave: Slave::new(),
+
+            i2c: self.i2c,
+        }
+    }
+}
+
 impl<I, MasterMode, SlaveMode>
     I2C<I, init_state::Enabled, MasterMode, SlaveMode>
 where
