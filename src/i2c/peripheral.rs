@@ -2,7 +2,7 @@ use embedded_hal::blocking::i2c;
 
 use crate::{init_state, swm, syscon};
 
-use super::{Clock, ClockSource, Instance, Interrupts};
+use super::{Clock, ClockSource, Error, Instance, Interrupts};
 
 /// Interface to an I2C peripheral
 ///
@@ -24,7 +24,7 @@ use super::{Clock, ClockSource, Instance, Interrupts};
 /// [`embedded_hal::blocking::i2c::Read`]: #impl-Read
 /// [`embedded_hal::blocking::i2c::Write`]: #impl-Write
 /// [module documentation]: index.html
-pub struct I2C<I, State = init_state::Enabled> {
+pub struct I2C<I, State> {
     i2c: I,
     _state: State,
 }
@@ -40,7 +40,7 @@ where
         }
     }
 
-    /// Enable the I2C peripheral
+    /// Enable the I2C peripheral in master mode
     ///
     /// This method is only available, if `I2C` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
@@ -61,13 +61,13 @@ where
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable<SdaPin, SclPin, C>(
+    pub fn enable_master<SdaPin, SclPin, C>(
         mut self,
         clock: &Clock<C>,
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Sda, swm::state::Assigned<SdaPin>>,
         _: swm::Function<I::Scl, swm::state::Assigned<SclPin>>,
-    ) -> I2C<I, init_state::Enabled>
+    ) -> I2C<I, init_state::Enabled<Master>>
     where
         C: ClockSource,
     {
@@ -94,12 +94,12 @@ where
 
         I2C {
             i2c: self.i2c,
-            _state: init_state::Enabled(()),
+            _state: init_state::Enabled(Master),
         }
     }
 }
 
-impl<I> I2C<I, init_state::Enabled>
+impl<I, Mode> I2C<I, init_state::Enabled<Mode>>
 where
     I: Instance,
 {
@@ -153,7 +153,7 @@ where
     }
 }
 
-impl<I> i2c::Write for I2C<I, init_state::Enabled>
+impl<I> i2c::Write for I2C<I, init_state::Enabled<Master>>
 where
     I: Instance,
 {
@@ -205,7 +205,7 @@ where
     }
 }
 
-impl<I> i2c::Read for I2C<I, init_state::Enabled>
+impl<I> i2c::Read for I2C<I, init_state::Enabled<Master>>
 where
     I: Instance,
 {
@@ -258,61 +258,12 @@ where
     }
 }
 
-/// I2C error
-#[derive(Debug, Eq, PartialEq)]
-pub enum Error {
-    /// Event Timeout
-    ///
-    /// Corresponds to the EVENTTIMEOUT flag in the STAT register.
-    EventTimeout,
+/// Used as a type parameter by [`I2C`] to indicate master mode
+///
+/// [`I2C`]: struct.I2C.html
+pub struct Master;
 
-    /// Master Arbitration Loss
-    ///
-    /// Corresponds to the MSTARBLOSS flag in the STAT register.
-    MasterArbitrationLoss,
-
-    /// Master Start/Stop Error
-    ///
-    /// Corresponds to the MSTSTSTPERR flag in the STAT register.
-    MasterStartStopError,
-
-    /// Monitor Overflow
-    ///
-    /// Corresponds to the MONOV flag in the STAT register.
-    MonitorOverflow,
-
-    /// SCL Timeout
-    ///
-    /// Corresponds to the SCLTIMEOUT flag in the STAT register.
-    SclTimeout,
-}
-
-impl Error {
-    fn read<I: Instance>(i2c: &I) -> Option<Self> {
-        let stat = i2c.stat.read();
-
-        // Check for error flags. If one is set, clear it and return the error.
-        if stat.mstarbloss().bit_is_set() {
-            i2c.stat.write(|w| w.mstarbloss().set_bit());
-            return Some(Self::MasterArbitrationLoss);
-        }
-        if stat.mstststperr().bit_is_set() {
-            i2c.stat.write(|w| w.mstststperr().set_bit());
-            return Some(Self::MasterStartStopError);
-        }
-        if stat.monov().bit_is_set() {
-            i2c.stat.write(|w| w.monov().set_bit());
-            return Some(Self::MonitorOverflow);
-        }
-        if stat.eventtimeout().bit_is_set() {
-            i2c.stat.write(|w| w.eventtimeout().set_bit());
-            return Some(Self::EventTimeout);
-        }
-        if stat.scltimeout().bit_is_set() {
-            i2c.stat.write(|w| w.scltimeout().set_bit());
-            return Some(Self::SclTimeout);
-        }
-
-        None
-    }
-}
+/// Used as a type parameter by [`I2C`] to indicate slave mode
+///
+/// [`I2C`]: struct.I2C.html
+pub struct Slave;
