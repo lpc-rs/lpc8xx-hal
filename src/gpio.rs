@@ -313,12 +313,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_input`]: #method.into_input
     pub fn is_low(&self) -> bool {
-        // This is sound, as we only do a stateless write to a bit that no other
-        // `GpioPin` instance writes to.
-        let gpio = unsafe { &*pac::GPIO::ptr() };
-        let registers = Registers::new(gpio);
-
-        !registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
+        !self.is_high()
     }
 }
 
