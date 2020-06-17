@@ -3,7 +3,7 @@
 
 extern crate panic_halt;
 
-use lpc8xx_hal::{cortex_m_rt::entry, gpio::Level, prelude::*, Peripherals};
+use lpc8xx_hal::{cortex_m_rt::entry, gpio::Level, Peripherals};
 
 #[entry]
 fn main() -> ! {
@@ -37,12 +37,12 @@ fn main() -> ! {
     // Display the state of the button on the led
     loop {
         // If the button is high (not pressed)
-        if button.is_high().unwrap() {
+        if button.is_high() {
             // Disable the LED
-            led.set_high().unwrap();
+            led.set_high();
         } else {
             // Otherwise, enable it
-            led.set_low().unwrap();
+            led.set_low();
         }
     }
 }

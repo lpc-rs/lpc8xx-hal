@@ -41,8 +41,8 @@ fn main() -> ! {
     // Blink the LED using the systick with the delay traits
     loop {
         block!(timer.wait()).unwrap();
-        led.set_high().unwrap();
+        led.set_high();
         block!(timer.wait()).unwrap();
-        led.set_low().unwrap();
+        led.set_low();
     }
 }
