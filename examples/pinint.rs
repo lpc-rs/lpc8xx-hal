@@ -12,7 +12,7 @@ use lpc8xx_hal::{
 use panic_halt as _;
 use void::ResultVoidExt;
 
-#[rtfm::app(device = lpc8xx_hal::pac)]
+#[rtic::app(device = lpc8xx_hal::pac)]
 const APP: () = {
     struct Resources {
         int: pinint::Interrupt<PININT0, PIO0_4, Enabled>,

@@ -43,7 +43,7 @@ version      = "0.3.0"
 
 [dev-dependencies]
 panic-halt    = "0.2.0"
-cortex-m-rtfm = "0.5.1"
+cortex-m-rtic = "0.5.3"
 
 
 # Termion has been made optional, as it doesn't build on Windows:
