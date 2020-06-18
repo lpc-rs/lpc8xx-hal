@@ -3,7 +3,7 @@
 
 extern crate panic_halt;
 
-use lpc8xx_hal::{cortex_m_rt::entry, gpio::Level, prelude::*, Peripherals};
+use lpc8xx_hal::{cortex_m_rt::entry, gpio::Level, Peripherals};
 
 #[entry]
 fn main() -> ! {
@@ -40,10 +40,10 @@ fn main() -> ! {
     // pattern in release mode.
     loop {
         for _ in 0..1_000_000 {
-            led.set_high().unwrap();
+            led.set_high();
         }
         for _ in 0..100_000 {
-            led.set_low().unwrap();
+            led.set_low();
         }
     }
 }

@@ -40,9 +40,9 @@ const APP: () = {
         let led = cx.resources.led;
 
         loop {
-            led.set_high().unwrap();
+            led.set_high();
             delay.delay_ms(700_u16);
-            led.set_low().unwrap();
+            led.set_low();
             delay.delay_ms(50_u16);
         }
     }

@@ -61,9 +61,9 @@ fn main() -> ! {
 
     // Blink the LED
     loop {
-        led.set_high().unwrap();
+        led.set_high();
         sleep.sleep(high_time);
-        led.set_low().unwrap();
+        led.set_low();
         sleep.sleep(low_time);
     }
 }

@@ -41,8 +41,8 @@ fn main() -> ! {
     // Blink the LED using the systick with the delay traits
     loop {
         delay.delay_ms(1_000_u16);
-        led.set_high().unwrap();
+        led.set_high();
         delay.delay_ms(1_000_u16);
-        led.set_low().unwrap();
+        led.set_low();
     }
 }
