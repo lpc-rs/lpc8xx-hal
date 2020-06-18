@@ -1,4 +1,88 @@
 
+<a name="v0.7.0"></a>
+## v0.7.0 (2020-06-22)
+
+- Improve documentation ([#180], [#200], [#231], [#233], [#234])
+- Improve `cargo run` configuration ([#181], [#235])
+- Enforce consistent formatting with rustfmt ([#184], [#186])
+- Fix and improve build script ([#185], [#187], [#193], [#194], [#197], [#213])
+- Fix and improve USART API ([#188], [#199], [#206], [#208], [#210], [#221], [#223])
+- Implement digital input ([#189])
+- Fix wrong initial SWM state on LPC845 ([#190])
+- Re-export clock source enum from `frg` module ([#195])
+- Add PWM implementation based on CTIMER ([#196])
+- Update prelude ([#198])
+- Add MRT API ([#201], [#230])
+- Add LPC845 support to I2C API ([#202])
+- Add ADC API ([#203])
+- Add SPI API ([#204])
+- Opt into default `ToggleableOutputPin` impl ([#207])
+- Remove core peripherals from `Peripherals` ([#209])
+- Improve pin/GPIO API ([#214], [#216], [#217], [#219], [#220], [#224], [#225], [#226], [#228], [#242])
+- Simplify `GPIO`/`SWM` constructors ([#218])
+- Split some modules to improve readability ([#222])
+- Add PININT API ([#227], [#229])
+- Clean up and improve I2C API ([#236], [#240], [#241])
+- Clean up peripheral clock source API ([#237], [#238], [#239])
+- Migrate from RTFM to RTIC ([#243])
+
+[#180]: https://github.com/lpc-rs/lpc8xx-hal/pull/180
+[#181]: https://github.com/lpc-rs/lpc8xx-hal/pull/181
+[#184]: https://github.com/lpc-rs/lpc8xx-hal/pull/184
+[#185]: https://github.com/lpc-rs/lpc8xx-hal/pull/185
+[#186]: https://github.com/lpc-rs/lpc8xx-hal/pull/186
+[#187]: https://github.com/lpc-rs/lpc8xx-hal/pull/187
+[#188]: https://github.com/lpc-rs/lpc8xx-hal/pull/188
+[#189]: https://github.com/lpc-rs/lpc8xx-hal/pull/189
+[#190]: https://github.com/lpc-rs/lpc8xx-hal/pull/190
+[#193]: https://github.com/lpc-rs/lpc8xx-hal/pull/193
+[#194]: https://github.com/lpc-rs/lpc8xx-hal/pull/194
+[#195]: https://github.com/lpc-rs/lpc8xx-hal/pull/195
+[#196]: https://github.com/lpc-rs/lpc8xx-hal/pull/196
+[#197]: https://github.com/lpc-rs/lpc8xx-hal/pull/197
+[#198]: https://github.com/lpc-rs/lpc8xx-hal/pull/198
+[#199]: https://github.com/lpc-rs/lpc8xx-hal/pull/199
+[#200]: https://github.com/lpc-rs/lpc8xx-hal/pull/200
+[#201]: https://github.com/lpc-rs/lpc8xx-hal/pull/201
+[#202]: https://github.com/lpc-rs/lpc8xx-hal/pull/202
+[#203]: https://github.com/lpc-rs/lpc8xx-hal/pull/203
+[#204]: https://github.com/lpc-rs/lpc8xx-hal/pull/204
+[#206]: https://github.com/lpc-rs/lpc8xx-hal/pull/206
+[#207]: https://github.com/lpc-rs/lpc8xx-hal/pull/207
+[#208]: https://github.com/lpc-rs/lpc8xx-hal/pull/208
+[#209]: https://github.com/lpc-rs/lpc8xx-hal/pull/209
+[#210]: https://github.com/lpc-rs/lpc8xx-hal/pull/210
+[#213]: https://github.com/lpc-rs/lpc8xx-hal/pull/213
+[#214]: https://github.com/lpc-rs/lpc8xx-hal/pull/214
+[#216]: https://github.com/lpc-rs/lpc8xx-hal/pull/216
+[#217]: https://github.com/lpc-rs/lpc8xx-hal/pull/217
+[#218]: https://github.com/lpc-rs/lpc8xx-hal/pull/218
+[#219]: https://github.com/lpc-rs/lpc8xx-hal/pull/219
+[#220]: https://github.com/lpc-rs/lpc8xx-hal/pull/220
+[#221]: https://github.com/lpc-rs/lpc8xx-hal/pull/221
+[#222]: https://github.com/lpc-rs/lpc8xx-hal/pull/222
+[#223]: https://github.com/lpc-rs/lpc8xx-hal/pull/223
+[#224]: https://github.com/lpc-rs/lpc8xx-hal/pull/224
+[#225]: https://github.com/lpc-rs/lpc8xx-hal/pull/225
+[#226]: https://github.com/lpc-rs/lpc8xx-hal/pull/226
+[#227]: https://github.com/lpc-rs/lpc8xx-hal/pull/227
+[#228]: https://github.com/lpc-rs/lpc8xx-hal/pull/228
+[#229]: https://github.com/lpc-rs/lpc8xx-hal/pull/229
+[#230]: https://github.com/lpc-rs/lpc8xx-hal/pull/230
+[#231]: https://github.com/lpc-rs/lpc8xx-hal/pull/231
+[#233]: https://github.com/lpc-rs/lpc8xx-hal/pull/233
+[#234]: https://github.com/lpc-rs/lpc8xx-hal/pull/234
+[#235]: https://github.com/lpc-rs/lpc8xx-hal/pull/235
+[#236]: https://github.com/lpc-rs/lpc8xx-hal/pull/236
+[#237]: https://github.com/lpc-rs/lpc8xx-hal/pull/237
+[#238]: https://github.com/lpc-rs/lpc8xx-hal/pull/238
+[#239]: https://github.com/lpc-rs/lpc8xx-hal/pull/239
+[#240]: https://github.com/lpc-rs/lpc8xx-hal/pull/240
+[#241]: https://github.com/lpc-rs/lpc8xx-hal/pull/241
+[#242]: https://github.com/lpc-rs/lpc8xx-hal/pull/242
+[#243]: https://github.com/lpc-rs/lpc8xx-hal/pull/243
+
+
 <a name="v0.6.1"></a>
 ## v0.6.1 (2019-11-09)
 
