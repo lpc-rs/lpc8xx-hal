@@ -14,6 +14,8 @@ export RUSTFLAGS="-D warnings"
 
 # Check for formatting with the stable rustfmt
 if [ "$TRAVIS_RUST_VERSION" != beta ] && [ "$TRAVIS_RUST_VERSION" != nightly ]; then
+    # Only install rustup on stable, since it's not needed otherwise (and sometimes unavailable)
+    rustup component add rustfmt
     cargo fmt -- --check
 fi
 
