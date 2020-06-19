@@ -12,7 +12,6 @@ addons:
 
 install:
   - rustup target add thumbv6m-none-eabi
-  - rustup component add rustfmt
 
 script:
   - ./scripts/build.sh
