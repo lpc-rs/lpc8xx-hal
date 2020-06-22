@@ -11,7 +11,7 @@
 //!
 //! ``` toml
 //! [dependencies.lpc8xx-hal]
-//! version  = "0.6"
+//! version  = "0.7"
 //! features = ["824m201jhi33"]
 //! ```
 //!
@@ -30,7 +30,7 @@
 //!
 //! ``` toml
 //! [dependencies.lpc8xx-hal]
-//! version  = "0.6"
+//! version  = "0.7"
 //! features = ["82x"]
 //! ```
 //!
@@ -46,7 +46,7 @@
 //!
 //! ``` toml
 //! [dependencies.lpc8xx-hal]
-//! version  = "0.6"
+//! version  = "0.7"
 //! features = ["824m201jhi33", "82x-rt"]
 //! ```
 //!
