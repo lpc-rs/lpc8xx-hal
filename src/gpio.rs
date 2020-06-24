@@ -408,6 +408,44 @@ where
 
         set_low::<T>(&registers);
     }
+
+    /// Indicates whether the pin output is currently set to HIGH
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    pub fn is_set_high(&self) -> bool {
+        // This is sound, as we only read a bit from a register.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
+    }
+
+    /// Indicates whether the pin output is currently set to LOW
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    pub fn is_set_low(&self) -> bool {
+        // This is sound, as we only read a bit from a register.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        !registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
+    }
 }
 
 impl<T> InputPin for GpioPin<T, direction::Input>
@@ -448,42 +486,14 @@ impl<T> StatefulOutputPin for GpioPin<T, direction::Output>
 where
     T: pins::Trait,
 {
-    /// Indicates whether the pin output is currently set to HIGH
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
-    /// [`into_output`]: #method.into_output
     fn is_set_high(&self) -> Result<bool, Self::Error> {
-        // This is sound, as we only read a bit from a register.
-        let gpio = unsafe { &*pac::GPIO::ptr() };
-        let registers = Registers::new(gpio);
-
-        Ok(registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK)
+        // Call the inherent method defined above.
+        Ok(self.is_set_high())
     }
 
-    /// Indicates whether the pin output is currently set to LOW
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
-    /// [`into_output`]: #method.into_output
     fn is_set_low(&self) -> Result<bool, Self::Error> {
-        // This is sound, as we only read a bit from a register.
-        let gpio = unsafe { &*pac::GPIO::ptr() };
-        let registers = Registers::new(gpio);
-
-        Ok(!registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK)
+        // Call the inherent method defined above.
+        Ok(self.is_set_low())
     }
 }
 
