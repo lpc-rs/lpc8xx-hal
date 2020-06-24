@@ -460,8 +460,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_high(&self) -> Result<bool, Self::Error> {
-        // This is sound, as we only do a stateless write to a bit that no other
-        // `GpioPin` instance writes to.
+        // This is sound, as we only read a bit from a register.
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
@@ -480,8 +479,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     fn is_set_low(&self) -> Result<bool, Self::Error> {
-        // This is sound, as we only do a stateless write to a bit that no other
-        // `GpioPin` instance writes to.
+        // This is sound, as we only read a bit from a register.
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
