@@ -44,7 +44,7 @@
 use core::marker::PhantomData;
 
 use embedded_hal::digital::v2::{
-    toggleable, InputPin, OutputPin, StatefulOutputPin,
+    InputPin, OutputPin, StatefulOutputPin, ToggleableOutputPin,
 };
 use void::Void;
 
@@ -514,9 +514,16 @@ where
     }
 }
 
-impl<T> toggleable::Default for GpioPin<T, direction::Output> where
-    T: pins::Trait
+impl<T> ToggleableOutputPin for GpioPin<T, direction::Output>
+where
+    T: pins::Trait,
 {
+    type Error = Void;
+
+    fn toggle(&mut self) -> Result<(), Self::Error> {
+        // Call the inherent method defined above.
+        Ok(self.toggle())
+    }
 }
 
 /// The voltage level of a pin
