@@ -440,7 +440,7 @@ where
 
     fn set_low(&mut self) -> Result<(), Self::Error> {
         // Call the inherent method defined above.
-        Ok(self.set_high())
+        Ok(self.set_low())
     }
 }
 
