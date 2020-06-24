@@ -6,11 +6,9 @@ use lpc8xx_hal::{
     init_state::Enabled,
     pinint::{self, PININT0},
     pins::{PIO0_4, PIO1_1},
-    prelude::*,
     Peripherals,
 };
 use panic_halt as _;
-use void::ResultVoidExt;
 
 #[rtic::app(device = lpc8xx_hal::pac)]
 const APP: () = {
@@ -48,7 +46,7 @@ const APP: () = {
         let int = context.resources.int;
         let led = context.resources.led;
 
-        led.toggle().void_unwrap();
+        led.toggle();
 
         int.clear_rising_edge_flag();
         int.clear_falling_edge_flag();

@@ -55,10 +55,11 @@ use crate::{
 };
 
 #[cfg(feature = "845")]
-use crate::pac::gpio::{CLR, DIRCLR, DIRSET, PIN, SET};
+use crate::pac::gpio::{CLR, DIRCLR, DIRSET, NOT, PIN, SET};
 #[cfg(feature = "82x")]
 use crate::pac::gpio::{
-    CLR0 as CLR, DIRCLR0 as DIRCLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET,
+    CLR0 as CLR, DIRCLR0 as DIRCLR, DIRSET0 as DIRSET, NOT0 as NOT,
+    PIN0 as PIN, SET0 as SET,
 };
 
 use self::direction::Direction;
@@ -442,6 +443,26 @@ where
     pub fn is_set_low(&self) -> bool {
         !self.is_set_high()
     }
+
+    /// Toggle the pint output
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    pub fn toggle(&mut self) {
+        // This is sound, as we only do a stateless write to a bit that no other
+        // `GpioPin` instance writes to.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        registers.not[T::PORT].write(|w| unsafe { w.notp().bits(T::MASK) });
+    }
 }
 
 impl<T> InputPin for GpioPin<T, direction::Input>
@@ -523,6 +544,7 @@ pub struct Registers<'gpio> {
     pin: &'gpio [PIN],
     set: &'gpio [SET],
     clr: &'gpio [CLR],
+    not: &'gpio [NOT],
 }
 
 impl<'gpio> Registers<'gpio> {
@@ -545,6 +567,7 @@ impl<'gpio> Registers<'gpio> {
                 pin: slice::from_ref(&gpio.pin0),
                 set: slice::from_ref(&gpio.set0),
                 clr: slice::from_ref(&gpio.clr0),
+                not: slice::from_ref(&gpio.not0),
             }
         }
 
@@ -555,6 +578,7 @@ impl<'gpio> Registers<'gpio> {
             pin: &gpio.pin,
             set: &gpio.set,
             clr: &gpio.clr,
+            not: &gpio.not,
         }
     }
 }
