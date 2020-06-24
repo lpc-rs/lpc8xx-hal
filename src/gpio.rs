@@ -440,11 +440,7 @@ where
     /// [`into_gpio_pin`]: #method.into_gpio_pin
     /// [`into_output`]: #method.into_output
     pub fn is_set_low(&self) -> bool {
-        // This is sound, as we only read a bit from a register.
-        let gpio = unsafe { &*pac::GPIO::ptr() };
-        let registers = Registers::new(gpio);
-
-        !registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
+        !self.is_set_high()
     }
 }
 
