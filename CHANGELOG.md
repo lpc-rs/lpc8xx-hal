@@ -1,3 +1,12 @@
+<a name="v0.7.1"></a>
+## v0.7.1 (2020-06-26)
+
+- Fix `embedded-hal` version of `set_low` ([#246])
+- Add more infallible GPIO methods ([#247])
+
+[#246]: https://github.com/lpc-rs/lpc8xx-hal/pull/246
+[#247]: https://github.com/lpc-rs/lpc8xx-hal/pull/247
+
 
 <a name="v0.7.0"></a>
 ## v0.7.0 (2020-06-22)
