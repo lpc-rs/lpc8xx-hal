@@ -44,7 +44,7 @@
 use core::marker::PhantomData;
 
 use embedded_hal::digital::v2::{
-    toggleable, InputPin, OutputPin, StatefulOutputPin,
+    InputPin, OutputPin, StatefulOutputPin, ToggleableOutputPin,
 };
 use void::Void;
 
@@ -55,10 +55,11 @@ use crate::{
 };
 
 #[cfg(feature = "845")]
-use crate::pac::gpio::{CLR, DIRCLR, DIRSET, PIN, SET};
+use crate::pac::gpio::{CLR, DIRCLR, DIRSET, NOT, PIN, SET};
 #[cfg(feature = "82x")]
 use crate::pac::gpio::{
-    CLR0 as CLR, DIRCLR0 as DIRCLR, DIRSET0 as DIRSET, PIN0 as PIN, SET0 as SET,
+    CLR0 as CLR, DIRCLR0 as DIRCLR, DIRSET0 as DIRSET, NOT0 as NOT,
+    PIN0 as PIN, SET0 as SET,
 };
 
 use self::direction::Direction;
@@ -408,6 +409,60 @@ where
 
         set_low::<T>(&registers);
     }
+
+    /// Indicates whether the pin output is currently set to HIGH
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    pub fn is_set_high(&self) -> bool {
+        // This is sound, as we only read a bit from a register.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
+    }
+
+    /// Indicates whether the pin output is currently set to LOW
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    pub fn is_set_low(&self) -> bool {
+        !self.is_set_high()
+    }
+
+    /// Toggle the pint output
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
+    /// - The pin direction is set to output. See [`into_output`].
+    ///
+    /// Unless both of these conditions are met, code trying to call this method
+    /// will not compile.
+    ///
+    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`into_output`]: #method.into_output
+    pub fn toggle(&mut self) {
+        // This is sound, as we only do a stateless write to a bit that no other
+        // `GpioPin` instance writes to.
+        let gpio = unsafe { &*pac::GPIO::ptr() };
+        let registers = Registers::new(gpio);
+
+        registers.not[T::PORT].write(|w| unsafe { w.notp().bits(T::MASK) });
+    }
 }
 
 impl<T> InputPin for GpioPin<T, direction::Input>
@@ -448,50 +503,27 @@ impl<T> StatefulOutputPin for GpioPin<T, direction::Output>
 where
     T: pins::Trait,
 {
-    /// Indicates whether the pin output is currently set to HIGH
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
-    /// [`into_output`]: #method.into_output
     fn is_set_high(&self) -> Result<bool, Self::Error> {
-        // This is sound, as we only do a stateless write to a bit that no other
-        // `GpioPin` instance writes to.
-        let gpio = unsafe { &*pac::GPIO::ptr() };
-        let registers = Registers::new(gpio);
-
-        Ok(registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK)
+        // Call the inherent method defined above.
+        Ok(self.is_set_high())
     }
 
-    /// Indicates whether the pin output is currently set to LOW
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
-    ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
-    ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
-    /// [`into_output`]: #method.into_output
     fn is_set_low(&self) -> Result<bool, Self::Error> {
-        // This is sound, as we only do a stateless write to a bit that no other
-        // `GpioPin` instance writes to.
-        let gpio = unsafe { &*pac::GPIO::ptr() };
-        let registers = Registers::new(gpio);
-
-        Ok(!registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK)
+        // Call the inherent method defined above.
+        Ok(self.is_set_low())
     }
 }
 
-impl<T> toggleable::Default for GpioPin<T, direction::Output> where
-    T: pins::Trait
+impl<T> ToggleableOutputPin for GpioPin<T, direction::Output>
+where
+    T: pins::Trait,
 {
+    type Error = Void;
+
+    fn toggle(&mut self) -> Result<(), Self::Error> {
+        // Call the inherent method defined above.
+        Ok(self.toggle())
+    }
 }
 
 /// The voltage level of a pin
@@ -519,6 +551,7 @@ pub struct Registers<'gpio> {
     pin: &'gpio [PIN],
     set: &'gpio [SET],
     clr: &'gpio [CLR],
+    not: &'gpio [NOT],
 }
 
 impl<'gpio> Registers<'gpio> {
@@ -541,6 +574,7 @@ impl<'gpio> Registers<'gpio> {
                 pin: slice::from_ref(&gpio.pin0),
                 set: slice::from_ref(&gpio.set0),
                 clr: slice::from_ref(&gpio.clr0),
+                not: slice::from_ref(&gpio.not0),
             }
         }
 
@@ -551,6 +585,7 @@ impl<'gpio> Registers<'gpio> {
             pin: &gpio.pin,
             set: &gpio.set,
             clr: &gpio.clr,
+            not: &gpio.not,
         }
     }
 }
