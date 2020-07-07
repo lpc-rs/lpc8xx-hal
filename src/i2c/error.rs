@@ -1,4 +1,4 @@
-use super::Instance;
+use super::{master, Instance};
 
 /// I2C error
 #[derive(Debug, Eq, PartialEq)]
@@ -27,6 +27,18 @@ pub enum Error {
     ///
     /// Corresponds to the SCLTIMEOUT flag in the STAT register.
     SclTimeout,
+
+    /// The I2C code encountered an unexpected hardware state
+    UnexpectedState {
+        /// The state that was expected
+        expected: master::State,
+
+        /// The state that was actually set
+        ///
+        /// The `Ok` variant represents a valid state. The `Err` variant
+        /// represents an invalid bit pattern in the MSTSTATE field.
+        actual: Result<master::State, u8>,
+    },
 }
 
 impl Error {
