@@ -2,7 +2,7 @@
 # this implicitly.
 
 [default.rtt]
-enabled = false
+enabled = true
 
 
 # Configuration for LPCXpresso824-MAX development board.

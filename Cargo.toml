@@ -42,8 +42,15 @@ version      = "0.3.0"
 
 
 [dev-dependencies]
-panic-halt    = "0.2.0"
 cortex-m-rtic = "0.5.3"
+
+[dev-dependencies.panic-rtt-target]
+version  = "0.1.0"
+features = ["cortex-m"]
+
+[dev-dependencies.rtt-target]
+version  = "0.2.0"
+features = ["cortex-m"]
 
 
 # Termion has been made optional, as it doesn't build on Windows:

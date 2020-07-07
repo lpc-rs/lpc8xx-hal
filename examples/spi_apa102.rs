@@ -1,7 +1,7 @@
 #![no_main]
 #![no_std]
 
-extern crate panic_halt;
+extern crate panic_rtt_target;
 
 use lpc8xx_hal::{cortex_m_rt::entry, prelude::*, spi, Peripherals};
 
@@ -9,6 +9,8 @@ use embedded_hal::spi::{Mode, Phase, Polarity};
 
 #[entry]
 fn main() -> ! {
+    rtt_target::rtt_init_print!();
+
     const MODE: Mode = Mode {
         polarity: Polarity::IdleHigh,
         phase: Phase::CaptureOnSecondTransition,

@@ -3,7 +3,7 @@
 #![no_main]
 #![no_std]
 
-extern crate panic_halt;
+extern crate panic_rtt_target;
 
 use core::fmt::Write;
 use nb::block;
@@ -15,6 +15,8 @@ use lpc8xx_hal::{
 
 #[entry]
 fn main() -> ! {
+    rtt_target::rtt_init_print!();
+
     let cp = CorePeripherals::take().unwrap();
     let p = Peripherals::take().unwrap();
 

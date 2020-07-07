@@ -11,7 +11,7 @@
 #![no_main]
 #![no_std]
 
-extern crate panic_halt;
+extern crate panic_rtt_target;
 
 use core::fmt::Write;
 
@@ -19,6 +19,8 @@ use lpc8xx_hal::{cortex_m_rt::entry, i2c, prelude::*, usart, Peripherals};
 
 #[entry]
 fn main() -> ! {
+    rtt_target::rtt_init_print!();
+
     let p = Peripherals::take().unwrap();
 
     let i2c = p.I2C0;

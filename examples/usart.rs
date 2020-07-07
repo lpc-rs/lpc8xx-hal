@@ -1,12 +1,14 @@
 #![no_main]
 #![no_std]
 
-extern crate panic_halt;
+extern crate panic_rtt_target;
 
 use lpc8xx_hal::{cortex_m_rt::entry, prelude::*, usart, Peripherals};
 
 #[entry]
 fn main() -> ! {
+    rtt_target::rtt_init_print!();
+
     let p = Peripherals::take().unwrap();
 
     let swm = p.SWM.split();

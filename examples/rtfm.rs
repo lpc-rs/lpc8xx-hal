@@ -1,6 +1,8 @@
 #![no_main]
 #![no_std]
 
+extern crate panic_rtt_target;
+
 use lpc8xx_hal::{
     delay::Delay,
     gpio::{direction::Output, GpioPin, Level},
@@ -8,7 +10,6 @@ use lpc8xx_hal::{
     prelude::*,
     Peripherals,
 };
-use panic_halt as _;
 
 #[rtic::app(device = lpc8xx_hal::pac)]
 const APP: () = {
@@ -19,6 +20,8 @@ const APP: () = {
 
     #[init]
     fn init(cx: init::Context) -> init::LateResources {
+        rtt_target::rtt_init_print!();
+
         let p = Peripherals::take().unwrap();
 
         let delay = Delay::new(cx.core.SYST);
