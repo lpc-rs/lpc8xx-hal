@@ -97,6 +97,25 @@ where
     }
 }
 
+impl<I> I2C<I, init_state::Enabled<Master>>
+where
+    I: Instance,
+{
+    /// Wait while the peripheral is busy
+    ///
+    /// Once this method returns, the peripheral should either be idle or in a
+    /// state that requires software interaction.
+    fn wait_until_ready(&self) -> Result<(), Error> {
+        while self.i2c.stat.read().mstpending().is_in_progress() {
+            if let Some(error) = Error::read(&self.i2c) {
+                return Err(error);
+            }
+        }
+
+        Ok(())
+    }
+}
+
 impl<I, Mode> I2C<I, init_state::Enabled<Mode>>
 where
     I: Instance,
@@ -163,8 +182,7 @@ where
     ///
     /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Write.html#tymethod.write
     fn write(&mut self, address: u8, data: &[u8]) -> Result<(), Self::Error> {
-        // Wait until peripheral is idle
-        while !self.i2c.stat.read().mststate().is_idle() {}
+        self.wait_until_ready()?;
 
         // Write slave address with rw bit set to 0
         self.i2c
@@ -175,12 +193,7 @@ where
         self.i2c.mstctl.write(|w| w.mststart().start());
 
         for &b in data {
-            // Wait until peripheral is ready to transmit
-            while self.i2c.stat.read().mstpending().is_in_progress() {
-                if let Some(error) = Error::read(&self.i2c) {
-                    return Err(error);
-                }
-            }
+            self.wait_until_ready()?;
 
             // Write byte
             self.i2c.mstdat.write(|w| unsafe { w.data().bits(b) });
@@ -189,12 +202,7 @@ where
             self.i2c.mstctl.write(|w| w.mstcontinue().continue_());
         }
 
-        // Wait until peripheral is ready to transmit
-        while self.i2c.stat.read().mstpending().is_in_progress() {
-            if let Some(error) = Error::read(&self.i2c) {
-                return Err(error);
-            }
-        }
+        self.wait_until_ready()?;
 
         // Stop transmission
         self.i2c.mstctl.modify(|_, w| w.mststop().stop());
@@ -219,12 +227,7 @@ where
         address: u8,
         buffer: &mut [u8],
     ) -> Result<(), Self::Error> {
-        // Wait until peripheral is idle
-        while !self.i2c.stat.read().mststate().is_idle() {
-            if let Some(error) = Error::read(&self.i2c) {
-                return Err(error);
-            }
-        }
+        self.wait_until_ready()?;
 
         // Write slave address with rw bit set to 1
         self.i2c
@@ -238,12 +241,7 @@ where
             // Continue transmission
             self.i2c.mstctl.write(|w| w.mstcontinue().continue_());
 
-            // Wait until peripheral is ready to receive
-            while self.i2c.stat.read().mstpending().is_in_progress() {
-                if let Some(error) = Error::read(&self.i2c) {
-                    return Err(error);
-                }
-            }
+            self.wait_until_ready()?;
 
             // Read received byte
             *b = self.i2c.mstdat.read().data().bits();
