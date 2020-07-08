@@ -212,7 +212,7 @@ where
         self.wait_for_state(master::State::TxReady)?;
 
         // Stop transmission
-        self.i2c.mstctl.modify(|_, w| w.mststop().stop());
+        self.i2c.mstctl.write(|w| w.mststop().stop());
 
         Ok(())
     }
@@ -255,7 +255,7 @@ where
         }
 
         // Stop transmission
-        self.i2c.mstctl.modify(|_, w| w.mststop().stop());
+        self.i2c.mstctl.write(|w| w.mststop().stop());
 
         Ok(())
     }
