@@ -35,6 +35,16 @@ lpc8xx-hal = "0.7"
 
 If you want to use LPC8xx HAL in an application (as opposed to a library), there are additional things that need to be set up. Please refer to the [API Reference] for details.
 
+To run one of the examples from this repository, please adapt the following command if you're using an LPC845-BRK board:
+```
+cargo embed lpc845 --example gpio_delay --features 845-rt
+```
+
+Or adapt the following command if using an LPCXpresso824-MAX board:
+```
+cargo embed lpc82c --example gpio_delay --features 82x-rt
+```
+
 
 ## Documentation
 
