@@ -44,8 +44,9 @@ For functionality that is not yet covered by this crate, you may need to fall ba
 
 The authoritative source on the supported MCUs are their respective user manuals, available from NXP.
 
-[lpc82x-pac]: https://crates.io/crates/lpc82x-pac
-[lpc845-pac]: https://crates.io/crates/lpc84x-pac
+[API Reference]: https://docs.rs/lpc8xx-hal
+[`lpc82x-pac`]: https://crates.io/crates/lpc82x-pac
+[`lpc845-pac`]: https://crates.io/crates/lpc845-pac
 
 
 ## Help Wanted
