@@ -42,7 +42,10 @@ pub enum Error {
 }
 
 impl Error {
-    pub(super) fn read<I: Instance>(i2c: &I) -> Result<(), Self> {
+    pub(super) fn read<I: Instance>() -> Result<(), Self> {
+        // Sound, as we're only reading from the STAT register.
+        let i2c = unsafe { &*I::REGISTERS };
+
         let stat = i2c.stat.read();
 
         // Check for error flags. If one is set, clear it and return the error.

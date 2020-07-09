@@ -109,7 +109,7 @@ where
     /// state that requires software interaction.
     fn wait_for_state(&self, expected: master::State) -> Result<(), Error> {
         while self.i2c.stat.read().mstpending().is_in_progress() {
-            Error::read(&self.i2c)?;
+            Error::read::<I>()?;
         }
 
         let actual = self.i2c.stat.read().mststate().variant().try_into();
@@ -150,7 +150,7 @@ where
     /// This method can be used to read and clear all currently detected errors
     /// before resuming normal operation.
     pub fn read_error(&mut self) -> Result<(), Error> {
-        Error::read(&self.i2c)
+        Error::read::<I>()
     }
 }
 
