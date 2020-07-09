@@ -158,6 +158,7 @@ required-features = ["rt-selected", "845"]
 name              = "spi_apa102"
 required-features = ["rt-selected"]
 
+
 [profile.dev]
 debug = true
 
@@ -165,3 +166,7 @@ debug = true
 debug = true
 lto = true
 opt-level = "s"
+
+
+[package.metadata.docs.rs]
+features = ["845"]
