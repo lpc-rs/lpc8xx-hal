@@ -234,8 +234,17 @@ pub struct Peripherals {
     #[cfg(feature = "845")]
     pub GPIO: GPIO<init_state::Disabled>,
 
-    /// I2C0-bus interface
+    /// I2C0
     pub I2C0: I2C<pac::I2C0, init_state::Disabled>,
+
+    /// I2C1
+    pub I2C1: I2C<pac::I2C1, init_state::Disabled>,
+
+    /// I2C2
+    pub I2C2: I2C<pac::I2C2, init_state::Disabled>,
+
+    /// I2C3
+    pub I2C3: I2C<pac::I2C3, init_state::Disabled>,
 
     /// Multi-Rate Timer (MRT)
     pub MRT0: MRT,
@@ -346,27 +355,6 @@ pub struct Peripherals {
     /// meantime, this field provides you with the raw register mappings, which
     /// allow you full, unprotected access to the peripheral.
     pub FLASH_CTRL: pac::FLASH_CTRL,
-
-    /// I2C1-bus interface
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub I2C1: pac::I2C1,
-
-    /// I2C2-bus interface
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub I2C2: pac::I2C2,
-
-    /// I2C3-bus interface
-    ///
-    /// A HAL API for this peripheral has not been implemented yet. In the
-    /// meantime, this field provides you with the raw register mappings, which
-    /// allow you full, unprotected access to the peripheral.
-    pub I2C3: pac::I2C3,
 
     /// Input multiplexing
     ///
@@ -500,6 +488,9 @@ impl Peripherals {
             DMA: DMA::new(p.DMA0),
             GPIO: GPIO::new(p.GPIO),
             I2C0: I2C::new(p.I2C0),
+            I2C1: I2C::new(p.I2C1),
+            I2C2: I2C::new(p.I2C2),
+            I2C3: I2C::new(p.I2C3),
             MRT0: MRT::new(p.MRT0),
             #[cfg(feature = "845")]
             PININT: PININT::new(p.PINT),
@@ -527,9 +518,6 @@ impl Peripherals {
             #[cfg(feature = "845")]
             DAC1: p.DAC1,
             FLASH_CTRL: p.FLASH_CTRL,
-            I2C1: p.I2C1,
-            I2C2: p.I2C2,
-            I2C3: p.I2C3,
             INPUTMUX: p.INPUTMUX,
             IOCON: p.IOCON,
             #[cfg(feature = "82x")]

@@ -10,9 +10,7 @@ use super::{Clock, ClockSource, Error, Instance, Interrupts};
 ///
 /// # Limitations
 ///
-/// This API has the following limitations:
-/// - Only master mode is supported.
-/// - Errors are not handled.
+/// This API only supports master mode.
 ///
 /// Additional limitations are documented on the specific methods that they
 /// apply to.
