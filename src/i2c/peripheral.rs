@@ -239,13 +239,14 @@ where
             .mstdat
             .write(|w| unsafe { w.data().bits(address | 0x01) });
 
-        // Start transmission
-        self.i2c.mstctl.write(|w| w.mststart().start());
-
-        for b in buffer {
-            // Continue transmission
-            self.i2c.mstctl.write(|w| w.mstcontinue().continue_());
-
+        for (i, b) in buffer.iter_mut().enumerate() {
+            if i == 0 {
+                // Start transmission
+                self.i2c.mstctl.write(|w| w.mststart().start());
+            } else {
+                // Continue transmission
+                self.i2c.mstctl.write(|w| w.mstcontinue().continue_());
+            }
             self.wait_for_state(master::State::RxReady)?;
 
             // Read received byte
