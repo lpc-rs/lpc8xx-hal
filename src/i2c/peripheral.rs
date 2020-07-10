@@ -1,10 +1,6 @@
-use core::convert::TryInto as _;
-
-use embedded_hal::blocking::i2c;
-
 use crate::{init_state, swm, syscon};
 
-use super::{master, Clock, ClockSource, Error, Instance, Interrupts};
+use super::{Clock, ClockSource, Error, Instance, Interrupts, Master, Slave};
 
 /// Interface to an I2C peripheral
 ///
@@ -17,30 +13,31 @@ use super::{master, Clock, ClockSource, Error, Instance, Interrupts};
 /// Additional limitations are documented on the specific methods that they
 /// apply to.
 ///
-/// # `embedded-hal` traits
-/// - [`embedded_hal::blocking::i2c::Read`] for synchronous reading
-/// - [`embedded_hal::blocking::i2c::Write`] for synchronous writing
-///
-/// [`embedded_hal::blocking::i2c::Read`]: #impl-Read
-/// [`embedded_hal::blocking::i2c::Write`]: #impl-Write
 /// [module documentation]: index.html
-pub struct I2C<I, State> {
+pub struct I2C<I: Instance, State, MasterMode, SlaveMode> {
+    /// API for I2C master mode
+    pub master: Master<I, State, MasterMode>,
+
+    /// API for I2C slave mode
+    pub slave: Slave<I, State, SlaveMode>,
+
     i2c: I,
-    _state: State,
 }
 
-impl<I> I2C<I, init_state::Disabled>
+impl<I> I2C<I, init_state::Disabled, init_state::Disabled, init_state::Disabled>
 where
     I: Instance,
 {
     pub(crate) fn new(i2c: I) -> Self {
         I2C {
+            master: Master::new(),
+            slave: Slave::new(),
+
             i2c: i2c,
-            _state: init_state::Disabled,
         }
     }
 
-    /// Enable the I2C peripheral in master mode
+    /// Enable this I2C instance
     ///
     /// This method is only available, if `I2C` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
@@ -48,6 +45,39 @@ where
     ///
     /// Consumes this instance of `I2C` and returns another instance that has
     /// its `State` type parameter set to [`Enabled`].
+    ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    pub fn enable<SdaPin, SclPin>(
+        mut self,
+        _: swm::Function<I::Scl, swm::state::Assigned<SclPin>>,
+        _: swm::Function<I::Sda, swm::state::Assigned<SdaPin>>,
+        syscon: &mut syscon::Handle,
+    ) -> I2C<I, init_state::Enabled, init_state::Disabled, init_state::Disabled>
+    {
+        syscon.enable_clock(&mut self.i2c);
+
+        I2C {
+            master: Master::new(),
+            slave: Slave::new(),
+
+            i2c: self.i2c,
+        }
+    }
+}
+
+impl<I, SlaveMode> I2C<I, init_state::Enabled, init_state::Disabled, SlaveMode>
+where
+    I: Instance,
+{
+    /// Enable master mode
+    ///
+    /// This method is only available, if the I2C instance is enabled, but
+    /// master mode is disabled. Code that attempts to call this method when
+    /// this is not the case will not compile.
+    ///
+    /// Consumes this instance of `Master` and returns another instance that has
+    /// its type state updated.
     ///
     /// # Limitations
     ///
@@ -58,26 +88,15 @@ where
     ///
     /// If you don't mess with the IOCON configuration and use I2C clock rates
     /// of up to 400 kHz, you should be fine.
-    ///
-    /// [`Disabled`]: ../init_state/struct.Disabled.html
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable_master<SdaPin, SclPin, C>(
-        mut self,
+    pub fn enable_master_mode<C>(
+        self,
         clock: &Clock<C>,
         syscon: &mut syscon::Handle,
-        _: swm::Function<I::Sda, swm::state::Assigned<SdaPin>>,
-        _: swm::Function<I::Scl, swm::state::Assigned<SclPin>>,
-    ) -> I2C<I, init_state::Enabled<Master>>
+    ) -> I2C<I, init_state::Enabled, init_state::Enabled, SlaveMode>
     where
         C: ClockSource,
     {
-        syscon.enable_clock(&mut self.i2c);
-
         C::select(&self.i2c, syscon);
-
-        // We need the I2C mode for the pins set to standard/fast mode,
-        // according to the user manual, section 15.3.1. This is already the
-        // default value (see user manual, sections 8.5.8 and 8.5.9).
 
         // Set I2C clock frequency
         self.i2c
@@ -90,38 +109,19 @@ where
 
         // Enable master mode
         // Set all other configuration values to default.
-        self.i2c.cfg.write(|w| w.msten().enabled());
+        self.i2c.cfg.modify(|_, w| w.msten().enabled());
 
         I2C {
+            master: Master::new(),
+            slave: Slave::new(),
+
             i2c: self.i2c,
-            _state: init_state::Enabled(Master),
         }
     }
 }
 
-impl<I> I2C<I, init_state::Enabled<Master>>
-where
-    I: Instance,
-{
-    /// Wait while the peripheral is busy
-    ///
-    /// Once this method returns, the peripheral should either be idle or in a
-    /// state that requires software interaction.
-    fn wait_for_state(&self, expected: master::State) -> Result<(), Error> {
-        while self.i2c.stat.read().mstpending().is_in_progress() {
-            Error::read::<I>()?;
-        }
-
-        let actual = self.i2c.stat.read().mststate().variant().try_into();
-        if Ok(&expected) != actual.as_ref() {
-            return Err(Error::UnexpectedState { expected, actual });
-        }
-
-        Ok(())
-    }
-}
-
-impl<I, Mode> I2C<I, init_state::Enabled<Mode>>
+impl<I, MasterMode, SlaveMode>
+    I2C<I, init_state::Enabled, MasterMode, SlaveMode>
 where
     I: Instance,
 {
@@ -154,7 +154,7 @@ where
     }
 }
 
-impl<I, State> I2C<I, State>
+impl<I, State, MasterMode, SlaveMode> I2C<I, State, MasterMode, SlaveMode>
 where
     I: Instance,
 {
@@ -174,98 +174,3 @@ where
         self.i2c
     }
 }
-
-impl<I> i2c::Write for I2C<I, init_state::Enabled<Master>>
-where
-    I: Instance,
-{
-    type Error = Error;
-
-    /// Write to the I2C bus
-    ///
-    /// Please refer to the [embedded-hal documentation] for details.
-    ///
-    /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Write.html#tymethod.write
-    fn write(&mut self, address: u8, data: &[u8]) -> Result<(), Self::Error> {
-        self.wait_for_state(master::State::Idle)?;
-
-        // Write slave address with rw bit set to 0
-        self.i2c
-            .mstdat
-            .write(|w| unsafe { w.data().bits(address & 0xfe) });
-
-        // Start transmission
-        self.i2c.mstctl.write(|w| w.mststart().start());
-
-        for &b in data {
-            self.wait_for_state(master::State::TxReady)?;
-
-            // Write byte
-            self.i2c.mstdat.write(|w| unsafe { w.data().bits(b) });
-
-            // Continue transmission
-            self.i2c.mstctl.write(|w| w.mstcontinue().continue_());
-        }
-
-        self.wait_for_state(master::State::TxReady)?;
-
-        // Stop transmission
-        self.i2c.mstctl.write(|w| w.mststop().stop());
-
-        Ok(())
-    }
-}
-
-impl<I> i2c::Read for I2C<I, init_state::Enabled<Master>>
-where
-    I: Instance,
-{
-    type Error = Error;
-
-    /// Read from the I2C bus
-    ///
-    /// Please refer to the [embedded-hal documentation] for details.
-    ///
-    /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Read.html#tymethod.read
-    fn read(
-        &mut self,
-        address: u8,
-        buffer: &mut [u8],
-    ) -> Result<(), Self::Error> {
-        self.wait_for_state(master::State::Idle)?;
-
-        // Write slave address with rw bit set to 1
-        self.i2c
-            .mstdat
-            .write(|w| unsafe { w.data().bits(address | 0x01) });
-
-        for (i, b) in buffer.iter_mut().enumerate() {
-            if i == 0 {
-                // Start transmission
-                self.i2c.mstctl.write(|w| w.mststart().start());
-            } else {
-                // Continue transmission
-                self.i2c.mstctl.write(|w| w.mstcontinue().continue_());
-            }
-            self.wait_for_state(master::State::RxReady)?;
-
-            // Read received byte
-            *b = self.i2c.mstdat.read().data().bits();
-        }
-
-        // Stop transmission
-        self.i2c.mstctl.write(|w| w.mststop().stop());
-
-        Ok(())
-    }
-}
-
-/// Used as a type parameter by [`I2C`] to indicate master mode
-///
-/// [`I2C`]: struct.I2C.html
-pub struct Master;
-
-/// Used as a type parameter by [`I2C`] to indicate slave mode
-///
-/// [`I2C`]: struct.I2C.html
-pub struct Slave;

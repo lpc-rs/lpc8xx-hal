@@ -235,16 +235,36 @@ pub struct Peripherals {
     pub GPIO: GPIO<init_state::Disabled>,
 
     /// I2C0
-    pub I2C0: I2C<pac::I2C0, init_state::Disabled>,
+    pub I2C0: I2C<
+        pac::I2C0,
+        init_state::Disabled,
+        init_state::Disabled,
+        init_state::Disabled,
+    >,
 
     /// I2C1
-    pub I2C1: I2C<pac::I2C1, init_state::Disabled>,
+    pub I2C1: I2C<
+        pac::I2C1,
+        init_state::Disabled,
+        init_state::Disabled,
+        init_state::Disabled,
+    >,
 
     /// I2C2
-    pub I2C2: I2C<pac::I2C2, init_state::Disabled>,
+    pub I2C2: I2C<
+        pac::I2C2,
+        init_state::Disabled,
+        init_state::Disabled,
+        init_state::Disabled,
+    >,
 
     /// I2C3
-    pub I2C3: I2C<pac::I2C3, init_state::Disabled>,
+    pub I2C3: I2C<
+        pac::I2C3,
+        init_state::Disabled,
+        init_state::Disabled,
+        init_state::Disabled,
+    >,
 
     /// Multi-Rate Timer (MRT)
     pub MRT0: MRT,

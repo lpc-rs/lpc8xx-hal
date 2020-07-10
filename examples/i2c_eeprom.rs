@@ -79,8 +79,9 @@ fn main() -> ! {
         .assign(p.pins.pio0_10.into_swm_pin(), &mut handle);
 
     let i2c_clock = i2c::Clock::new_400khz();
-    let mut i2c =
-        i2c.enable_master(&i2c_clock, &mut syscon.handle, i2c0_sda, i2c0_scl);
+    let mut i2c = i2c
+        .enable(i2c0_scl, i2c0_sda, &mut syscon.handle)
+        .enable_master_mode(&i2c_clock, &mut syscon.handle);
 
     // Address of the eeprom
     // ADJUST THIS
@@ -91,7 +92,8 @@ fn main() -> ! {
         .expect("Write should never fail");
 
     // Write an 'Hi' to address 0 & 1
-    i2c.write(address, &[0, b'H', b'i'])
+    i2c.master
+        .write(address, &[0, b'H', b'i'])
         .expect("Failed to write data");
 
     serial
@@ -104,9 +106,13 @@ fn main() -> ! {
     // Read value from the eeprom
     let mut buffer = [0u8; 2];
     // Set the address to 0 again
-    i2c.write(address, &[0]).expect("Failed to write data");
+    i2c.master
+        .write(address, &[0])
+        .expect("Failed to write data");
     // Read the two bytes at 0 & 1
-    i2c.read(address, &mut buffer).expect("Failed to read data");
+    i2c.master
+        .read(address, &mut buffer)
+        .expect("Failed to read data");
 
     write!(serial, "{:?}\n", &buffer).expect("Write should never fail");
 

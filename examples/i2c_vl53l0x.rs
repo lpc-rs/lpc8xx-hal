@@ -84,15 +84,18 @@ fn main() -> ! {
         .assign(p.pins.pio0_10.into_swm_pin(), &mut swm.handle);
 
     let i2c_clock = i2c::Clock::new_400khz();
-    let mut i2c =
-        i2c.enable_master(&i2c_clock, &mut syscon.handle, i2c0_sda, i2c0_scl);
+    let mut i2c = i2c
+        .enable(i2c0_scl, i2c0_sda, &mut syscon.handle)
+        .enable_master_mode(&i2c_clock, &mut syscon.handle);
 
     serial
         .bwrite_all(b"Writing data...\n")
         .expect("Write should never fail");
 
     // Write index of reference register
-    i2c.write(0x52, &[0xC0]).expect("Failed to write data");
+    i2c.master
+        .write(0x52, &[0xC0])
+        .expect("Failed to write data");
 
     serial
         .bwrite_all(b"Receiving data...\n")
@@ -100,7 +103,9 @@ fn main() -> ! {
 
     // Read value from reference register
     let mut buffer = [0u8; 1];
-    i2c.read(0x52, &mut buffer).expect("Failed to read data");
+    i2c.master
+        .read(0x52, &mut buffer)
+        .expect("Failed to read data");
 
     write!(serial, "{:#X}\n", buffer[0]).expect("Write should never fail");
 

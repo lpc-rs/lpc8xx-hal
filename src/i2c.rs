@@ -38,14 +38,18 @@
 //!     &mut swm_handle,
 //! );
 //!
-//! let mut i2c = p.I2C0.enable_master(
-//!     &i2c::Clock::new_400khz(),
-//!     &mut syscon.handle,
-//!     i2c0_sda,
-//!     i2c0_scl,
-//! );
+//! let mut i2c = p.I2C0
+//!     .enable(
+//!         i2c0_scl,
+//!         i2c0_sda,
+//!         &mut syscon.handle,
+//!     )
+//!     .enable_master_mode(
+//!         &i2c::Clock::new_400khz(),
+//!         &mut syscon.handle,
+//!     );
 //!
-//! i2c.write(address, &data)
+//! i2c.master.write(address, &data)
 //!     .expect("Failed to write data");
 //! ```
 //!
@@ -60,11 +64,14 @@ mod interrupts;
 mod peripheral;
 
 pub mod master;
+pub mod slave;
 
 pub use self::{
     clock::{Clock, ClockSource},
     error::Error,
     instances::Instance,
     interrupts::Interrupts,
-    peripheral::{Master, Slave, I2C},
+    master::Master,
+    peripheral::I2C,
+    slave::Slave,
 };
