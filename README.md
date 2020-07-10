@@ -42,7 +42,7 @@ cargo embed lpc845 --example gpio_delay --features 845-rt
 
 Or adapt the following command if using an LPCXpresso824-MAX board:
 ```
-cargo embed lpc82c --example gpio_delay --features 82x-rt
+cargo embed lpc82x --example gpio_delay --features 82x-rt
 ```
 
 
