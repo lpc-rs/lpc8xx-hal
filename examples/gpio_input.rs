@@ -1,12 +1,14 @@
 #![no_main]
 #![no_std]
 
-extern crate panic_halt;
+extern crate panic_rtt_target;
 
 use lpc8xx_hal::{cortex_m_rt::entry, gpio::Level, Peripherals};
 
 #[entry]
 fn main() -> ! {
+    rtt_target::rtt_init_print!();
+
     // Get access to the device's peripherals. Since only one instance of this
     // struct can exist, the call to `take` returns an `Option<Peripherals>`.
     // If we tried to call the method a second time, it would return `None`, but

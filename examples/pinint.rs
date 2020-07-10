@@ -1,6 +1,8 @@
 #![no_main]
 #![no_std]
 
+extern crate panic_rtt_target;
+
 use lpc8xx_hal::{
     gpio::{direction::Output, GpioPin, Level},
     init_state::Enabled,
@@ -8,7 +10,6 @@ use lpc8xx_hal::{
     pins::{PIO0_4, PIO1_1},
     Peripherals,
 };
-use panic_halt as _;
 
 #[rtic::app(device = lpc8xx_hal::pac)]
 const APP: () = {
@@ -19,6 +20,8 @@ const APP: () = {
 
     #[init]
     fn init(_: init::Context) -> init::LateResources {
+        rtt_target::rtt_init_print!();
+
         let p = Peripherals::take().unwrap();
 
         let mut syscon = p.SYSCON.split();

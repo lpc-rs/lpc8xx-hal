@@ -1,0 +1,28 @@
+# Common configuration. The target-specific configurations below interit from
+# this implicitly.
+
+[default.rtt]
+enabled = true
+
+
+# Configuration for LPCXpresso824-MAX development board.
+
+[lpc82x.probe]
+usb_vid = "0d28"
+usb_pid = "0204"
+
+[lpc82x.general]
+# The schematics say the chip on the board is an "LPC824M201FHI33", but I'm
+# guessing this is a typo, and in any case, the following is probably close
+# enough.
+chip = "LPC824M201JHI33"
+
+
+# Configuration for the LPC845-BRK development board.
+
+[lpc845.probe]
+usb_vid = "1fc9"
+usb_pid = "0132"
+
+[lpc845.general]
+chip = "LPC845M301JHI48"

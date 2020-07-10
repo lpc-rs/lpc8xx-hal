@@ -35,6 +35,16 @@ lpc8xx-hal = "0.7"
 
 If you want to use LPC8xx HAL in an application (as opposed to a library), there are additional things that need to be set up. Please refer to the [API Reference] for details.
 
+To run one of the examples from this repository, please adapt the following command if you're using an LPC845-BRK board:
+```
+cargo embed lpc845 --example gpio_delay --features 845-rt
+```
+
+Or adapt the following command if using an LPCXpresso824-MAX board:
+```
+cargo embed lpc82x --example gpio_delay --features 82x-rt
+```
+
 
 ## Documentation
 
@@ -44,8 +54,9 @@ For functionality that is not yet covered by this crate, you may need to fall ba
 
 The authoritative source on the supported MCUs are their respective user manuals, available from NXP.
 
-[lpc82x-pac]: https://crates.io/crates/lpc82x-pac
-[lpc845-pac]: https://crates.io/crates/lpc84x-pac
+[API Reference]: https://docs.rs/lpc8xx-hal
+[`lpc82x-pac`]: https://crates.io/crates/lpc82x-pac
+[`lpc845-pac`]: https://crates.io/crates/lpc845-pac
 
 
 ## Help Wanted
