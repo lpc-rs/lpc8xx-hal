@@ -17,8 +17,6 @@ pub use self::frg::FRG;
 
 pub mod clock_source;
 
-use core::marker::PhantomData;
-
 #[cfg(feature = "82x")]
 use crate::pac::syscon::{
     pdruncfg, presetctrl as presetctrl0, starterp1,
@@ -77,15 +75,15 @@ impl SYSCON {
                 fclksel: RegProxy::new(),
             },
 
-            bod: BOD(PhantomData),
-            flash: FLASH(PhantomData),
-            iosc: IOSC(PhantomData),
-            ioscout: IOSCOUT(PhantomData),
-            mtb: MTB(PhantomData),
-            ram0_1: RAM0_1(PhantomData),
-            rom: ROM(PhantomData),
-            sysosc: SYSOSC(PhantomData),
-            syspll: SYSPLL(PhantomData),
+            bod: BOD(()),
+            flash: FLASH(()),
+            iosc: IOSC(()),
+            ioscout: IOSCOUT(()),
+            mtb: MTB(()),
+            ram0_1: RAM0_1(()),
+            rom: ROM(()),
+            sysosc: SYSOSC(()),
+            syspll: SYSPLL(()),
 
             #[cfg(feature = "82x")]
             uartfrg: UARTFRG {
@@ -263,7 +261,7 @@ impl Handle {
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
-pub struct BOD(PhantomData<*const ()>);
+pub struct BOD(());
 
 /// Flash memory
 ///
@@ -271,14 +269,14 @@ pub struct BOD(PhantomData<*const ()>);
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
-pub struct FLASH(PhantomData<*const ()>);
+pub struct FLASH(());
 
 /// IOSC
 ///
 /// Can be used to control the IRC/FRO using various methods on [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
-pub struct IOSC(PhantomData<*const ()>);
+pub struct IOSC(());
 
 /// IOSC output
 ///
@@ -286,7 +284,7 @@ pub struct IOSC(PhantomData<*const ()>);
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
-pub struct IOSCOUT(PhantomData<*const ()>);
+pub struct IOSCOUT(());
 
 /// Micro Trace Buffer
 ///
@@ -294,7 +292,7 @@ pub struct IOSCOUT(PhantomData<*const ()>);
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
-pub struct MTB(PhantomData<*const ()>);
+pub struct MTB(());
 
 /// Random access memory
 ///
@@ -302,14 +300,14 @@ pub struct MTB(PhantomData<*const ()>);
 ///
 /// [`syscon::Handle`]: struct.Handle.html
 #[allow(non_camel_case_types)]
-pub struct RAM0_1(PhantomData<*const ()>);
+pub struct RAM0_1(());
 
 /// Read-only memory
 ///
 /// Can be used to control the ROM using various methods on [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
-pub struct ROM(PhantomData<*const ()>);
+pub struct ROM(());
 
 /// System oscillator
 ///
@@ -317,14 +315,14 @@ pub struct ROM(PhantomData<*const ()>);
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
-pub struct SYSOSC(PhantomData<*const ()>);
+pub struct SYSOSC(());
 
 /// PLL
 ///
 /// Can be used to control the PLL using various methods on [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
-pub struct SYSPLL(PhantomData<*const ()>);
+pub struct SYSPLL(());
 
 #[cfg(feature = "82x")]
 /// UART Fractional Baud Rate Generator
