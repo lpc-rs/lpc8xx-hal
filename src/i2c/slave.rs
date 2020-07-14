@@ -38,7 +38,7 @@ where
     }
 }
 
-impl<I> Slave<I, init_state::Enabled, init_state::Enabled>
+impl<I, C> Slave<I, init_state::Enabled<PhantomData<C>>, init_state::Enabled>
 where
     I: Instance,
 {

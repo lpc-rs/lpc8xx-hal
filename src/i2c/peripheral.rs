@@ -1,3 +1,5 @@
+use core::marker::PhantomData;
+
 use crate::{init_state, swm, syscon};
 
 use super::{Clock, ClockSource, Error, Instance, Interrupts, Master, Slave};
@@ -48,14 +50,23 @@ where
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    pub fn enable<SdaPin, SclPin>(
+    pub fn enable<C, SdaPin, SclPin>(
         mut self,
+        _clock: &C,
         _: swm::Function<I::Scl, swm::state::Assigned<SclPin>>,
         _: swm::Function<I::Sda, swm::state::Assigned<SdaPin>>,
         syscon: &mut syscon::Handle,
-    ) -> I2C<I, init_state::Enabled, init_state::Disabled, init_state::Disabled>
+    ) -> I2C<
+        I,
+        init_state::Enabled<PhantomData<C>>,
+        init_state::Disabled,
+        init_state::Disabled,
+    >
+    where
+        C: ClockSource,
     {
         syscon.enable_clock(&mut self.i2c);
+        C::select(&self.i2c, syscon);
 
         I2C {
             master: Master::new(),
@@ -66,7 +77,8 @@ where
     }
 }
 
-impl<I, SlaveMode> I2C<I, init_state::Enabled, init_state::Disabled, SlaveMode>
+impl<I, C, SlaveMode>
+    I2C<I, init_state::Enabled<PhantomData<C>>, init_state::Disabled, SlaveMode>
 where
     I: Instance,
 {
@@ -88,16 +100,15 @@ where
     ///
     /// If you don't mess with the IOCON configuration and use I2C clock rates
     /// of up to 400 kHz, you should be fine.
-    pub fn enable_master_mode<C>(
+    pub fn enable_master_mode(
         self,
         clock: &Clock<C>,
-        syscon: &mut syscon::Handle,
-    ) -> I2C<I, init_state::Enabled, init_state::Enabled, SlaveMode>
-    where
-        C: ClockSource,
-    {
-        C::select(&self.i2c, syscon);
-
+    ) -> I2C<
+        I,
+        init_state::Enabled<PhantomData<C>>,
+        init_state::Enabled,
+        SlaveMode,
+    > {
         // Set I2C clock frequency
         self.i2c
             .clkdiv
@@ -120,8 +131,13 @@ where
     }
 }
 
-impl<I, MasterMode>
-    I2C<I, init_state::Enabled, MasterMode, init_state::Disabled>
+impl<I, C, MasterMode>
+    I2C<
+        I,
+        init_state::Enabled<PhantomData<C>>,
+        MasterMode,
+        init_state::Disabled,
+    >
 where
     I: Instance,
 {
@@ -136,7 +152,12 @@ where
     pub fn enable_slave_mode(
         self,
         address: u8,
-    ) -> I2C<I, init_state::Enabled, MasterMode, init_state::Enabled> {
+    ) -> I2C<
+        I,
+        init_state::Enabled<PhantomData<C>>,
+        MasterMode,
+        init_state::Enabled,
+    > {
         // Enable slave mode
         // Set all other configuration values to default.
         self.i2c.cfg.modify(|_, w| w.slven().enabled());
@@ -158,8 +179,8 @@ where
     }
 }
 
-impl<I, MasterMode, SlaveMode>
-    I2C<I, init_state::Enabled, MasterMode, SlaveMode>
+impl<I, C, MasterMode, SlaveMode>
+    I2C<I, init_state::Enabled<PhantomData<C>>, MasterMode, SlaveMode>
 where
     I: Instance,
 {

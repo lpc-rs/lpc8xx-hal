@@ -3,8 +3,10 @@
 
 extern crate panic_rtt_target;
 
+use core::marker::PhantomData;
+
 use lpc8xx_hal::{
-    i2c, init_state::Enabled, pac::I2C0, prelude::*, Peripherals,
+    i2c, init_state::Enabled, pac::I2C0, prelude::*, syscon::IOSC, Peripherals,
 };
 use rtt_target::rprintln;
 
@@ -13,8 +15,8 @@ const ADDRESS: u8 = 0x48;
 #[rtic::app(device = lpc8xx_hal::pac)]
 const APP: () = {
     struct Resources {
-        i2c_master: i2c::Master<I2C0, Enabled, Enabled>,
-        i2c_slave: i2c::Slave<I2C0, Enabled, Enabled>,
+        i2c_master: i2c::Master<I2C0, Enabled<PhantomData<IOSC>>, Enabled>,
+        i2c_slave: i2c::Slave<I2C0, Enabled<PhantomData<IOSC>>, Enabled>,
     }
 
     #[init]
@@ -39,8 +41,8 @@ const APP: () = {
 
         let mut i2c = p
             .I2C0
-            .enable(i2c0_scl, i2c0_sda, &mut syscon.handle)
-            .enable_master_mode(&i2c::Clock::new_400khz(), &mut syscon.handle)
+            .enable(&syscon.iosc, i2c0_scl, i2c0_sda, &mut syscon.handle)
+            .enable_master_mode(&i2c::Clock::new_400khz())
             .enable_slave_mode(ADDRESS);
 
         i2c.enable_interrupts(i2c::Interrupts {
