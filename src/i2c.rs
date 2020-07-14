@@ -59,6 +59,8 @@ mod instances;
 mod interrupts;
 mod peripheral;
 
+pub mod master;
+
 pub use self::{
     clock::{Clock, ClockSource},
     error::Error,
