@@ -20,6 +20,9 @@ pub trait Instance:
     /// The interrupt that is triggered for this I2C peripheral
     const INTERRUPT: Interrupt;
 
+    /// A pointer to this instance's register block
+    const REGISTERS: *const pac::i2c0::RegisterBlock;
+
     /// The movable function that needs to be assigned to this I2C's SDA pin
     type Sda;
 
@@ -40,6 +43,8 @@ macro_rules! instances {
         $(
             impl Instance for pac::$instance {
                 const INTERRUPT: Interrupt = Interrupt::$interrupt;
+                const REGISTERS: *const pac::i2c0::RegisterBlock =
+                    pac::$instance::ptr();
 
                 type Sda = swm::$rx;
                 type Scl = swm::$tx;
