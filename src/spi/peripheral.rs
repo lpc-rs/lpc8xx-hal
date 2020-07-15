@@ -8,7 +8,7 @@ use crate::{
     syscon,
 };
 
-use super::{Clock, ClockSource, Instance};
+use super::{Clock, ClockSource, Instance, Interrupts};
 
 /// Interface to a SPI peripheral
 ///
@@ -124,6 +124,22 @@ impl<I> SPI<I, init_state::Enabled>
 where
     I: Instance,
 {
+    /// Enable interrupts
+    ///
+    /// Enables all interrupts set to `true` in `interrupts`. Interrupts set to
+    /// `false` are not affected.
+    pub fn enable_interrupts(&mut self, interrupts: Interrupts) {
+        interrupts.enable(&self.spi);
+    }
+
+    /// Disable interrupts
+    ///
+    /// Disables all interrupts set to `true` in `interrupts`. Interrupts set to
+    /// `false` are not affected.
+    pub fn disable_interrupts(&mut self, interrupts: Interrupts) {
+        interrupts.disable(&self.spi);
+    }
+
     /// Disable the SPI peripheral
     ///
     /// This method is only available, if `SPI` is in the [`Enabled`] state.
