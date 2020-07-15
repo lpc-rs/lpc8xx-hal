@@ -91,15 +91,21 @@ where
         });
 
         self.spi.cfg.write(|w| {
-            if mode.polarity == Polarity::IdleHigh {
-                w.cpol().high();
-            } else {
-                w.cpol().low();
+            match mode.polarity {
+                Polarity::IdleHigh => {
+                    w.cpol().high();
+                }
+                Polarity::IdleLow => {
+                    w.cpol().low();
+                }
             }
-            if mode.phase == Phase::CaptureOnFirstTransition {
-                w.cpha().clear_bit();
-            } else {
-                w.cpha().set_bit();
+            match mode.phase {
+                Phase::CaptureOnFirstTransition => {
+                    w.cpha().clear_bit();
+                }
+                Phase::CaptureOnSecondTransition => {
+                    w.cpha().set_bit();
+                }
             }
             w.enable().enabled();
             w.master().master_mode()
