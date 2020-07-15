@@ -57,11 +57,13 @@
 
 mod clock;
 mod instances;
+mod interrupts;
 mod peripheral;
 
 pub use self::{
     clock::{Clock, ClockSource},
     instances::Instance,
+    interrupts::Interrupts,
     peripheral::SPI,
 };
 
