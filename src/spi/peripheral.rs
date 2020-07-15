@@ -1,3 +1,5 @@
+use core::convert::Infallible;
+
 use embedded_hal::spi::{FullDuplex, Mode, Phase, Polarity};
 
 use crate::{
@@ -165,7 +167,7 @@ impl<I, State> SPI<I, State> {
 }
 
 impl<I: Instance> FullDuplex<u8> for SPI<I> {
-    type Error = ();
+    type Error = Infallible;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
         if self.spi.stat.read().rxrdy().bit_is_set() {
