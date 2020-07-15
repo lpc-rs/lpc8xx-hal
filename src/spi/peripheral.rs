@@ -170,22 +170,23 @@ impl<I: Instance> FullDuplex<u8> for SPI<I> {
     type Error = Infallible;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
-        if self.spi.stat.read().rxrdy().bit_is_set() {
-            Ok(self.spi.rxdat.read().rxdat().bits() as u8)
-        } else {
-            Err(nb::Error::WouldBlock)
+        if self.spi.stat.read().rxrdy().bit_is_clear() {
+            return Err(nb::Error::WouldBlock);
         }
+
+        Ok(self.spi.rxdat.read().rxdat().bits() as u8)
     }
 
     fn send(&mut self, word: u8) -> nb::Result<(), Self::Error> {
-        if self.spi.stat.read().txrdy().bit_is_set() {
-            self.spi
-                .txdat
-                .write(|w| unsafe { w.data().bits(word as u16) });
-            Ok(())
-        } else {
-            Err(nb::Error::WouldBlock)
+        if self.spi.stat.read().txrdy().bit_is_clear() {
+            return Err(nb::Error::WouldBlock);
         }
+
+        self.spi
+            .txdat
+            .write(|w| unsafe { w.data().bits(word as u16) });
+
+        Ok(())
     }
 }
 
