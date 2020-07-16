@@ -8,7 +8,7 @@ use crate::{
     syscon,
 };
 
-use super::{Clock, ClockSource, Instance, Interrupts};
+use super::{Clock, ClockSource, Instance, Interrupts, SlaveSelect};
 
 /// Interface to a SPI peripheral
 ///
@@ -138,6 +138,39 @@ where
     /// `false` are not affected.
     pub fn disable_interrupts(&mut self, interrupts: Interrupts) {
         interrupts.disable(&self.spi);
+    }
+
+    /// Select slave
+    ///
+    /// Selects the slave connected to the pin that the provided slave select
+    /// function is assigned to.
+    ///
+    /// This API allows you the select multiple slave at once. Please take care
+    /// to only select slaves in a way that doesn't cause conflicts between
+    /// them.
+    ///
+    /// All slave select lines for which the respective function has been
+    /// assigned to a pin are selected by default.
+    pub fn select_slave<F, P>(
+        &mut self,
+        _: &swm::Function<F, swm::state::Assigned<P>>,
+    ) where
+        F: SlaveSelect<I>,
+    {
+        F::select(&self.spi.txctl);
+    }
+
+    /// Deselect slave
+    ///
+    /// Deselects the slave connected to the pin that the provided slave select
+    /// function is assigned to.
+    pub fn deselect_slave<F, P>(
+        &mut self,
+        _: &swm::Function<F, swm::state::Assigned<P>>,
+    ) where
+        F: SlaveSelect<I>,
+    {
+        F::deselect(&self.spi.txctl);
     }
 
     /// Disable the SPI peripheral
