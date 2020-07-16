@@ -62,7 +62,7 @@ mod peripheral;
 
 pub use self::{
     clock::{Clock, ClockSource},
-    instances::Instance,
+    instances::{Instance, SlaveSelect},
     interrupts::Interrupts,
     peripheral::SPI,
 };
