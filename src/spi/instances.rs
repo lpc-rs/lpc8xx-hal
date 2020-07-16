@@ -11,7 +11,8 @@ use crate::{
 /// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 pub trait Instance:
-    Deref<Target = pac::spi0::RegisterBlock>
+    private::Sealed
+    + Deref<Target = pac::spi0::RegisterBlock>
     + syscon::ClockControl
     + syscon::ResetControl
     + PeripheralClockSelector
@@ -37,6 +38,8 @@ macro_rules! instances {
         )*
     ) => {
         $(
+            impl private::Sealed for pac::$instance {}
+
             impl Instance for pac::$instance {
                 type Sck = swm::$sck;
                 type Mosi = swm::$mosi;
@@ -54,3 +57,7 @@ instances!(
     SPI0,  9, SPI0_SCK, SPI0_MOSI, SPI0_MISO;
     SPI1, 10, SPI1_SCK, SPI1_MOSI, SPI1_MISO;
 );
+
+mod private {
+    pub trait Sealed {}
+}

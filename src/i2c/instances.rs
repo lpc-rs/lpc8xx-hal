@@ -12,7 +12,8 @@ use crate::{
 /// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
 /// be considered breaking changes.
 pub trait Instance:
-    Deref<Target = pac::i2c0::RegisterBlock>
+    private::Sealed
+    + Deref<Target = pac::i2c0::RegisterBlock>
     + syscon::ClockControl
     + syscon::ResetControl
     + PeripheralClockSelector
@@ -41,6 +42,8 @@ macro_rules! instances {
         )*
     ) => {
         $(
+            impl private::Sealed for pac::$instance {}
+
             impl Instance for pac::$instance {
                 const INTERRUPT: Interrupt = Interrupt::$interrupt;
                 const REGISTERS: *const pac::i2c0::RegisterBlock =
@@ -63,3 +66,7 @@ instances!(
     I2C2, 7, I2C2, I2C2_SDA, I2C2_SCL;
     I2C3, 8, I2C3, I2C3_SDA, I2C3_SCL;
 );
+
+mod private {
+    pub trait Sealed {}
+}
