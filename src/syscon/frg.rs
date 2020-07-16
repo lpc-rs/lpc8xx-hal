@@ -52,9 +52,7 @@ where
     }
 }
 
-/// Internal implementation detail
-///
-/// This trait should neither be used nor implemented by the user.
+/// Implemented for all FRG instances
 pub trait Instance: private::Sealed {
     /// FRG0DIV or FRG1DIV
     type Div: Reg<Target = FRGDIV>;

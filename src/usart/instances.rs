@@ -6,11 +6,7 @@ use crate::{
     syscon::{self, clock_source::PeripheralClockSelector},
 };
 
-/// Internal trait for USART peripherals
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
-/// be considered breaking changes.
+/// Implemented for all USART instances
 pub trait Instance:
     private::Sealed
     + Deref<Target = pac::usart0::RegisterBlock>
