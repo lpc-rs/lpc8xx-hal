@@ -147,6 +147,51 @@ where
         interrupts.disable(&self.spi);
     }
 
+    /// Indicates whether the SPI instance is ready to receive
+    ///
+    /// Corresponds to the RXRDY flag in the STAT register.
+    pub fn is_ready_to_receive(&self) -> bool {
+        self.spi.stat.read().rxrdy().bit_is_set()
+    }
+
+    /// Indicates whether the SPI instance is ready to transmit
+    ///
+    /// Corresponds to the TXRDY flag in the STAT register.
+    pub fn is_ready_to_transmit(&self) -> bool {
+        self.spi.stat.read().txrdy().bit_is_set()
+    }
+
+    /// Indicates whether a slave select signal has been asserted
+    ///
+    /// Corresponds to the SSA flag in the STAT register. The flag is cleared
+    /// before this method returns.
+    pub fn is_slave_select_asserted(&self) -> bool {
+        // Can't read field through API. Issue:
+        // https://github.com/lpc-rs/lpc-pac/issues/52
+        let flag = self.spi.stat.read().bits() & (0x1 << 4) != 0;
+        self.spi.stat.write(|w| w.ssa().set_bit());
+        flag
+    }
+
+    /// Indicates whether a slave select signal has been deasserted
+    ///
+    /// Corresponds to the SSD flag in the STAT register. The flag is cleared
+    /// before this method returns.
+    pub fn is_slave_select_deasserted(&self) -> bool {
+        // Can't read field through API. Issue:
+        // https://github.com/lpc-rs/lpc-pac/issues/52
+        let flag = self.spi.stat.read().bits() & (0x1 << 5) != 0;
+        self.spi.stat.write(|w| w.ssd().set_bit());
+        flag
+    }
+
+    /// Indicates whether the master is currently idle
+    ///
+    /// Corresponds to the MSTIDLE flag in the STAT register.
+    pub fn is_master_idle(&self) -> bool {
+        self.spi.stat.read().mstidle().bit_is_set()
+    }
+
     /// Disable the SPI peripheral
     ///
     /// This method is only available, if `SPI` is in the [`Enabled`] state.
