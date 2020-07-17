@@ -37,7 +37,7 @@
 //! let spi_clock = spi::Clock::new(&syscon.iosc, 0);
 //!
 //! // Enable SPI0
-//! let mut spi = p.SPI0.enable(
+//! let mut spi = p.SPI0.enable_as_master(
 //!     &spi_clock,
 //!     &mut syscon.handle,
 //!     embedded_hal::spi::MODE_0,

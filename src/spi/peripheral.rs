@@ -44,7 +44,7 @@ where
         }
     }
 
-    /// Enable the SPI peripheral
+    /// Enable the SPI peripheral in master mode
     ///
     /// This method is only available, if `SPI` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
@@ -61,7 +61,7 @@ where
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<SckPin, MosiPin, MisoPin, CLOCK>(
+    pub fn enable_as_master<SckPin, MosiPin, MisoPin, CLOCK>(
         self,
         clock: &Clock<CLOCK>,
         syscon: &mut syscon::Handle,
