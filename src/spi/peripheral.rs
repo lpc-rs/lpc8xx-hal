@@ -78,14 +78,29 @@ where
         I::Miso: FunctionTrait<MisoPin>,
         CLOCK: ClockSource,
     {
-        syscon.enable_clock(&self.spi);
-
-        CLOCK::select(&self.spi, syscon);
+        self.enable::<CLOCK>(syscon);
 
         self.spi
             .div
             .write(|w| unsafe { w.divval().bits(clock.divval) });
 
+        self.configure(mode, true);
+
+        SPI {
+            spi: self.spi,
+            _state: init_state::Enabled(Master),
+        }
+    }
+
+    fn enable<C>(&self, syscon: &mut syscon::Handle)
+    where
+        C: ClockSource,
+    {
+        syscon.enable_clock(&self.spi);
+        C::select(&self.spi, syscon);
+    }
+
+    fn configure(&self, mode: Mode, master: bool) {
         self.spi.txctl.write(|w| {
             // 8 bit length
             unsafe { w.len().bits(7) }
@@ -108,14 +123,17 @@ where
                     w.cpha().set_bit();
                 }
             }
+            match master {
+                true => {
+                    w.master().master_mode();
+                }
+                false => {
+                    w.master().slave_mode();
+                }
+            }
             w.enable().enabled();
-            w.master().master_mode()
+            w
         });
-
-        SPI {
-            spi: self.spi,
-            _state: init_state::Enabled(Master),
-        }
     }
 }
 
