@@ -69,7 +69,7 @@ where
         _: swm::Function<I::Sck, swm::state::Assigned<SckPin>>,
         _: swm::Function<I::Mosi, swm::state::Assigned<MosiPin>>,
         _: swm::Function<I::Miso, swm::state::Assigned<MisoPin>>,
-    ) -> SPI<I, init_state::Enabled>
+    ) -> SPI<I, init_state::Enabled<Master>>
     where
         SckPin: pins::Trait,
         MosiPin: pins::Trait,
@@ -115,12 +115,12 @@ where
 
         SPI {
             spi: self.spi,
-            _state: init_state::Enabled(()),
+            _state: init_state::Enabled(Master),
         }
     }
 }
 
-impl<I> SPI<I, init_state::Enabled>
+impl<I> SPI<I, init_state::Enabled<Master>>
 where
     I: Instance,
 {
@@ -182,7 +182,7 @@ impl<I, State> SPI<I, State> {
     }
 }
 
-impl<I: Instance> FullDuplex<u8> for SPI<I, init_state::Enabled> {
+impl<I: Instance> FullDuplex<u8> for SPI<I, init_state::Enabled<Master>> {
     type Error = Infallible;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
@@ -207,11 +207,17 @@ impl<I: Instance> FullDuplex<u8> for SPI<I, init_state::Enabled> {
 }
 
 impl<I: Instance> embedded_hal::blocking::spi::transfer::Default<u8>
-    for SPI<I, init_state::Enabled>
+    for SPI<I, init_state::Enabled<Master>>
 {
 }
 
 impl<I: Instance> embedded_hal::blocking::spi::write::Default<u8>
-    for SPI<I, init_state::Enabled>
+    for SPI<I, init_state::Enabled<Master>>
 {
 }
+
+/// Indicates that SPI is in master mode
+pub struct Master;
+
+/// Indicates that SPI is in slave mode
+pub struct Slave;

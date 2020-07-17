@@ -64,7 +64,7 @@ pub use self::{
     clock::{Clock, ClockSource},
     instances::{Instance, SlaveSelect},
     interrupts::Interrupts,
-    peripheral::SPI,
+    peripheral::{Master, Slave, SPI},
 };
 
 pub use crate::embedded_hal::spi::{
