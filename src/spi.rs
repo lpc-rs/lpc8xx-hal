@@ -64,3 +64,7 @@ pub use self::{
     instances::Instance,
     peripheral::SPI,
 };
+
+pub use crate::embedded_hal::spi::{
+    Mode, Phase, Polarity, MODE_0, MODE_1, MODE_2, MODE_3,
+};

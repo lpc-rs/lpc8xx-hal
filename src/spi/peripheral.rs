@@ -1,3 +1,5 @@
+use core::convert::Infallible;
+
 use embedded_hal::spi::{FullDuplex, Mode, Phase, Polarity};
 
 use crate::{
@@ -91,15 +93,21 @@ where
         });
 
         self.spi.cfg.write(|w| {
-            if mode.polarity == Polarity::IdleHigh {
-                w.cpol().high();
-            } else {
-                w.cpol().low();
+            match mode.polarity {
+                Polarity::IdleHigh => {
+                    w.cpol().high();
+                }
+                Polarity::IdleLow => {
+                    w.cpol().low();
+                }
             }
-            if mode.phase == Phase::CaptureOnFirstTransition {
-                w.cpha().clear_bit();
-            } else {
-                w.cpha().set_bit();
+            match mode.phase {
+                Phase::CaptureOnFirstTransition => {
+                    w.cpha().clear_bit();
+                }
+                Phase::CaptureOnSecondTransition => {
+                    w.cpha().set_bit();
+                }
             }
             w.enable().enabled();
             w.master().master_mode()
@@ -159,25 +167,26 @@ impl<I, State> SPI<I, State> {
 }
 
 impl<I: Instance> FullDuplex<u8> for SPI<I> {
-    type Error = ();
+    type Error = Infallible;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
-        if self.spi.stat.read().rxrdy().bit_is_set() {
-            Ok(self.spi.rxdat.read().rxdat().bits() as u8)
-        } else {
-            Err(nb::Error::WouldBlock)
+        if self.spi.stat.read().rxrdy().bit_is_clear() {
+            return Err(nb::Error::WouldBlock);
         }
+
+        Ok(self.spi.rxdat.read().rxdat().bits() as u8)
     }
 
     fn send(&mut self, word: u8) -> nb::Result<(), Self::Error> {
-        if self.spi.stat.read().txrdy().bit_is_set() {
-            self.spi
-                .txdat
-                .write(|w| unsafe { w.data().bits(word as u16) });
-            Ok(())
-        } else {
-            Err(nb::Error::WouldBlock)
+        if self.spi.stat.read().txrdy().bit_is_clear() {
+            return Err(nb::Error::WouldBlock);
         }
+
+        self.spi
+            .txdat
+            .write(|w| unsafe { w.data().bits(word as u16) });
+
+        Ok(())
     }
 }
 
