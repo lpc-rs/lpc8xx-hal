@@ -120,7 +120,7 @@ where
     }
 }
 
-impl<I> SPI<I, init_state::Enabled<Master>>
+impl<I, Mode> SPI<I, init_state::Enabled<Mode>>
 where
     I: Instance,
 {
