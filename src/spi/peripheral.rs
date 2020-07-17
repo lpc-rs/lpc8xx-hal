@@ -59,7 +59,6 @@ where
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
     pub fn enable_as_master<SckPin, MosiPin, MisoPin, CLOCK>(
         self,
