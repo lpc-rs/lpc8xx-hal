@@ -28,7 +28,7 @@ use super::{Clock, ClockSource, Instance, Interrupts};
 /// [`embedded_hal::spi::FullDuplex`]: #impl-FullDuplex%3Cu8%3E
 /// [`embedded_hal::blocking::spi::Transfer`]: #impl-Transfer%3CW%3E
 /// [`embedded_hal::blocking::spi::Write`]: #impl-Write%3CW%3E
-pub struct SPI<I, State = init_state::Enabled> {
+pub struct SPI<I, State> {
     spi: I,
     _state: State,
 }
@@ -182,7 +182,7 @@ impl<I, State> SPI<I, State> {
     }
 }
 
-impl<I: Instance> FullDuplex<u8> for SPI<I> {
+impl<I: Instance> FullDuplex<u8> for SPI<I, init_state::Enabled> {
     type Error = Infallible;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
@@ -207,8 +207,11 @@ impl<I: Instance> FullDuplex<u8> for SPI<I> {
 }
 
 impl<I: Instance> embedded_hal::blocking::spi::transfer::Default<u8>
-    for SPI<I>
+    for SPI<I, init_state::Enabled>
 {
 }
 
-impl<I: Instance> embedded_hal::blocking::spi::write::Default<u8> for SPI<I> {}
+impl<I: Instance> embedded_hal::blocking::spi::write::Default<u8>
+    for SPI<I, init_state::Enabled>
+{
+}
