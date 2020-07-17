@@ -6,13 +6,10 @@ use crate::{
     syscon::{self, clock_source::PeripheralClockSelector},
 };
 
-/// Internal trait for USART peripherals
-///
-/// This trait is an internal implementation detail and should neither be
-/// implemented nor used outside of LPC8xx HAL. Any changes to this trait won't
-/// be considered breaking changes.
+/// Implemented for all USART instances
 pub trait Instance:
-    Deref<Target = pac::usart0::RegisterBlock>
+    private::Sealed
+    + Deref<Target = pac::usart0::RegisterBlock>
     + syscon::ClockControl
     + syscon::ResetControl
     + PeripheralClockSelector
@@ -42,6 +39,8 @@ macro_rules! instances {
         )*
     ) => {
         $(
+            impl private::Sealed for pac::$instance {}
+
             impl Instance for pac::$instance {
                 const INTERRUPT: Interrupt = Interrupt::$interrupt;
                 const REGISTERS: *const pac::usart0::RegisterBlock =
@@ -69,3 +68,7 @@ instances!(
     USART3, 3, usart3, PIN_INT6_USART3, U3_RXD, U3_TXD;
     USART4, 4, usart4, PIN_INT7_USART4, U4_RXD, U4_TXD;
 );
+
+mod private {
+    pub trait Sealed {}
+}

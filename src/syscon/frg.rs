@@ -52,10 +52,8 @@ where
     }
 }
 
-/// Internal implementation detail
-///
-/// This trait should neither be used nor implemented by the user.
-pub trait Instance {
+/// Implemented for all FRG instances
+pub trait Instance: private::Sealed {
     /// FRG0DIV or FRG1DIV
     type Div: Reg<Target = FRGDIV>;
 
@@ -94,6 +92,8 @@ macro_rules! instances {
             reg_cluster!($mult,   FRGMULT,   pac::SYSCON, $field, frgmult);
             reg_cluster!($clksel, FRGCLKSEL, pac::SYSCON, $field, frgclksel);
 
+            impl private::Sealed for $name {}
+
             impl Instance for $name {
                 type Div    = $div;
                 type Mult   = $mult;
@@ -107,3 +107,7 @@ instances!(
     FRG0, frg0, FRG0DIV, FRG0MULT, FRG0CLKSEL;
     FRG1, frg1, FRG1DIV, FRG1MULT, FRG1CLKSEL;
 );
+
+mod private {
+    pub trait Sealed {}
+}
