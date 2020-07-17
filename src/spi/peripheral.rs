@@ -61,9 +61,9 @@ where
         clock: &Clock<CLOCK>,
         syscon: &mut syscon::Handle,
         mode: Mode,
-        _: swm::Function<I::Sck, swm::state::Assigned<SckPin>>,
-        _: swm::Function<I::Mosi, swm::state::Assigned<MosiPin>>,
-        _: swm::Function<I::Miso, swm::state::Assigned<MisoPin>>,
+        _sck: swm::Function<I::Sck, swm::state::Assigned<SckPin>>,
+        _mosi: swm::Function<I::Mosi, swm::state::Assigned<MosiPin>>,
+        _miso: swm::Function<I::Miso, swm::state::Assigned<MisoPin>>,
     ) -> SPI<I, init_state::Enabled<Master>>
     where
         CLOCK: ClockSource,
