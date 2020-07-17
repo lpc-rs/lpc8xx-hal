@@ -78,10 +78,14 @@ fn main() -> ! {
         .i2c0_scl
         .assign(p.pins.pio0_10.into_swm_pin(), &mut handle);
 
-    let i2c_clock = i2c::Clock::new_400khz();
+    #[cfg(feature = "82x")]
+    let i2c_clock = &();
+    #[cfg(feature = "845")]
+    let i2c_clock = &syscon.iosc;
+
     let mut i2c = i2c
-        .enable(i2c0_scl, i2c0_sda, &mut syscon.handle)
-        .enable_master_mode(&i2c_clock, &mut syscon.handle);
+        .enable(i2c_clock, i2c0_scl, i2c0_sda, &mut syscon.handle)
+        .enable_master_mode(&i2c::Clock::new_400khz());
 
     // Address of the eeprom
     // ADJUST THIS

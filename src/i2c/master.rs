@@ -53,7 +53,7 @@ where
     }
 }
 
-impl<I> Master<I, init_state::Enabled, init_state::Enabled>
+impl<I, C> Master<I, init_state::Enabled<PhantomData<C>>, init_state::Enabled>
 where
     I: Instance,
 {
@@ -78,7 +78,8 @@ where
     }
 }
 
-impl<I> i2c::Write for Master<I, init_state::Enabled, init_state::Enabled>
+impl<I, C> i2c::Write
+    for Master<I, init_state::Enabled<PhantomData<C>>, init_state::Enabled>
 where
     I: Instance,
 {
@@ -118,7 +119,8 @@ where
     }
 }
 
-impl<I> i2c::Read for Master<I, init_state::Enabled, init_state::Enabled>
+impl<I, C> i2c::Read
+    for Master<I, init_state::Enabled<PhantomData<C>>, init_state::Enabled>
 where
     I: Instance,
 {

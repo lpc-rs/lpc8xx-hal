@@ -38,15 +38,20 @@
 //!     &mut swm_handle,
 //! );
 //!
+//! #[cfg(feature = "82x")]
+//! let clock = &(); // I2C is always powered by system clock on LPC82x
+//! #[cfg(feature = "845")]
+//! let clock = &syscon.iosc;
+//!
 //! let mut i2c = p.I2C0
 //!     .enable(
+//!         clock,
 //!         i2c0_scl,
 //!         i2c0_sda,
 //!         &mut syscon.handle,
 //!     )
 //!     .enable_master_mode(
 //!         &i2c::Clock::new_400khz(),
-//!         &mut syscon.handle,
 //!     );
 //!
 //! i2c.master.write(address, &data)
