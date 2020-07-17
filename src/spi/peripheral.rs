@@ -2,11 +2,7 @@ use core::convert::Infallible;
 
 use embedded_hal::spi::{FullDuplex, Mode, Phase, Polarity};
 
-use crate::{
-    init_state, pins,
-    swm::{self, FunctionTrait},
-    syscon,
-};
+use crate::{init_state, swm, syscon};
 
 use super::{Clock, ClockSource, Instance, Interrupts};
 
@@ -70,12 +66,6 @@ where
         _: swm::Function<I::Miso, swm::state::Assigned<MisoPin>>,
     ) -> SPI<I, init_state::Enabled<Master>>
     where
-        SckPin: pins::Trait,
-        MosiPin: pins::Trait,
-        MisoPin: pins::Trait,
-        I::Sck: FunctionTrait<SckPin>,
-        I::Mosi: FunctionTrait<MosiPin>,
-        I::Miso: FunctionTrait<MisoPin>,
         CLOCK: ClockSource,
     {
         self.enable::<CLOCK>(syscon);
