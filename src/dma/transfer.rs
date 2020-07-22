@@ -32,7 +32,9 @@ where
     }
 
     /// Waits for the transfer to finish
-    pub fn wait(mut self) -> Result<Payload<'dma, T, D>, D::Error> {
+    pub fn wait(
+        mut self,
+    ) -> Result<Payload<'dma, T, D>, (D::Error, Payload<'dma, T, D>)> {
         // There's an error interrupt status register. Maybe we should check
         // this here, but I have no idea whether that actually makes sense:
         // 1. As of this writing, we're not enabling any interrupts. I don't
@@ -51,7 +53,7 @@ where
 
                 Err(nb::Error::Other(error)) => {
                     compiler_fence(Ordering::SeqCst);
-                    return Err(error);
+                    return Err((error, self.payload));
                 }
             }
         }
