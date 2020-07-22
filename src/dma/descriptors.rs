@@ -4,31 +4,14 @@ use core::ptr;
 ///
 /// Contains a descriptor for each DMA channel.
 #[repr(C, align(512))]
-pub struct DescriptorTable(pub(super) [ChannelDescriptor; 18]);
+pub struct DescriptorTable(
+    pub(super) [ChannelDescriptor; target::NUM_CHANNELS],
+);
 
 impl DescriptorTable {
     /// Create a new channel descriptor table
     pub const fn new() -> Self {
-        DescriptorTable([
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-            ChannelDescriptor::new(),
-        ])
+        DescriptorTable([ChannelDescriptor::new(); target::NUM_CHANNELS])
     }
 }
 
@@ -57,3 +40,13 @@ impl ChannelDescriptor {
 // `Send` though, and it needs to be `Send`, so one can put it into a
 // `cortex_m::interrupt::Mutex`.
 unsafe impl Send for ChannelDescriptor {}
+
+#[cfg(feature = "82x")]
+mod target {
+    pub const NUM_CHANNELS: usize = 18;
+}
+
+#[cfg(feature = "845")]
+mod target {
+    pub const NUM_CHANNELS: usize = 25;
+}
