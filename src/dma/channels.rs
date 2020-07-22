@@ -69,7 +69,7 @@ where
     /// # Limitations
     ///
     /// The length of `source` must be 1024 or less.
-    pub fn start_transfer<D>(
+    pub(crate) fn start_transfer<D>(
         self,
         source: &'static [u8],
         mut dest: D,
