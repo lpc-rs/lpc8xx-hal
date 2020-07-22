@@ -32,6 +32,7 @@ impl DescriptorTable {
     }
 }
 
+#[derive(Clone, Copy)]
 #[repr(C, align(16))]
 pub(super) struct ChannelDescriptor {
     config: u32,
