@@ -9,9 +9,7 @@ pub struct Transfer<'dma, T, D>
 where
     T: ChannelTrait,
 {
-    channel: Channel<T, Enabled<&'dma Handle>>,
-    source: &'static mut [u8],
-    dest: D,
+    payload: Payload<'dma, T, D>,
 }
 
 impl<'dma, T, D> Transfer<'dma, T, D>
@@ -25,19 +23,16 @@ where
         dest: D,
     ) -> Self {
         Self {
-            channel,
-            source,
-            dest,
+            payload: Payload {
+                channel,
+                source,
+                dest,
+            },
         }
     }
 
     /// Waits for the transfer to finish
-    pub fn wait(
-        mut self,
-    ) -> Result<
-        (Channel<T, Enabled<&'dma Handle>>, &'static mut [u8], D),
-        D::Error,
-    > {
+    pub fn wait(mut self) -> Result<Payload<'dma, T, D>, D::Error> {
         // There's an error interrupt status register. Maybe we should check
         // this here, but I have no idea whether that actually makes sense:
         // 1. As of this writing, we're not enabling any interrupts. I don't
@@ -47,10 +42,10 @@ where
         //
         // This needs some further looking into.
 
-        while self.channel.active0.read().act().bits() & T::FLAG != 0 {}
+        while self.payload.channel.active0.read().act().bits() & T::FLAG != 0 {}
 
         loop {
-            match self.dest.wait() {
+            match self.payload.dest.wait() {
                 Err(nb::Error::WouldBlock) => continue,
                 Ok(()) => break,
 
@@ -63,8 +58,23 @@ where
 
         compiler_fence(Ordering::SeqCst);
 
-        Ok((self.channel, self.source, self.dest))
+        Ok(self.payload)
     }
+}
+
+/// The payload of a `Transfer`
+pub struct Payload<'dma, T, D>
+where
+    T: ChannelTrait,
+{
+    /// The channel used for this transfer
+    pub channel: Channel<T, Enabled<&'dma Handle>>,
+
+    /// The source of the transfer
+    pub source: &'static mut [u8],
+
+    /// The destination of the transfer
+    pub dest: D,
 }
 
 /// A destination for a DMA transfer

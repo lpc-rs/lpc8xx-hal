@@ -11,5 +11,5 @@ pub use self::{
     channels::{Channel, ChannelTrait, Channels},
     descriptors::DescriptorTable,
     peripheral::{Handle, DMA},
-    transfer::{Dest, Transfer},
+    transfer::{Dest, Payload, Transfer},
 };
