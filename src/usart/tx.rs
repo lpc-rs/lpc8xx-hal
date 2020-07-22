@@ -60,6 +60,19 @@ where
 
         usart.intenclr.write(|w| w.txrdyclr().set_bit());
     }
+
+    /// Writes the provided buffer using DMA
+    ///
+    /// # Limitations
+    ///
+    /// The length of `buffer` must be 1024 or less.
+    pub fn write_all<'dma>(
+        self,
+        buffer: &'static [u8],
+        channel: dma::Channel<I::TxChannel, Enabled<&'dma dma::Handle>>,
+    ) -> dma::Transfer<'dma, I::TxChannel, Self> {
+        channel.start_transfer(buffer, self)
+    }
 }
 
 impl<I> Write<u8> for Tx<I, Enabled>

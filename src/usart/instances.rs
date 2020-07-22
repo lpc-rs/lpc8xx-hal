@@ -1,6 +1,7 @@
 use core::ops::Deref;
 
 use crate::{
+    dma,
     pac::{self, Interrupt},
     swm,
     syscon::{self, clock_source::PeripheralClockSelector},
@@ -25,6 +26,9 @@ pub trait Instance:
 
     /// The movable function that needs to be assigned to this USART's TX pin
     type Tx;
+
+    /// The DMA channel used with this instance for transmissions
+    type TxChannel: dma::ChannelTrait;
 }
 
 macro_rules! instances {
@@ -35,7 +39,8 @@ macro_rules! instances {
             $module:ident,
             $interrupt:ident,
             $rx:ident,
-            $tx:ident;
+            $tx:ident,
+            $tx_channel:ident;
         )*
     ) => {
         $(
@@ -48,6 +53,8 @@ macro_rules! instances {
 
                 type Rx = swm::$rx;
                 type Tx = swm::$tx;
+
+                type TxChannel = dma::$tx_channel;
             }
 
             impl PeripheralClockSelector for pac::$instance {
@@ -58,15 +65,15 @@ macro_rules! instances {
 }
 
 instances!(
-    USART0, 0, usart0, USART0, U0_RXD, U0_TXD;
-    USART1, 1, usart1, USART1, U1_RXD, U1_TXD;
-    USART2, 2, usart2, USART2, U2_RXD, U2_TXD;
+    USART0, 0, usart0, USART0, U0_RXD, U0_TXD, Channel1;
+    USART1, 1, usart1, USART1, U1_RXD, U1_TXD, Channel3;
+    USART2, 2, usart2, USART2, U2_RXD, U2_TXD, Channel5;
 );
 
 #[cfg(feature = "845")]
 instances!(
-    USART3, 3, usart3, PIN_INT6_USART3, U3_RXD, U3_TXD;
-    USART4, 4, usart4, PIN_INT7_USART4, U4_RXD, U4_TXD;
+    USART3, 3, usart3, PIN_INT6_USART3, U3_RXD, U3_TXD, Channel7;
+    USART4, 4, usart4, PIN_INT7_USART4, U4_RXD, U4_TXD, Channel9;
 );
 
 mod private {
