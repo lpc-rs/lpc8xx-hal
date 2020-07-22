@@ -82,11 +82,7 @@ where
         // We need to substract 1 from the length below. If the source is empty,
         // return early to prevent underflow.
         if source.is_empty() {
-            return Transfer {
-                channel: self,
-                source,
-                dest,
-            };
+            return Transfer::new(self, source, dest);
         }
 
         // Configure channel
@@ -127,11 +123,7 @@ where
         // Trigger transfer
         self.settrig0.write(|w| unsafe { w.trig().bits(T::FLAG) });
 
-        Transfer {
-            channel: self,
-            source,
-            dest,
-        }
+        Transfer::new(self, source, dest)
     }
 }
 

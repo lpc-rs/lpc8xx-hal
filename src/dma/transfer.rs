@@ -19,6 +19,18 @@ where
     T: ChannelTrait,
     D: Dest,
 {
+    pub(super) fn new(
+        channel: Channel<T, Enabled<&'dma Handle>>,
+        source: &'static mut [u8],
+        dest: D,
+    ) -> Self {
+        Self {
+            channel,
+            source,
+            dest,
+        }
+    }
+
     /// Waits for the transfer to finish
     pub fn wait(
         mut self,
