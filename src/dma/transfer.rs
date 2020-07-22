@@ -5,20 +5,20 @@ use crate::init_state::Enabled;
 use super::{channels::ChannelTrait, Channel, Handle};
 
 /// A DMA transfer
-pub struct Transfer<'dma, T, D>
+pub struct Transfer<'dma, C, D>
 where
-    T: ChannelTrait,
+    C: ChannelTrait,
 {
-    payload: Payload<'dma, T, D>,
+    payload: Payload<'dma, C, D>,
 }
 
-impl<'dma, T, D> Transfer<'dma, T, D>
+impl<'dma, C, D> Transfer<'dma, C, D>
 where
-    T: ChannelTrait,
+    C: ChannelTrait,
     D: Dest,
 {
     pub(super) fn new(
-        channel: Channel<T, Enabled<&'dma Handle>>,
+        channel: Channel<C, Enabled<&'dma Handle>>,
         source: &'static mut [u8],
         dest: D,
     ) -> Self {
@@ -34,7 +34,7 @@ where
     /// Waits for the transfer to finish
     pub fn wait(
         mut self,
-    ) -> Result<Payload<'dma, T, D>, (D::Error, Payload<'dma, T, D>)> {
+    ) -> Result<Payload<'dma, C, D>, (D::Error, Payload<'dma, C, D>)> {
         // There's an error interrupt status register. Maybe we should check
         // this here, but I have no idea whether that actually makes sense:
         // 1. As of this writing, we're not enabling any interrupts. I don't
@@ -44,7 +44,7 @@ where
         //
         // This needs some further looking into.
 
-        while self.payload.channel.active0.read().act().bits() & T::FLAG != 0 {}
+        while self.payload.channel.active0.read().act().bits() & C::FLAG != 0 {}
 
         loop {
             match self.payload.dest.wait() {
@@ -65,12 +65,12 @@ where
 }
 
 /// The payload of a `Transfer`
-pub struct Payload<'dma, T, D>
+pub struct Payload<'dma, C, D>
 where
-    T: ChannelTrait,
+    C: ChannelTrait,
 {
     /// The channel used for this transfer
-    pub channel: Channel<T, Enabled<&'dma Handle>>,
+    pub channel: Channel<C, Enabled<&'dma Handle>>,
 
     /// The source of the transfer
     pub source: &'static mut [u8],

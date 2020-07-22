@@ -17,17 +17,17 @@ use super::{
 };
 
 /// A DMA channel
-pub struct Channel<T, S>
+pub struct Channel<C, S>
 where
-    T: ChannelTrait,
+    C: ChannelTrait,
 {
-    ty: T,
+    ty: C,
     _state: S,
     descriptor: &'static mut ChannelDescriptor,
 
     // This channel's dedicated registers.
-    cfg: RegProxy<T::Cfg>,
-    xfercfg: RegProxy<T::Xfercfg>,
+    cfg: RegProxy<C::Cfg>,
+    xfercfg: RegProxy<C::Xfercfg>,
 
     // Shared registers. We restrict our access to the one bit that is dedicated
     // to this channel, so sharing those with other channels should be safe.
@@ -36,15 +36,15 @@ where
     settrig0: RegProxy<SETTRIG0>,
 }
 
-impl<T> Channel<T, init_state::Disabled>
+impl<C> Channel<C, init_state::Disabled>
 where
-    T: ChannelTrait,
+    C: ChannelTrait,
 {
     /// Enable the channel
     pub fn enable<'dma>(
         self,
         dma: &'dma Handle,
-    ) -> Channel<T, init_state::Enabled<&'dma Handle>> {
+    ) -> Channel<C, init_state::Enabled<&'dma Handle>> {
         Channel {
             ty: self.ty,
             _state: init_state::Enabled(dma),
@@ -60,9 +60,9 @@ where
     }
 }
 
-impl<'dma, T> Channel<T, init_state::Enabled<&'dma Handle>>
+impl<'dma, C> Channel<C, init_state::Enabled<&'dma Handle>>
 where
-    T: ChannelTrait,
+    C: ChannelTrait,
 {
     /// Starts a DMA transfer
     ///
@@ -73,7 +73,7 @@ where
         self,
         source: &'static mut [u8],
         mut dest: D,
-    ) -> Transfer<'dma, T, D>
+    ) -> Transfer<'dma, C, D>
     where
         D: Dest,
     {
@@ -118,10 +118,10 @@ where
 
         // Enable channel
         // See user manual, section 12.6.4.
-        self.enableset0.write(|w| unsafe { w.ena().bits(T::FLAG) });
+        self.enableset0.write(|w| unsafe { w.ena().bits(C::FLAG) });
 
         // Trigger transfer
-        self.settrig0.write(|w| unsafe { w.trig().bits(T::FLAG) });
+        self.settrig0.write(|w| unsafe { w.trig().bits(C::FLAG) });
 
         Transfer::new(self, source, dest)
     }
