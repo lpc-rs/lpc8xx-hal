@@ -1,6 +1,6 @@
 use core::sync::atomic::{compiler_fence, Ordering};
 
-use crate::init_state;
+use crate::init_state::Enabled;
 
 use super::{channels::ChannelTrait, Channel, Handle};
 
@@ -9,7 +9,7 @@ pub struct Transfer<'dma, T, D>
 where
     T: ChannelTrait,
 {
-    pub(super) channel: Channel<T, init_state::Enabled<&'dma Handle>>,
+    pub(super) channel: Channel<T, Enabled<&'dma Handle>>,
     pub(super) source: &'static mut [u8],
     pub(super) dest: D,
 }
@@ -23,11 +23,7 @@ where
     pub fn wait(
         mut self,
     ) -> Result<
-        (
-            Channel<T, init_state::Enabled<&'dma Handle>>,
-            &'static mut [u8],
-            D,
-        ),
+        (Channel<T, Enabled<&'dma Handle>>, &'static mut [u8], D),
         D::Error,
     > {
         // There's an error interrupt status register. Maybe we should check
