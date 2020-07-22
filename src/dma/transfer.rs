@@ -9,9 +9,9 @@ pub struct Transfer<'dma, T, D>
 where
     T: ChannelTrait,
 {
-    pub(super) channel: Channel<T, Enabled<&'dma Handle>>,
-    pub(super) source: &'static mut [u8],
-    pub(super) dest: D,
+    channel: Channel<T, Enabled<&'dma Handle>>,
+    source: &'static mut [u8],
+    dest: D,
 }
 
 impl<'dma, T, D> Transfer<'dma, T, D>
