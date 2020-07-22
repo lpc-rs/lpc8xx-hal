@@ -6,7 +6,7 @@ use embedded_hal::{
 use nb::block;
 use void::Void;
 
-use crate::{dma, init_state};
+use crate::{dma, init_state::Enabled};
 
 use super::instances::Instance;
 
@@ -18,7 +18,7 @@ use super::instances::Instance;
 ///
 /// [`embedded_hal::serial::Write`]: #impl-Write%3Cu8%3E
 /// [`embedded_hal::blocking::serial::Write`]: #impl-Write
-pub struct Tx<I, State = init_state::Enabled> {
+pub struct Tx<I, State = Enabled> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,
 }
@@ -35,7 +35,7 @@ where
     }
 }
 
-impl<I> Tx<I, init_state::Enabled>
+impl<I> Tx<I, Enabled>
 where
     I: Instance,
 {
@@ -62,7 +62,7 @@ where
     }
 }
 
-impl<I> Write<u8> for Tx<I, init_state::Enabled>
+impl<I> Write<u8> for Tx<I, Enabled>
 where
     I: Instance,
 {
@@ -96,10 +96,9 @@ where
     }
 }
 
-impl<I> BlockingWriteDefault<u8> for Tx<I, init_state::Enabled> where I: Instance
-{}
+impl<I> BlockingWriteDefault<u8> for Tx<I, Enabled> where I: Instance {}
 
-impl<I> fmt::Write for Tx<I, init_state::Enabled>
+impl<I> fmt::Write for Tx<I, Enabled>
 where
     Self: BlockingWriteDefault<u8>,
     I: Instance,
@@ -114,7 +113,7 @@ where
     }
 }
 
-impl<I> dma::Dest for Tx<I, init_state::Enabled>
+impl<I> dma::Dest for Tx<I, Enabled>
 where
     I: Instance,
 {
