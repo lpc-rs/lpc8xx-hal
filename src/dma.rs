@@ -266,7 +266,7 @@ where
             };
         }
 
-        // Configure channel 1 (has request input USART0_TX_DMA)
+        // Configure channel
         // See user manual, section 12.6.16.
         self.cfg.write(|w| {
             w.periphreqen().enabled();
@@ -297,7 +297,7 @@ where
         self.descriptor.source_end = source_end;
         self.descriptor.dest_end = dest.end_addr();
 
-        // Enable channel 1
+        // Enable channel
         // See user manual, section 12.6.4.
         self.enableset0.write(|w| unsafe { w.ena().bits(T::FLAG) });
 
