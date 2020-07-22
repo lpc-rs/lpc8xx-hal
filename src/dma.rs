@@ -8,7 +8,7 @@ mod peripheral;
 mod transfer;
 
 pub use self::{
-    channels::{Channel, ChannelTrait, Channels},
+    channels::*,
     descriptors::DescriptorTable,
     peripheral::{Handle, DMA},
     transfer::{Dest, Payload, Transfer},
