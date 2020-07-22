@@ -19,7 +19,7 @@ where
 {
     pub(super) fn new(
         channel: Channel<C, Enabled<&'dma Handle>>,
-        source: &'static mut [u8],
+        source: &'static [u8],
         dest: D,
     ) -> Self {
         Self {
@@ -73,7 +73,7 @@ where
     pub channel: Channel<C, Enabled<&'dma Handle>>,
 
     /// The source of the transfer
-    pub source: &'static mut [u8],
+    pub source: &'static [u8],
 
     /// The destination of the transfer
     pub dest: D,

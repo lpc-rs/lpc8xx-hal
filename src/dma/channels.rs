@@ -71,7 +71,7 @@ where
     /// The length of `source` must be 1024 or less.
     pub fn start_transfer<D>(
         self,
-        source: &'static mut [u8],
+        source: &'static [u8],
         mut dest: D,
     ) -> Transfer<'dma, C, D>
     where
