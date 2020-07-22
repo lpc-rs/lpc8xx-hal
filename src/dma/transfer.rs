@@ -4,18 +4,6 @@ use crate::init_state;
 
 use super::{channels::ChannelTrait, Channel, Handle};
 
-/// A destination for a DMA transfer
-pub trait Dest {
-    /// The error that can occur while waiting for the destination to be idle
-    type Error;
-
-    /// Wait for the destination to be idle
-    fn wait(&mut self) -> nb::Result<(), Self::Error>;
-
-    /// The last byte of the destination's memory range
-    fn end_addr(&mut self) -> *mut u8;
-}
-
 /// A DMA transfer
 pub struct Transfer<'dma, T, D>
 where
@@ -69,4 +57,16 @@ where
 
         Ok((self.channel, self.source, self.dest))
     }
+}
+
+/// A destination for a DMA transfer
+pub trait Dest {
+    /// The error that can occur while waiting for the destination to be idle
+    type Error;
+
+    /// Wait for the destination to be idle
+    fn wait(&mut self) -> nb::Result<(), Self::Error>;
+
+    /// The last byte of the destination's memory range
+    fn end_addr(&mut self) -> *mut u8;
 }
