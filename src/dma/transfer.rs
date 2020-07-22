@@ -1,4 +1,7 @@
-use core::sync::atomic::{compiler_fence, Ordering};
+use core::{
+    fmt,
+    sync::atomic::{compiler_fence, Ordering},
+};
 
 use crate::init_state::Enabled;
 
@@ -77,6 +80,18 @@ where
 
     /// The destination of the transfer
     pub dest: D,
+}
+
+impl<'dma, C, D> fmt::Debug for Payload<'dma, C, D>
+where
+    C: ChannelTrait,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Placeholder implementation. Trying to do this properly runs into many
+        // hurdles in many places, mainly because `Debug` isn't available for
+        // many svd2rust-generated types.
+        write!(f, "Payload")
+    }
 }
 
 /// A destination for a DMA transfer
