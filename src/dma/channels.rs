@@ -13,7 +13,8 @@ use crate::{
 };
 
 use super::{
-    descriptors::ChannelDescriptor, DescriptorTable, Dest, Handle, Transfer,
+    descriptors::ChannelDescriptor, DescriptorTable, Dest, Handle, Source,
+    Transfer,
 };
 
 /// A DMA channel
@@ -72,12 +73,13 @@ where
     ///
     /// The caller must make sure to call this method only for the correct
     /// combination of channel and target.
-    pub(crate) fn start_transfer<D>(
+    pub(crate) fn start_transfer<S, D>(
         self,
-        source: &'static [u8],
+        source: S,
         mut dest: D,
-    ) -> Transfer<'dma, C, &'static [u8], D>
+    ) -> Transfer<'dma, C, S, D>
     where
+        S: Source,
         D: Dest,
     {
         compiler_fence(Ordering::SeqCst);
@@ -108,14 +110,12 @@ where
             w.width().bit_8();
             w.srcinc().width_x_1();
             w.dstinc().no_increment();
-            unsafe { w.xfercount().bits(source.len() as u16 - 1) }
+            unsafe { w.xfercount().bits(source.transfer_count() as u16) }
         });
-
-        let source_end = unsafe { source.as_ptr().add(source.len() - 1) };
 
         // Configure channel descriptor
         // See user manual, sections 12.5.2 and 12.5.3.
-        self.descriptor.source_end = source_end;
+        self.descriptor.source_end = source.end_addr();
         self.descriptor.dest_end = dest.end_addr();
 
         // Enable channel
