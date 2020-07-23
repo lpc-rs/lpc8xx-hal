@@ -2,6 +2,7 @@
 //!
 //! The DMA controller is described in the user manual, chapter 12.
 
+mod buffer;
 mod channels;
 mod descriptors;
 mod peripheral;
