@@ -13,12 +13,14 @@ impl Source for &'static [u8] {
         SRCINC_A::WIDTH_X_1
     }
 
-    fn transfer_count(&self) -> usize {
-        self.len() - 1
+    fn transfer_count(&self) -> Option<u16> {
+        // The cast should be fine, as DMA buffers are restricted to a length of
+        // 1024.
+        Some(self.len() as u16 - 1)
     }
 
     fn end_addr(&self) -> *const u8 {
         // Sound, as we stay within the bounds of the slice.
-        unsafe { self.as_ptr().add(self.transfer_count()) }
+        unsafe { self.as_ptr().add(self.len() - 1) }
     }
 }

@@ -107,7 +107,7 @@ pub trait Source: crate::private::Sealed {
     fn increment(&self) -> SRCINC_A;
 
     /// The transfer count, as defined by XFERCFG.XFERCOUNT
-    fn transfer_count(&self) -> usize;
+    fn transfer_count(&self) -> Option<u16>;
 
     /// The end address
     ///

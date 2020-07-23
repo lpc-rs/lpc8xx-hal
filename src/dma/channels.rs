@@ -90,6 +90,13 @@ where
             return Transfer::new(self, source, dest);
         }
 
+        let transfer_count = match source.transfer_count() {
+            Some(transfer_count) => transfer_count,
+            None => {
+                panic!("Unsupported transfer type");
+            }
+        };
+
         // Configure channel
         // See user manual, section 12.6.16.
         self.cfg.write(|w| {
@@ -110,7 +117,7 @@ where
             w.width().bit_8();
             w.srcinc().variant(source.increment());
             w.dstinc().variant(dest.increment());
-            unsafe { w.xfercount().bits(source.transfer_count() as u16) }
+            unsafe { w.xfercount().bits(transfer_count) }
         });
 
         // Configure channel descriptor
