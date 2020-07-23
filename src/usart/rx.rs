@@ -1,6 +1,6 @@
 use core::marker::PhantomData;
 
-use crate::{embedded_hal::serial::Read, init_state};
+use crate::{embedded_hal::serial::Read, init_state::Enabled};
 
 use super::instances::Instance;
 
@@ -11,7 +11,7 @@ use super::instances::Instance;
 ///
 ///
 /// [`embedded_hal::serial::Read`]: #impl-Read%3Cu8%3E
-pub struct Rx<I, State = init_state::Enabled> {
+pub struct Rx<I, State = Enabled> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,
 }
@@ -28,7 +28,7 @@ where
     }
 }
 
-impl<I> Rx<I, init_state::Enabled>
+impl<I> Rx<I, Enabled>
 where
     I: Instance,
 {
@@ -55,7 +55,7 @@ where
     }
 }
 
-impl<I> Read<u8> for Rx<I, init_state::Enabled>
+impl<I> Read<u8> for Rx<I, Enabled>
 where
     I: Instance,
 {
