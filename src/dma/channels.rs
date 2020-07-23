@@ -76,7 +76,7 @@ where
         self,
         source: &'static [u8],
         mut dest: D,
-    ) -> Transfer<'dma, C, D>
+    ) -> Transfer<'dma, C, &'static [u8], D>
     where
         D: Dest,
     {

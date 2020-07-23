@@ -8,21 +8,21 @@ use crate::init_state::Enabled;
 use super::{channels::ChannelTrait, Channel, Handle};
 
 /// A DMA transfer
-pub struct Transfer<'dma, C, D>
+pub struct Transfer<'dma, C, S, D>
 where
     C: ChannelTrait,
 {
-    payload: Payload<'dma, C, D>,
+    payload: Payload<'dma, C, S, D>,
 }
 
-impl<'dma, C, D> Transfer<'dma, C, D>
+impl<'dma, C, S, D> Transfer<'dma, C, S, D>
 where
     C: ChannelTrait,
     D: Dest,
 {
     pub(super) fn new(
         channel: Channel<C, Enabled<&'dma Handle>>,
-        source: &'static [u8],
+        source: S,
         dest: D,
     ) -> Self {
         Self {
@@ -37,7 +37,8 @@ where
     /// Waits for the transfer to finish
     pub fn wait(
         mut self,
-    ) -> Result<Payload<'dma, C, D>, (D::Error, Payload<'dma, C, D>)> {
+    ) -> Result<Payload<'dma, C, S, D>, (D::Error, Payload<'dma, C, S, D>)>
+    {
         // There's an error interrupt status register. Maybe we should check
         // this here, but I have no idea whether that actually makes sense:
         // 1. As of this writing, we're not enabling any interrupts. I don't
@@ -68,7 +69,7 @@ where
 }
 
 /// The payload of a `Transfer`
-pub struct Payload<'dma, C, D>
+pub struct Payload<'dma, C, S, D>
 where
     C: ChannelTrait,
 {
@@ -76,13 +77,13 @@ where
     pub channel: Channel<C, Enabled<&'dma Handle>>,
 
     /// The source of the transfer
-    pub source: &'static [u8],
+    pub source: S,
 
     /// The destination of the transfer
     pub dest: D,
 }
 
-impl<'dma, C, D> fmt::Debug for Payload<'dma, C, D>
+impl<'dma, C, S, D> fmt::Debug for Payload<'dma, C, S, D>
 where
     C: ChannelTrait,
 {
