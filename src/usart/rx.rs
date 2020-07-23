@@ -1,6 +1,9 @@
 use core::marker::PhantomData;
 
-use crate::{embedded_hal::serial::Read, init_state::Enabled};
+use crate::{
+    dma, embedded_hal::serial::Read, init_state::Enabled,
+    pac::dma0::channel::xfercfg::SRCINC_A,
+};
 
 use super::instances::Instance;
 
@@ -53,6 +56,19 @@ where
 
         usart.intenclr.write(|w| w.rxrdyclr().set_bit());
     }
+
+    /// Reads until the provided buffer is full, using DMA
+    ///
+    /// # Limitations
+    ///
+    /// The length of `buffer` must be 1024 or less.
+    pub fn read_all<'dma>(
+        self,
+        buffer: &'static mut [u8],
+        channel: dma::Channel<I::RxChannel, Enabled<&'dma dma::Handle>>,
+    ) -> dma::Transfer<'dma, I::RxChannel, Self, &'static mut [u8]> {
+        channel.start_transfer(self, buffer)
+    }
 }
 
 impl<I> Read<u8> for Rx<I, Enabled>
@@ -94,6 +110,31 @@ where
         } else {
             Err(nb::Error::WouldBlock)
         }
+    }
+}
+
+impl<I, State> crate::private::Sealed for Rx<I, State> {}
+
+impl<I> dma::Source for Rx<I, Enabled>
+where
+    I: Instance,
+{
+    fn is_empty(&self) -> bool {
+        false
+    }
+
+    fn increment(&self) -> SRCINC_A {
+        SRCINC_A::NO_INCREMENT
+    }
+
+    fn transfer_count(&self) -> Option<u16> {
+        None
+    }
+
+    fn end_addr(&self) -> *const u8 {
+        // Sound, because we're dereferencing a register address that is always
+        // valid on the target hardware.
+        (unsafe { &(*I::REGISTERS).rxdat }) as *const _ as *mut u8
     }
 }
 
