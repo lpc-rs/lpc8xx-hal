@@ -93,7 +93,6 @@ where
         self.cfg.write(|w| {
             w.periphreqen().enabled();
             w.hwtrigen().disabled();
-            w.trigburst().single();
             unsafe { w.chpriority().bits(0) }
         });
 
