@@ -1,5 +1,3 @@
-use core::sync::atomic::{compiler_fence, Ordering};
-
 use crate::{
     init_state,
     pac::{
@@ -12,10 +10,7 @@ use crate::{
     reg_proxy::{Reg, RegProxy},
 };
 
-use super::{
-    descriptors::ChannelDescriptor, DescriptorTable, Dest, Handle, Source,
-    Transfer,
-};
+use super::{descriptors::ChannelDescriptor, DescriptorTable, Handle};
 
 /// A DMA channel
 pub struct Channel<C, S>
@@ -58,93 +53,6 @@ where
             enableset0: self.enableset0,
             settrig0: self.settrig0,
         }
-    }
-}
-
-impl<'dma, C> Channel<C, init_state::Enabled<&'dma Handle>>
-where
-    C: ChannelTrait,
-{
-    /// Starts a DMA transfer
-    ///
-    /// # Panics
-    ///
-    /// Panics, if any buffer passed to this function has a length larger than
-    /// 1024.
-    ///
-    /// # Limitations
-    ///
-    /// The caller must make sure to call this method only for the correct
-    /// combination of channel and target.
-    pub(crate) fn start_transfer<S, D>(
-        self,
-        source: S,
-        mut dest: D,
-    ) -> Transfer<'dma, C, S, D>
-    where
-        S: Source,
-        D: Dest,
-    {
-        assert!(source.is_valid());
-        assert!(dest.is_valid());
-
-        compiler_fence(Ordering::SeqCst);
-
-        // To compute the transfer count, source or destination buffers need to
-        // subtract 1 from their length. This early return makes sure that
-        // this won't lead to an underflow.
-        if source.is_empty() || dest.is_full() {
-            return Transfer::new(self, source, dest);
-        }
-
-        // Currently we don't support memory-to-memory transfers, which means
-        // exactly one participant is providing the transfer count.
-        let source_count = source.transfer_count();
-        let dest_count = dest.transfer_count();
-        let transfer_count = match (source_count, dest_count) {
-            (Some(transfer_count), None) => transfer_count,
-            (None, Some(transfer_count)) => transfer_count,
-            _ => {
-                panic!("Unsupported transfer type");
-            }
-        };
-
-        // Configure channel
-        // See user manual, section 12.6.16.
-        self.cfg.write(|w| {
-            w.periphreqen().enabled();
-            w.hwtrigen().disabled();
-            unsafe { w.chpriority().bits(0) }
-        });
-
-        // Set channel transfer configuration
-        // See user manual, section 12.6.18.
-        self.xfercfg.write(|w| {
-            w.cfgvalid().valid();
-            w.reload().disabled();
-            w.swtrig().not_set();
-            w.clrtrig().cleared();
-            w.setinta().no_effect();
-            w.setintb().no_effect();
-            w.width().bit_8();
-            w.srcinc().variant(source.increment());
-            w.dstinc().variant(dest.increment());
-            unsafe { w.xfercount().bits(transfer_count) }
-        });
-
-        // Configure channel descriptor
-        // See user manual, sections 12.5.2 and 12.5.3.
-        self.descriptor.source_end = source.end_addr();
-        self.descriptor.dest_end = dest.end_addr();
-
-        // Enable channel
-        // See user manual, section 12.6.4.
-        self.enableset0.write(|w| unsafe { w.ena().bits(C::FLAG) });
-
-        // Trigger transfer
-        self.settrig0.write(|w| unsafe { w.trig().bits(C::FLAG) });
-
-        Transfer::new(self, source, dest)
     }
 }
 

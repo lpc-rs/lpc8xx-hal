@@ -21,6 +21,7 @@ where
 impl<'dma, C, S, D> Transfer<'dma, C, S, D>
 where
     C: ChannelTrait,
+    S: Source,
     D: Dest,
 {
     pub(super) fn new(
@@ -35,6 +36,88 @@ where
                 dest,
             },
         }
+    }
+
+    /// Start a DMA transfer
+    ///
+    /// # Panics
+    ///
+    /// Panics, if any buffer passed to this function has a length larger than
+    /// 1024.
+    ///
+    /// # Limitations
+    ///
+    /// The caller must make sure to call this method only for the correct
+    /// combination of channel and target.
+    pub(crate) fn start(
+        channel: Channel<C, Enabled<&'dma Handle>>,
+        source: S,
+        mut dest: D,
+    ) -> Self {
+        assert!(source.is_valid());
+        assert!(dest.is_valid());
+
+        compiler_fence(Ordering::SeqCst);
+
+        // To compute the transfer count, source or destination buffers need to
+        // subtract 1 from their length. This early return makes sure that
+        // this won't lead to an underflow.
+        if source.is_empty() || dest.is_full() {
+            return Transfer::new(channel, source, dest);
+        }
+
+        // Currently we don't support memory-to-memory transfers, which means
+        // exactly one participant is providing the transfer count.
+        let source_count = source.transfer_count();
+        let dest_count = dest.transfer_count();
+        let transfer_count = match (source_count, dest_count) {
+            (Some(transfer_count), None) => transfer_count,
+            (None, Some(transfer_count)) => transfer_count,
+            _ => {
+                panic!("Unsupported transfer type");
+            }
+        };
+
+        // Configure channel
+        // See user manual, section 12.6.16.
+        channel.cfg.write(|w| {
+            w.periphreqen().enabled();
+            w.hwtrigen().disabled();
+            unsafe { w.chpriority().bits(0) }
+        });
+
+        // Set channel transfer configuration
+        // See user manual, section 12.6.18.
+        channel.xfercfg.write(|w| {
+            w.cfgvalid().valid();
+            w.reload().disabled();
+            w.swtrig().not_set();
+            w.clrtrig().cleared();
+            w.setinta().no_effect();
+            w.setintb().no_effect();
+            w.width().bit_8();
+            w.srcinc().variant(source.increment());
+            w.dstinc().variant(dest.increment());
+            unsafe { w.xfercount().bits(transfer_count) }
+        });
+
+        // Configure channel descriptor
+        // See user manual, sections 12.5.2 and 12.5.3.
+        channel.descriptor.source_end = source.end_addr();
+        channel.descriptor.dest_end = dest.end_addr();
+
+        // Enable channel
+        // See user manual, section 12.6.4.
+        channel
+            .enableset0
+            .write(|w| unsafe { w.ena().bits(C::FLAG) });
+
+        // Trigger transfer
+        channel
+            .settrig0
+            .write(|w| unsafe { w.trig().bits(C::FLAG) });
+
+        Transfer::new(channel, source, dest)
     }
 
     /// Waits for the transfer to finish
