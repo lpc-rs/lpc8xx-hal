@@ -24,17 +24,17 @@ where
 {
     ty: C,
     _state: S,
-    descriptor: &'static mut ChannelDescriptor,
+    pub(super) descriptor: &'static mut ChannelDescriptor,
 
     // This channel's dedicated registers.
-    cfg: RegProxy<C::Cfg>,
-    xfercfg: RegProxy<C::Xfercfg>,
+    pub(super) cfg: RegProxy<C::Cfg>,
+    pub(super) xfercfg: RegProxy<C::Xfercfg>,
 
     // Shared registers. We restrict our access to the one bit that is dedicated
     // to this channel, so sharing those with other channels should be safe.
     pub(super) active0: RegProxy<ACTIVE0>,
-    enableset0: RegProxy<ENABLESET0>,
-    settrig0: RegProxy<SETTRIG0>,
+    pub(super) enableset0: RegProxy<ENABLESET0>,
+    pub(super) settrig0: RegProxy<SETTRIG0>,
 }
 
 impl<C> Channel<C, init_state::Disabled>
