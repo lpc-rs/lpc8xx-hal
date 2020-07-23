@@ -95,6 +95,22 @@ where
     }
 }
 
+/// The source of a DMA transfer
+pub trait Source: crate::private::Sealed {
+    /// Indicates whether the source is empty
+    fn is_empty(&self) -> bool;
+
+    /// The transfer count, as defined by XFERCFG.XFERCOUNT
+    fn transfer_count(&self) -> usize;
+
+    /// The end address
+    ///
+    /// This is not the actual end of the buffer, but the starting address plus
+    /// `transfer_count` times address increment. See LPC845 user manual,
+    /// section 16.5.2, for example.
+    fn end_addr(&self) -> *const u8;
+}
+
 /// A destination for a DMA transfer
 pub trait Dest: crate::private::Sealed {
     /// The error that can occur while waiting for the destination to be idle
