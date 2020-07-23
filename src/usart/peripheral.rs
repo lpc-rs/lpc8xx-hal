@@ -307,6 +307,8 @@ where
     }
 }
 
+impl<I, State> crate::private::Sealed for USART<I, State> {}
+
 impl<I> dma::Dest for USART<I, init_state::Enabled>
 where
     I: Instance,

@@ -564,3 +564,7 @@ pub mod init_state {
     /// Indicates that the hardware component is disabled
     pub struct Disabled;
 }
+
+mod private {
+    pub trait Sealed {}
+}

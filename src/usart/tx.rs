@@ -126,6 +126,8 @@ where
     }
 }
 
+impl<I, State> crate::private::Sealed for Tx<I, State> {}
+
 impl<I> dma::Dest for Tx<I, Enabled>
 where
     I: Instance,

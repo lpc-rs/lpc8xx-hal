@@ -96,7 +96,7 @@ where
 }
 
 /// A destination for a DMA transfer
-pub trait Dest {
+pub trait Dest: crate::private::Sealed {
     /// The error that can occur while waiting for the destination to be idle
     type Error;
 
