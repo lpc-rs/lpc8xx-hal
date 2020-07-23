@@ -142,6 +142,10 @@ where
         DSTINC_A::NO_INCREMENT
     }
 
+    fn transfer_count(&self) -> Option<u16> {
+        None
+    }
+
     fn wait(&mut self) -> nb::Result<(), Self::Error> {
         self.flush()
     }

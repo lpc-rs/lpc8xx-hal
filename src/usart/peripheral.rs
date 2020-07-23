@@ -323,6 +323,10 @@ where
         self.tx.increment()
     }
 
+    fn transfer_count(&self) -> Option<u16> {
+        None
+    }
+
     fn wait(&mut self) -> nb::Result<(), Self::Error> {
         self.tx.wait()
     }

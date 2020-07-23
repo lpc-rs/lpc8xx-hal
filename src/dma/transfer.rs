@@ -128,6 +128,9 @@ pub trait Dest: crate::private::Sealed {
     /// The address increment during the transfer
     fn increment(&self) -> DSTINC_A;
 
+    /// The transfer count, as defined by XFERCFG.XFERCOUNT
+    fn transfer_count(&self) -> Option<u16>;
+
     /// Wait for the destination to be idle
     fn wait(&mut self) -> nb::Result<(), Self::Error>;
 

@@ -91,9 +91,14 @@ where
             return Transfer::new(self, source, dest);
         }
 
-        let transfer_count = match source.transfer_count() {
-            Some(transfer_count) => transfer_count,
-            None => {
+        // Currently we don't support memory-to-memory transfers, which means
+        // exactly one participant is providing the transfer count.
+        let source_count = source.transfer_count();
+        let dest_count = dest.transfer_count();
+        let transfer_count = match (source_count, dest_count) {
+            (Some(transfer_count), None) => transfer_count,
+            (None, Some(transfer_count)) => transfer_count,
+            _ => {
                 panic!("Unsupported transfer type");
             }
         };
