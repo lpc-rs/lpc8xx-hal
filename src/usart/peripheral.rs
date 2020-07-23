@@ -7,8 +7,8 @@ use embedded_hal::{
 use void::Void;
 
 use crate::{
-    dma, init_state,
-    pac::{dma0::channel::xfercfg::DSTINC_A, NVIC},
+    init_state,
+    pac::NVIC,
     pins,
     swm::{self, FunctionTrait},
     syscon,
@@ -304,34 +304,5 @@ where
     /// Writes a string slice into this writer, returning whether the write succeeded.
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.tx.write_str(s)
-    }
-}
-
-impl<I, State> crate::private::Sealed for USART<I, State> {}
-
-impl<I> dma::Dest for USART<I, init_state::Enabled>
-where
-    I: Instance,
-{
-    type Error = Void;
-
-    fn is_full(&self) -> bool {
-        self.tx.is_full()
-    }
-
-    fn increment(&self) -> DSTINC_A {
-        self.tx.increment()
-    }
-
-    fn transfer_count(&self) -> Option<u16> {
-        None
-    }
-
-    fn wait(&mut self) -> nb::Result<(), Self::Error> {
-        self.tx.wait()
-    }
-
-    fn end_addr(&mut self) -> *mut u8 {
-        self.tx.end_addr()
     }
 }
