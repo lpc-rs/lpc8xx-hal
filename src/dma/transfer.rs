@@ -122,6 +122,9 @@ pub trait Dest: crate::private::Sealed {
     /// The error that can occur while waiting for the destination to be idle
     type Error;
 
+    /// Indicates whether the destination is full
+    fn is_full(&self) -> bool;
+
     /// The address increment during the transfer
     fn increment(&self) -> DSTINC_A;
 

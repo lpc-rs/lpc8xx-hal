@@ -84,9 +84,10 @@ where
     {
         compiler_fence(Ordering::SeqCst);
 
-        // We need to substract 1 from the length below. If the source is empty,
-        // return early to prevent underflow.
-        if source.is_empty() {
+        // To compute the transfer count, source or destination buffers need to
+        // subtract 1 from their length. This early return makes sure that
+        // this won't lead to an underflow.
+        if source.is_empty() || dest.is_full() {
             return Transfer::new(self, source, dest);
         }
 

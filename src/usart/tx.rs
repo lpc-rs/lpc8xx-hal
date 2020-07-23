@@ -134,6 +134,10 @@ where
 {
     type Error = Void;
 
+    fn is_full(&self) -> bool {
+        false
+    }
+
     fn increment(&self) -> DSTINC_A {
         DSTINC_A::NO_INCREMENT
     }

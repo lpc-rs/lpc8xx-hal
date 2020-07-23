@@ -315,6 +315,10 @@ where
 {
     type Error = Void;
 
+    fn is_full(&self) -> bool {
+        self.tx.is_full()
+    }
+
     fn increment(&self) -> DSTINC_A {
         self.tx.increment()
     }
