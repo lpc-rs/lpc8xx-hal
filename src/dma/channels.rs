@@ -69,6 +69,9 @@ where
     /// # Limitations
     ///
     /// The length of `source` must be 1024 or less.
+    ///
+    /// The caller must make sure to call this method only for the correct
+    /// combination of channel and target.
     pub(crate) fn start_transfer<D>(
         self,
         source: &'static [u8],
