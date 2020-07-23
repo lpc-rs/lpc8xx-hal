@@ -34,18 +34,36 @@ fn main() -> ! {
         .u0_txd
         .assign(p.pins.pio0_25.into_swm_pin(), &mut swm_handle);
 
-    let serial =
+    let mut serial =
         p.USART0
             .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
-    let channel = dma.channels.channel1.enable(&dma_handle);
+    let mut rx_channel = dma.channels.channel0.enable(&dma_handle);
+    let mut tx_channel = dma.channels.channel1.enable(&dma_handle);
 
-    serial
-        .tx
-        .write_all(b"Hello, world!\r\n", channel)
-        .wait()
-        .expect("USART write shouldn't fail");
+    static mut BUF: [u8; 4] = [0; 4];
 
-    // We're done. Let's do nothing until someone resets the microcontroller.
-    loop {}
+    loop {
+        {
+            // Sound, as the mutable reference is dropped after this block.
+            let rx_buf = unsafe { &mut BUF };
+
+            let res = serial.rx.read_all(rx_buf, rx_channel).wait().unwrap();
+            rx_channel = res.channel;
+            serial.rx = res.source;
+        }
+
+        {
+            // Sound, as the mutable reference is dropped after this block.
+            let tx_buf = unsafe { &BUF };
+
+            let res = serial
+                .tx
+                .write_all(tx_buf, tx_channel)
+                .wait()
+                .expect("USART write shouldn't fail");
+            tx_channel = res.channel;
+            serial.tx = res.dest;
+        }
+    }
 }
