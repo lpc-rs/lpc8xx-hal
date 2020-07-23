@@ -3,7 +3,10 @@ use core::{
     sync::atomic::{compiler_fence, Ordering},
 };
 
-use crate::init_state::Enabled;
+use crate::{
+    init_state::Enabled,
+    pac::dma0::channel::xfercfg::{DSTINC_A, SRCINC_A},
+};
 
 use super::{channels::ChannelTrait, Channel, Handle};
 
@@ -100,6 +103,9 @@ pub trait Source: crate::private::Sealed {
     /// Indicates whether the source is empty
     fn is_empty(&self) -> bool;
 
+    /// The address increment during the transfer
+    fn increment(&self) -> SRCINC_A;
+
     /// The transfer count, as defined by XFERCFG.XFERCOUNT
     fn transfer_count(&self) -> usize;
 
@@ -115,6 +121,9 @@ pub trait Source: crate::private::Sealed {
 pub trait Dest: crate::private::Sealed {
     /// The error that can occur while waiting for the destination to be idle
     type Error;
+
+    /// The address increment during the transfer
+    fn increment(&self) -> DSTINC_A;
 
     /// Wait for the destination to be idle
     fn wait(&mut self) -> nb::Result<(), Self::Error>;

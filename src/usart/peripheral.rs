@@ -8,7 +8,7 @@ use void::Void;
 
 use crate::{
     dma, init_state,
-    pac::NVIC,
+    pac::{dma0::channel::xfercfg::DSTINC_A, NVIC},
     pins,
     swm::{self, FunctionTrait},
     syscon,
@@ -314,6 +314,10 @@ where
     I: Instance,
 {
     type Error = Void;
+
+    fn increment(&self) -> DSTINC_A {
+        self.tx.increment()
+    }
 
     fn wait(&mut self) -> nb::Result<(), Self::Error> {
         self.tx.wait()

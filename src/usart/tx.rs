@@ -6,7 +6,7 @@ use embedded_hal::{
 use nb::block;
 use void::Void;
 
-use crate::{dma, init_state::Enabled};
+use crate::{dma, init_state::Enabled, pac::dma0::channel::xfercfg::DSTINC_A};
 
 use super::instances::Instance;
 
@@ -133,6 +133,10 @@ where
     I: Instance,
 {
     type Error = Void;
+
+    fn increment(&self) -> DSTINC_A {
+        DSTINC_A::NO_INCREMENT
+    }
 
     fn wait(&mut self) -> nb::Result<(), Self::Error> {
         self.flush()

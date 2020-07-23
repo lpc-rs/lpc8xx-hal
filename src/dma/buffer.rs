@@ -1,3 +1,5 @@
+use crate::pac::dma0::channel::xfercfg::SRCINC_A;
+
 use super::Source;
 
 impl crate::private::Sealed for &'static [u8] {}
@@ -5,6 +7,10 @@ impl crate::private::Sealed for &'static [u8] {}
 impl Source for &'static [u8] {
     fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+
+    fn increment(&self) -> SRCINC_A {
+        SRCINC_A::WIDTH_X_1
     }
 
     fn transfer_count(&self) -> usize {

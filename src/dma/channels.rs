@@ -108,8 +108,8 @@ where
             w.setinta().no_effect();
             w.setintb().no_effect();
             w.width().bit_8();
-            w.srcinc().width_x_1();
-            w.dstinc().no_increment();
+            w.srcinc().variant(source.increment());
+            w.dstinc().variant(dest.increment());
             unsafe { w.xfercount().bits(source.transfer_count() as u16) }
         });
 
