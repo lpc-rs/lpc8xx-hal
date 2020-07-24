@@ -154,6 +154,10 @@ name              = "usart"
 required-features = ["rt-selected"]
 
 [[example]]
+name              = "usart_dma"
+required-features = ["rt-selected", "845"]
+
+[[example]]
 name              = "ctimer_fade"
 required-features = ["rt-selected", "845"]
 
