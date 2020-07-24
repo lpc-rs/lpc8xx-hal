@@ -2,13 +2,9 @@ use core::convert::Infallible;
 
 use embedded_hal::spi::{FullDuplex, Mode, Phase, Polarity};
 
-use crate::{
-    init_state, pins,
-    swm::{self, FunctionTrait},
-    syscon,
-};
+use crate::{init_state, pac::spi0::cfg::MASTER_A, swm, syscon};
 
-use super::{Clock, ClockSource, Instance, Interrupts};
+use super::{Clock, ClockSource, Instance, Interrupts, SlaveSelect};
 
 /// Interface to a SPI peripheral
 ///
@@ -28,7 +24,7 @@ use super::{Clock, ClockSource, Instance, Interrupts};
 /// [`embedded_hal::spi::FullDuplex`]: #impl-FullDuplex%3Cu8%3E
 /// [`embedded_hal::blocking::spi::Transfer`]: #impl-Transfer%3CW%3E
 /// [`embedded_hal::blocking::spi::Write`]: #impl-Write%3CW%3E
-pub struct SPI<I, State = init_state::Enabled> {
+pub struct SPI<I, State> {
     spi: I,
     _state: State,
 }
@@ -44,7 +40,7 @@ where
         }
     }
 
-    /// Enable the SPI peripheral
+    /// Enable the SPI peripheral in master mode
     ///
     /// This method is only available, if `SPI` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
@@ -59,39 +55,81 @@ where
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<SckPin, MosiPin, MisoPin, CLOCK>(
+    pub fn enable_as_master<SckPin, MosiPin, MisoPin, CLOCK>(
         self,
         clock: &Clock<CLOCK>,
         syscon: &mut syscon::Handle,
         mode: Mode,
-        _: swm::Function<I::Sck, swm::state::Assigned<SckPin>>,
-        _: swm::Function<I::Mosi, swm::state::Assigned<MosiPin>>,
-        _: swm::Function<I::Miso, swm::state::Assigned<MisoPin>>,
-    ) -> SPI<I, init_state::Enabled>
+        _sck: swm::Function<I::Sck, swm::state::Assigned<SckPin>>,
+        _mosi: swm::Function<I::Mosi, swm::state::Assigned<MosiPin>>,
+        _miso: swm::Function<I::Miso, swm::state::Assigned<MisoPin>>,
+    ) -> SPI<I, init_state::Enabled<Master>>
     where
-        SckPin: pins::Trait,
-        MosiPin: pins::Trait,
-        MisoPin: pins::Trait,
-        I::Sck: FunctionTrait<SckPin>,
-        I::Mosi: FunctionTrait<MosiPin>,
-        I::Miso: FunctionTrait<MisoPin>,
         CLOCK: ClockSource,
     {
-        syscon.enable_clock(&self.spi);
-
-        CLOCK::select(&self.spi, syscon);
+        self.enable::<CLOCK>(syscon);
 
         self.spi
             .div
             .write(|w| unsafe { w.divval().bits(clock.divval) });
 
-        self.spi.txctl.write(|w| {
-            // 8 bit length
-            unsafe { w.len().bits(7) }
-        });
+        self.configure(mode, MASTER_A::MASTER_MODE);
 
+        SPI {
+            spi: self.spi,
+            _state: init_state::Enabled(Master),
+        }
+    }
+
+    /// Enable the SPI peripheral in slave mode
+    ///
+    /// This method is only available, if `SPI` is in the [`Disabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// enabled will not compile.
+    ///
+    /// Consumes this instance of `SPI` and returns another instance that has
+    /// its `State` type parameter set to [`Enabled`].
+    ///
+    /// # Examples
+    ///
+    /// Please refer to the [module documentation] for a full example.
+    ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    /// [module documentation]: index.html
+    pub fn enable_as_slave<C, SckPin, MosiPin, MisoPin, Ssel, SselPin>(
+        self,
+        _clock: &C,
+        syscon: &mut syscon::Handle,
+        mode: Mode,
+        _sck: swm::Function<I::Sck, swm::state::Assigned<SckPin>>,
+        _mosi: swm::Function<I::Mosi, swm::state::Assigned<MosiPin>>,
+        _miso: swm::Function<I::Miso, swm::state::Assigned<MisoPin>>,
+        _ssel: swm::Function<Ssel, swm::state::Assigned<SselPin>>,
+    ) -> SPI<I, init_state::Enabled<Slave>>
+    where
+        C: ClockSource,
+        Ssel: SlaveSelect<I>,
+    {
+        self.enable::<C>(syscon);
+        self.configure(mode, MASTER_A::SLAVE_MODE);
+
+        SPI {
+            spi: self.spi,
+            _state: init_state::Enabled(Slave),
+        }
+    }
+
+    fn enable<C>(&self, syscon: &mut syscon::Handle)
+    where
+        C: ClockSource,
+    {
+        syscon.enable_clock(&self.spi);
+        C::select(&self.spi, syscon);
+    }
+
+    fn configure(&self, mode: Mode, master: MASTER_A) {
         self.spi.cfg.write(|w| {
             match mode.polarity {
                 Polarity::IdleHigh => {
@@ -109,18 +147,27 @@ where
                     w.cpha().set_bit();
                 }
             }
+            w.master().variant(master);
             w.enable().enabled();
-            w.master().master_mode()
+            w
         });
 
-        SPI {
-            spi: self.spi,
-            _state: init_state::Enabled(()),
-        }
+        // Configure word length.
+        self.spi.txctl.write(|w| {
+            // 8 bit length
+            unsafe { w.len().bits(7) }
+        });
+
+        // Configuring the word length via TXCTL has no effect until TXDAT is
+        // written, so we're doing this here. This is not disruptive, as in
+        // master mode, we'll usually overwrite this anyway when starting a
+        // transaction, while in slave mode, we actually need some dummy data in
+        // TXDAT when receiving the first byte, to prevent a TX underrun error.
+        self.spi.txdat.write(|w| unsafe { w.data().bits(0xff) });
     }
 }
 
-impl<I> SPI<I, init_state::Enabled>
+impl<I, Mode> SPI<I, init_state::Enabled<Mode>>
 where
     I: Instance,
 {
@@ -138,6 +185,51 @@ where
     /// `false` are not affected.
     pub fn disable_interrupts(&mut self, interrupts: Interrupts) {
         interrupts.disable(&self.spi);
+    }
+
+    /// Indicates whether the SPI instance is ready to receive
+    ///
+    /// Corresponds to the RXRDY flag in the STAT register.
+    pub fn is_ready_to_receive(&self) -> bool {
+        self.spi.stat.read().rxrdy().bit_is_set()
+    }
+
+    /// Indicates whether the SPI instance is ready to transmit
+    ///
+    /// Corresponds to the TXRDY flag in the STAT register.
+    pub fn is_ready_to_transmit(&self) -> bool {
+        self.spi.stat.read().txrdy().bit_is_set()
+    }
+
+    /// Indicates whether a slave select signal has been asserted
+    ///
+    /// Corresponds to the SSA flag in the STAT register. The flag is cleared
+    /// before this method returns.
+    pub fn is_slave_select_asserted(&self) -> bool {
+        // Can't read field through API. Issue:
+        // https://github.com/lpc-rs/lpc-pac/issues/52
+        let flag = self.spi.stat.read().bits() & (0x1 << 4) != 0;
+        self.spi.stat.write(|w| w.ssa().set_bit());
+        flag
+    }
+
+    /// Indicates whether a slave select signal has been deasserted
+    ///
+    /// Corresponds to the SSD flag in the STAT register. The flag is cleared
+    /// before this method returns.
+    pub fn is_slave_select_deasserted(&self) -> bool {
+        // Can't read field through API. Issue:
+        // https://github.com/lpc-rs/lpc-pac/issues/52
+        let flag = self.spi.stat.read().bits() & (0x1 << 5) != 0;
+        self.spi.stat.write(|w| w.ssd().set_bit());
+        flag
+    }
+
+    /// Indicates whether the master is currently idle
+    ///
+    /// Corresponds to the MSTIDLE flag in the STAT register.
+    pub fn is_master_idle(&self) -> bool {
+        self.spi.stat.read().mstidle().bit_is_set()
     }
 
     /// Disable the SPI peripheral
@@ -164,6 +256,47 @@ where
     }
 }
 
+impl<I> SPI<I, init_state::Enabled<Slave>>
+where
+    I: Instance,
+{
+    /// Receive a word
+    pub fn receive(&mut self) -> nb::Result<u8, RxOverrunError> {
+        let stat = self.spi.stat.read();
+
+        // Can't read field through API. Issue:
+        // https://github.com/lpc-rs/lpc-pac/issues/52
+        if stat.bits() & (0x1 << 2) != 0 {
+            return Err(nb::Error::Other(RxOverrunError));
+        }
+        if stat.rxrdy().bit_is_clear() {
+            return Err(nb::Error::WouldBlock);
+        }
+
+        Ok(self.spi.rxdat.read().rxdat().bits() as u8)
+    }
+
+    /// Transmit a word
+    pub fn transmit(&mut self, word: u8) -> nb::Result<(), TxUnderrunError> {
+        let stat = self.spi.stat.read();
+
+        // Can't read field through API. Issue:
+        // https://github.com/lpc-rs/lpc-pac/issues/52
+        if stat.bits() & (0x1 << 3) != 0 {
+            return Err(nb::Error::Other(TxUnderrunError));
+        }
+        if stat.txrdy().bit_is_clear() {
+            return Err(nb::Error::WouldBlock);
+        }
+
+        self.spi
+            .txdat
+            .write(|w| unsafe { w.data().bits(word as u16) });
+
+        Ok(())
+    }
+}
+
 impl<I, State> SPI<I, State> {
     /// Return the raw peripheral
     ///
@@ -182,7 +315,7 @@ impl<I, State> SPI<I, State> {
     }
 }
 
-impl<I: Instance> FullDuplex<u8> for SPI<I> {
+impl<I: Instance> FullDuplex<u8> for SPI<I, init_state::Enabled<Master>> {
     type Error = Infallible;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
@@ -207,8 +340,25 @@ impl<I: Instance> FullDuplex<u8> for SPI<I> {
 }
 
 impl<I: Instance> embedded_hal::blocking::spi::transfer::Default<u8>
-    for SPI<I>
+    for SPI<I, init_state::Enabled<Master>>
 {
 }
 
-impl<I: Instance> embedded_hal::blocking::spi::write::Default<u8> for SPI<I> {}
+impl<I: Instance> embedded_hal::blocking::spi::write::Default<u8>
+    for SPI<I, init_state::Enabled<Master>>
+{
+}
+
+/// Indicates that SPI is in master mode
+pub struct Master;
+
+/// Indicates that SPI is in slave mode
+pub struct Slave;
+
+/// Receiver Overrun Error
+#[derive(Debug)]
+pub struct RxOverrunError;
+
+/// Transmitter Underrun Error
+#[derive(Debug)]
+pub struct TxUnderrunError;

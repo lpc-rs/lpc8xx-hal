@@ -37,7 +37,7 @@
 //! let spi_clock = spi::Clock::new(&syscon.iosc, 0);
 //!
 //! // Enable SPI0
-//! let mut spi = p.SPI0.enable(
+//! let mut spi = p.SPI0.enable_as_master(
 //!     &spi_clock,
 //!     &mut syscon.handle,
 //!     embedded_hal::spi::MODE_0,
@@ -62,9 +62,9 @@ mod peripheral;
 
 pub use self::{
     clock::{Clock, ClockSource},
-    instances::Instance,
+    instances::{Instance, SlaveSelect},
     interrupts::Interrupts,
-    peripheral::SPI,
+    peripheral::{Master, Slave, SPI},
 };
 
 pub use crate::embedded_hal::spi::{
