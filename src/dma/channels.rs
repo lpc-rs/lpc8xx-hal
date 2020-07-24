@@ -8,7 +8,7 @@ use crate::{
         self,
         dma0::{
             channel::{CFG, XFERCFG},
-            ACTIVE0, ENABLESET0, SETTRIG0,
+            ACTIVE0, BUSY0, ENABLESET0, ERRINT0, INTA0, INTB0, SETTRIG0,
         },
     },
     reg_proxy::{Reg, RegProxy},
@@ -86,7 +86,11 @@ pub trait Instance {
 
 pub(super) struct SharedRegisters<C> {
     active0: &'static ACTIVE0,
+    busy0: &'static BUSY0,
     enableset0: &'static ENABLESET0,
+    errint0: &'static ERRINT0,
+    inta0: &'static INTA0,
+    intb0: &'static INTB0,
     settrig0: &'static SETTRIG0,
 
     _channel: PhantomData<C>,
@@ -106,7 +110,11 @@ where
 
             Self {
                 active0: &(*registers).active0,
+                busy0: &(*registers).busy0,
                 enableset0: &(*registers).enableset0,
+                errint0: &(*registers).errint0,
+                inta0: &(*registers).inta0,
+                intb0: &(*registers).intb0,
                 settrig0: &(*registers).settrig0,
 
                 _channel: PhantomData,
@@ -130,5 +138,21 @@ where
 
     pub(super) fn is_active(&self) -> bool {
         self.active0.read().act().bits() & C::FLAG != 0
+    }
+
+    pub(super) fn is_busy(&self) -> bool {
+        self.busy0.read().bsy().bits() & C::FLAG != 0
+    }
+
+    pub(super) fn error_interrupt_fired(&self) -> bool {
+        self.errint0.read().err().bits() & C::FLAG != 0
+    }
+
+    pub(super) fn a_interrupt_fired(&self) -> bool {
+        self.inta0.read().ia().bits() & C::FLAG != 0
+    }
+
+    pub(super) fn b_interrupt_fired(&self) -> bool {
+        self.intb0.read().ib().bits() & C::FLAG != 0
     }
 }

@@ -121,6 +121,46 @@ where
         Transfer::new(channel, source, dest)
     }
 
+    /// Indicates whether transfer is currently active
+    ///
+    /// Corresponds to the channel's flag in the ACTIVE0 register.
+    pub fn is_active(&self) -> bool {
+        let registers = SharedRegisters::<C>::new();
+        registers.is_active()
+    }
+
+    /// Indicates whether transfer is currently busy
+    ///
+    /// Corresponds to the channel's flag in the BUSY0 register.
+    pub fn is_busy(&self) -> bool {
+        let registers = SharedRegisters::<C>::new();
+        registers.is_busy()
+    }
+
+    /// Indicates whether the error interrupt fired
+    ///
+    /// Corresponds to the channel's flag in the ERRINT0 register.
+    pub fn error_interrupt_fired(&self) -> bool {
+        let registers = SharedRegisters::<C>::new();
+        registers.error_interrupt_fired()
+    }
+
+    /// Indicates whether interrupt A fired
+    ///
+    /// Corresponds to the channel's flag in the INTA0 register.
+    pub fn a_interrupt_fired(&self) -> bool {
+        let registers = SharedRegisters::<C>::new();
+        registers.a_interrupt_fired()
+    }
+
+    /// Indicates whether interrupt B fired
+    ///
+    /// Corresponds to the channel's flag in the INTB0 register.
+    pub fn b_interrupt_fired(&self) -> bool {
+        let registers = SharedRegisters::<C>::new();
+        registers.b_interrupt_fired()
+    }
+
     /// Waits for the transfer to finish
     pub fn wait(
         mut self,
