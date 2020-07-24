@@ -2,7 +2,7 @@ use core::convert::Infallible;
 
 use embedded_hal::spi::{FullDuplex, Mode, Phase, Polarity};
 
-use crate::{init_state, swm, syscon};
+use crate::{init_state, pac::spi0::cfg::MASTER_A, swm, syscon};
 
 use super::{Clock, ClockSource, Instance, Interrupts, SlaveSelect};
 
@@ -74,7 +74,7 @@ where
             .div
             .write(|w| unsafe { w.divval().bits(clock.divval) });
 
-        self.configure(mode, true);
+        self.configure(mode, MASTER_A::MASTER_MODE);
 
         SPI {
             spi: self.spi,
@@ -113,7 +113,7 @@ where
         Ssel: SlaveSelect<I>,
     {
         self.enable::<C>(syscon);
-        self.configure(mode, false);
+        self.configure(mode, MASTER_A::SLAVE_MODE);
 
         SPI {
             spi: self.spi,
@@ -129,7 +129,7 @@ where
         C::select(&self.spi, syscon);
     }
 
-    fn configure(&self, mode: Mode, master: bool) {
+    fn configure(&self, mode: Mode, master: MASTER_A) {
         self.spi.cfg.write(|w| {
             match mode.polarity {
                 Polarity::IdleHigh => {
@@ -147,14 +147,7 @@ where
                     w.cpha().set_bit();
                 }
             }
-            match master {
-                true => {
-                    w.master().master_mode();
-                }
-                false => {
-                    w.master().slave_mode();
-                }
-            }
+            w.master().variant(master);
             w.enable().enabled();
             w
         });
