@@ -100,6 +100,12 @@ where
 
 /// The source of a DMA transfer
 pub trait Source: crate::private::Sealed {
+    /// Indicates whether the source is valid
+    ///
+    /// Buffers are valid if they have a length of 1024 or less. Peripherals are
+    /// always valid.
+    fn is_valid(&self) -> bool;
+
     /// Indicates whether the source is empty
     fn is_empty(&self) -> bool;
 
@@ -121,6 +127,12 @@ pub trait Source: crate::private::Sealed {
 pub trait Dest: crate::private::Sealed {
     /// The error that can occur while waiting for the destination to be idle
     type Error;
+
+    /// Indicates whether the destination is valid
+    ///
+    /// Buffers are valid if they have a length of 1024 or less. Peripherals are
+    /// always valid.
+    fn is_valid(&self) -> bool;
 
     /// Indicates whether the destination is full
     fn is_full(&self) -> bool;

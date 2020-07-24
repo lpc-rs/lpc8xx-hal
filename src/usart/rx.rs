@@ -59,9 +59,9 @@ where
 
     /// Reads until the provided buffer is full, using DMA
     ///
-    /// # Limitations
+    /// # Panics
     ///
-    /// The length of `buffer` must be 1024 or less.
+    /// Panics, if `buffer` has a length larger than 1024.
     pub fn read_all<'dma>(
         self,
         buffer: &'static mut [u8],
@@ -119,6 +119,10 @@ impl<I> dma::Source for Rx<I, Enabled>
 where
     I: Instance,
 {
+    fn is_valid(&self) -> bool {
+        true
+    }
+
     fn is_empty(&self) -> bool {
         false
     }

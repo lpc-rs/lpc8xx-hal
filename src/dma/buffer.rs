@@ -8,6 +8,10 @@ use super::{Dest, Source};
 impl crate::private::Sealed for &'static [u8] {}
 
 impl Source for &'static [u8] {
+    fn is_valid(&self) -> bool {
+        self.len() <= 1024
+    }
+
     fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -33,6 +37,10 @@ impl crate::private::Sealed for &'static mut [u8] {}
 impl Dest for &'static mut [u8] {
     /// The error that can occur while waiting for the destination to be idle
     type Error = Void;
+
+    fn is_valid(&self) -> bool {
+        self.len() <= 1024
+    }
 
     fn is_full(&self) -> bool {
         self.len() == 0

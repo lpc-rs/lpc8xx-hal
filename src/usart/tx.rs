@@ -63,9 +63,9 @@ where
 
     /// Writes the provided buffer using DMA
     ///
-    /// # Limitations
+    /// # Panics
     ///
-    /// The length of `buffer` must be 1024 or less.
+    /// Panics, if `buffer` has a length larger than 1024.
     pub fn write_all<'dma>(
         self,
         buffer: &'static [u8],
@@ -133,6 +133,10 @@ where
     I: Instance,
 {
     type Error = Void;
+
+    fn is_valid(&self) -> bool {
+        true
+    }
 
     fn is_full(&self) -> bool {
         false

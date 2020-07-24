@@ -67,9 +67,12 @@ where
 {
     /// Starts a DMA transfer
     ///
-    /// # Limitations
+    /// # Panics
     ///
-    /// The length of `source` must be 1024 or less.
+    /// Panics, if any buffer passed to this function has a length larger than
+    /// 1024.
+    ///
+    /// # Limitations
     ///
     /// The caller must make sure to call this method only for the correct
     /// combination of channel and target.
@@ -82,6 +85,9 @@ where
         S: Source,
         D: Dest,
     {
+        assert!(source.is_valid());
+        assert!(dest.is_valid());
+
         compiler_fence(Ordering::SeqCst);
 
         // To compute the transfer count, source or destination buffers need to
