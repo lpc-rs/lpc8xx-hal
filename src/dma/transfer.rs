@@ -8,7 +8,10 @@ use crate::{
     pac::dma0::channel::xfercfg::{DSTINC_A, SRCINC_A},
 };
 
-use super::{channels::ChannelTrait, Channel, Handle};
+use super::{
+    channels::{ChannelTrait, SharedRegisters},
+    Channel, Handle,
+};
 
 /// A DMA transfer
 pub struct Transfer<'dma, C, S, D>
@@ -56,6 +59,8 @@ where
     ) -> Self {
         assert!(source.is_valid());
         assert!(dest.is_valid());
+
+        let registers = SharedRegisters::<C>::new();
 
         compiler_fence(Ordering::SeqCst);
 
@@ -108,14 +113,10 @@ where
 
         // Enable channel
         // See user manual, section 12.6.4.
-        channel
-            .enableset0
-            .write(|w| unsafe { w.ena().bits(C::FLAG) });
+        registers.enable();
 
         // Trigger transfer
-        channel
-            .settrig0
-            .write(|w| unsafe { w.trig().bits(C::FLAG) });
+        registers.trigger();
 
         Transfer::new(channel, source, dest)
     }
@@ -134,7 +135,9 @@ where
         //
         // This needs some further looking into.
 
-        while self.payload.channel.active0.read().act().bits() & C::FLAG != 0 {}
+        let registers = SharedRegisters::<C>::new();
+
+        while registers.is_active() {}
 
         loop {
             match self.payload.dest.wait() {

@@ -1,3 +1,5 @@
+use core::marker::PhantomData;
+
 use crate::{
     init_state,
     pac::{
@@ -24,12 +26,6 @@ where
     // This channel's dedicated registers.
     pub(super) cfg: RegProxy<C::Cfg>,
     pub(super) xfercfg: RegProxy<C::Xfercfg>,
-
-    // Shared registers. We restrict our access to the one bit that is dedicated
-    // to this channel, so sharing those with other channels should be safe.
-    pub(super) active0: RegProxy<ACTIVE0>,
-    pub(super) enableset0: RegProxy<ENABLESET0>,
-    pub(super) settrig0: RegProxy<SETTRIG0>,
 }
 
 impl<C> Channel<C, init_state::Disabled>
@@ -48,10 +44,6 @@ where
 
             cfg: self.cfg,
             xfercfg: self.xfercfg,
-
-            active0: self.active0,
-            enableset0: self.enableset0,
-            settrig0: self.settrig0,
         }
     }
 }
@@ -99,10 +91,6 @@ macro_rules! channels {
 
                             cfg    : RegProxy::new(),
                             xfercfg: RegProxy::new(),
-
-                            active0   : RegProxy::new(),
-                            enableset0: RegProxy::new(),
-                            settrig0  : RegProxy::new(),
                         },
                     )*
                 }
@@ -190,6 +178,51 @@ channels!(
     channel24, Channel24, 24, CFG24, XFERCFG24;
 );
 
-reg!(ACTIVE0, ACTIVE0, pac::DMA0, active0);
-reg!(ENABLESET0, ENABLESET0, pac::DMA0, enableset0);
-reg!(SETTRIG0, SETTRIG0, pac::DMA0, settrig0);
+pub(super) struct SharedRegisters<C> {
+    active0: &'static ACTIVE0,
+    enableset0: &'static ENABLESET0,
+    settrig0: &'static SETTRIG0,
+
+    _channel: PhantomData<C>,
+}
+
+impl<C> SharedRegisters<C>
+where
+    C: ChannelTrait,
+{
+    pub(super) fn new() -> Self {
+        // This is sound, for the following reasons:
+        // - We only acccess stateless registers.
+        // - Since we're dealing with MMIO registers, dereferencing and taking
+        //   `'static` references is always okay.
+        unsafe {
+            let registers = pac::DMA0::ptr();
+
+            Self {
+                active0: &(*registers).active0,
+                enableset0: &(*registers).enableset0,
+                settrig0: &(*registers).settrig0,
+
+                _channel: PhantomData,
+            }
+        }
+    }
+
+    pub(super) fn enable(&self) {
+        self.enableset0.write(|w| {
+            // Sound, as all values assigned to `C::FLAG` are valid here.
+            unsafe { w.ena().bits(C::FLAG) }
+        });
+    }
+
+    pub(super) fn trigger(&self) {
+        self.settrig0.write(|w| {
+            // Sound, as all values assigned to `C::FLAG` are valid here.
+            unsafe { w.trig().bits(C::FLAG) }
+        });
+    }
+
+    pub(super) fn is_active(&self) -> bool {
+        self.active0.read().act().bits() & C::FLAG != 0
+    }
+}
