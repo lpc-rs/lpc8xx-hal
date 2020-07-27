@@ -1,6 +1,6 @@
 use crate::{init_state, pac, syscon};
 
-use super::{Channels, DescriptorTable};
+use super::Channels;
 
 /// Entry point to the DMA API
 pub struct DMA {
@@ -17,7 +17,8 @@ impl DMA {
     /// This is the regular way to access the DMA API. It exists as an explicit
     /// step, as it's no longer possible to gain access to the raw peripheral
     /// using [`DMA::free`] after you've called this method.
-    pub fn split(self, descriptors: &'static mut DescriptorTable) -> Parts {
+    pub fn split(self) -> Parts {
+        let descriptors = unsafe { &mut super::descriptors::DESCRIPTORS };
         let srambase = descriptors as *mut _ as u32;
 
         Parts {

@@ -3,7 +3,7 @@
 
 extern crate panic_rtt_target;
 
-use lpc8xx_hal::{cortex_m_rt::entry, dma, usart, Peripherals};
+use lpc8xx_hal::{cortex_m_rt::entry, usart, Peripherals};
 
 #[entry]
 fn main() -> ! {
@@ -11,13 +11,8 @@ fn main() -> ! {
 
     let p = Peripherals::take().unwrap();
 
-    static mut DMA_DESCRIPTOR: dma::DescriptorTable =
-        dma::DescriptorTable::new();
-    // Sound, as this is the only place where we do this.
-    let dma_descriptors = unsafe { &mut DMA_DESCRIPTOR };
-
     let swm = p.SWM.split();
-    let dma = p.DMA.split(dma_descriptors);
+    let dma = p.DMA.split();
     let mut syscon = p.SYSCON.split();
 
     let dma_handle = dma.handle.enable(&mut syscon.handle);

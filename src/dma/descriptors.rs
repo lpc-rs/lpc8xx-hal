@@ -1,5 +1,7 @@
 use core::ptr;
 
+pub(super) static mut DESCRIPTORS: DescriptorTable = DescriptorTable::new();
+
 /// The channel descriptor table
 ///
 /// Contains a descriptor for each DMA channel.
