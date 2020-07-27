@@ -3,14 +3,15 @@
 //! The DMA controller is described in the user manual, chapter 12.
 
 mod buffer;
-mod channels;
 mod descriptors;
 mod gen;
 mod peripheral;
 mod transfer;
 
+pub mod channels;
+
 pub use self::{
-    channels::{Channel, ChannelTrait},
+    channels::Channel,
     gen::*,
     peripheral::DMA,
     transfer::{Dest, Payload, Source, Transfer},

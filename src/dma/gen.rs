@@ -8,7 +8,7 @@ use crate::{
 };
 
 use super::{
-    channels::{Channel, ChannelTrait},
+    channels::{self, Channel},
     descriptors::DescriptorTable,
 };
 
@@ -74,7 +74,7 @@ macro_rules! channels {
             /// Identifies a DMA channel
             pub struct $name(());
 
-            impl ChannelTrait for $name {
+            impl channels::Instance for $name {
                 const INDEX: usize = $index;
                 const FLAG : u32   = 0x1 << Self::INDEX;
 

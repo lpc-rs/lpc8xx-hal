@@ -1,3 +1,5 @@
+//! APIs related to DMA channels
+
 use core::marker::PhantomData;
 
 use crate::{
@@ -17,7 +19,7 @@ use super::descriptors::ChannelDescriptor;
 /// A DMA channel
 pub struct Channel<C, S>
 where
-    C: ChannelTrait,
+    C: Instance,
 {
     pub(super) ty: C,
     pub(super) _state: S,
@@ -30,7 +32,7 @@ where
 
 impl<C> Channel<C, Disabled>
 where
-    C: ChannelTrait,
+    C: Instance,
 {
     /// Enable the channel
     pub(super) fn enable(self) -> Channel<C, Enabled> {
@@ -47,7 +49,7 @@ where
 
 impl<C> Channel<C, Enabled>
 where
-    C: ChannelTrait,
+    C: Instance,
 {
     /// Disable the channel
     pub(super) fn disable(self) -> Channel<C, Disabled> {
@@ -63,7 +65,7 @@ where
 }
 
 /// Implemented for each DMA channel
-pub trait ChannelTrait {
+pub trait Instance {
     /// The index of the channel
     ///
     /// This is `0` for channel 0, `1` for channel 1, etc.
@@ -92,7 +94,7 @@ pub(super) struct SharedRegisters<C> {
 
 impl<C> SharedRegisters<C>
 where
-    C: ChannelTrait,
+    C: Instance,
 {
     pub(super) fn new() -> Self {
         // This is sound, for the following reasons:

@@ -28,10 +28,10 @@ pub trait Instance:
     type Tx;
 
     /// The DMA channel used with this instance for receiving
-    type RxChannel: dma::ChannelTrait;
+    type RxChannel: dma::channels::Instance;
 
     /// The DMA channel used with this instance for transmissions
-    type TxChannel: dma::ChannelTrait;
+    type TxChannel: dma::channels::Instance;
 }
 
 macro_rules! instances {

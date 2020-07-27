@@ -9,21 +9,21 @@ use crate::{
 };
 
 use super::{
-    channels::{ChannelTrait, SharedRegisters},
+    channels::{Instance, SharedRegisters},
     Channel,
 };
 
 /// A DMA transfer
 pub struct Transfer<C, S, D>
 where
-    C: ChannelTrait,
+    C: Instance,
 {
     payload: Payload<C, S, D>,
 }
 
 impl<C, S, D> Transfer<C, S, D>
 where
-    C: ChannelTrait,
+    C: Instance,
     S: Source,
     D: Dest,
 {
@@ -159,7 +159,7 @@ where
 /// The payload of a `Transfer`
 pub struct Payload<C, S, D>
 where
-    C: ChannelTrait,
+    C: Instance,
 {
     /// The channel used for this transfer
     pub channel: Channel<C, Enabled>,
@@ -173,7 +173,7 @@ where
 
 impl<C, S, D> fmt::Debug for Payload<C, S, D>
 where
-    C: ChannelTrait,
+    C: Instance,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // Placeholder implementation. Trying to do this properly runs into many
