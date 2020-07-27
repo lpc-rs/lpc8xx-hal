@@ -21,9 +21,13 @@ impl Source for &'static [u8] {
     }
 
     fn transfer_count(&self) -> Option<u16> {
-        // The cast should be fine, as DMA buffers are restricted to a length of
-        // 1024.
-        Some(self.len() as u16 - 1)
+        if self.is_empty() {
+            None
+        } else {
+            // The cast should be fine, as DMA buffers are restricted to a
+            // length of 1024.
+            Some(self.len() as u16 - 1)
+        }
     }
 
     fn end_addr(&self) -> *const u8 {
@@ -51,9 +55,13 @@ impl Dest for &'static mut [u8] {
     }
 
     fn transfer_count(&self) -> Option<u16> {
-        // The cast should be fine, as DMA buffers are restricted to a length of
-        // 1024.
-        Some(self.len() as u16 - 1)
+        if self.is_full() {
+            None
+        } else {
+            // The cast should be fine, as DMA buffers are restricted to a
+            // length of 1024.
+            Some(self.len() as u16 - 1)
+        }
     }
 
     fn wait(&mut self) -> nb::Result<(), Self::Error> {

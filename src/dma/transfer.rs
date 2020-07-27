@@ -124,7 +124,8 @@ pub trait Source: crate::private::Sealed {
 
     /// The transfer count, as defined by XFERCFG.XFERCOUNT
     ///
-    /// Only buffers will return a value here. Peripherals will return `None`.
+    /// Only buffers will return a value here, and only if `is_empty` returns
+    /// false. Peripherals will always return `None`.
     fn transfer_count(&self) -> Option<u16>;
 
     /// The end address
@@ -163,7 +164,8 @@ pub trait Dest: crate::private::Sealed {
 
     /// The transfer count, as defined by XFERCFG.XFERCOUNT
     ///
-    /// Only buffers will return a value here. Peripherals will return `None`.
+    /// Only buffers will return a value here, and only if `if_full` returns
+    /// `false`. Peripherals will always return `None`.
     fn transfer_count(&self) -> Option<u16>;
 
     /// Wait for the destination to be idle
