@@ -10,25 +10,25 @@ use crate::{
 
 use super::{
     channels::{ChannelTrait, SharedRegisters},
-    Channel, Handle,
+    Channel,
 };
 
 /// A DMA transfer
-pub struct Transfer<'dma, C, S, D>
+pub struct Transfer<C, S, D>
 where
     C: ChannelTrait,
 {
-    payload: Payload<'dma, C, S, D>,
+    payload: Payload<C, S, D>,
 }
 
-impl<'dma, C, S, D> Transfer<'dma, C, S, D>
+impl<C, S, D> Transfer<C, S, D>
 where
     C: ChannelTrait,
     S: Source,
     D: Dest,
 {
     pub(super) fn new(
-        channel: Channel<C, Enabled<&'dma Handle>>,
+        channel: Channel<C, Enabled>,
         source: S,
         dest: D,
     ) -> Self {
@@ -53,7 +53,7 @@ where
     /// The caller must make sure to call this method only for the correct
     /// combination of channel and target.
     pub(crate) fn start(
-        channel: Channel<C, Enabled<&'dma Handle>>,
+        channel: Channel<C, Enabled>,
         source: S,
         mut dest: D,
     ) -> Self {
@@ -124,8 +124,7 @@ where
     /// Waits for the transfer to finish
     pub fn wait(
         mut self,
-    ) -> Result<Payload<'dma, C, S, D>, (D::Error, Payload<'dma, C, S, D>)>
-    {
+    ) -> Result<Payload<C, S, D>, (D::Error, Payload<C, S, D>)> {
         // There's an error interrupt status register. Maybe we should check
         // this here, but I have no idea whether that actually makes sense:
         // 1. As of this writing, we're not enabling any interrupts. I don't
@@ -158,12 +157,12 @@ where
 }
 
 /// The payload of a `Transfer`
-pub struct Payload<'dma, C, S, D>
+pub struct Payload<C, S, D>
 where
     C: ChannelTrait,
 {
     /// The channel used for this transfer
-    pub channel: Channel<C, Enabled<&'dma Handle>>,
+    pub channel: Channel<C, Enabled>,
 
     /// The source of the transfer
     pub source: S,
@@ -172,7 +171,7 @@ where
     pub dest: D,
 }
 
-impl<'dma, C, S, D> fmt::Debug for Payload<'dma, C, S, D>
+impl<C, S, D> fmt::Debug for Payload<C, S, D>
 where
     C: ChannelTrait,
 {

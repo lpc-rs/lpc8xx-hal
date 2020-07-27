@@ -10,6 +10,6 @@ mod transfer;
 
 pub use self::{
     channels::*,
-    peripheral::{Handle, DMA},
+    peripheral::DMA,
     transfer::{Dest, Payload, Source, Transfer},
 };

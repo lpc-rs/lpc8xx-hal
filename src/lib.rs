@@ -219,7 +219,7 @@ pub struct Peripherals {
     pub CTIMER0: CTimer,
 
     /// DMA controller
-    pub DMA: DMA,
+    pub DMA: DMA<init_state::Disabled>,
 
     /// General-purpose I/O (GPIO)
     ///

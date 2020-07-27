@@ -12,10 +12,7 @@ use crate::{
     reg_proxy::{Reg, RegProxy},
 };
 
-use super::{
-    descriptors::{ChannelDescriptor, DescriptorTable},
-    Handle,
-};
+use super::descriptors::{ChannelDescriptor, DescriptorTable};
 
 /// A DMA channel
 pub struct Channel<C, S>
@@ -36,13 +33,27 @@ where
     C: ChannelTrait,
 {
     /// Enable the channel
-    pub fn enable<'dma>(
-        self,
-        dma: &'dma Handle,
-    ) -> Channel<C, Enabled<&'dma Handle>> {
+    fn enable(self) -> Channel<C, Enabled> {
         Channel {
             ty: self.ty,
-            _state: Enabled(dma),
+            _state: Enabled(()),
+            descriptor: self.descriptor,
+
+            cfg: self.cfg,
+            xfercfg: self.xfercfg,
+        }
+    }
+}
+
+impl<C> Channel<C, Enabled>
+where
+    C: ChannelTrait,
+{
+    /// Disable the channel
+    fn disable(self) -> Channel<C, Disabled> {
+        Channel {
+            ty: self.ty,
+            _state: Disabled,
             descriptor: self.descriptor,
 
             cfg: self.cfg,
@@ -75,11 +86,11 @@ macro_rules! channels {
     ($($field:ident, $name:ident, $index:expr, $cfg:ident, $xfercfg:ident;)*) => {
         /// Provides access to all channels
         #[allow(missing_docs)]
-        pub struct Channels {
-            $(pub $field: Channel<$name, Disabled>,)*
+        pub struct Channels<State> {
+            $(pub $field: Channel<$name, State>,)*
         }
 
-        impl Channels {
+        impl Channels<Disabled> {
             pub(super) fn new(descriptors: &'static mut DescriptorTable)
                 -> Self
             {
@@ -95,6 +106,24 @@ macro_rules! channels {
                             cfg    : RegProxy::new(),
                             xfercfg: RegProxy::new(),
                         },
+                    )*
+                }
+            }
+
+            pub(super) fn enable(self) -> Channels<Enabled> {
+                Channels {
+                    $(
+                        $field: self.$field.enable(),
+                    )*
+                }
+            }
+        }
+
+        impl Channels<Enabled> {
+            pub(super) fn disable(self) -> Channels<Disabled> {
+                Channels {
+                    $(
+                        $field: self.$field.disable(),
                     )*
                 }
             }
