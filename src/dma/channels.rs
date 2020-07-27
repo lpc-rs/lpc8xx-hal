@@ -12,7 +12,10 @@ use crate::{
     reg_proxy::{Reg, RegProxy},
 };
 
-use super::{descriptors::ChannelDescriptor, DescriptorTable, Handle};
+use super::{
+    descriptors::{ChannelDescriptor, DescriptorTable},
+    Handle,
+};
 
 /// A DMA channel
 pub struct Channel<C, S>

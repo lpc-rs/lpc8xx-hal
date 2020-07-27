@@ -6,7 +6,7 @@ pub(super) static mut DESCRIPTORS: DescriptorTable = DescriptorTable::new();
 ///
 /// Contains a descriptor for each DMA channel.
 #[repr(C, align(512))]
-pub struct DescriptorTable(
+pub(super) struct DescriptorTable(
     pub(super) [ChannelDescriptor; target::NUM_CHANNELS],
 );
 
