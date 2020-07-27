@@ -12,10 +12,9 @@ fn main() -> ! {
     let p = Peripherals::take().unwrap();
 
     let swm = p.SWM.split();
-    let dma = p.DMA.split();
     let mut syscon = p.SYSCON.split();
 
-    let dma_handle = dma.handle.enable(&mut syscon.handle);
+    let dma_handle = p.DMA.handle.enable(&mut syscon.handle);
     let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 
     let clock_config = usart::Clock::new_with_baudrate(115200);
@@ -33,8 +32,8 @@ fn main() -> ! {
         p.USART0
             .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
 
-    let mut rx_channel = dma.channels.channel0.enable(&dma_handle);
-    let mut tx_channel = dma.channels.channel1.enable(&dma_handle);
+    let mut rx_channel = p.DMA.channels.channel0.enable(&dma_handle);
+    let mut tx_channel = p.DMA.channels.channel1.enable(&dma_handle);
 
     static mut BUF: [u8; 4] = [0; 4];
 

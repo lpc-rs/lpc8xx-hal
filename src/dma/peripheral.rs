@@ -4,25 +4,20 @@ use super::Channels;
 
 /// Entry point to the DMA API
 pub struct DMA {
-    dma: pac::DMA0,
+    /// Handle to the DMA controller
+    pub handle: Handle<init_state::Disabled>,
+
+    /// The DMA channels
+    pub channels: Channels,
 }
 
 impl DMA {
     pub(crate) fn new(dma: pac::DMA0) -> Self {
-        DMA { dma }
-    }
-
-    /// Splits the DMA API into its component parts
-    ///
-    /// This is the regular way to access the DMA API. It exists as an explicit
-    /// step, as it's no longer possible to gain access to the raw peripheral
-    /// using [`DMA::free`] after you've called this method.
-    pub fn split(self) -> Parts {
         let descriptors = unsafe { &mut super::descriptors::DESCRIPTORS };
         let srambase = descriptors as *mut _ as u32;
 
-        Parts {
-            handle: Handle::new(self.dma, srambase),
+        Self {
+            handle: Handle::new(dma, srambase),
             channels: Channels::new(descriptors),
         }
     }
@@ -40,22 +35,8 @@ impl DMA {
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
     pub fn free(self) -> pac::DMA0 {
-        self.dma
+        self.handle.dma
     }
-}
-
-/// The main API for the DMA controller
-///
-/// Provides access to all types that make up the DMA API. Please refer to the
-/// [module documentation] for more information.
-///
-/// [module documentation]: index.html
-pub struct Parts {
-    /// Handle to the DMA controller
-    pub handle: Handle<init_state::Disabled>,
-
-    /// The DMA channels
-    pub channels: Channels,
 }
 
 /// Handle to the DMA controller
