@@ -5,11 +5,13 @@
 mod buffer;
 mod channels;
 mod descriptors;
+mod gen;
 mod peripheral;
 mod transfer;
 
 pub use self::{
-    channels::*,
+    channels::{Channel, ChannelTrait},
+    gen::*,
     peripheral::DMA,
     transfer::{Dest, Payload, Source, Transfer},
 };
