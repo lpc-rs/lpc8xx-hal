@@ -1,7 +1,7 @@
 use core::marker::PhantomData;
 
 use crate::{
-    init_state,
+    init_state::{Disabled, Enabled},
     pac::{
         self,
         dma0::{
@@ -31,7 +31,7 @@ where
     pub(super) xfercfg: RegProxy<C::Xfercfg>,
 }
 
-impl<C> Channel<C, init_state::Disabled>
+impl<C> Channel<C, Disabled>
 where
     C: ChannelTrait,
 {
@@ -39,10 +39,10 @@ where
     pub fn enable<'dma>(
         self,
         dma: &'dma Handle,
-    ) -> Channel<C, init_state::Enabled<&'dma Handle>> {
+    ) -> Channel<C, Enabled<&'dma Handle>> {
         Channel {
             ty: self.ty,
-            _state: init_state::Enabled(dma),
+            _state: Enabled(dma),
             descriptor: self.descriptor,
 
             cfg: self.cfg,
@@ -76,7 +76,7 @@ macro_rules! channels {
         /// Provides access to all channels
         #[allow(missing_docs)]
         pub struct Channels {
-            $(pub $field: Channel<$name, init_state::Disabled>,)*
+            $(pub $field: Channel<$name, Disabled>,)*
         }
 
         impl Channels {
@@ -89,7 +89,7 @@ macro_rules! channels {
                     $(
                         $field: Channel {
                             ty        : $name(()),
-                            _state    : init_state::Disabled,
+                            _state    : Disabled,
                             descriptor: descriptors.next().unwrap(),
 
                             cfg    : RegProxy::new(),
