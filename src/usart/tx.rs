@@ -6,7 +6,7 @@ use embedded_hal::{
 use nb::block;
 use void::Void;
 
-use crate::{dma, init_state::Enabled};
+use crate::{dma, init_state::Enabled, pac::dma0::channel::xfercfg::DSTINC_A};
 
 use super::instances::Instance;
 
@@ -63,14 +63,14 @@ where
 
     /// Writes the provided buffer using DMA
     ///
-    /// # Limitations
+    /// # Panics
     ///
-    /// The length of `buffer` must be 1024 or less.
+    /// Panics, if `buffer` has a length larger than 1024.
     pub fn write_all<'dma>(
         self,
         buffer: &'static [u8],
         channel: dma::Channel<I::TxChannel, Enabled<&'dma dma::Handle>>,
-    ) -> dma::Transfer<'dma, I::TxChannel, Self> {
+    ) -> dma::Transfer<'dma, I::TxChannel, &'static [u8], Self> {
         channel.start_transfer(buffer, self)
     }
 }
@@ -126,11 +126,29 @@ where
     }
 }
 
+impl<I, State> crate::private::Sealed for Tx<I, State> {}
+
 impl<I> dma::Dest for Tx<I, Enabled>
 where
     I: Instance,
 {
     type Error = Void;
+
+    fn is_valid(&self) -> bool {
+        true
+    }
+
+    fn is_full(&self) -> bool {
+        false
+    }
+
+    fn increment(&self) -> DSTINC_A {
+        DSTINC_A::NO_INCREMENT
+    }
+
+    fn transfer_count(&self) -> Option<u16> {
+        None
+    }
 
     fn wait(&mut self) -> nb::Result<(), Self::Error> {
         self.flush()

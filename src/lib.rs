@@ -103,6 +103,7 @@ pub extern crate cortex_m;
 pub extern crate cortex_m_rt;
 pub extern crate embedded_hal;
 pub extern crate nb;
+pub extern crate void;
 
 #[macro_use]
 pub(crate) mod reg_proxy;
@@ -563,4 +564,8 @@ pub mod init_state {
 
     /// Indicates that the hardware component is disabled
     pub struct Disabled;
+}
+
+mod private {
+    pub trait Sealed {}
 }

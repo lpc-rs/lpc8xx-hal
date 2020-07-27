@@ -2,6 +2,7 @@
 //!
 //! The DMA controller is described in the user manual, chapter 12.
 
+mod buffer;
 mod channels;
 mod descriptors;
 mod peripheral;
@@ -11,5 +12,5 @@ pub use self::{
     channels::*,
     descriptors::DescriptorTable,
     peripheral::{Handle, DMA},
-    transfer::{Dest, Payload, Transfer},
+    transfer::{Dest, Payload, Source, Transfer},
 };

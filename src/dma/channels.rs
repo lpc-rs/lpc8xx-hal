@@ -13,7 +13,8 @@ use crate::{
 };
 
 use super::{
-    descriptors::ChannelDescriptor, DescriptorTable, Dest, Handle, Transfer,
+    descriptors::ChannelDescriptor, DescriptorTable, Dest, Handle, Source,
+    Transfer,
 };
 
 /// A DMA channel
@@ -66,27 +67,47 @@ where
 {
     /// Starts a DMA transfer
     ///
-    /// # Limitations
+    /// # Panics
     ///
-    /// The length of `source` must be 1024 or less.
+    /// Panics, if any buffer passed to this function has a length larger than
+    /// 1024.
+    ///
+    /// # Limitations
     ///
     /// The caller must make sure to call this method only for the correct
     /// combination of channel and target.
-    pub(crate) fn start_transfer<D>(
+    pub(crate) fn start_transfer<S, D>(
         self,
-        source: &'static [u8],
+        source: S,
         mut dest: D,
-    ) -> Transfer<'dma, C, D>
+    ) -> Transfer<'dma, C, S, D>
     where
+        S: Source,
         D: Dest,
     {
+        assert!(source.is_valid());
+        assert!(dest.is_valid());
+
         compiler_fence(Ordering::SeqCst);
 
-        // We need to substract 1 from the length below. If the source is empty,
-        // return early to prevent underflow.
-        if source.is_empty() {
+        // To compute the transfer count, source or destination buffers need to
+        // subtract 1 from their length. This early return makes sure that
+        // this won't lead to an underflow.
+        if source.is_empty() || dest.is_full() {
             return Transfer::new(self, source, dest);
         }
+
+        // Currently we don't support memory-to-memory transfers, which means
+        // exactly one participant is providing the transfer count.
+        let source_count = source.transfer_count();
+        let dest_count = dest.transfer_count();
+        let transfer_count = match (source_count, dest_count) {
+            (Some(transfer_count), None) => transfer_count,
+            (None, Some(transfer_count)) => transfer_count,
+            _ => {
+                panic!("Unsupported transfer type");
+            }
+        };
 
         // Configure channel
         // See user manual, section 12.6.16.
@@ -106,16 +127,14 @@ where
             w.setinta().no_effect();
             w.setintb().no_effect();
             w.width().bit_8();
-            w.srcinc().width_x_1();
-            w.dstinc().no_increment();
-            unsafe { w.xfercount().bits(source.len() as u16 - 1) }
+            w.srcinc().variant(source.increment());
+            w.dstinc().variant(dest.increment());
+            unsafe { w.xfercount().bits(transfer_count) }
         });
-
-        let source_end = unsafe { source.as_ptr().add(source.len() - 1) };
 
         // Configure channel descriptor
         // See user manual, sections 12.5.2 and 12.5.3.
-        self.descriptor.source_end = source_end;
+        self.descriptor.source_end = source.end_addr();
         self.descriptor.dest_end = dest.end_addr();
 
         // Enable channel
