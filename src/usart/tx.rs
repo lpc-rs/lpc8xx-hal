@@ -7,7 +7,7 @@ use nb::block;
 use void::Void;
 
 use crate::{
-    dma::{self, transfer::state::Started},
+    dma::{self, transfer::state::Ready},
     init_state::Enabled,
     pac::dma0::channel::xfercfg::DSTINC_A,
 };
@@ -74,8 +74,8 @@ where
         self,
         buffer: &'static [u8],
         channel: dma::Channel<I::TxChannel, Enabled>,
-    ) -> dma::Transfer<Started, I::TxChannel, &'static [u8], Self> {
-        dma::Transfer::new(channel, buffer, self).start()
+    ) -> dma::Transfer<Ready, I::TxChannel, &'static [u8], Self> {
+        dma::Transfer::new(channel, buffer, self)
     }
 }
 

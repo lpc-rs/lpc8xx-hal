@@ -1,7 +1,7 @@
 use core::marker::PhantomData;
 
 use crate::{
-    dma::{self, transfer::state::Started},
+    dma::{self, transfer::state::Ready},
     embedded_hal::serial::Read,
     init_state::Enabled,
     pac::dma0::channel::xfercfg::SRCINC_A,
@@ -68,8 +68,8 @@ where
         self,
         buffer: &'static mut [u8],
         channel: dma::Channel<I::RxChannel, Enabled>,
-    ) -> dma::Transfer<Started, I::RxChannel, Self, &'static mut [u8]> {
-        dma::Transfer::new(channel, self, buffer).start()
+    ) -> dma::Transfer<Ready, I::RxChannel, Self, &'static mut [u8]> {
+        dma::Transfer::new(channel, self, buffer)
     }
 }
 
