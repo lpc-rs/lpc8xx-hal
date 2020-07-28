@@ -16,14 +16,15 @@ use super::{
 };
 
 /// A DMA transfer
-pub struct Transfer<C, S, D>
+pub struct Transfer<State, C, S, D>
 where
     C: Instance,
 {
+    _state: State,
     payload: Payload<C, S, D>,
 }
 
-impl<C, S, D> Transfer<C, S, D>
+impl<C, S, D> Transfer<state::Started, C, S, D>
 where
     C: Instance,
     S: Source,
@@ -35,6 +36,7 @@ where
         dest: D,
     ) -> Self {
         Self {
+            _state: state::Started,
             payload: Payload {
                 channel,
                 source,
@@ -304,4 +306,17 @@ pub trait Dest: crate::private::Sealed {
     /// `transfer_count` times address increment. See LPC845 user manual,
     /// section 16.5.2, for example.
     fn end_addr(&mut self) -> *mut u8;
+}
+
+/// Types representing the states of a DMA transfer
+pub mod state {
+    /// Indicates that a transfer is ready to be started
+    ///
+    /// Used for the `State` type parameter of `Transfer`.
+    pub struct Ready;
+
+    /// Indicates that a transfer has been started
+    ///
+    /// Used for the `State` type parameter of `Transfer`.
+    pub struct Started;
 }

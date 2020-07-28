@@ -6,7 +6,11 @@ use embedded_hal::{
 use nb::block;
 use void::Void;
 
-use crate::{dma, init_state::Enabled, pac::dma0::channel::xfercfg::DSTINC_A};
+use crate::{
+    dma::{self, transfer::state::Started},
+    init_state::Enabled,
+    pac::dma0::channel::xfercfg::DSTINC_A,
+};
 
 use super::instances::Instance;
 
@@ -70,7 +74,7 @@ where
         self,
         buffer: &'static [u8],
         channel: dma::Channel<I::TxChannel, Enabled>,
-    ) -> dma::Transfer<I::TxChannel, &'static [u8], Self> {
+    ) -> dma::Transfer<Started, I::TxChannel, &'static [u8], Self> {
         dma::Transfer::start(channel, buffer, self)
     }
 }
