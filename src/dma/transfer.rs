@@ -62,7 +62,7 @@ where
     }
 
     /// Start the DMA transfer
-    pub(crate) fn start(mut self) -> Transfer<state::Started, C, S, D> {
+    pub fn start(mut self) -> Transfer<state::Started, C, S, D> {
         let registers = SharedRegisters::<C>::new();
 
         compiler_fence(Ordering::SeqCst);
