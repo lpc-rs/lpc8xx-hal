@@ -6,9 +6,9 @@ mod buffer;
 mod descriptors;
 mod gen;
 mod peripheral;
-mod transfer;
 
 pub mod channels;
+pub mod transfer;
 
 pub use self::{
     channels::Channel,

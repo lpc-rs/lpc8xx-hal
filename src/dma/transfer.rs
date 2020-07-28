@@ -1,3 +1,5 @@
+//! APIs related to DMA transfers
+
 use core::{
     fmt,
     sync::atomic::{compiler_fence, Ordering},
