@@ -63,7 +63,7 @@ where
     ///
     /// # Panics
     ///
-    /// Panics, if `buffer` has a length larger than 1024.
+    /// Panics, if the length of `buffer` is 0 or larger than 1024.
     pub fn read_all(
         self,
         buffer: &'static mut [u8],

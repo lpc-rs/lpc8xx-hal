@@ -49,8 +49,8 @@ where
     ///
     /// # Panics
     ///
-    /// Panics, if any buffer passed to this function has a length larger than
-    /// 1024.
+    /// Panics, if the length of any buffer passed to this function is 0 or
+    /// larger than 1024.
     ///
     /// # Limitations
     ///
@@ -61,19 +61,14 @@ where
         source: S,
         mut dest: D,
     ) -> Self {
+        assert!(!source.is_empty());
+        assert!(!dest.is_full());
         assert!(source.is_valid());
         assert!(dest.is_valid());
 
         let registers = SharedRegisters::<C>::new();
 
         compiler_fence(Ordering::SeqCst);
-
-        // To compute the transfer count, source or destination buffers need to
-        // subtract 1 from their length. This early return makes sure that
-        // this won't lead to an underflow.
-        if source.is_empty() || dest.is_full() {
-            return Transfer::new(channel, source, dest);
-        }
 
         // Currently we don't support memory-to-memory transfers, which means
         // exactly one participant is providing the transfer count.
