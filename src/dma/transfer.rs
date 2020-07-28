@@ -44,12 +44,54 @@ where
     pub(crate) fn new(
         channel: Channel<C, Enabled>,
         source: S,
-        dest: D,
+        mut dest: D,
     ) -> Self {
         assert!(!source.is_empty());
         assert!(!dest.is_full());
         assert!(source.is_valid());
         assert!(dest.is_valid());
+
+        compiler_fence(Ordering::SeqCst);
+
+        // Currently we don't support memory-to-memory transfers, which means
+        // exactly one participant is providing the transfer count.
+        let source_count = source.transfer_count();
+        let dest_count = dest.transfer_count();
+        let transfer_count = match (source_count, dest_count) {
+            (Some(transfer_count), None) => transfer_count,
+            (None, Some(transfer_count)) => transfer_count,
+            _ => {
+                panic!("Unsupported transfer type");
+            }
+        };
+
+        // Configure channel
+        // See user manual, section 12.6.16.
+        channel.cfg.write(|w| {
+            w.periphreqen().enabled();
+            w.hwtrigen().disabled();
+            unsafe { w.chpriority().bits(0) }
+        });
+
+        // Set channel transfer configuration
+        // See user manual, section 12.6.18.
+        channel.xfercfg.write(|w| {
+            w.cfgvalid().valid();
+            w.reload().disabled();
+            w.swtrig().not_set();
+            w.clrtrig().cleared();
+            w.setinta().no_effect();
+            w.setintb().no_effect();
+            w.width().bit_8();
+            w.srcinc().variant(source.increment());
+            w.dstinc().variant(dest.increment());
+            unsafe { w.xfercount().bits(transfer_count) }
+        });
+
+        // Configure channel descriptor
+        // See user manual, sections 12.5.2 and 12.5.3.
+        channel.descriptor.source_end = source.end_addr();
+        channel.descriptor.dest_end = dest.end_addr();
 
         Self {
             _state: state::Ready,
@@ -62,51 +104,8 @@ where
     }
 
     /// Start the DMA transfer
-    pub fn start(mut self) -> Transfer<state::Started, C, S, D> {
+    pub fn start(self) -> Transfer<state::Started, C, S, D> {
         let registers = SharedRegisters::<C>::new();
-
-        compiler_fence(Ordering::SeqCst);
-
-        // Currently we don't support memory-to-memory transfers, which means
-        // exactly one participant is providing the transfer count.
-        let source_count = self.payload.source.transfer_count();
-        let dest_count = self.payload.dest.transfer_count();
-        let transfer_count = match (source_count, dest_count) {
-            (Some(transfer_count), None) => transfer_count,
-            (None, Some(transfer_count)) => transfer_count,
-            _ => {
-                panic!("Unsupported transfer type");
-            }
-        };
-
-        // Configure channel
-        // See user manual, section 12.6.16.
-        self.payload.channel.cfg.write(|w| {
-            w.periphreqen().enabled();
-            w.hwtrigen().disabled();
-            unsafe { w.chpriority().bits(0) }
-        });
-
-        // Set channel transfer configuration
-        // See user manual, section 12.6.18.
-        self.payload.channel.xfercfg.write(|w| {
-            w.cfgvalid().valid();
-            w.reload().disabled();
-            w.swtrig().not_set();
-            w.clrtrig().cleared();
-            w.setinta().no_effect();
-            w.setintb().no_effect();
-            w.width().bit_8();
-            w.srcinc().variant(self.payload.source.increment());
-            w.dstinc().variant(self.payload.dest.increment());
-            unsafe { w.xfercount().bits(transfer_count) }
-        });
-
-        // Configure channel descriptor
-        // See user manual, sections 12.5.2 and 12.5.3.
-        self.payload.channel.descriptor.source_end =
-            self.payload.source.end_addr();
-        self.payload.channel.descriptor.dest_end = self.payload.dest.end_addr();
 
         // Enable channel
         // See user manual, section 12.6.4.
