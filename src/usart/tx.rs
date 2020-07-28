@@ -75,7 +75,7 @@ where
         buffer: &'static [u8],
         channel: dma::Channel<I::TxChannel, Enabled>,
     ) -> dma::Transfer<Started, I::TxChannel, &'static [u8], Self> {
-        dma::Transfer::start(channel, buffer, self)
+        dma::Transfer::new(channel, buffer, self).start()
     }
 }
 

@@ -24,28 +24,13 @@ where
     payload: Payload<C, S, D>,
 }
 
-impl<C, S, D> Transfer<state::Started, C, S, D>
+impl<C, S, D> Transfer<state::Ready, C, S, D>
 where
     C: Instance,
     S: Source,
     D: Dest,
 {
-    pub(super) fn new(
-        channel: Channel<C, Enabled>,
-        source: S,
-        dest: D,
-    ) -> Self {
-        Self {
-            _state: state::Started,
-            payload: Payload {
-                channel,
-                source,
-                dest,
-            },
-        }
-    }
-
-    /// Start a DMA transfer
+    /// Create a new DMA transfer
     ///
     /// # Panics
     ///
@@ -56,24 +41,36 @@ where
     ///
     /// The caller must make sure to call this method only for the correct
     /// combination of channel and target.
-    pub(crate) fn start(
+    pub(crate) fn new(
         channel: Channel<C, Enabled>,
         source: S,
-        mut dest: D,
+        dest: D,
     ) -> Self {
         assert!(!source.is_empty());
         assert!(!dest.is_full());
         assert!(source.is_valid());
         assert!(dest.is_valid());
 
+        Self {
+            _state: state::Ready,
+            payload: Payload {
+                channel,
+                source,
+                dest,
+            },
+        }
+    }
+
+    /// Start the DMA transfer
+    pub(crate) fn start(mut self) -> Transfer<state::Started, C, S, D> {
         let registers = SharedRegisters::<C>::new();
 
         compiler_fence(Ordering::SeqCst);
 
         // Currently we don't support memory-to-memory transfers, which means
         // exactly one participant is providing the transfer count.
-        let source_count = source.transfer_count();
-        let dest_count = dest.transfer_count();
+        let source_count = self.payload.source.transfer_count();
+        let dest_count = self.payload.dest.transfer_count();
         let transfer_count = match (source_count, dest_count) {
             (Some(transfer_count), None) => transfer_count,
             (None, Some(transfer_count)) => transfer_count,
@@ -84,7 +81,7 @@ where
 
         // Configure channel
         // See user manual, section 12.6.16.
-        channel.cfg.write(|w| {
+        self.payload.channel.cfg.write(|w| {
             w.periphreqen().enabled();
             w.hwtrigen().disabled();
             unsafe { w.chpriority().bits(0) }
@@ -92,7 +89,7 @@ where
 
         // Set channel transfer configuration
         // See user manual, section 12.6.18.
-        channel.xfercfg.write(|w| {
+        self.payload.channel.xfercfg.write(|w| {
             w.cfgvalid().valid();
             w.reload().disabled();
             w.swtrig().not_set();
@@ -100,15 +97,16 @@ where
             w.setinta().no_effect();
             w.setintb().no_effect();
             w.width().bit_8();
-            w.srcinc().variant(source.increment());
-            w.dstinc().variant(dest.increment());
+            w.srcinc().variant(self.payload.source.increment());
+            w.dstinc().variant(self.payload.dest.increment());
             unsafe { w.xfercount().bits(transfer_count) }
         });
 
         // Configure channel descriptor
         // See user manual, sections 12.5.2 and 12.5.3.
-        channel.descriptor.source_end = source.end_addr();
-        channel.descriptor.dest_end = dest.end_addr();
+        self.payload.channel.descriptor.source_end =
+            self.payload.source.end_addr();
+        self.payload.channel.descriptor.dest_end = self.payload.dest.end_addr();
 
         // Enable channel
         // See user manual, section 12.6.4.
@@ -117,9 +115,19 @@ where
         // Trigger transfer
         registers.trigger();
 
-        Transfer::new(channel, source, dest)
+        Transfer {
+            _state: state::Started,
+            payload: self.payload,
+        }
     }
+}
 
+impl<C, S, D> Transfer<state::Started, C, S, D>
+where
+    C: Instance,
+    S: Source,
+    D: Dest,
+{
     /// Indicates whether transfer is currently active
     ///
     /// Corresponds to the channel's flag in the ACTIVE0 register.
