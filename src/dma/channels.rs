@@ -191,4 +191,12 @@ where
     pub(super) fn b_interrupt_fired(&self) -> bool {
         self.intb0.read().ib().bits() & C::FLAG != 0
     }
+
+    pub(super) fn reset_flags(&self) {
+        // The `unsafe` blocks are sound, as all `FLAG` values are valid in
+        // these registers.
+        self.errint0.write(|w| unsafe { w.bits(C::FLAG) });
+        self.inta0.write(|w| unsafe { w.bits(C::FLAG) });
+        self.intb0.write(|w| unsafe { w.bits(C::FLAG) });
+    }
 }

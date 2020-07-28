@@ -129,6 +129,10 @@ where
     pub fn start(self) -> Transfer<state::Started, C, S, D> {
         let registers = SharedRegisters::<C>::new();
 
+        // Reset all flags to make sure we don't still have one set from a
+        // previous transfer.
+        registers.reset_flags();
+
         // Enable channel
         // See user manual, section 12.6.4.
         registers.enable();
