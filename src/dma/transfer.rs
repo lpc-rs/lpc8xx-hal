@@ -103,6 +103,28 @@ where
         }
     }
 
+    /// Set INTA flag when this transfer is complete
+    ///
+    /// By default, the flag is not set. This method can be used to overwrite
+    /// that setting. Setting the flag can be use to trigger an interrupt.
+    pub fn set_a_when_complete(&mut self) {
+        self.payload
+            .channel
+            .xfercfg
+            .modify(|_, w| w.setinta().set())
+    }
+
+    /// Set INTB flag when this transfer is complete
+    ///
+    /// By default, the flag is not set. This method can be used to overwrite
+    /// that setting. Setting the flag can be use to trigger an interrupt.
+    pub fn set_b_when_complete(&mut self) {
+        self.payload
+            .channel
+            .xfercfg
+            .modify(|_, w| w.setintb().set())
+    }
+
     /// Start the DMA transfer
     pub fn start(self) -> Transfer<state::Started, C, S, D> {
         let registers = SharedRegisters::<C>::new();
