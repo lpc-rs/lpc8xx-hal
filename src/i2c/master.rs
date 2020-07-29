@@ -107,7 +107,7 @@ where
             w.data().bits(address)
         });
 
-        // Start transmission
+        // Start operation
         self.mstctl.write(|w| w.mststart().start());
 
         Ok(())
@@ -116,7 +116,7 @@ where
     fn finish_write(&mut self) -> Result<(), Error> {
         self.wait_for_state(State::TxReady)?;
 
-        // Stop transmission
+        // Stop operation
         self.mstctl.write(|w| w.mststop().stop());
 
         Ok(())
@@ -125,7 +125,7 @@ where
     fn finish_read(&mut self) -> Result<(), Error> {
         self.wait_for_state(State::RxReady)?;
 
-        // Stop transmission
+        // Stop operation
         self.mstctl.write(|w| w.mststop().stop());
 
         Ok(())
