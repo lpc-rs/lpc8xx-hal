@@ -134,6 +134,10 @@ name              = "i2c_master_slave"
 required-features = ["rt-selected", "845"]
 
 [[example]]
+name              = "i2c_master_slave_dma"
+required-features = ["rt-selected", "845"]
+
+[[example]]
 name              = "i2c_vl53l0x"
 required-features = ["rt-selected", "82x"]
 
