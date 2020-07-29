@@ -77,15 +77,18 @@ where
         Ok(())
     }
 
-    fn write_address(&mut self, address: u8, rw: Rw) -> Result<(), Error> {
-        let address = address & 0xfe | rw as u8;
-
+    fn start_operation(&mut self, address: u8, rw: Rw) -> Result<(), Error> {
         self.wait_for_state(State::Idle)?;
 
+        // Write address
+        let address = address & 0xfe | rw as u8;
         self.mstdat.write(|w| unsafe {
             // Sound, as all 8-bit values are accepted here.
             w.data().bits(address)
         });
+
+        // Start transmission
+        self.mstctl.write(|w| w.mststart().start());
 
         Ok(())
     }
@@ -119,10 +122,7 @@ where
     ///
     /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Write.html#tymethod.write
     fn write(&mut self, address: u8, data: &[u8]) -> Result<(), Self::Error> {
-        self.write_address(address, Rw::Write)?;
-
-        // Start transmission
-        self.mstctl.write(|w| w.mststart().start());
+        self.start_operation(address, Rw::Write)?;
 
         for &b in data {
             self.wait_for_state(State::TxReady)?;
@@ -156,13 +156,10 @@ where
         address: u8,
         buffer: &mut [u8],
     ) -> Result<(), Self::Error> {
-        self.write_address(address, Rw::Read)?;
+        self.start_operation(address, Rw::Read)?;
 
         for (i, b) in buffer.iter_mut().enumerate() {
-            if i == 0 {
-                // Start transmission
-                self.mstctl.write(|w| w.mststart().start());
-            } else {
+            if i != 0 {
                 // Continue transmission
                 self.mstctl.write(|w| w.mstcontinue().continue_());
             }
