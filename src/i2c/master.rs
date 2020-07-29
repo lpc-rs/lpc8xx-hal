@@ -8,8 +8,10 @@ use core::{
 use embedded_hal::blocking::i2c;
 
 use crate::{
+    dma::{self, transfer::state::Ready},
     init_state::Enabled,
     pac::{
+        dma0::channel::xfercfg::DSTINC_A,
         generic::Variant,
         i2c0::{stat::MSTSTATE_A, MSTCTL, MSTDAT},
     },
@@ -57,6 +59,24 @@ impl<I, C> Master<I, Enabled<PhantomData<C>>, Enabled>
 where
     I: Instance,
 {
+    /// Writes the provided buffer using DMA
+    ///
+    /// # Panics
+    ///
+    /// Panics, if the length of `buffer` is 0 or larger than 1024.
+    pub fn write_all(
+        mut self,
+        address: u8,
+        buffer: &'static [u8],
+        channel: dma::Channel<I::MstChannel, Enabled>,
+    ) -> Result<dma::Transfer<Ready, I::MstChannel, &'static [u8], Self>, Error>
+    {
+        self.start_operation(address, Rw::Write)?;
+        self.wait_for_state(State::TxReady)?;
+        self.mstctl.modify(|_, w| w.mstdma().enabled());
+        Ok(dma::Transfer::new(channel, buffer, self))
+    }
+
     /// Wait while the peripheral is busy
     ///
     /// Once this method returns, the peripheral should either be idle or in a
@@ -172,6 +192,46 @@ where
 
         self.finish_read()?;
 
+        Ok(())
+    }
+}
+
+impl<I, State, ModeState> crate::private::Sealed for Master<I, State, ModeState> where
+    I: Instance
+{
+}
+
+impl<I, C> dma::Dest for Master<I, Enabled<PhantomData<C>>, Enabled>
+where
+    I: Instance,
+{
+    type Error = Error;
+
+    fn is_valid(&self) -> bool {
+        true
+    }
+
+    fn is_full(&self) -> bool {
+        false
+    }
+
+    fn increment(&self) -> DSTINC_A {
+        DSTINC_A::NO_INCREMENT
+    }
+
+    fn transfer_count(&self) -> Option<u16> {
+        None
+    }
+
+    fn end_addr(&mut self) -> *mut u8 {
+        // Sound, because we're dereferencing a register address that is always
+        // valid on the target hardware.
+        (unsafe { &(*I::REGISTERS).mstdat }) as *const _ as *mut u8
+    }
+
+    fn finish(&mut self) -> nb::Result<(), Self::Error> {
+        self.mstctl.modify(|_, w| w.mstdma().disabled());
+        self.finish_write()?;
         Ok(())
     }
 }
