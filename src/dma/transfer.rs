@@ -325,15 +325,15 @@ pub trait Dest: crate::private::Sealed {
     /// `false`. Peripherals will always return `None`.
     fn transfer_count(&self) -> Option<u16>;
 
-    /// Wait for the destination to be idle
-    fn wait(&mut self) -> nb::Result<(), Self::Error>;
-
     /// The end address
     ///
     /// This is not the actual end of the buffer, but the starting address plus
     /// `transfer_count` times address increment. See LPC845 user manual,
     /// section 16.5.2, for example.
     fn end_addr(&mut self) -> *mut u8;
+
+    /// Wait for the destination to be idle
+    fn wait(&mut self) -> nb::Result<(), Self::Error>;
 }
 
 /// Types representing the states of a DMA transfer

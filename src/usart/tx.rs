@@ -154,13 +154,13 @@ where
         None
     }
 
-    fn wait(&mut self) -> nb::Result<(), Self::Error> {
-        self.flush()
-    }
-
     fn end_addr(&mut self) -> *mut u8 {
         // Sound, because we're dereferencing a register address that is always
         // valid on the target hardware.
         (unsafe { &(*I::REGISTERS).txdat }) as *const _ as *mut u8
+    }
+
+    fn wait(&mut self) -> nb::Result<(), Self::Error> {
+        self.flush()
     }
 }
