@@ -89,6 +89,22 @@ where
 
         Ok(())
     }
+
+    fn finish_write(&mut self) -> Result<(), Error> {
+        self.wait_for_state(State::TxReady)?;
+
+        // Stop transmission
+        self.mstctl.write(|w| w.mststop().stop());
+
+        Ok(())
+    }
+
+    fn finish_read(&mut self) -> Result<(), Error> {
+        // Stop transmission
+        self.mstctl.write(|w| w.mststop().stop());
+
+        Ok(())
+    }
 }
 
 impl<I, C> i2c::Write for Master<I, Enabled<PhantomData<C>>, Enabled>
@@ -118,10 +134,7 @@ where
             self.mstctl.write(|w| w.mstcontinue().continue_());
         }
 
-        self.wait_for_state(State::TxReady)?;
-
-        // Stop transmission
-        self.mstctl.write(|w| w.mststop().stop());
+        self.finish_write()?;
 
         Ok(())
     }
@@ -160,8 +173,7 @@ where
             *b = self.mstdat.read().data().bits();
         }
 
-        // Stop transmission
-        self.mstctl.write(|w| w.mststop().stop());
+        self.finish_read()?;
 
         Ok(())
     }
