@@ -76,6 +76,19 @@ where
 
         Ok(())
     }
+
+    fn write_address(&mut self, address: u8, rw: Rw) -> Result<(), Error> {
+        let address = address & 0xfe | rw as u8;
+
+        self.wait_for_state(State::Idle)?;
+
+        self.mstdat.write(|w| unsafe {
+            // Sound, as all 8-bit values are accepted here.
+            w.data().bits(address)
+        });
+
+        Ok(())
+    }
 }
 
 impl<I, C> i2c::Write for Master<I, Enabled<PhantomData<C>>, Enabled>
@@ -90,11 +103,7 @@ where
     ///
     /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Write.html#tymethod.write
     fn write(&mut self, address: u8, data: &[u8]) -> Result<(), Self::Error> {
-        self.wait_for_state(State::Idle)?;
-
-        // Write slave address with rw bit set to 0
-        self.mstdat
-            .write(|w| unsafe { w.data().bits(address & 0xfe) });
+        self.write_address(address, Rw::Write)?;
 
         // Start transmission
         self.mstctl.write(|w| w.mststart().start());
@@ -134,11 +143,7 @@ where
         address: u8,
         buffer: &mut [u8],
     ) -> Result<(), Self::Error> {
-        self.wait_for_state(State::Idle)?;
-
-        // Write slave address with rw bit set to 1
-        self.mstdat
-            .write(|w| unsafe { w.data().bits(address | 0x01) });
+        self.write_address(address, Rw::Read)?;
 
         for (i, b) in buffer.iter_mut().enumerate() {
             if i == 0 {
@@ -160,6 +165,13 @@ where
 
         Ok(())
     }
+}
+
+/// Private helper struct to model the R/W bit
+#[repr(u8)]
+enum Rw {
+    Write = 0,
+    Read = 1,
 }
 
 /// The state of an I2C instance set to master mode
