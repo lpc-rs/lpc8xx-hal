@@ -196,7 +196,8 @@ where
     /// Waits for the transfer to finish
     pub fn wait(
         mut self,
-    ) -> Result<Payload<C, S, D>, (D::Error, Payload<C, S, D>)> {
+    ) -> Result<Payload<C, S, D>, (Error<S::Error, D::Error>, Payload<C, S, D>)>
+    {
         // There's an error interrupt status register. Maybe we should check
         // this here, but I have no idea whether that actually makes sense:
         // 1. As of this writing, we're not enabling any interrupts. I don't
@@ -211,13 +212,24 @@ where
         while registers.is_active() {}
 
         loop {
+            match self.payload.source.finish() {
+                Err(nb::Error::WouldBlock) => continue,
+                Ok(()) => break,
+
+                Err(nb::Error::Other(error)) => {
+                    compiler_fence(Ordering::SeqCst);
+                    return Err((Error::Source(error), self.payload));
+                }
+            }
+        }
+        loop {
             match self.payload.dest.finish() {
                 Err(nb::Error::WouldBlock) => continue,
                 Ok(()) => break,
 
                 Err(nb::Error::Other(error)) => {
                     compiler_fence(Ordering::SeqCst);
-                    return Err((error, self.payload));
+                    return Err((Error::Dest(error), self.payload));
                 }
             }
         }
@@ -226,6 +238,16 @@ where
 
         Ok(self.payload)
     }
+}
+
+/// Error that can occur while waiting for the DMA transfer to finish
+#[derive(Debug)]
+pub enum Error<S, D> {
+    /// An error occured while finishing the transfer at the source
+    Source(S),
+
+    /// An error occured while finishing the transfer at the destination
+    Dest(D),
 }
 
 /// The payload of a `Transfer`
@@ -261,6 +283,9 @@ where
 /// immutable static buffers and peripherals that support being read from using
 /// DMA.
 pub trait Source: crate::private::Sealed {
+    /// The error that can occur while finishing the transfer
+    type Error;
+
     /// Indicates whether the source is valid
     ///
     /// Buffers are valid, if they have a length of 1024 or less. Peripherals
@@ -291,6 +316,9 @@ pub trait Source: crate::private::Sealed {
     /// `transfer_count` times address increment. See LPC845 user manual,
     /// section 16.5.2, for example.
     fn end_addr(&self) -> *const u8;
+
+    /// Tell the source to finish the transfer
+    fn finish(&mut self) -> nb::Result<(), Self::Error>;
 }
 
 /// A destination for a DMA transfer
