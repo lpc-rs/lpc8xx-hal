@@ -211,7 +211,7 @@ where
         while registers.is_active() {}
 
         loop {
-            match self.payload.dest.wait() {
+            match self.payload.dest.finish() {
                 Err(nb::Error::WouldBlock) => continue,
                 Ok(()) => break,
 
@@ -298,7 +298,7 @@ pub trait Source: crate::private::Sealed {
 /// This trait is intended for internal use only. It is implemented for mutable
 /// static buffers and peripherals that support being written to using DMA.
 pub trait Dest: crate::private::Sealed {
-    /// The error that can occur while waiting for the destination to be idle
+    /// The error that can occur while finishing the transfer
     type Error;
 
     /// Indicates whether the destination is valid
@@ -332,8 +332,8 @@ pub trait Dest: crate::private::Sealed {
     /// section 16.5.2, for example.
     fn end_addr(&mut self) -> *mut u8;
 
-    /// Wait for the destination to be idle
-    fn wait(&mut self) -> nb::Result<(), Self::Error>;
+    /// Tell the destination to finish the transfer
+    fn finish(&mut self) -> nb::Result<(), Self::Error>;
 }
 
 /// Types representing the states of a DMA transfer

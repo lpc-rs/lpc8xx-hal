@@ -160,7 +160,7 @@ where
         (unsafe { &(*I::REGISTERS).txdat }) as *const _ as *mut u8
     }
 
-    fn wait(&mut self) -> nb::Result<(), Self::Error> {
+    fn finish(&mut self) -> nb::Result<(), Self::Error> {
         self.flush()
     }
 }

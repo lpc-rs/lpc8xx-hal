@@ -69,7 +69,7 @@ impl Dest for &'static mut [u8] {
         unsafe { self.as_mut_ptr().add(self.len() - 1) }
     }
 
-    fn wait(&mut self) -> nb::Result<(), Self::Error> {
+    fn finish(&mut self) -> nb::Result<(), Self::Error> {
         Ok(())
     }
 }
