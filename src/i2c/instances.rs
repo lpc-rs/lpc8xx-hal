@@ -1,6 +1,7 @@
 use core::ops::Deref;
 
 use crate::{
+    dma,
     pac::{self, Interrupt},
     swm,
     syscon::{self, clock_source::PeripheralClockSelector},
@@ -25,6 +26,12 @@ pub trait Instance:
 
     /// The movable function that needs to be assigned to this I2C's SCL pin
     type Scl;
+
+    /// The DMA channel used with this instance for slave mode
+    type SlvChannel: dma::channels::Instance;
+
+    /// The DMA channel used with this instance for master mode
+    type MstChannel: dma::channels::Instance;
 }
 
 macro_rules! instances {
@@ -34,7 +41,9 @@ macro_rules! instances {
             $clock_num:expr,
             $interrupt:ident,
             $rx:ident,
-            $tx:ident;
+            $tx:ident,
+            $slv_channel:ident,
+            $mst_channel:ident;
         )*
     ) => {
         $(
@@ -47,6 +56,9 @@ macro_rules! instances {
 
                 type Sda = swm::$rx;
                 type Scl = swm::$tx;
+
+                type SlvChannel = dma::$slv_channel;
+                type MstChannel = dma::$mst_channel;
             }
 
             impl PeripheralClockSelector for pac::$instance {
@@ -56,11 +68,20 @@ macro_rules! instances {
     };
 }
 
+#[cfg(feature = "82x")]
 instances!(
-    I2C0, 5, I2C0, I2C0_SDA, I2C0_SCL;
-    I2C1, 6, I2C1, I2C1_SDA, I2C1_SCL;
-    I2C2, 7, I2C2, I2C2_SDA, I2C2_SCL;
-    I2C3, 8, I2C3, I2C3_SDA, I2C3_SCL;
+    I2C0, 5, I2C0, I2C0_SDA, I2C0_SCL, Channel10, Channel11;
+    I2C1, 6, I2C1, I2C1_SDA, I2C1_SCL, Channel12, Channel13;
+    I2C2, 7, I2C2, I2C2_SDA, I2C2_SCL, Channel14, Channel15;
+    I2C3, 8, I2C3, I2C3_SDA, I2C3_SCL, Channel16, Channel17;
+);
+
+#[cfg(feature = "845")]
+instances!(
+    I2C0, 5, I2C0, I2C0_SDA, I2C0_SCL, Channel14, Channel15;
+    I2C1, 6, I2C1, I2C1_SDA, I2C1_SCL, Channel16, Channel17;
+    I2C2, 7, I2C2, I2C2_SDA, I2C2_SCL, Channel18, Channel19;
+    I2C3, 8, I2C3, I2C3_SDA, I2C3_SCL, Channel20, Channel21;
 );
 
 mod private {
