@@ -62,12 +62,12 @@ where
     /// # Panics
     ///
     /// Panics, if `buffer` has a length larger than 1024.
-    pub fn read_all<'dma>(
+    pub fn read_all(
         self,
         buffer: &'static mut [u8],
-        channel: dma::Channel<I::RxChannel, Enabled<&'dma dma::Handle>>,
-    ) -> dma::Transfer<'dma, I::RxChannel, Self, &'static mut [u8]> {
-        channel.start_transfer(self, buffer)
+        channel: dma::Channel<I::RxChannel, Enabled>,
+    ) -> dma::Transfer<I::RxChannel, Self, &'static mut [u8]> {
+        dma::Transfer::start(channel, self, buffer)
     }
 }
 

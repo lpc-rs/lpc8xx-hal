@@ -66,12 +66,12 @@ where
     /// # Panics
     ///
     /// Panics, if `buffer` has a length larger than 1024.
-    pub fn write_all<'dma>(
+    pub fn write_all(
         self,
         buffer: &'static [u8],
-        channel: dma::Channel<I::TxChannel, Enabled<&'dma dma::Handle>>,
-    ) -> dma::Transfer<'dma, I::TxChannel, &'static [u8], Self> {
-        channel.start_transfer(buffer, self)
+        channel: dma::Channel<I::TxChannel, Enabled>,
+    ) -> dma::Transfer<I::TxChannel, &'static [u8], Self> {
+        dma::Transfer::start(channel, buffer, self)
     }
 }
 

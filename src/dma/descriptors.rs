@@ -1,10 +1,12 @@
 use core::ptr;
 
+pub(super) static mut DESCRIPTORS: DescriptorTable = DescriptorTable::new();
+
 /// The channel descriptor table
 ///
 /// Contains a descriptor for each DMA channel.
 #[repr(C, align(512))]
-pub struct DescriptorTable(
+pub(super) struct DescriptorTable(
     pub(super) [ChannelDescriptor; target::NUM_CHANNELS],
 );
 
