@@ -123,6 +123,8 @@ where
     }
 
     fn finish_read(&mut self) -> Result<(), Error> {
+        self.wait_for_state(State::RxReady)?;
+
         // Stop transmission
         self.mstctl.write(|w| w.mststop().stop());
 
