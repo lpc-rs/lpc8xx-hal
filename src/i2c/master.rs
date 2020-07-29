@@ -8,7 +8,7 @@ use core::{
 use embedded_hal::blocking::i2c;
 
 use crate::{
-    init_state,
+    init_state::Enabled,
     pac::{
         generic::Variant,
         i2c0::{stat::MSTSTATE_A, MSTCTL, MSTDAT},
@@ -53,7 +53,7 @@ where
     }
 }
 
-impl<I, C> Master<I, init_state::Enabled<PhantomData<C>>, init_state::Enabled>
+impl<I, C> Master<I, Enabled<PhantomData<C>>, Enabled>
 where
     I: Instance,
 {
@@ -78,8 +78,7 @@ where
     }
 }
 
-impl<I, C> i2c::Write
-    for Master<I, init_state::Enabled<PhantomData<C>>, init_state::Enabled>
+impl<I, C> i2c::Write for Master<I, Enabled<PhantomData<C>>, Enabled>
 where
     I: Instance,
 {
@@ -119,8 +118,7 @@ where
     }
 }
 
-impl<I, C> i2c::Read
-    for Master<I, init_state::Enabled<PhantomData<C>>, init_state::Enabled>
+impl<I, C> i2c::Read for Master<I, Enabled<PhantomData<C>>, Enabled>
 where
     I: Instance,
 {
