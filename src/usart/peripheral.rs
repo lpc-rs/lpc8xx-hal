@@ -19,7 +19,7 @@ use super::{
     instances::Instance,
     rx::{Error, Rx},
     settings::Settings,
-    state::Enabled,
+    state::{Enabled, Word},
     tx::Tx,
 };
 
@@ -91,20 +91,21 @@ where
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<RxPin, TxPin, CLOCK>(
+    pub fn enable<RxPin, TxPin, CLOCK, W>(
         self,
         clock: &Clock<CLOCK>,
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
         _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
-        settings: Settings,
-    ) -> USART<I, Enabled>
+        settings: Settings<W>,
+    ) -> USART<I, Enabled<W>>
     where
         RxPin: pins::Trait,
         TxPin: pins::Trait,
         I::Rx: FunctionTrait<RxPin>,
         I::Tx: FunctionTrait<TxPin>,
         CLOCK: ClockSource,
+        W: Word,
     {
         syscon.enable_clock(&self.usart);
 
@@ -147,9 +148,10 @@ where
     }
 }
 
-impl<I> USART<I, Enabled>
+impl<I, W> USART<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     /// Disable the USART
     ///
@@ -256,26 +258,28 @@ where
     }
 }
 
-impl<I> Read<u8> for USART<I, Enabled>
+impl<I, W> Read<W> for USART<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     type Error = Error;
 
     /// Reads a single word from the serial interface
-    fn read(&mut self) -> nb::Result<u8, Self::Error> {
+    fn read(&mut self) -> nb::Result<W, Self::Error> {
         self.rx.read()
     }
 }
 
-impl<I> Write<u8> for USART<I, Enabled>
+impl<I, W> Write<W> for USART<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     type Error = Void;
 
     /// Writes a single word to the serial interface
-    fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
+    fn write(&mut self, word: W) -> nb::Result<(), Self::Error> {
         self.tx.write(word)
     }
 
@@ -285,9 +289,14 @@ where
     }
 }
 
-impl<I> BlockingWriteDefault<u8> for USART<I, Enabled> where I: Instance {}
+impl<I, W> BlockingWriteDefault<W> for USART<I, Enabled<W>>
+where
+    I: Instance,
+    W: Word,
+{
+}
 
-impl<I> fmt::Write for USART<I, Enabled>
+impl<I> fmt::Write for USART<I, Enabled<u8>>
 where
     Self: BlockingWriteDefault<u8>,
     I: Instance,

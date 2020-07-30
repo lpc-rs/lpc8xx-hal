@@ -7,7 +7,10 @@ use crate::{
     pac::dma0::channel::xfercfg::SRCINC_A,
 };
 
-use super::{instances::Instance, state::Enabled};
+use super::{
+    instances::Instance,
+    state::{Enabled, Word},
+};
 
 /// USART receiver
 ///
@@ -33,9 +36,10 @@ where
     }
 }
 
-impl<I> Rx<I, Enabled>
+impl<I, W> Rx<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     /// Enable the RXRDY interrupt
     ///
@@ -58,7 +62,12 @@ where
 
         usart.intenclr.write(|w| w.rxrdyclr().set_bit());
     }
+}
 
+impl<I> Rx<I, Enabled<u8>>
+where
+    I: Instance,
+{
     /// Reads until the provided buffer is full, using DMA
     ///
     /// # Panics
@@ -73,13 +82,14 @@ where
     }
 }
 
-impl<I> Read<u8> for Rx<I, Enabled>
+impl<I, W> Read<W> for Rx<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     type Error = Error;
 
-    fn read(&mut self) -> nb::Result<u8, Self::Error> {
+    fn read(&mut self) -> nb::Result<W, Self::Error> {
         // Sound, as we're only reading from `stat`, and `rxdatastat` is
         // exclusively accessed by this method.
         let usart = unsafe { &*I::REGISTERS };
@@ -104,10 +114,7 @@ where
             } else if rx_dat_stat.rxnoise().bit_is_set() {
                 Err(nb::Error::Other(Error::Noise))
             } else {
-                // `bits` returns `u16`, but at most 9 bits are used. We've
-                // configured UART to use only 8 bits, so we can safely cast to
-                // `u8`.
-                Ok(rx_dat_stat.rxdat().bits() as u8)
+                Ok(Word::from_u16(rx_dat_stat.rxdat().bits()))
             }
         } else {
             Err(nb::Error::WouldBlock)
@@ -117,7 +124,7 @@ where
 
 impl<I, State> crate::private::Sealed for Rx<I, State> {}
 
-impl<I> dma::Source for Rx<I, Enabled>
+impl<I> dma::Source for Rx<I, Enabled<u8>>
 where
     I: Instance,
 {
