@@ -56,12 +56,14 @@
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
 mod clock;
+mod dma;
 mod instances;
 mod interrupts;
 mod peripheral;
 
 pub use self::{
     clock::{Clock, ClockSource},
+    dma::Transfer,
     instances::{Instance, SlaveSelect},
     interrupts::Interrupts,
     peripheral::{Master, Slave, SPI},

@@ -3,12 +3,13 @@ use core::convert::Infallible;
 use embedded_hal::spi::{FullDuplex, Mode, Phase, Polarity};
 
 use crate::{
+    dma::{self, transfer::state::Ready},
     init_state::{Disabled, Enabled},
     pac::spi0::cfg::MASTER_A,
     swm, syscon,
 };
 
-use super::{Clock, ClockSource, Instance, Interrupts, SlaveSelect};
+use super::{Clock, ClockSource, Instance, Interrupts, SlaveSelect, Transfer};
 
 /// Interface to a SPI peripheral
 ///
@@ -254,6 +255,28 @@ where
             spi: self.spi,
             _state: Disabled,
         }
+    }
+}
+
+impl<I> SPI<I, Enabled<Master>>
+where
+    I: Instance,
+{
+    /// Start an SPI transfer using DMA
+    ///
+    /// Sends all words in the provided buffer, writing the replies back into
+    /// it.
+    ///
+    /// # Panics
+    ///
+    /// Panics, if the length of `buffer` is 0 or larger than 1024.
+    pub fn transfer_all(
+        self,
+        buffer: &'static mut [u8],
+        rx_channel: dma::Channel<I::RxChannel, Enabled>,
+        tx_channel: dma::Channel<I::TxChannel, Enabled>,
+    ) -> Transfer<Ready, I> {
+        Transfer::new(self, buffer, rx_channel, tx_channel)
     }
 }
 
