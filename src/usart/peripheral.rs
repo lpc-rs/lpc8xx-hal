@@ -18,6 +18,7 @@ use super::{
     clock::{Clock, ClockSource},
     instances::Instance,
     rx::{Error, Rx},
+    settings::Settings,
     tx::Tx,
 };
 
@@ -95,6 +96,7 @@ where
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
         _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
+        settings: Settings,
     ) -> USART<I, init_state::Enabled>
     where
         RxPin: pins::Trait,
@@ -121,14 +123,15 @@ where
         self.usart.cfg.modify(|_, w| {
             w.enable().enabled();
             w.datalen().bit_8();
-            w.paritysel().no_parity();
-            w.stoplen().bit_1();
+            w.paritysel().variant(settings.parity);
+            w.stoplen().variant(settings.stop_len);
             w.ctsen().disabled();
             w.syncen().asynchronous_mode();
+            w.clkpol().variant(settings.clock_pol);
             w.loop_().normal();
             w.autoaddr().disabled();
-            w.rxpol().standard();
-            w.txpol().standard()
+            w.rxpol().variant(settings.rx_pol);
+            w.txpol().variant(settings.tx_pol)
         });
 
         self.usart.ctl.modify(|_, w| {

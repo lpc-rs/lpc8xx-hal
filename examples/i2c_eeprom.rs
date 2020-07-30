@@ -61,9 +61,13 @@ fn main() -> ! {
     let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(rx_pin, &mut handle);
     let (u0_txd, _) = swm.movable_functions.u0_txd.assign(tx_pin, &mut handle);
 
-    let mut serial =
-        p.USART0
-            .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
+    let mut serial = p.USART0.enable(
+        &clock_config,
+        &mut syscon.handle,
+        u0_rxd,
+        u0_txd,
+        usart::Settings::default(),
+    );
 
     serial
         .bwrite_all(b"Initializing I2C...\n")

@@ -40,9 +40,13 @@ fn main() -> ! {
         .u0_txd
         .assign(p.pins.pio0_4.into_swm_pin(), &mut swm.handle);
 
-    let mut serial =
-        p.USART0
-            .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
+    let mut serial = p.USART0.enable(
+        &clock_config,
+        &mut syscon.handle,
+        u0_rxd,
+        u0_txd,
+        usart::Settings::default(),
+    );
 
     let _ = pmu.low_power_clock.enable(&mut pmu.handle);
 
