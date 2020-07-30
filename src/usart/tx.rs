@@ -8,11 +8,11 @@ use void::Void;
 
 use crate::{
     dma::{self, transfer::state::Ready},
-    init_state::Enabled,
+    init_state,
     pac::dma0::channel::xfercfg::DSTINC_A,
 };
 
-use super::instances::Instance;
+use super::{instances::Instance, state::Enabled};
 
 /// USART transmitter
 ///
@@ -73,7 +73,7 @@ where
     pub fn write_all(
         self,
         buffer: &'static [u8],
-        channel: dma::Channel<I::TxChannel, Enabled>,
+        channel: dma::Channel<I::TxChannel, init_state::Enabled>,
     ) -> dma::Transfer<Ready, I::TxChannel, &'static [u8], Self> {
         dma::Transfer::new(channel, buffer, self)
     }

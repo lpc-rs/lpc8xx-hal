@@ -3,11 +3,11 @@ use core::marker::PhantomData;
 use crate::{
     dma::{self, transfer::state::Ready},
     embedded_hal::serial::Read,
-    init_state::Enabled,
+    init_state,
     pac::dma0::channel::xfercfg::SRCINC_A,
 };
 
-use super::instances::Instance;
+use super::{instances::Instance, state::Enabled};
 
 /// USART receiver
 ///
@@ -67,7 +67,7 @@ where
     pub fn read_all(
         self,
         buffer: &'static mut [u8],
-        channel: dma::Channel<I::RxChannel, Enabled>,
+        channel: dma::Channel<I::RxChannel, init_state::Enabled>,
     ) -> dma::Transfer<Ready, I::RxChannel, Self, &'static mut [u8]> {
         dma::Transfer::new(channel, self, buffer)
     }

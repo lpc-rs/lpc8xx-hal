@@ -75,6 +75,8 @@ mod rx;
 mod settings;
 mod tx;
 
+pub mod state;
+
 pub use self::{
     clock::{Clock, ClockSource},
     instances::Instance,

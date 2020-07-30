@@ -7,7 +7,7 @@ use embedded_hal::{
 use void::Void;
 
 use crate::{
-    init_state::{Disabled, Enabled},
+    init_state::Disabled,
     pac::NVIC,
     pins,
     swm::{self, FunctionTrait},
@@ -19,6 +19,7 @@ use super::{
     instances::Instance,
     rx::{Error, Rx},
     settings::Settings,
+    state::Enabled,
     tx::Tx,
 };
 
