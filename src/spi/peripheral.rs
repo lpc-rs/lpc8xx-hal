@@ -2,7 +2,11 @@ use core::convert::Infallible;
 
 use embedded_hal::spi::{FullDuplex, Mode, Phase, Polarity};
 
-use crate::{init_state, pac::spi0::cfg::MASTER_A, swm, syscon};
+use crate::{
+    init_state::{Disabled, Enabled},
+    pac::spi0::cfg::MASTER_A,
+    swm, syscon,
+};
 
 use super::{Clock, ClockSource, Instance, Interrupts, SlaveSelect};
 
@@ -29,14 +33,14 @@ pub struct SPI<I, State> {
     _state: State,
 }
 
-impl<I> SPI<I, init_state::Disabled>
+impl<I> SPI<I, Disabled>
 where
     I: Instance,
 {
     pub(crate) fn new(spi: I) -> Self {
         Self {
             spi,
-            _state: init_state::Disabled,
+            _state: Disabled,
         }
     }
 
@@ -64,7 +68,7 @@ where
         _sck: swm::Function<I::Sck, swm::state::Assigned<SckPin>>,
         _mosi: swm::Function<I::Mosi, swm::state::Assigned<MosiPin>>,
         _miso: swm::Function<I::Miso, swm::state::Assigned<MisoPin>>,
-    ) -> SPI<I, init_state::Enabled<Master>>
+    ) -> SPI<I, Enabled<Master>>
     where
         CLOCK: ClockSource,
     {
@@ -78,7 +82,7 @@ where
 
         SPI {
             spi: self.spi,
-            _state: init_state::Enabled(Master),
+            _state: Enabled(Master),
         }
     }
 
@@ -107,7 +111,7 @@ where
         _mosi: swm::Function<I::Mosi, swm::state::Assigned<MosiPin>>,
         _miso: swm::Function<I::Miso, swm::state::Assigned<MisoPin>>,
         _ssel: swm::Function<Ssel, swm::state::Assigned<SselPin>>,
-    ) -> SPI<I, init_state::Enabled<Slave>>
+    ) -> SPI<I, Enabled<Slave>>
     where
         C: ClockSource,
         Ssel: SlaveSelect<I>,
@@ -117,7 +121,7 @@ where
 
         SPI {
             spi: self.spi,
-            _state: init_state::Enabled(Slave),
+            _state: Enabled(Slave),
         }
     }
 
@@ -167,7 +171,7 @@ where
     }
 }
 
-impl<I, Mode> SPI<I, init_state::Enabled<Mode>>
+impl<I, Mode> SPI<I, Enabled<Mode>>
 where
     I: Instance,
 {
@@ -243,20 +247,17 @@ where
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(
-        self,
-        syscon: &mut syscon::Handle,
-    ) -> SPI<I, init_state::Disabled> {
+    pub fn disable(self, syscon: &mut syscon::Handle) -> SPI<I, Disabled> {
         syscon.disable_clock(&self.spi);
 
         SPI {
             spi: self.spi,
-            _state: init_state::Disabled,
+            _state: Disabled,
         }
     }
 }
 
-impl<I> SPI<I, init_state::Enabled<Slave>>
+impl<I> SPI<I, Enabled<Slave>>
 where
     I: Instance,
 {
@@ -315,7 +316,7 @@ impl<I, State> SPI<I, State> {
     }
 }
 
-impl<I: Instance> FullDuplex<u8> for SPI<I, init_state::Enabled<Master>> {
+impl<I: Instance> FullDuplex<u8> for SPI<I, Enabled<Master>> {
     type Error = Infallible;
 
     fn read(&mut self) -> nb::Result<u8, Self::Error> {
@@ -340,12 +341,12 @@ impl<I: Instance> FullDuplex<u8> for SPI<I, init_state::Enabled<Master>> {
 }
 
 impl<I: Instance> embedded_hal::blocking::spi::transfer::Default<u8>
-    for SPI<I, init_state::Enabled<Master>>
+    for SPI<I, Enabled<Master>>
 {
 }
 
 impl<I: Instance> embedded_hal::blocking::spi::write::Default<u8>
-    for SPI<I, init_state::Enabled<Master>>
+    for SPI<I, Enabled<Master>>
 {
 }
 
