@@ -7,7 +7,7 @@ use embedded_hal::{
 use void::Void;
 
 use crate::{
-    init_state,
+    init_state::{Disabled, Enabled},
     pac::NVIC,
     pins,
     swm::{self, FunctionTrait},
@@ -54,7 +54,7 @@ pub struct USART<I, State> {
     usart: I,
 }
 
-impl<I> USART<I, init_state::Disabled>
+impl<I> USART<I, Disabled>
 where
     I: Instance,
 {
@@ -97,7 +97,7 @@ where
         _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
         _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
         settings: Settings,
-    ) -> USART<I, init_state::Enabled>
+    ) -> USART<I, Enabled>
     where
         RxPin: pins::Trait,
         TxPin: pins::Trait,
@@ -146,7 +146,7 @@ where
     }
 }
 
-impl<I> USART<I, init_state::Enabled>
+impl<I> USART<I, Enabled>
 where
     I: Instance,
 {
@@ -161,10 +161,7 @@ where
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(
-        self,
-        syscon: &mut syscon::Handle,
-    ) -> USART<I, init_state::Disabled> {
+    pub fn disable(self, syscon: &mut syscon::Handle) -> USART<I, Disabled> {
         syscon.disable_clock(&self.usart);
 
         USART {
@@ -258,7 +255,7 @@ where
     }
 }
 
-impl<I> Read<u8> for USART<I, init_state::Enabled>
+impl<I> Read<u8> for USART<I, Enabled>
 where
     I: Instance,
 {
@@ -270,7 +267,7 @@ where
     }
 }
 
-impl<I> Write<u8> for USART<I, init_state::Enabled>
+impl<I> Write<u8> for USART<I, Enabled>
 where
     I: Instance,
 {
@@ -287,12 +284,9 @@ where
     }
 }
 
-impl<I> BlockingWriteDefault<u8> for USART<I, init_state::Enabled> where
-    I: Instance
-{
-}
+impl<I> BlockingWriteDefault<u8> for USART<I, Enabled> where I: Instance {}
 
-impl<I> fmt::Write for USART<I, init_state::Enabled>
+impl<I> fmt::Write for USART<I, Enabled>
 where
     Self: BlockingWriteDefault<u8>,
     I: Instance,
