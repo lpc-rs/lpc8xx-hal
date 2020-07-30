@@ -51,7 +51,6 @@ pub struct USART<I, State = init_state::Enabled> {
     pub tx: Tx<I, State>,
 
     usart: I,
-    _state: State,
 }
 
 impl<I> USART<I, init_state::Disabled>
@@ -64,7 +63,6 @@ where
             tx: Tx::new(),
 
             usart,
-            _state: init_state::Disabled,
         }
     }
 
@@ -144,7 +142,6 @@ where
             rx: Rx::new(), // can't use `self.rx`, due to state
             tx: Tx::new(), // can't use `self.tx`, due to state
             usart: self.usart,
-            _state: init_state::Enabled(()),
         }
     }
 }
@@ -174,7 +171,6 @@ where
             rx: Rx::new(), // can't use `self.rx`, due to state
             tx: Tx::new(), // can't use `self.tx`, due to state
             usart: self.usart,
-            _state: init_state::Disabled,
         }
     }
 
