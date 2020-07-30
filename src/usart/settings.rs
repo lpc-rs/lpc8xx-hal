@@ -1,5 +1,5 @@
 use crate::pac::usart0::cfg::{
-    CLKPOL_A, PARITYSEL_A, RXPOL_A, STOPLEN_A, TXPOL_A,
+    self, CLKPOL_A, PARITYSEL_A, RXPOL_A, STOPLEN_A, TXPOL_A,
 };
 
 /// USART settings
@@ -102,6 +102,14 @@ impl Settings {
     pub fn tx_pol_inverted(mut self) -> Self {
         self.tx_pol = TXPOL_A::INVERTED;
         self
+    }
+
+    pub(super) fn apply(&self, w: &mut cfg::W) {
+        w.paritysel().variant(self.parity);
+        w.stoplen().variant(self.stop_len);
+        w.clkpol().variant(self.clock_pol);
+        w.rxpol().variant(self.rx_pol);
+        w.txpol().variant(self.tx_pol);
     }
 }
 
