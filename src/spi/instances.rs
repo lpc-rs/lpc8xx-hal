@@ -13,6 +13,9 @@ pub trait Instance:
     + syscon::ResetControl
     + PeripheralClockSelector
 {
+    /// A pointer to this instance's register block
+    const REGISTERS: *const pac::spi0::RegisterBlock;
+
     /// The movable function that needs to be assigned to this SPI's SCK pin
     type Sck;
 
@@ -49,6 +52,9 @@ macro_rules! instances {
             impl private::Sealed for pac::$instance {}
 
             impl Instance for pac::$instance {
+                const REGISTERS: *const pac::spi0::RegisterBlock =
+                    pac::$instance::ptr();
+
                 type Sck = swm::$sck;
                 type Mosi = swm::$mosi;
                 type Miso = swm::$miso;
