@@ -44,7 +44,7 @@ use super::{
 /// [`embedded_hal::serial::Read`]: #impl-Read%3Cu8%3E
 /// [`embedded_hal::serial::Write`]: #impl-Write%3Cu8%3E
 /// [`embedded_hal::blocking::serial::Write`]: #impl-Write
-pub struct USART<I, State = init_state::Enabled> {
+pub struct USART<I, State> {
     /// The USART Receiver
     pub rx: Rx<I, State>,
 

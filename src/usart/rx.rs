@@ -16,7 +16,7 @@ use super::instances::Instance;
 ///
 ///
 /// [`embedded_hal::serial::Read`]: #impl-Read%3Cu8%3E
-pub struct Rx<I, State = Enabled> {
+pub struct Rx<I, State> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,
 }

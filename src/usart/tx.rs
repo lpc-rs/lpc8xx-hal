@@ -22,7 +22,7 @@ use super::instances::Instance;
 ///
 /// [`embedded_hal::serial::Write`]: #impl-Write%3Cu8%3E
 /// [`embedded_hal::blocking::serial::Write`]: #impl-Write
-pub struct Tx<I, State = Enabled> {
+pub struct Tx<I, State> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,
 }
