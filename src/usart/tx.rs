@@ -6,7 +6,11 @@ use embedded_hal::{
 use nb::block;
 use void::Void;
 
-use crate::{dma, init_state::Enabled, pac::dma0::channel::xfercfg::DSTINC_A};
+use crate::{
+    dma::{self, transfer::state::Ready},
+    init_state::Enabled,
+    pac::dma0::channel::xfercfg::DSTINC_A,
+};
 
 use super::instances::Instance;
 
@@ -65,13 +69,13 @@ where
     ///
     /// # Panics
     ///
-    /// Panics, if `buffer` has a length larger than 1024.
+    /// Panics, if the length of `buffer` is 0 or larger than 1024.
     pub fn write_all(
         self,
         buffer: &'static [u8],
         channel: dma::Channel<I::TxChannel, Enabled>,
-    ) -> dma::Transfer<I::TxChannel, &'static [u8], Self> {
-        dma::Transfer::start(channel, buffer, self)
+    ) -> dma::Transfer<Ready, I::TxChannel, &'static [u8], Self> {
+        dma::Transfer::new(channel, buffer, self)
     }
 }
 

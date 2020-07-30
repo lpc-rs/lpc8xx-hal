@@ -42,7 +42,12 @@ fn main() -> ! {
             // Sound, as the mutable reference is dropped after this block.
             let rx_buf = unsafe { &mut BUF };
 
-            let res = serial.rx.read_all(rx_buf, rx_channel).wait().unwrap();
+            let res = serial
+                .rx
+                .read_all(rx_buf, rx_channel)
+                .start()
+                .wait()
+                .unwrap();
             rx_channel = res.channel;
             serial.rx = res.source;
         }
@@ -54,6 +59,7 @@ fn main() -> ! {
             let res = serial
                 .tx
                 .write_all(tx_buf, tx_channel)
+                .start()
                 .wait()
                 .expect("USART write shouldn't fail");
             tx_channel = res.channel;

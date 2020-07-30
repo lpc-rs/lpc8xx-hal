@@ -1,3 +1,5 @@
+//! APIs related to DMA transfers
+
 use core::{
     fmt,
     sync::atomic::{compiler_fence, Ordering},
@@ -14,62 +16,42 @@ use super::{
 };
 
 /// A DMA transfer
-pub struct Transfer<C, S, D>
+pub struct Transfer<State, C, S, D>
 where
     C: Instance,
 {
+    _state: State,
     payload: Payload<C, S, D>,
 }
 
-impl<C, S, D> Transfer<C, S, D>
+impl<C, S, D> Transfer<state::Ready, C, S, D>
 where
     C: Instance,
     S: Source,
     D: Dest,
 {
-    pub(super) fn new(
-        channel: Channel<C, Enabled>,
-        source: S,
-        dest: D,
-    ) -> Self {
-        Self {
-            payload: Payload {
-                channel,
-                source,
-                dest,
-            },
-        }
-    }
-
-    /// Start a DMA transfer
+    /// Create a new DMA transfer
     ///
     /// # Panics
     ///
-    /// Panics, if any buffer passed to this function has a length larger than
-    /// 1024.
+    /// Panics, if the length of any buffer passed to this function is 0 or
+    /// larger than 1024.
     ///
     /// # Limitations
     ///
     /// The caller must make sure to call this method only for the correct
     /// combination of channel and target.
-    pub(crate) fn start(
+    pub(crate) fn new(
         channel: Channel<C, Enabled>,
         source: S,
         mut dest: D,
     ) -> Self {
+        assert!(!source.is_empty());
+        assert!(!dest.is_full());
         assert!(source.is_valid());
         assert!(dest.is_valid());
 
-        let registers = SharedRegisters::<C>::new();
-
         compiler_fence(Ordering::SeqCst);
-
-        // To compute the transfer count, source or destination buffers need to
-        // subtract 1 from their length. This early return makes sure that
-        // this won't lead to an underflow.
-        if source.is_empty() || dest.is_full() {
-            return Transfer::new(channel, source, dest);
-        }
 
         // Currently we don't support memory-to-memory transfers, which means
         // exactly one participant is providing the transfer count.
@@ -111,6 +93,46 @@ where
         channel.descriptor.source_end = source.end_addr();
         channel.descriptor.dest_end = dest.end_addr();
 
+        Self {
+            _state: state::Ready,
+            payload: Payload {
+                channel,
+                source,
+                dest,
+            },
+        }
+    }
+
+    /// Set INTA flag when this transfer is complete
+    ///
+    /// By default, the flag is not set. This method can be used to overwrite
+    /// that setting. Setting the flag can be use to trigger an interrupt.
+    pub fn set_a_when_complete(&mut self) {
+        self.payload
+            .channel
+            .xfercfg
+            .modify(|_, w| w.setinta().set())
+    }
+
+    /// Set INTB flag when this transfer is complete
+    ///
+    /// By default, the flag is not set. This method can be used to overwrite
+    /// that setting. Setting the flag can be use to trigger an interrupt.
+    pub fn set_b_when_complete(&mut self) {
+        self.payload
+            .channel
+            .xfercfg
+            .modify(|_, w| w.setintb().set())
+    }
+
+    /// Start the DMA transfer
+    pub fn start(self) -> Transfer<state::Started, C, S, D> {
+        let registers = SharedRegisters::<C>::new();
+
+        // Reset all flags to make sure we don't still have one set from a
+        // previous transfer.
+        registers.reset_flags();
+
         // Enable channel
         // See user manual, section 12.6.4.
         registers.enable();
@@ -118,7 +140,57 @@ where
         // Trigger transfer
         registers.trigger();
 
-        Transfer::new(channel, source, dest)
+        Transfer {
+            _state: state::Started,
+            payload: self.payload,
+        }
+    }
+}
+
+impl<C, S, D> Transfer<state::Started, C, S, D>
+where
+    C: Instance,
+    S: Source,
+    D: Dest,
+{
+    /// Indicates whether transfer is currently active
+    ///
+    /// Corresponds to the channel's flag in the ACTIVE0 register.
+    pub fn is_active(&self) -> bool {
+        let registers = SharedRegisters::<C>::new();
+        registers.is_active()
+    }
+
+    /// Indicates whether transfer is currently busy
+    ///
+    /// Corresponds to the channel's flag in the BUSY0 register.
+    pub fn is_busy(&self) -> bool {
+        let registers = SharedRegisters::<C>::new();
+        registers.is_busy()
+    }
+
+    /// Indicates whether the error interrupt fired
+    ///
+    /// Corresponds to the channel's flag in the ERRINT0 register.
+    pub fn error_interrupt_fired(&self) -> bool {
+        let registers = SharedRegisters::<C>::new();
+        registers.error_interrupt_fired()
+    }
+
+    /// Indicates whether interrupt A fired
+    ///
+    /// Corresponds to the channel's flag in the INTA0 register.
+    pub fn a_interrupt_fired(&self) -> bool {
+        let registers = SharedRegisters::<C>::new();
+        registers.a_interrupt_fired()
+    }
+
+    /// Indicates whether interrupt B fired
+    ///
+    /// Corresponds to the channel's flag in the INTB0 register.
+    pub fn b_interrupt_fired(&self) -> bool {
+        let registers = SharedRegisters::<C>::new();
+        registers.b_interrupt_fired()
     }
 
     /// Waits for the transfer to finish
@@ -262,4 +334,17 @@ pub trait Dest: crate::private::Sealed {
     /// `transfer_count` times address increment. See LPC845 user manual,
     /// section 16.5.2, for example.
     fn end_addr(&mut self) -> *mut u8;
+}
+
+/// Types representing the states of a DMA transfer
+pub mod state {
+    /// Indicates that a transfer is ready to be started
+    ///
+    /// Used for the `State` type parameter of `Transfer`.
+    pub struct Ready;
+
+    /// Indicates that a transfer has been started
+    ///
+    /// Used for the `State` type parameter of `Transfer`.
+    pub struct Started;
 }

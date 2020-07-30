@@ -8,7 +8,8 @@ use crate::{
         self,
         dma0::{
             channel::{CFG, XFERCFG},
-            ACTIVE0, ENABLESET0, SETTRIG0,
+            ACTIVE0, BUSY0, ENABLESET0, ERRINT0, INTA0, INTB0, INTENCLR0,
+            INTENSET0, SETTRIG0,
         },
     },
     reg_proxy::{Reg, RegProxy},
@@ -64,6 +65,23 @@ where
     }
 }
 
+impl<C> Channel<C, Enabled>
+where
+    C: Instance,
+{
+    /// Enable interrupts for this channel
+    pub fn enable_interrupts(&mut self) {
+        let registers = SharedRegisters::<C>::new();
+        registers.enable_interrupts();
+    }
+
+    /// Disable interrupts for this channel
+    pub fn disable_interrupts(&mut self) {
+        let registers = SharedRegisters::<C>::new();
+        registers.disable_interrupts();
+    }
+}
+
 /// Implemented for each DMA channel
 pub trait Instance {
     /// The index of the channel
@@ -86,7 +104,13 @@ pub trait Instance {
 
 pub(super) struct SharedRegisters<C> {
     active0: &'static ACTIVE0,
+    busy0: &'static BUSY0,
     enableset0: &'static ENABLESET0,
+    errint0: &'static ERRINT0,
+    inta0: &'static INTA0,
+    intb0: &'static INTB0,
+    intenset0: &'static INTENSET0,
+    intenclr0: &'static INTENCLR0,
     settrig0: &'static SETTRIG0,
 
     _channel: PhantomData<C>,
@@ -106,12 +130,32 @@ where
 
             Self {
                 active0: &(*registers).active0,
+                busy0: &(*registers).busy0,
                 enableset0: &(*registers).enableset0,
+                errint0: &(*registers).errint0,
+                inta0: &(*registers).inta0,
+                intb0: &(*registers).intb0,
+                intenset0: &(*registers).intenset0,
+                intenclr0: &(*registers).intenclr0,
                 settrig0: &(*registers).settrig0,
 
                 _channel: PhantomData,
             }
         }
+    }
+
+    pub(super) fn enable_interrupts(&self) {
+        self.intenset0.write(|w| {
+            // Sound, as all values assigned to `C::FLAG` are valid here.
+            unsafe { w.inten().bits(C::FLAG) }
+        });
+    }
+
+    pub(super) fn disable_interrupts(&self) {
+        self.intenclr0.write(|w| {
+            // Sound, as all values assigned to `C::FLAG` are valid here.
+            unsafe { w.clr().bits(C::FLAG) }
+        });
     }
 
     pub(super) fn enable(&self) {
@@ -130,5 +174,29 @@ where
 
     pub(super) fn is_active(&self) -> bool {
         self.active0.read().act().bits() & C::FLAG != 0
+    }
+
+    pub(super) fn is_busy(&self) -> bool {
+        self.busy0.read().bsy().bits() & C::FLAG != 0
+    }
+
+    pub(super) fn error_interrupt_fired(&self) -> bool {
+        self.errint0.read().err().bits() & C::FLAG != 0
+    }
+
+    pub(super) fn a_interrupt_fired(&self) -> bool {
+        self.inta0.read().ia().bits() & C::FLAG != 0
+    }
+
+    pub(super) fn b_interrupt_fired(&self) -> bool {
+        self.intb0.read().ib().bits() & C::FLAG != 0
+    }
+
+    pub(super) fn reset_flags(&self) {
+        // The `unsafe` blocks are sound, as all `FLAG` values are valid in
+        // these registers.
+        self.errint0.write(|w| unsafe { w.bits(C::FLAG) });
+        self.inta0.write(|w| unsafe { w.bits(C::FLAG) });
+        self.intb0.write(|w| unsafe { w.bits(C::FLAG) });
     }
 }
