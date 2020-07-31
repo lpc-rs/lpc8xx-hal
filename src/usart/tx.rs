@@ -1,5 +1,6 @@
 use core::{fmt, marker::PhantomData};
 
+use cortex_m::interrupt;
 use embedded_hal::{
     blocking::serial::write::Default as BlockingWriteDefault, serial::Write,
 };
@@ -112,6 +113,23 @@ where
         I::Rts: swm::FunctionTrait<P>,
     {
         function.unassign(pin, swm)
+    }
+
+    /// Enable throttling via CTS signal
+    ///
+    /// Configure the transmitter to only transmit, while the CTS signal is
+    /// asserted.
+    pub fn enable_cts_throttling<P>(
+        &mut self,
+        _: swm::Function<I::Cts, swm::state::Assigned<P>>,
+    ) {
+        interrupt::free(|_| {
+            // Sound, as we're in a critical section that protects our read-
+            // modify-write access.
+            let usart = unsafe { &*I::REGISTERS };
+
+            usart.cfg.modify(|_, w| w.ctsen().enabled());
+        })
     }
 
     /// Query whether the provided flag is set
