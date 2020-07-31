@@ -69,6 +69,7 @@
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
 mod clock;
+mod flags;
 mod instances;
 mod peripheral;
 mod rx;
@@ -79,6 +80,7 @@ pub mod state;
 
 pub use self::{
     clock::{Clock, ClockSource},
+    flags::{Flag, Interrupts},
     instances::Instance,
     peripheral::USART,
     rx::{Error, Rx},
