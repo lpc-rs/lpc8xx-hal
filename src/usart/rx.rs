@@ -10,6 +10,7 @@ use crate::{
 };
 
 use super::{
+    flags::Flag,
     instances::Instance,
     state::{Enabled, Word},
 };
@@ -43,6 +44,13 @@ where
     I: Instance,
     W: Word,
 {
+    /// Query whether the provided flag is set
+    ///
+    /// Flags that need to be reset by software will be reset by this operation.
+    pub fn is_flag_set(&self, flag: Flag) -> bool {
+        flag.is_set::<I>()
+    }
+
     /// Enable the RXRDY interrupt
     ///
     /// The interrupt will not actually work unless the interrupts for this

@@ -16,6 +16,7 @@ use crate::{
 
 use super::{
     clock::{Clock, ClockSource},
+    flags::Flag,
     instances::Instance,
     rx::{Error, Rx},
     settings::Settings,
@@ -172,6 +173,13 @@ where
             tx: Tx::new(), // can't use `self.tx`, due to state
             usart: self.usart,
         }
+    }
+
+    /// Query whether the provided flag is set
+    ///
+    /// Flags that need to be reset by software will be reset by this operation.
+    pub fn is_flag_set(&self, flag: Flag) -> bool {
+        flag.is_set::<I>()
     }
 
     /// Enable interrupts for this instance in the NVIC

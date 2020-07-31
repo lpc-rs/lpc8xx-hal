@@ -1,3 +1,5 @@
+use super::instances::Instance;
+
 macro_rules! flags {
     (
         $(
@@ -16,6 +18,25 @@ macro_rules! flags {
                 #[doc = $description]
                 $name,
             )*
+        }
+
+        impl Flag {
+            pub(super) fn is_set<I: Instance>(&self) -> bool {
+                // Sound, as besides reading, we only write to a stateless
+                // register.
+                let usart = unsafe { &*I::REGISTERS };
+
+                match self {
+                    $(
+                        Self::$name => {
+                            let flag = usart.stat.read()
+                                .bits() | (0x1 << $bit_pos);
+                            flags!(@reset, $access, usart, $bit_pos);
+                            flag != 0
+                        }
+                    )*
+                }
+            }
         }
 
         flags!(@interrupts, () $($flag_or_interrupt, $name, $description;)*);
