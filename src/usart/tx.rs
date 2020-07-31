@@ -10,6 +10,8 @@ use crate::{
     dma::{self, transfer::state::Ready},
     init_state,
     pac::dma0::channel::xfercfg::DSTINC_A,
+    pins::{self, Pin},
+    swm,
 };
 
 use super::{
@@ -48,6 +50,70 @@ where
     I: Instance,
     W: Word,
 {
+    /// Enable RTS signal
+    ///
+    /// Configure the transmitter to assert the Request to Send (RTS) signal,
+    /// when it is ready to send.
+    ///
+    /// This is a convenience method that ensures the correct RTS function for
+    /// this peripheral instance is assigned to a pin. The same effect can be
+    /// achieved by just assigning the function using the SWM API.
+    pub fn enable_rts<P, S>(
+        &mut self,
+        function: swm::Function<I::Rts, swm::state::Unassigned>,
+        pin: Pin<P, S>,
+        swm: &mut swm::Handle,
+    ) -> (
+        swm::Function<I::Rts, swm::state::Assigned<P>>,
+        <Pin<P, S> as swm::AssignFunction<
+            I::Rts,
+            <I::Rts as swm::FunctionTrait<P>>::Kind,
+        >>::Assigned,
+    )
+    where
+        P: pins::Trait,
+        S: pins::State,
+        Pin<P, S>: swm::AssignFunction<
+            I::Rts,
+            <I::Rts as swm::FunctionTrait<P>>::Kind,
+        >,
+        I::Rts: swm::FunctionTrait<P>,
+    {
+        function.assign(pin, swm)
+    }
+
+    /// Disable RTS signal
+    ///
+    /// Configure the transmitter to no longer assert the Request to Send (RTS)
+    /// signal.
+    ///
+    /// This is a convenience method that ensures the correct RTS function for
+    /// this peripheral instance is unassigned. The same effect can be achieved
+    /// by just unassigning the function using the SWM API.
+    pub fn disable_rts<P, S>(
+        &mut self,
+        function: swm::Function<I::Rts, swm::state::Assigned<P>>,
+        pin: Pin<P, S>,
+        swm: &mut swm::Handle,
+    ) -> (
+        swm::Function<I::Rts, swm::state::Unassigned>,
+        <Pin<P, S> as swm::UnassignFunction<
+            I::Rts,
+            <I::Rts as swm::FunctionTrait<P>>::Kind,
+        >>::Unassigned,
+    )
+    where
+        P: pins::Trait,
+        S: pins::State,
+        Pin<P, S>: swm::UnassignFunction<
+            I::Rts,
+            <I::Rts as swm::FunctionTrait<P>>::Kind,
+        >,
+        I::Rts: swm::FunctionTrait<P>,
+    {
+        function.unassign(pin, swm)
+    }
+
     /// Query whether the provided flag is set
     ///
     /// Flags that need to be reset by software will be reset by this operation.
