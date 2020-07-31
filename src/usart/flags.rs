@@ -40,6 +40,48 @@ macro_rules! flags {
         }
 
         flags!(@interrupts, () $($flag_or_interrupt, $name, $description;)*);
+
+        impl Interrupts {
+            pub(super) fn enable<I: Instance>(&self) {
+                // Sound, as we only write to a stateless register.
+                let usart = unsafe { &*I::REGISTERS };
+
+                usart.intenset.write(|w| {
+                    let mut bits = 0;
+
+                    $(
+                        flags!(@set_bit,
+                            $flag_or_interrupt,
+                            self.$name, bits, $bit_pos
+                        );
+                    )*
+
+                    // Sound, as long as the flags specified in the macro match
+                    // the hardware.
+                    unsafe { w.bits(bits) }
+                })
+            }
+
+            pub(super) fn disable<I: Instance>(&self) {
+                // Sound, as we only write to a stateless register.
+                let usart = unsafe { &*I::REGISTERS };
+
+                usart.intenclr.write(|w| {
+                    let mut bits = 0;
+
+                    $(
+                        flags!(@set_bit,
+                            $flag_or_interrupt,
+                            self.$name, bits, $bit_pos
+                        );
+                    )*
+
+                    // Sound, as long as the flags specified in the macro match
+                    // the hardware.
+                    unsafe { w.bits(bits) }
+                })
+            }
+        }
     };
 
     (@reset, ro, $usart:expr, $bit_pos:expr) => {};
@@ -47,6 +89,13 @@ macro_rules! flags {
         // Sound, as long as the flags specified in the macro match the
         // hardware.
         $usart.stat.write(|w| unsafe { w.bits(0x1 << $bit_pos) });
+    };
+
+    (@set_bit, flag, $flag:expr, $bits:expr, $bit_pos:expr) => {};
+    (@set_bit, both, $flag:expr, $bits:expr, $bit_pos:expr) => {
+        if $flag {
+            $bits |= 0x1 << $bit_pos;
+        }
     };
 
     // Here's a bit of a trick to work around the fact that macros must always
