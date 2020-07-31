@@ -22,7 +22,7 @@ mod peripheral;
 pub use self::{
     fixed_functions::*,
     function_kind::{Analog, FunctionKind, Input, Output},
-    functions::{Function, FunctionTrait},
+    functions::{Function, FunctionTrait, NotAvailable},
     handle::Handle,
     movable_functions::*,
     peripheral::{Parts, SWM},

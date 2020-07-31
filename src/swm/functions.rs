@@ -224,3 +224,6 @@ pub trait FunctionTrait<P: pins::Trait> {
     /// Internal method to unassign a function from a pin
     fn unassign(&mut self, pin: &mut P, swm: &mut Handle);
 }
+
+/// Used as a placeholder, to indicate that an SWM function is not available
+pub enum NotAvailable {}
