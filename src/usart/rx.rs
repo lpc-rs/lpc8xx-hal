@@ -1,5 +1,7 @@
 use core::marker::PhantomData;
 
+use void::Void;
+
 use crate::{
     dma::{self, transfer::state::Ready},
     embedded_hal::serial::Read,
@@ -121,6 +123,8 @@ impl<I> dma::Source for Rx<I, Enabled>
 where
     I: Instance,
 {
+    type Error = Void;
+
     fn is_valid(&self) -> bool {
         true
     }
@@ -141,6 +145,10 @@ where
         // Sound, because we're dereferencing a register address that is always
         // valid on the target hardware.
         (unsafe { &(*I::REGISTERS).rxdat }) as *const _ as *mut u8
+    }
+
+    fn finish(&mut self) -> nb::Result<(), Self::Error> {
+        Ok(())
     }
 }
 

@@ -8,6 +8,8 @@ use super::{Dest, Source};
 impl crate::private::Sealed for &'static [u8] {}
 
 impl Source for &'static [u8] {
+    type Error = Void;
+
     fn is_valid(&self) -> bool {
         self.len() <= 1024
     }
@@ -33,6 +35,10 @@ impl Source for &'static [u8] {
     fn end_addr(&self) -> *const u8 {
         // Sound, as we stay within the bounds of the slice.
         unsafe { self.as_ptr().add(self.len() - 1) }
+    }
+
+    fn finish(&mut self) -> nb::Result<(), Self::Error> {
+        Ok(())
     }
 }
 
@@ -64,12 +70,12 @@ impl Dest for &'static mut [u8] {
         }
     }
 
-    fn wait(&mut self) -> nb::Result<(), Self::Error> {
-        Ok(())
-    }
-
     fn end_addr(&mut self) -> *mut u8 {
         // Sound, as we stay within the bounds of the slice.
         unsafe { self.as_mut_ptr().add(self.len() - 1) }
+    }
+
+    fn finish(&mut self) -> nb::Result<(), Self::Error> {
+        Ok(())
     }
 }

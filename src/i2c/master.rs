@@ -8,8 +8,10 @@ use core::{
 use embedded_hal::blocking::i2c;
 
 use crate::{
-    init_state,
+    dma::{self, transfer::state::Ready},
+    init_state::Enabled,
     pac::{
+        dma0::channel::xfercfg::{DSTINC_A, SRCINC_A},
         generic::Variant,
         i2c0::{stat::MSTSTATE_A, MSTCTL, MSTDAT},
     },
@@ -53,10 +55,47 @@ where
     }
 }
 
-impl<I, C> Master<I, init_state::Enabled<PhantomData<C>>, init_state::Enabled>
+impl<I, C> Master<I, Enabled<PhantomData<C>>, Enabled>
 where
     I: Instance,
 {
+    /// Writes the provided buffer using DMA
+    ///
+    /// # Panics
+    ///
+    /// Panics, if the length of `buffer` is 0 or larger than 1024.
+    pub fn write_all(
+        mut self,
+        address: u8,
+        buffer: &'static [u8],
+        channel: dma::Channel<I::MstChannel, Enabled>,
+    ) -> Result<dma::Transfer<Ready, I::MstChannel, &'static [u8], Self>, Error>
+    {
+        self.start_operation(address, Rw::Write)?;
+        self.wait_for_state(State::TxReady)?;
+        self.mstctl.modify(|_, w| w.mstdma().enabled());
+        Ok(dma::Transfer::new(channel, buffer, self))
+    }
+
+    /// Reads until the provided buffer is full, using DMA
+    ///
+    /// # Panics
+    ///
+    /// Panics, if the length of `buffer` is 0 or larger than 1024.
+    pub fn read_all(
+        mut self,
+        address: u8,
+        buffer: &'static mut [u8],
+        channel: dma::Channel<I::MstChannel, Enabled>,
+    ) -> Result<
+        dma::Transfer<Ready, I::MstChannel, Self, &'static mut [u8]>,
+        Error,
+    > {
+        self.start_operation(address, Rw::Read)?;
+        self.mstctl.modify(|_, w| w.mstdma().enabled());
+        Ok(dma::Transfer::new(channel, self, buffer))
+    }
+
     /// Wait while the peripheral is busy
     ///
     /// Once this method returns, the peripheral should either be idle or in a
@@ -76,10 +115,43 @@ where
 
         Ok(())
     }
+
+    fn start_operation(&mut self, address: u8, rw: Rw) -> Result<(), Error> {
+        self.wait_for_state(State::Idle)?;
+
+        // Write address
+        let address = address & 0xfe | rw as u8;
+        self.mstdat.write(|w| unsafe {
+            // Sound, as all 8-bit values are accepted here.
+            w.data().bits(address)
+        });
+
+        // Start operation
+        self.mstctl.write(|w| w.mststart().start());
+
+        Ok(())
+    }
+
+    fn finish_write(&mut self) -> Result<(), Error> {
+        self.wait_for_state(State::TxReady)?;
+
+        // Stop operation
+        self.mstctl.write(|w| w.mststop().stop());
+
+        Ok(())
+    }
+
+    fn finish_read(&mut self) -> Result<(), Error> {
+        self.wait_for_state(State::RxReady)?;
+
+        // Stop operation
+        self.mstctl.write(|w| w.mststop().stop());
+
+        Ok(())
+    }
 }
 
-impl<I, C> i2c::Write
-    for Master<I, init_state::Enabled<PhantomData<C>>, init_state::Enabled>
+impl<I, C> i2c::Write for Master<I, Enabled<PhantomData<C>>, Enabled>
 where
     I: Instance,
 {
@@ -91,14 +163,7 @@ where
     ///
     /// [embedded-hal documentation]: https://docs.rs/embedded-hal/0.2.1/embedded_hal/blocking/i2c/trait.Write.html#tymethod.write
     fn write(&mut self, address: u8, data: &[u8]) -> Result<(), Self::Error> {
-        self.wait_for_state(State::Idle)?;
-
-        // Write slave address with rw bit set to 0
-        self.mstdat
-            .write(|w| unsafe { w.data().bits(address & 0xfe) });
-
-        // Start transmission
-        self.mstctl.write(|w| w.mststart().start());
+        self.start_operation(address, Rw::Write)?;
 
         for &b in data {
             self.wait_for_state(State::TxReady)?;
@@ -110,17 +175,13 @@ where
             self.mstctl.write(|w| w.mstcontinue().continue_());
         }
 
-        self.wait_for_state(State::TxReady)?;
-
-        // Stop transmission
-        self.mstctl.write(|w| w.mststop().stop());
+        self.finish_write()?;
 
         Ok(())
     }
 }
 
-impl<I, C> i2c::Read
-    for Master<I, init_state::Enabled<PhantomData<C>>, init_state::Enabled>
+impl<I, C> i2c::Read for Master<I, Enabled<PhantomData<C>>, Enabled>
 where
     I: Instance,
 {
@@ -136,17 +197,10 @@ where
         address: u8,
         buffer: &mut [u8],
     ) -> Result<(), Self::Error> {
-        self.wait_for_state(State::Idle)?;
-
-        // Write slave address with rw bit set to 1
-        self.mstdat
-            .write(|w| unsafe { w.data().bits(address | 0x01) });
+        self.start_operation(address, Rw::Read)?;
 
         for (i, b) in buffer.iter_mut().enumerate() {
-            if i == 0 {
-                // Start transmission
-                self.mstctl.write(|w| w.mststart().start());
-            } else {
+            if i != 0 {
                 // Continue transmission
                 self.mstctl.write(|w| w.mstcontinue().continue_());
             }
@@ -157,11 +211,92 @@ where
             *b = self.mstdat.read().data().bits();
         }
 
-        // Stop transmission
-        self.mstctl.write(|w| w.mststop().stop());
+        self.finish_read()?;
 
         Ok(())
     }
+}
+
+impl<I, State, ModeState> crate::private::Sealed for Master<I, State, ModeState> where
+    I: Instance
+{
+}
+
+impl<I, C> dma::Dest for Master<I, Enabled<PhantomData<C>>, Enabled>
+where
+    I: Instance,
+{
+    type Error = Error;
+
+    fn is_valid(&self) -> bool {
+        true
+    }
+
+    fn is_full(&self) -> bool {
+        false
+    }
+
+    fn increment(&self) -> DSTINC_A {
+        DSTINC_A::NO_INCREMENT
+    }
+
+    fn transfer_count(&self) -> Option<u16> {
+        None
+    }
+
+    fn end_addr(&mut self) -> *mut u8 {
+        // Sound, because we're dereferencing a register address that is always
+        // valid on the target hardware.
+        (unsafe { &(*I::REGISTERS).mstdat }) as *const _ as *mut u8
+    }
+
+    fn finish(&mut self) -> nb::Result<(), Self::Error> {
+        self.mstctl.modify(|_, w| w.mstdma().disabled());
+        self.finish_write()?;
+        Ok(())
+    }
+}
+
+impl<I, C> dma::Source for Master<I, Enabled<PhantomData<C>>, Enabled>
+where
+    I: Instance,
+{
+    type Error = Error;
+
+    fn is_valid(&self) -> bool {
+        true
+    }
+
+    fn is_empty(&self) -> bool {
+        false
+    }
+
+    fn increment(&self) -> SRCINC_A {
+        SRCINC_A::NO_INCREMENT
+    }
+
+    fn transfer_count(&self) -> Option<u16> {
+        None
+    }
+
+    fn end_addr(&self) -> *const u8 {
+        // Sound, because we're dereferencing a register address that is always
+        // valid on the target hardware.
+        (unsafe { &(*I::REGISTERS).mstdat }) as *const _ as *mut u8
+    }
+
+    fn finish(&mut self) -> nb::Result<(), Self::Error> {
+        self.mstctl.modify(|_, w| w.mstdma().disabled());
+        self.finish_read()?;
+        Ok(())
+    }
+}
+
+/// Private helper struct to model the R/W bit
+#[repr(u8)]
+enum Rw {
+    Write = 0,
+    Read = 1,
 }
 
 /// The state of an I2C instance set to master mode
