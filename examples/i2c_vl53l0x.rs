@@ -68,6 +68,7 @@ fn main() -> ! {
         &mut syscon.handle,
         u0_rxd,
         u0_txd,
+        usart::Settings::default(),
     );
 
     serial

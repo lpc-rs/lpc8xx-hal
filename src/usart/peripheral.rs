@@ -7,7 +7,7 @@ use embedded_hal::{
 use void::Void;
 
 use crate::{
-    init_state,
+    init_state::Disabled,
     pac::NVIC,
     pins,
     swm::{self, FunctionTrait},
@@ -18,6 +18,8 @@ use super::{
     clock::{Clock, ClockSource},
     instances::Instance,
     rx::{Error, Rx},
+    settings::Settings,
+    state::{Enabled, Word},
     tx::Tx,
 };
 
@@ -43,7 +45,7 @@ use super::{
 /// [`embedded_hal::serial::Read`]: #impl-Read%3Cu8%3E
 /// [`embedded_hal::serial::Write`]: #impl-Write%3Cu8%3E
 /// [`embedded_hal::blocking::serial::Write`]: #impl-Write
-pub struct USART<I, State = init_state::Enabled> {
+pub struct USART<I, State> {
     /// The USART Receiver
     pub rx: Rx<I, State>,
 
@@ -51,10 +53,9 @@ pub struct USART<I, State = init_state::Enabled> {
     pub tx: Tx<I, State>,
 
     usart: I,
-    _state: State,
 }
 
-impl<I> USART<I, init_state::Disabled>
+impl<I> USART<I, Disabled>
 where
     I: Instance,
 {
@@ -64,7 +65,6 @@ where
             tx: Tx::new(),
 
             usart,
-            _state: init_state::Disabled,
         }
     }
 
@@ -91,19 +91,21 @@ where
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<RxPin, TxPin, CLOCK>(
+    pub fn enable<RxPin, TxPin, CLOCK, W>(
         self,
         clock: &Clock<CLOCK>,
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
         _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
-    ) -> USART<I, init_state::Enabled>
+        settings: Settings<W>,
+    ) -> USART<I, Enabled<W>>
     where
         RxPin: pins::Trait,
         TxPin: pins::Trait,
         I::Rx: FunctionTrait<RxPin>,
         I::Tx: FunctionTrait<TxPin>,
         CLOCK: ClockSource,
+        W: Word,
     {
         syscon.enable_clock(&self.usart);
 
@@ -123,14 +125,12 @@ where
         self.usart.cfg.modify(|_, w| {
             w.enable().enabled();
             w.datalen().bit_8();
-            w.paritysel().no_parity();
-            w.stoplen().bit_1();
             w.ctsen().disabled();
             w.syncen().asynchronous_mode();
             w.loop_().normal();
             w.autoaddr().disabled();
-            w.rxpol().standard();
-            w.txpol().standard()
+            settings.apply(w);
+            w
         });
 
         self.usart.ctl.modify(|_, w| {
@@ -144,14 +144,14 @@ where
             rx: Rx::new(), // can't use `self.rx`, due to state
             tx: Tx::new(), // can't use `self.tx`, due to state
             usart: self.usart,
-            _state: init_state::Enabled(()),
         }
     }
 }
 
-impl<I> USART<I, init_state::Enabled>
+impl<I, W> USART<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     /// Disable the USART
     ///
@@ -164,17 +164,13 @@ where
     ///
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    pub fn disable(
-        self,
-        syscon: &mut syscon::Handle,
-    ) -> USART<I, init_state::Disabled> {
+    pub fn disable(self, syscon: &mut syscon::Handle) -> USART<I, Disabled> {
         syscon.disable_clock(&self.usart);
 
         USART {
             rx: Rx::new(), // can't use `self.rx`, due to state
             tx: Tx::new(), // can't use `self.tx`, due to state
             usart: self.usart,
-            _state: init_state::Disabled,
         }
     }
 
@@ -262,26 +258,28 @@ where
     }
 }
 
-impl<I> Read<u8> for USART<I, init_state::Enabled>
+impl<I, W> Read<W> for USART<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     type Error = Error;
 
     /// Reads a single word from the serial interface
-    fn read(&mut self) -> nb::Result<u8, Self::Error> {
+    fn read(&mut self) -> nb::Result<W, Self::Error> {
         self.rx.read()
     }
 }
 
-impl<I> Write<u8> for USART<I, init_state::Enabled>
+impl<I, W> Write<W> for USART<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     type Error = Void;
 
     /// Writes a single word to the serial interface
-    fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
+    fn write(&mut self, word: W) -> nb::Result<(), Self::Error> {
         self.tx.write(word)
     }
 
@@ -291,12 +289,14 @@ where
     }
 }
 
-impl<I> BlockingWriteDefault<u8> for USART<I, init_state::Enabled> where
-    I: Instance
+impl<I, W> BlockingWriteDefault<W> for USART<I, Enabled<W>>
+where
+    I: Instance,
+    W: Word,
 {
 }
 
-impl<I> fmt::Write for USART<I, init_state::Enabled>
+impl<I> fmt::Write for USART<I, Enabled<u8>>
 where
     Self: BlockingWriteDefault<u8>,
     I: Instance,

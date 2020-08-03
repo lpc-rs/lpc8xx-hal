@@ -8,11 +8,14 @@ use void::Void;
 
 use crate::{
     dma::{self, transfer::state::Ready},
-    init_state::Enabled,
+    init_state,
     pac::dma0::channel::xfercfg::DSTINC_A,
 };
 
-use super::instances::Instance;
+use super::{
+    instances::Instance,
+    state::{Enabled, Word},
+};
 
 /// USART transmitter
 ///
@@ -22,7 +25,7 @@ use super::instances::Instance;
 ///
 /// [`embedded_hal::serial::Write`]: #impl-Write%3Cu8%3E
 /// [`embedded_hal::blocking::serial::Write`]: #impl-Write
-pub struct Tx<I, State = Enabled> {
+pub struct Tx<I, State> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,
 }
@@ -39,9 +42,10 @@ where
     }
 }
 
-impl<I> Tx<I, Enabled>
+impl<I, W> Tx<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     /// Enable the TXRDY interrupt
     ///
@@ -64,7 +68,12 @@ where
 
         usart.intenclr.write(|w| w.txrdyclr().set_bit());
     }
+}
 
+impl<I> Tx<I, Enabled<u8>>
+where
+    I: Instance,
+{
     /// Writes the provided buffer using DMA
     ///
     /// # Panics
@@ -73,19 +82,20 @@ where
     pub fn write_all(
         self,
         buffer: &'static [u8],
-        channel: dma::Channel<I::TxChannel, Enabled>,
+        channel: dma::Channel<I::TxChannel, init_state::Enabled>,
     ) -> dma::Transfer<Ready, I::TxChannel, &'static [u8], Self> {
         dma::Transfer::new(channel, buffer, self)
     }
 }
 
-impl<I> Write<u8> for Tx<I, Enabled>
+impl<I, W> Write<W> for Tx<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     type Error = Void;
 
-    fn write(&mut self, word: u8) -> nb::Result<(), Self::Error> {
+    fn write(&mut self, word: W) -> nb::Result<(), Self::Error> {
         // Sound, as we're only reading from `stat`, and `txdat` is exclusively
         // accessed by this method.
         let usart = unsafe { &*I::REGISTERS };
@@ -96,7 +106,7 @@ where
 
         usart.txdat.write(|w|
             // This is sound, as all `u8` values are valid here.
-            unsafe { w.txdat().bits(word as u16) });
+            unsafe { w.txdat().bits(word.into()) });
 
         Ok(())
     }
@@ -113,9 +123,14 @@ where
     }
 }
 
-impl<I> BlockingWriteDefault<u8> for Tx<I, Enabled> where I: Instance {}
+impl<I, W> BlockingWriteDefault<W> for Tx<I, Enabled<W>>
+where
+    I: Instance,
+    W: Word,
+{
+}
 
-impl<I> fmt::Write for Tx<I, Enabled>
+impl<I> fmt::Write for Tx<I, Enabled<u8>>
 where
     Self: BlockingWriteDefault<u8>,
     I: Instance,
@@ -132,7 +147,7 @@ where
 
 impl<I, State> crate::private::Sealed for Tx<I, State> {}
 
-impl<I> dma::Dest for Tx<I, Enabled>
+impl<I> dma::Dest for Tx<I, Enabled<u8>>
 where
     I: Instance,
 {

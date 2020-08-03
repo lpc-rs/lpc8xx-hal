@@ -28,9 +28,13 @@ fn main() -> ! {
         .u0_txd
         .assign(p.pins.pio0_25.into_swm_pin(), &mut swm_handle);
 
-    let mut serial =
-        p.USART0
-            .enable(&clock_config, &mut syscon.handle, u0_rxd, u0_txd);
+    let mut serial = p.USART0.enable(
+        &clock_config,
+        &mut syscon.handle,
+        u0_rxd,
+        u0_txd,
+        usart::Settings::default(),
+    );
 
     let mut rx_channel = dma.channels.channel0;
     let mut tx_channel = dma.channels.channel1;

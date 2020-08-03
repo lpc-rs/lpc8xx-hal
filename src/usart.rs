@@ -56,6 +56,7 @@
 //!     &mut syscon.handle,
 //!     u0_rxd,
 //!     u0_txd,
+//!     usart::Settings::default(),
 //! );
 //!
 //! // Use a blocking method to write a string
@@ -71,12 +72,16 @@ mod clock;
 mod instances;
 mod peripheral;
 mod rx;
+mod settings;
 mod tx;
+
+pub mod state;
 
 pub use self::{
     clock::{Clock, ClockSource},
     instances::Instance,
     peripheral::USART,
     rx::{Error, Rx},
+    settings::Settings,
     tx::Tx,
 };

@@ -5,11 +5,14 @@ use void::Void;
 use crate::{
     dma::{self, transfer::state::Ready},
     embedded_hal::serial::Read,
-    init_state::Enabled,
+    init_state,
     pac::dma0::channel::xfercfg::SRCINC_A,
 };
 
-use super::instances::Instance;
+use super::{
+    instances::Instance,
+    state::{Enabled, Word},
+};
 
 /// USART receiver
 ///
@@ -18,7 +21,7 @@ use super::instances::Instance;
 ///
 ///
 /// [`embedded_hal::serial::Read`]: #impl-Read%3Cu8%3E
-pub struct Rx<I, State = Enabled> {
+pub struct Rx<I, State> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,
 }
@@ -35,9 +38,10 @@ where
     }
 }
 
-impl<I> Rx<I, Enabled>
+impl<I, W> Rx<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     /// Enable the RXRDY interrupt
     ///
@@ -60,7 +64,12 @@ where
 
         usart.intenclr.write(|w| w.rxrdyclr().set_bit());
     }
+}
 
+impl<I> Rx<I, Enabled<u8>>
+where
+    I: Instance,
+{
     /// Reads until the provided buffer is full, using DMA
     ///
     /// # Panics
@@ -69,19 +78,20 @@ where
     pub fn read_all(
         self,
         buffer: &'static mut [u8],
-        channel: dma::Channel<I::RxChannel, Enabled>,
+        channel: dma::Channel<I::RxChannel, init_state::Enabled>,
     ) -> dma::Transfer<Ready, I::RxChannel, Self, &'static mut [u8]> {
         dma::Transfer::new(channel, self, buffer)
     }
 }
 
-impl<I> Read<u8> for Rx<I, Enabled>
+impl<I, W> Read<W> for Rx<I, Enabled<W>>
 where
     I: Instance,
+    W: Word,
 {
     type Error = Error;
 
-    fn read(&mut self) -> nb::Result<u8, Self::Error> {
+    fn read(&mut self) -> nb::Result<W, Self::Error> {
         // Sound, as we're only reading from `stat`, and `rxdatastat` is
         // exclusively accessed by this method.
         let usart = unsafe { &*I::REGISTERS };
@@ -106,10 +116,7 @@ where
             } else if rx_dat_stat.rxnoise().bit_is_set() {
                 Err(nb::Error::Other(Error::Noise))
             } else {
-                // `bits` returns `u16`, but at most 9 bits are used. We've
-                // configured UART to use only 8 bits, so we can safely cast to
-                // `u8`.
-                Ok(rx_dat_stat.rxdat().bits() as u8)
+                Ok(Word::from_u16(rx_dat_stat.rxdat().bits()))
             }
         } else {
             Err(nb::Error::WouldBlock)
@@ -119,7 +126,7 @@ where
 
 impl<I, State> crate::private::Sealed for Rx<I, State> {}
 
-impl<I> dma::Source for Rx<I, Enabled>
+impl<I> dma::Source for Rx<I, Enabled<u8>>
 where
     I: Instance,
 {
