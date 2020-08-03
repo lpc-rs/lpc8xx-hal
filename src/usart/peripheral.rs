@@ -16,6 +16,7 @@ use crate::{
 
 use super::{
     clock::{Clock, ClockSource},
+    flags::{Flag, Interrupts},
     instances::Instance,
     rx::{Error, Rx},
     settings::Settings,
@@ -174,6 +175,13 @@ where
         }
     }
 
+    /// Query whether the provided flag is set
+    ///
+    /// Flags that need to be reset by software will be reset by this operation.
+    pub fn is_flag_set(&self, flag: Flag) -> bool {
+        flag.is_set::<I>()
+    }
+
     /// Enable interrupts for this instance in the NVIC
     ///
     /// This only enables the interrupts in the NVIC. It doesn't enable any
@@ -200,40 +208,20 @@ where
         NVIC::unpend(I::INTERRUPT);
     }
 
-    /// Enable the RXRDY interrupt
+    /// Enable interrupts
     ///
-    /// See [`Rx::enable_rxrdy`].
-    ///
-    /// [`Rx::enable_rxrdy`]: struct.Rx.html#method.enable_rxrdy
-    pub fn enable_rxrdy(&mut self) {
-        self.rx.enable_rxrdy()
+    /// Enables all interrupts set to `true` in `interrupts`. Interrupts set to
+    /// `false` are not affected.
+    pub fn enable_interrupts(&mut self, interrupts: Interrupts) {
+        interrupts.enable::<I>();
     }
 
-    /// Disable the RXRDY interrupt
+    /// Disable interrupts
     ///
-    /// See [`Rx::disable_rxrdy`].
-    ///
-    /// [`Rx::disable_rxrdy`]: struct.Rx.html#method.disable_rxrdy
-    pub fn disable_rxrdy(&mut self) {
-        self.rx.disable_rxrdy()
-    }
-
-    /// Enable the TXRDY interrupt
-    ///
-    /// See [`Tx::enable_txrdy`].
-    ///
-    /// [`Tx::enable_txrdy`]: struct.Tx.html#method.enable_txrdy
-    pub fn enable_txrdy(&mut self) {
-        self.tx.enable_txrdy()
-    }
-
-    /// Disable the TXRDY interrupt
-    ///
-    /// See [`Tx::disable_txrdy`].
-    ///
-    /// [`Tx::disable_txrdy`]: struct.Tx.html#method.disable_txrdy
-    pub fn disable_txrdy(&mut self) {
-        self.tx.disable_txrdy()
+    /// Disables all interrupts set to `true` in `interrupts`. Interrupts set to
+    /// `false` are not affected.
+    pub fn disable_interrupts(&mut self, interrupts: Interrupts) {
+        interrupts.disable::<I>();
     }
 }
 

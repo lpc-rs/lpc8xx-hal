@@ -13,6 +13,7 @@ use crate::{
 };
 
 use super::{
+    flags::{Flag, Interrupts},
     instances::Instance,
     state::{Enabled, Word},
 };
@@ -47,26 +48,27 @@ where
     I: Instance,
     W: Word,
 {
-    /// Enable the TXRDY interrupt
+    /// Query whether the provided flag is set
     ///
-    /// The interrupt will not actually work unless the interrupts for this
-    /// peripheral have also been enabled in the NVIC. See
-    /// [`USART::enable_in_nvic`].
-    ///
-    /// [`USART::enable_in_nvic`]: struct.USART.html#method.enable_in_nvic
-    pub fn enable_txrdy(&mut self) {
-        // Sound, as we're only writing atomically to a stateless register.
-        let usart = unsafe { &*I::REGISTERS };
-
-        usart.intenset.write(|w| w.txrdyen().set_bit());
+    /// Flags that need to be reset by software will be reset by this operation.
+    pub fn is_flag_set(&self, flag: Flag) -> bool {
+        flag.is_set::<I>()
     }
 
-    /// Disable the TXRDY interrupt
-    pub fn disable_txrdy(&mut self) {
-        // Sound, as we're only writing atomically to a stateless register.
-        let usart = unsafe { &*I::REGISTERS };
+    /// Enable interrupts
+    ///
+    /// Enables all interrupts set to `true` in `interrupts`. Interrupts set to
+    /// `false` are not affected.
+    pub fn enable_interrupts(&mut self, interrupts: Interrupts) {
+        interrupts.enable::<I>();
+    }
 
-        usart.intenclr.write(|w| w.txrdyclr().set_bit());
+    /// Disable interrupts
+    ///
+    /// Disables all interrupts set to `true` in `interrupts`. Interrupts set to
+    /// `false` are not affected.
+    pub fn disable_interrupts(&mut self, interrupts: Interrupts) {
+        interrupts.disable::<I>();
     }
 }
 
