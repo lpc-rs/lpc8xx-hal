@@ -32,7 +32,7 @@ use super::{
 pub struct Tx<I, State, Throttle> {
     instance: PhantomData<I>,
     state: PhantomData<State>,
-    _throttle: Throttle,
+    throttle: Throttle,
 }
 
 impl<I, State> Tx<I, State, NoThrottle>
@@ -43,7 +43,7 @@ where
         Self {
             instance: PhantomData,
             state: PhantomData,
-            _throttle: NoThrottle,
+            throttle: NoThrottle,
         }
     }
 }
@@ -273,7 +273,7 @@ where
         Tx {
             instance: self.instance,
             state: self.state,
-            _throttle: CtsThrottle(function),
+            throttle: CtsThrottle(function),
         }
     }
 }
@@ -303,9 +303,9 @@ where
             Tx {
                 instance: self.instance,
                 state: self.state,
-                _throttle: NoThrottle,
+                throttle: NoThrottle,
             },
-            self._throttle.0,
+            self.throttle.0,
         )
     }
 }
