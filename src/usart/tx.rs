@@ -30,8 +30,8 @@ use super::{
 /// [`embedded_hal::serial::Write`]: #impl-Write%3Cu8%3E
 /// [`embedded_hal::blocking::serial::Write`]: #impl-Write
 pub struct Tx<I, State, Throttle> {
-    _instance: PhantomData<I>,
-    _state: PhantomData<State>,
+    instance: PhantomData<I>,
+    state: PhantomData<State>,
     _throttle: Throttle,
 }
 
@@ -41,8 +41,8 @@ where
 {
     pub(super) fn new() -> Self {
         Self {
-            _instance: PhantomData,
-            _state: PhantomData,
+            instance: PhantomData,
+            state: PhantomData,
             _throttle: NoThrottle,
         }
     }
@@ -271,8 +271,8 @@ where
         });
 
         Tx {
-            _instance: self._instance,
-            _state: self._state,
+            instance: self.instance,
+            state: self.state,
             _throttle: CtsThrottle(function),
         }
     }
