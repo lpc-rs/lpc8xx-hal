@@ -106,23 +106,23 @@ macro_rules! flags {
     // This variant gets called if the beginning of the input is only a flag. It
     // Ignores the flag and passes the rest of the input on.
     (@interrupts,
-        ($($output:tt)*)
+        ($($output_ty:tt)*)
         flag, $name:ident, $description:expr;
         $($input:tt)*
     ) => {
-        flags!(@interrupts, ($($output)*) $($input)*);
+        flags!(@interrupts, ($($output_ty)*) $($input)*);
     };
     // This variant gets called, if the beginning of the input if both flag and
     // interrupt. It adds a field for the interrupt to the output and passes the
     // rest of the input on.
     (@interrupts,
-        ($($output:tt)*)
+        ($($output_ty:tt)*)
         both, $name:ident, $description:expr;
         $($input:tt)*
     ) => {
         flags!(@interrupts,
             (
-                $($output)*
+                $($output_ty)*
                 #[doc = $description]
                 pub $name: bool,
             )
@@ -132,14 +132,14 @@ macro_rules! flags {
     // This variant gets called, if there is no more input to parse. If
     // generates the final struct from the output that has built up so far.
     (@interrupts,
-        ($($output:tt)*)
+        ($($output_ty:tt)*)
     ) => {
         /// Used to enable or disable USART interrupts
         ///
         /// See `USART::enable_interrupts` and `USART::disable_interrupts`.
         #[allow(non_snake_case)]
         pub struct Interrupts {
-            $($output)*
+            $($output_ty)*
         }
     };
 }
