@@ -39,7 +39,7 @@ macro_rules! flags {
             }
         }
 
-        flags!(@interrupts, () $($flag_or_interrupt, $name, $description;)*);
+        flags!(@interrupts, () () $($flag_or_interrupt, $name, $description;)*);
 
         impl Interrupts {
             pub(super) fn enable<I: Instance>(&self) {
@@ -107,16 +107,18 @@ macro_rules! flags {
     // Ignores the flag and passes the rest of the input on.
     (@interrupts,
         ($($output_ty:tt)*)
+        ($($output_init:tt)*)
         flag, $name:ident, $description:expr;
         $($input:tt)*
     ) => {
-        flags!(@interrupts, ($($output_ty)*) $($input)*);
+        flags!(@interrupts, ($($output_ty)*) ($($output_init)*) $($input)*);
     };
     // This variant gets called, if the beginning of the input if both flag and
     // interrupt. It adds a field for the interrupt to the output and passes the
     // rest of the input on.
     (@interrupts,
         ($($output_ty:tt)*)
+        ($($output_init:tt)*)
         both, $name:ident, $description:expr;
         $($input:tt)*
     ) => {
@@ -126,6 +128,10 @@ macro_rules! flags {
                 #[doc = $description]
                 pub $name: bool,
             )
+            (
+                $($output_init)*
+                $name: false,
+            )
             $($input)*
         );
     };
@@ -133,6 +139,7 @@ macro_rules! flags {
     // generates the final struct from the output that has built up so far.
     (@interrupts,
         ($($output_ty:tt)*)
+        ($($output_init:tt)*)
     ) => {
         /// Used to enable or disable USART interrupts
         ///
@@ -140,6 +147,14 @@ macro_rules! flags {
         #[allow(non_snake_case)]
         pub struct Interrupts {
             $($output_ty)*
+        }
+
+        impl Default for Interrupts {
+            fn default() -> Self {
+                Self {
+                    $($output_init)*
+                }
+            }
         }
     };
 }
