@@ -278,6 +278,38 @@ where
     }
 }
 
+impl<I, W, Function> Tx<I, Enabled<W>, CtsThrottle<Function>>
+where
+    I: Instance,
+    W: Word,
+{
+    /// Disable throttling via CTS signal
+    ///
+    /// Configure the transmitter to ignore the CTS signal. Returns the SWM
+    /// function for the CTS signal, so it can be reused to enable CTS
+    /// throttling again, or for something else.
+    pub fn disable_cts_throttling(
+        self,
+    ) -> (Tx<I, Enabled<W>, NoThrottle>, Function) {
+        interrupt::free(|_| {
+            // Sound, as we're in a critical section that protects our read-
+            // modify-write access.
+            let usart = unsafe { &*I::REGISTERS };
+
+            usart.cfg.modify(|_, w| w.ctsen().disabled());
+        });
+
+        (
+            Tx {
+                instance: self.instance,
+                state: self.state,
+                _throttle: NoThrottle,
+            },
+            self._throttle.0,
+        )
+    }
+}
+
 impl<I, Throttle> Tx<I, Enabled<u8>, Throttle>
 where
     I: Instance,
