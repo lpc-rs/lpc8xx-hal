@@ -93,15 +93,13 @@ where
     ) {
         let rx_payload = match self.rx_transfer.wait() {
             Ok(payload) => payload,
-            // can't happen, as error type is `Void`; but need to make the
-            // compiler happy
-            Err((_, payload)) => payload,
+            // can't happen, as error type is `Void`
+            Err(_) => unreachable!(),
         };
         let tx_payload = match self.tx_transfer.wait() {
             Ok(payload) => payload,
-            // can't happen, as error type is `Void`; but need to make the
-            // compiler happy
-            Err((_, payload)) => payload,
+            // can't happen, as error type is `Void`
+            Err(_) => unreachable!(),
         };
 
         (
