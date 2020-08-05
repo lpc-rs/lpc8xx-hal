@@ -30,7 +30,7 @@ pub trait Instance:
     /// The DMA channel used with this instance for receiving
     type RxChannel: dma::channels::Instance;
 
-    /// The DMA channel used with this instance for transmissions
+    /// The DMA channel used with this instance for transmitting
     type TxChannel: dma::channels::Instance;
 }
 

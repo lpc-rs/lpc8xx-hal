@@ -16,3 +16,5 @@ pub use self::{
     peripheral::DMA,
     transfer::{Dest, Payload, Source, Transfer},
 };
+
+pub(crate) use self::buffer::Buffer;
