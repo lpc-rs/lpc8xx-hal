@@ -212,6 +212,58 @@ where
     ///
     /// Enables all interrupts set to `true` in `interrupts`. Interrupts set to
     /// `false` are not affected.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// use lpc8xx_hal::usart;
+    ///
+    /// # use lpc8xx_hal::Peripherals;
+    /// #
+    /// # let mut p = Peripherals::take().unwrap();
+    /// #
+    /// # let mut syscon = p.SYSCON.split();
+    /// # let mut swm    = p.SWM.split();
+    /// #
+    /// # #[cfg(feature = "82x")]
+    /// # let mut swm_handle = swm.handle;
+    /// # #[cfg(feature = "845")]
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+    /// #
+    /// # #[cfg(feature = "82x")]
+    /// # let clock_config = {
+    /// #     syscon.uartfrg.set_clkdiv(6);
+    /// #     syscon.uartfrg.set_frgmult(22);
+    /// #     syscon.uartfrg.set_frgdiv(0xff);
+    /// #     usart::Clock::new(&syscon.uartfrg, 0, 16)
+    /// # };
+    /// # #[cfg(feature = "845")]
+    /// # let clock_config = usart::Clock::new_with_baudrate(115200);
+    /// #
+    /// # let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(
+    /// #     p.pins.pio0_0.into_swm_pin(),
+    /// #     &mut swm_handle,
+    /// # );
+    /// # let (u0_txd, _) = swm.movable_functions.u0_txd.assign(
+    /// #     p.pins.pio0_4.into_swm_pin(),
+    /// #     &mut swm_handle,
+    /// # );
+    /// #
+    /// # let mut usart = p.USART0.enable(
+    /// #     &clock_config,
+    /// #     &mut syscon.handle,
+    /// #     u0_rxd,
+    /// #     u0_txd,
+    /// #     usart::Settings::default(),
+    /// # );
+    /// #
+    /// // Enable only RXRDY and TXRDY, leave other interrupts untouched.
+    /// usart.enable_interrupts(usart::Interrupts {
+    ///     RXRDY: true,
+    ///     TXRDY: true,
+    ///     .. usart::Interrupts::default()
+    /// });
+    /// ```
     pub fn enable_interrupts(&mut self, interrupts: Interrupts) {
         interrupts.enable::<I>();
     }
@@ -220,6 +272,58 @@ where
     ///
     /// Disables all interrupts set to `true` in `interrupts`. Interrupts set to
     /// `false` are not affected.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// use lpc8xx_hal::usart;
+    ///
+    /// # use lpc8xx_hal::Peripherals;
+    /// #
+    /// # let mut p = Peripherals::take().unwrap();
+    /// #
+    /// # let mut syscon = p.SYSCON.split();
+    /// # let mut swm    = p.SWM.split();
+    /// #
+    /// # #[cfg(feature = "82x")]
+    /// # let mut swm_handle = swm.handle;
+    /// # #[cfg(feature = "845")]
+    /// # let mut swm_handle = swm.handle.enable(&mut syscon.handle);
+    /// #
+    /// # #[cfg(feature = "82x")]
+    /// # let clock_config = {
+    /// #     syscon.uartfrg.set_clkdiv(6);
+    /// #     syscon.uartfrg.set_frgmult(22);
+    /// #     syscon.uartfrg.set_frgdiv(0xff);
+    /// #     usart::Clock::new(&syscon.uartfrg, 0, 16)
+    /// # };
+    /// # #[cfg(feature = "845")]
+    /// # let clock_config = usart::Clock::new_with_baudrate(115200);
+    /// #
+    /// # let (u0_rxd, _) = swm.movable_functions.u0_rxd.assign(
+    /// #     p.pins.pio0_0.into_swm_pin(),
+    /// #     &mut swm_handle,
+    /// # );
+    /// # let (u0_txd, _) = swm.movable_functions.u0_txd.assign(
+    /// #     p.pins.pio0_4.into_swm_pin(),
+    /// #     &mut swm_handle,
+    /// # );
+    /// #
+    /// # let mut usart = p.USART0.enable(
+    /// #     &clock_config,
+    /// #     &mut syscon.handle,
+    /// #     u0_rxd,
+    /// #     u0_txd,
+    /// #     usart::Settings::default(),
+    /// # );
+    /// #
+    /// // Disable only RXRDY and TXRDY, leave other interrupts untouched.
+    /// usart.disable_interrupts(usart::Interrupts {
+    ///     RXRDY: true,
+    ///     TXRDY: true,
+    ///     .. usart::Interrupts::default()
+    /// });
+    /// ```
     pub fn disable_interrupts(&mut self, interrupts: Interrupts) {
         interrupts.disable::<I>();
     }

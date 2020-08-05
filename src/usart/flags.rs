@@ -39,7 +39,7 @@ macro_rules! flags {
             }
         }
 
-        flags!(@interrupts, () $($flag_or_interrupt, $name, $description;)*);
+        flags!(@interrupts, () () $($flag_or_interrupt, $name, $description;)*);
 
         impl Interrupts {
             pub(super) fn enable<I: Instance>(&self) {
@@ -106,25 +106,31 @@ macro_rules! flags {
     // This variant gets called if the beginning of the input is only a flag. It
     // Ignores the flag and passes the rest of the input on.
     (@interrupts,
-        ($($output:tt)*)
+        ($($output_ty:tt)*)
+        ($($output_init:tt)*)
         flag, $name:ident, $description:expr;
         $($input:tt)*
     ) => {
-        flags!(@interrupts, ($($output)*) $($input)*);
+        flags!(@interrupts, ($($output_ty)*) ($($output_init)*) $($input)*);
     };
     // This variant gets called, if the beginning of the input if both flag and
     // interrupt. It adds a field for the interrupt to the output and passes the
     // rest of the input on.
     (@interrupts,
-        ($($output:tt)*)
+        ($($output_ty:tt)*)
+        ($($output_init:tt)*)
         both, $name:ident, $description:expr;
         $($input:tt)*
     ) => {
         flags!(@interrupts,
             (
-                $($output)*
+                $($output_ty)*
                 #[doc = $description]
                 pub $name: bool,
+            )
+            (
+                $($output_init)*
+                $name: false,
             )
             $($input)*
         );
@@ -132,14 +138,23 @@ macro_rules! flags {
     // This variant gets called, if there is no more input to parse. If
     // generates the final struct from the output that has built up so far.
     (@interrupts,
-        ($($output:tt)*)
+        ($($output_ty:tt)*)
+        ($($output_init:tt)*)
     ) => {
         /// Used to enable or disable USART interrupts
         ///
         /// See `USART::enable_interrupts` and `USART::disable_interrupts`.
         #[allow(non_snake_case)]
         pub struct Interrupts {
-            $($output)*
+            $($output_ty)*
+        }
+
+        impl Default for Interrupts {
+            fn default() -> Self {
+                Self {
+                    $($output_init)*
+                }
+            }
         }
     };
 }
