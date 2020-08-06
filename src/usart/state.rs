@@ -37,6 +37,11 @@ impl Word for u16 {
 /// Used as a type parameter by `USART`.
 pub struct AsyncMode;
 
+/// Indicates that a USART instance is operation in synchronous mode
+///
+/// Used as a type parameter by `USART`.
+pub struct SyncMode;
+
 /// Indicates that transmitter is not throttled
 ///
 /// Used as a type parameter by `usart::Tx`.
