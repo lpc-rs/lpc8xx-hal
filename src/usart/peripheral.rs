@@ -89,7 +89,7 @@ where
     /// Please refer to the [module documentation] for a full example.
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    /// [`Enabled`]: state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
     pub fn enable_async<RxPin, TxPin, CLOCK, W>(
