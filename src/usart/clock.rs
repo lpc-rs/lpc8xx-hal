@@ -4,9 +4,9 @@ use crate::syscon::{self, clock_source::PeripheralClockSelector};
 
 /// Defines the clock configuration for a USART instance
 pub struct Clock<Clock> {
-    pub(crate) psc: u16,
-    pub(crate) osrval: u8,
-    pub(crate) _clock: PhantomData<Clock>,
+    pub(super) psc: u16,
+    pub(super) osrval: u8,
+    pub(super) _clock: PhantomData<Clock>,
 }
 
 impl<C> Clock<C>
