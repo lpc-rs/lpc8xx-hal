@@ -3,13 +3,14 @@ use core::marker::PhantomData;
 use crate::syscon::{self, clock_source::PeripheralClockSelector};
 
 /// Defines the clock configuration for a USART instance
-pub struct Clock<Clock> {
+pub struct Clock<Clock, Mode> {
     pub(super) psc: u16,
     pub(super) osrval: u8,
     pub(super) _clock: PhantomData<Clock>,
+    pub(super) _mode: PhantomData<Mode>,
 }
 
-impl<C> Clock<C>
+impl<C, Mode> Clock<C, Mode>
 where
     C: ClockSource,
 {
@@ -24,6 +25,7 @@ where
             psc,
             osrval,
             _clock: PhantomData,
+            _mode: PhantomData,
         }
     }
 }
@@ -62,14 +64,17 @@ mod target {
 mod target {
     use core::marker::PhantomData;
 
-    use crate::syscon::{
-        self,
-        clock_source::{PeripheralClock, PeripheralClockSelector},
+    use crate::{
+        syscon::{
+            self,
+            clock_source::{PeripheralClock, PeripheralClockSelector},
+        },
+        usart::state::AsyncMode,
     };
 
     use super::{Clock, ClockSource};
 
-    impl Clock<syscon::IOSC> {
+    impl Clock<syscon::IOSC, AsyncMode> {
         /// Create a new configuration with a specified baudrate
         ///
         /// Assumes the internal oscillator runs at 12 MHz
@@ -88,6 +93,7 @@ mod target {
                 psc,
                 osrval,
                 _clock: PhantomData,
+                _mode: PhantomData,
             }
         }
     }

@@ -94,7 +94,7 @@ where
     /// [module documentation]: index.html
     pub fn enable_async<RxPin, TxPin, CLOCK, W>(
         self,
-        clock: &Clock<CLOCK>,
+        clock: &Clock<CLOCK, AsyncMode>,
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
         _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
