@@ -182,6 +182,59 @@ where
         }
     }
 
+    /// Enable the USART in synchronous mode as slave
+    ///
+    /// This method is only available, if `USART` is in the [`Disabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// enabled will not compile.
+    ///
+    /// Consumes this instance of `USART` and returns another instance that has
+    /// its `State` type parameter set to [`Enabled`].
+    ///
+    /// # Limitations
+    ///
+    /// For USART to function correctly, the UARTFRG reset must be cleared. This
+    /// is the default, so unless you have messed with those settings, you
+    /// should be good.
+    ///
+    /// # Examples
+    ///
+    /// Please refer to the [module documentation] for a full example.
+    ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    /// [`Enabled`]: state/struct.Enabled.html
+    /// [`BaudRate`]: struct.BaudRate.html
+    /// [module documentation]: index.html
+    pub fn enable_sync_as_slave<RxPin, TxPin, SclkPin, C, W>(
+        mut self,
+        _clock: &C,
+        syscon: &mut syscon::Handle,
+        _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
+        _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
+        _: swm::Function<I::Sclk, swm::state::Assigned<SclkPin>>,
+        settings: Settings<W>,
+    ) -> USART<I, Enabled<W, SyncMode>>
+    where
+        C: ClockSource,
+        W: Word,
+    {
+        self.configure::<C>(syscon);
+
+        self.usart.cfg.modify(|_, w| {
+            w.syncen().synchronous_mode();
+            w.syncmst().slave();
+            Self::apply_general_config(w);
+            settings.apply(w);
+            w
+        });
+
+        USART {
+            rx: Rx::new(), // can't use `self.rx`, due to state
+            tx: Tx::new(), // can't use `self.tx`, due to state
+            usart: self.usart,
+        }
+    }
+
     fn configure<C>(&mut self, syscon: &mut syscon::Handle)
     where
         C: ClockSource,
