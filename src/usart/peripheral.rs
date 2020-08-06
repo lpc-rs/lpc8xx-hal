@@ -20,7 +20,7 @@ use super::{
     instances::Instance,
     rx::{Error, Rx},
     settings::Settings,
-    state::{Enabled, NoThrottle, Word},
+    state::{AsyncMode, Enabled, NoThrottle, Word},
     tx::Tx,
 };
 
@@ -99,7 +99,7 @@ where
         _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
         _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
         settings: Settings<W>,
-    ) -> USART<I, Enabled<W>>
+    ) -> USART<I, Enabled<W, AsyncMode>>
     where
         RxPin: pins::Trait,
         TxPin: pins::Trait,
@@ -148,7 +148,7 @@ where
     }
 }
 
-impl<I, W> USART<I, Enabled<W>>
+impl<I, W, Mode> USART<I, Enabled<W, Mode>>
 where
     I: Instance,
     W: Word,
@@ -349,7 +349,7 @@ where
     }
 }
 
-impl<I, W> Read<W> for USART<I, Enabled<W>>
+impl<I, W, Mode> Read<W> for USART<I, Enabled<W, Mode>>
 where
     I: Instance,
     W: Word,
@@ -362,7 +362,7 @@ where
     }
 }
 
-impl<I, W> Write<W> for USART<I, Enabled<W>>
+impl<I, W, Mode> Write<W> for USART<I, Enabled<W, Mode>>
 where
     I: Instance,
     W: Word,
@@ -380,14 +380,14 @@ where
     }
 }
 
-impl<I, W> BlockingWriteDefault<W> for USART<I, Enabled<W>>
+impl<I, W, Mode> BlockingWriteDefault<W> for USART<I, Enabled<W, Mode>>
 where
     I: Instance,
     W: Word,
 {
 }
 
-impl<I> fmt::Write for USART<I, Enabled<u8>>
+impl<I, Mode> fmt::Write for USART<I, Enabled<u8, Mode>>
 where
     Self: BlockingWriteDefault<u8>,
     I: Instance,
