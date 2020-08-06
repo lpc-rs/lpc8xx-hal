@@ -93,7 +93,7 @@ where
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
     pub fn enable_async<RxPin, TxPin, CLOCK, W>(
-        self,
+        mut self,
         clock: &Clock<CLOCK, AsyncMode>,
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
@@ -108,20 +108,14 @@ where
         CLOCK: ClockSource,
         W: Word,
     {
-        syscon.enable_clock(&self.usart);
+        self.configure::<CLOCK>(syscon);
 
-        CLOCK::select(&self.usart, syscon);
         self.usart
             .brg
             .write(|w| unsafe { w.brgval().bits(clock.psc) });
         self.usart
             .osr
             .write(|w| unsafe { w.osrval().bits(clock.osrval) });
-
-        // According to the user manual, section 13.6.1, we need to make sure
-        // that the USART is not sending or receiving data before writing to
-        // CFG, and that it is disabled. We statically know that it is disabled
-        // at this point, so there isn't anything to do here to ensure it.
 
         self.usart.cfg.modify(|_, w| {
             w.enable().enabled();
@@ -133,18 +127,31 @@ where
             w
         });
 
+        USART {
+            rx: Rx::new(), // can't use `self.rx`, due to state
+            tx: Tx::new(), // can't use `self.tx`, due to state
+            usart: self.usart,
+        }
+    }
+
+    fn configure<C>(&mut self, syscon: &mut syscon::Handle)
+    where
+        C: ClockSource,
+    {
+        syscon.enable_clock(&self.usart);
+        C::select(&self.usart, syscon);
+
+        // According to the user manual, section 13.6.1, we need to make sure
+        // that the USART is not sending or receiving data before writing to
+        // CFG, and that it is disabled. We statically know that it is disabled
+        // at this point, so there isn't anything to do here to ensure it.
+
         self.usart.ctl.modify(|_, w| {
             w.txbrken().normal();
             w.addrdet().disabled();
             w.txdis().enabled();
             w.autobaud().disabled()
         });
-
-        USART {
-            rx: Rx::new(), // can't use `self.rx`, due to state
-            tx: Tx::new(), // can't use `self.tx`, due to state
-            usart: self.usart,
-        }
     }
 }
 
