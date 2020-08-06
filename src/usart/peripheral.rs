@@ -8,7 +8,7 @@ use void::Void;
 
 use crate::{
     init_state::Disabled,
-    pac::NVIC,
+    pac::{usart0::cfg, NVIC},
     pins,
     swm::{self, FunctionTrait},
     syscon,
@@ -118,11 +118,8 @@ where
             .write(|w| unsafe { w.osrval().bits(clock.osrval) });
 
         self.usart.cfg.modify(|_, w| {
-            w.enable().enabled();
-            w.ctsen().disabled();
             w.syncen().asynchronous_mode();
-            w.loop_().normal();
-            w.autoaddr().disabled();
+            Self::apply_general_config(w);
             settings.apply(w);
             w
         });
@@ -152,6 +149,13 @@ where
             w.txdis().enabled();
             w.autobaud().disabled()
         });
+    }
+
+    fn apply_general_config(w: &mut cfg::W) {
+        w.enable().enabled();
+        w.ctsen().disabled();
+        w.loop_().normal();
+        w.autoaddr().disabled();
     }
 }
 
