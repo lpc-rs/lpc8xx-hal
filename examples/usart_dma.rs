@@ -28,7 +28,7 @@ fn main() -> ! {
         .u0_txd
         .assign(p.pins.pio0_25.into_swm_pin(), &mut swm_handle);
 
-    let mut serial = p.USART0.enable(
+    let mut serial = p.USART0.enable_async(
         &clock_config,
         &mut syscon.handle,
         u0_rxd,

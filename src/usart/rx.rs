@@ -92,7 +92,7 @@ where
     /// #     &mut swm_handle,
     /// # );
     /// #
-    /// # let mut usart = p.USART0.enable(
+    /// # let mut usart = p.USART0.enable_async(
     /// #     &clock_config,
     /// #     &mut syscon.handle,
     /// #     u0_rxd,
@@ -152,7 +152,7 @@ where
     /// #     &mut swm_handle,
     /// # );
     /// #
-    /// # let mut usart = p.USART0.enable(
+    /// # let mut usart = p.USART0.enable_async(
     /// #     &clock_config,
     /// #     &mut syscon.handle,
     /// #     u0_rxd,

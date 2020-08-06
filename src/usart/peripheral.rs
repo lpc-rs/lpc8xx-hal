@@ -69,7 +69,7 @@ where
         }
     }
 
-    /// Enable the USART
+    /// Enable the USART in asynchronous mode
     ///
     /// This method is only available, if `USART` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
@@ -92,7 +92,7 @@ where
     /// [`Enabled`]: ../init_state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<RxPin, TxPin, CLOCK, W>(
+    pub fn enable_async<RxPin, TxPin, CLOCK, W>(
         self,
         clock: &Clock<CLOCK>,
         syscon: &mut syscon::Handle,
@@ -248,7 +248,7 @@ where
     /// #     &mut swm_handle,
     /// # );
     /// #
-    /// # let mut usart = p.USART0.enable(
+    /// # let mut usart = p.USART0.enable_async(
     /// #     &clock_config,
     /// #     &mut syscon.handle,
     /// #     u0_rxd,
@@ -308,7 +308,7 @@ where
     /// #     &mut swm_handle,
     /// # );
     /// #
-    /// # let mut usart = p.USART0.enable(
+    /// # let mut usart = p.USART0.enable_async(
     /// #     &clock_config,
     /// #     &mut syscon.handle,
     /// #     u0_rxd,
