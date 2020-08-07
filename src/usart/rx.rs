@@ -1,5 +1,6 @@
 use core::marker::PhantomData;
 
+use cortex_m::interrupt;
 use void::Void;
 
 use crate::{
@@ -44,6 +45,60 @@ where
     I: Instance,
     W: Word,
 {
+    /// Put the receiver into address detection mode
+    ///
+    /// After this method is called, all received data that does not have the
+    /// most significant bit set will be ignored. Data that does have the most
+    /// significant bit set will be matched against the provided address.
+    ///
+    /// While the receiver is operating that way, only matched addresses will be
+    /// received. Once you have received a matched address and inspected it to
+    /// your satisfaction, you must call `stop_address_detection` to start
+    /// receiving regular data again.
+    ///
+    /// You can call this method multiple times, without calling
+    /// `stop_address_detection` in between. The only effect this has, is to
+    /// change the address that is being matched to the one provided by the most
+    /// recent call.
+    pub fn start_address_detection(&mut self, address: u8) {
+        // This is sound, as we have exclusive access to the ADDR register and
+        // access to CTL is protected by a critical section.
+        let usart = unsafe { &*I::REGISTERS };
+
+        // Store address.
+        usart.addr.write(|w| {
+            // Sound, as the field accepts all possible values of `u8`.
+            unsafe { w.address().bits(address) }
+        });
+
+        interrupt::free(|_| {
+            // Enable address detection.
+            usart.ctl.modify(|_, w| w.addrdet().enabled());
+        });
+
+        // Don't need to set CFG.AUTOADDR. This is already done automatically on
+        // initialization.
+    }
+
+    /// Put the receiver out of address detection mode
+    ///
+    /// After you've put the receiver into address detection mode using the
+    /// `start_address_detection` method, you can start receiving data normally
+    /// again by calling this method. Typically you would do this after
+    /// receiving a matched address.
+    ///
+    /// Calling this method while the receiver is not in address detection mode
+    /// has no effect.
+    pub fn stop_address_detection(&mut self) {
+        // This is sound, access to CTL is protected by a critical section.
+        let usart = unsafe { &*I::REGISTERS };
+
+        interrupt::free(|_| {
+            // Disable address detection.
+            usart.ctl.modify(|_, w| w.addrdet().disabled());
+        });
+    }
+
     /// Query whether the provided flag is set
     ///
     /// Flags that need to be reset by software will be reset by this operation.

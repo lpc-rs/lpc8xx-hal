@@ -262,8 +262,10 @@ where
         // No loopback mode; currently it's not supported.
         w.loop_().normal();
 
-        // No hardware-based address matching; currently it's not supported.
-        w.autoaddr().disabled();
+        // Enable automatic address matching. This makes no difference until we
+        // set a separate bit in CTL, and address detection without automatic
+        // matching is currently not supported by this API.
+        w.autoaddr().enabled();
     }
 }
 
