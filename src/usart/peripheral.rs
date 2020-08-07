@@ -125,7 +125,6 @@ where
 
         self.usart.cfg.modify(|_, w| {
             w.enable().enabled();
-            w.datalen().bit_8();
             w.ctsen().disabled();
             w.syncen().asynchronous_mode();
             w.loop_().normal();

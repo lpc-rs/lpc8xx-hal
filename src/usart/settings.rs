@@ -146,6 +146,7 @@ impl<Word> Settings<Word> {
     }
 
     pub(super) fn apply(&self, w: &mut cfg::W) {
+        w.datalen().variant(self.data_len);
         w.paritysel().variant(self.parity);
         w.stoplen().variant(self.stop_len);
         w.clkpol().variant(self.clock_pol);
