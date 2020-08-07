@@ -1,5 +1,6 @@
 use core::{fmt, marker::PhantomData};
 
+use cortex_m::interrupt;
 use embedded_hal::{
     blocking::serial::write::Default as BlockingWriteDefault, serial::Write,
 };
@@ -10,12 +11,14 @@ use crate::{
     dma::{self, transfer::state::Ready},
     init_state,
     pac::dma0::channel::xfercfg::DSTINC_A,
+    pins::{self, Pin},
+    swm,
 };
 
 use super::{
     flags::{Flag, Interrupts},
     instances::Instance,
-    state::{Enabled, Word},
+    state::{CtsThrottle, Enabled, NoThrottle, Word},
 };
 
 /// USART transmitter
@@ -26,28 +29,94 @@ use super::{
 ///
 /// [`embedded_hal::serial::Write`]: #impl-Write%3Cu8%3E
 /// [`embedded_hal::blocking::serial::Write`]: #impl-Write
-pub struct Tx<I, State> {
-    _instance: PhantomData<I>,
-    _state: PhantomData<State>,
+pub struct Tx<I, State, Throttle> {
+    instance: PhantomData<I>,
+    state: PhantomData<State>,
+    throttle: Throttle,
 }
 
-impl<I, State> Tx<I, State>
+impl<I, State> Tx<I, State, NoThrottle>
 where
     I: Instance,
 {
     pub(super) fn new() -> Self {
         Self {
-            _instance: PhantomData,
-            _state: PhantomData,
+            instance: PhantomData,
+            state: PhantomData,
+            throttle: NoThrottle,
         }
     }
 }
 
-impl<I, W> Tx<I, Enabled<W>>
+impl<I, W, Throttle> Tx<I, Enabled<W>, Throttle>
 where
     I: Instance,
     W: Word,
 {
+    /// Enable RTS signal
+    ///
+    /// Configure the transmitter to assert the Request to Send (RTS) signal,
+    /// when it is ready to send.
+    ///
+    /// This is a convenience method that ensures the correct RTS function for
+    /// this peripheral instance is assigned to a pin. The same effect can be
+    /// achieved by just assigning the function using the SWM API.
+    pub fn enable_rts<P, S>(
+        &mut self,
+        function: swm::Function<I::Rts, swm::state::Unassigned>,
+        pin: Pin<P, S>,
+        swm: &mut swm::Handle,
+    ) -> (
+        swm::Function<I::Rts, swm::state::Assigned<P>>,
+        <Pin<P, S> as swm::AssignFunction<
+            I::Rts,
+            <I::Rts as swm::FunctionTrait<P>>::Kind,
+        >>::Assigned,
+    )
+    where
+        P: pins::Trait,
+        S: pins::State,
+        Pin<P, S>: swm::AssignFunction<
+            I::Rts,
+            <I::Rts as swm::FunctionTrait<P>>::Kind,
+        >,
+        I::Rts: swm::FunctionTrait<P>,
+    {
+        function.assign(pin, swm)
+    }
+
+    /// Disable RTS signal
+    ///
+    /// Configure the transmitter to no longer assert the Request to Send (RTS)
+    /// signal.
+    ///
+    /// This is a convenience method that ensures the correct RTS function for
+    /// this peripheral instance is unassigned. The same effect can be achieved
+    /// by just unassigning the function using the SWM API.
+    pub fn disable_rts<P, S>(
+        &mut self,
+        function: swm::Function<I::Rts, swm::state::Assigned<P>>,
+        pin: Pin<P, S>,
+        swm: &mut swm::Handle,
+    ) -> (
+        swm::Function<I::Rts, swm::state::Unassigned>,
+        <Pin<P, S> as swm::UnassignFunction<
+            I::Rts,
+            <I::Rts as swm::FunctionTrait<P>>::Kind,
+        >>::Unassigned,
+    )
+    where
+        P: pins::Trait,
+        S: pins::State,
+        Pin<P, S>: swm::UnassignFunction<
+            I::Rts,
+            <I::Rts as swm::FunctionTrait<P>>::Kind,
+        >,
+        I::Rts: swm::FunctionTrait<P>,
+    {
+        function.unassign(pin, swm)
+    }
+
     /// Query whether the provided flag is set
     ///
     /// Flags that need to be reset by software will be reset by this operation.
@@ -176,7 +245,72 @@ where
     }
 }
 
-impl<I> Tx<I, Enabled<u8>>
+impl<I, W> Tx<I, Enabled<W>, NoThrottle>
+where
+    I: Instance,
+    W: Word,
+{
+    /// Enable throttling via CTS signal
+    ///
+    /// Configure the transmitter to only transmit, while the CTS signal is
+    /// asserted.
+    pub fn enable_cts_throttling<P>(
+        self,
+        function: swm::Function<I::Cts, swm::state::Assigned<P>>,
+    ) -> Tx<
+        I,
+        Enabled<W>,
+        CtsThrottle<swm::Function<I::Cts, swm::state::Assigned<P>>>,
+    > {
+        interrupt::free(|_| {
+            // Sound, as we're in a critical section that protects our read-
+            // modify-write access.
+            let usart = unsafe { &*I::REGISTERS };
+
+            usart.cfg.modify(|_, w| w.ctsen().enabled());
+        });
+
+        Tx {
+            instance: self.instance,
+            state: self.state,
+            throttle: CtsThrottle(function),
+        }
+    }
+}
+
+impl<I, W, Function> Tx<I, Enabled<W>, CtsThrottle<Function>>
+where
+    I: Instance,
+    W: Word,
+{
+    /// Disable throttling via CTS signal
+    ///
+    /// Configure the transmitter to ignore the CTS signal. Returns the SWM
+    /// function for the CTS signal, so it can be reused to enable CTS
+    /// throttling again, or for something else.
+    pub fn disable_cts_throttling(
+        self,
+    ) -> (Tx<I, Enabled<W>, NoThrottle>, Function) {
+        interrupt::free(|_| {
+            // Sound, as we're in a critical section that protects our read-
+            // modify-write access.
+            let usart = unsafe { &*I::REGISTERS };
+
+            usart.cfg.modify(|_, w| w.ctsen().disabled());
+        });
+
+        (
+            Tx {
+                instance: self.instance,
+                state: self.state,
+                throttle: NoThrottle,
+            },
+            self.throttle.0,
+        )
+    }
+}
+
+impl<I, Throttle> Tx<I, Enabled<u8>, Throttle>
 where
     I: Instance,
 {
@@ -194,7 +328,7 @@ where
     }
 }
 
-impl<I, W> Write<W> for Tx<I, Enabled<W>>
+impl<I, W, Throttle> Write<W> for Tx<I, Enabled<W>, Throttle>
 where
     I: Instance,
     W: Word,
@@ -229,14 +363,14 @@ where
     }
 }
 
-impl<I, W> BlockingWriteDefault<W> for Tx<I, Enabled<W>>
+impl<I, W, Throttle> BlockingWriteDefault<W> for Tx<I, Enabled<W>, Throttle>
 where
     I: Instance,
     W: Word,
 {
 }
 
-impl<I> fmt::Write for Tx<I, Enabled<u8>>
+impl<I, Throttle> fmt::Write for Tx<I, Enabled<u8>, Throttle>
 where
     Self: BlockingWriteDefault<u8>,
     I: Instance,
@@ -251,9 +385,9 @@ where
     }
 }
 
-impl<I, State> crate::private::Sealed for Tx<I, State> {}
+impl<I, State, Throttle> crate::private::Sealed for Tx<I, State, Throttle> {}
 
-impl<I> dma::Dest for Tx<I, Enabled<u8>>
+impl<I, Throttle> dma::Dest for Tx<I, Enabled<u8>, Throttle>
 where
     I: Instance,
 {

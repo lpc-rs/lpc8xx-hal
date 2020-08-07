@@ -20,7 +20,7 @@ use super::{
     instances::Instance,
     rx::{Error, Rx},
     settings::Settings,
-    state::{Enabled, Word},
+    state::{Enabled, NoThrottle, Word},
     tx::Tx,
 };
 
@@ -51,7 +51,7 @@ pub struct USART<I, State> {
     pub rx: Rx<I, State>,
 
     /// The USART Transmitter
-    pub tx: Tx<I, State>,
+    pub tx: Tx<I, State, NoThrottle>,
 
     usart: I,
 }

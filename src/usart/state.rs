@@ -31,3 +31,13 @@ impl Word for u16 {
         w
     }
 }
+
+/// Indicates that transmitter is not throttled
+///
+/// Used as a type parameter by `usart::Tx`.
+pub struct NoThrottle;
+
+/// Indicates that the transmitter is throttled via the CTS signal
+///
+/// Used as a type parameter by `usart::Tx`.
+pub struct CtsThrottle<F>(pub(super) F);
