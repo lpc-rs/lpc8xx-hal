@@ -253,9 +253,16 @@ where
     }
 
     fn apply_general_config(w: &mut cfg::W) {
+        // Enable peripheral instance.
         w.enable().enabled();
+
+        // Disable CTS; can be enabled by the user later.
         w.ctsen().disabled();
+
+        // No loopback mode; currently it's not supported.
         w.loop_().normal();
+
+        // No hardware-based address matching; currently it's not supported.
         w.autoaddr().disabled();
     }
 }
