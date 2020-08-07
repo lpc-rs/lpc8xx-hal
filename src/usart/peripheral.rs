@@ -9,9 +9,7 @@ use void::Void;
 use crate::{
     init_state::Disabled,
     pac::{usart0::cfg, NVIC},
-    pins,
-    swm::{self, FunctionTrait},
-    syscon,
+    swm, syscon,
 };
 
 use super::{
@@ -101,10 +99,6 @@ where
         settings: Settings<W>,
     ) -> USART<I, Enabled<W, AsyncMode>>
     where
-        RxPin: pins::Trait,
-        TxPin: pins::Trait,
-        I::Rx: FunctionTrait<RxPin>,
-        I::Tx: FunctionTrait<TxPin>,
         CLOCK: ClockSource,
         W: Word,
     {
