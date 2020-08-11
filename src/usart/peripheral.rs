@@ -143,10 +143,6 @@ where
     /// is the default, so unless you have messed with those settings, you
     /// should be good.
     ///
-    /// # Examples
-    ///
-    /// Please refer to the [module documentation] for a full example.
-    ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
@@ -202,10 +198,6 @@ where
     /// For USART to function correctly, the UARTFRG reset must be cleared. This
     /// is the default, so unless you have messed with those settings, you
     /// should be good.
-    ///
-    /// # Examples
-    ///
-    /// Please refer to the [module documentation] for a full example.
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: state/struct.Enabled.html
