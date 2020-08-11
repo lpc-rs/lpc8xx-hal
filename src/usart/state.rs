@@ -5,7 +5,7 @@ use core::marker::PhantomData;
 /// Indicates that the USART peripheral is enabled
 ///
 /// Used as a type argument on `USART`.
-pub struct Enabled<W: Word>(PhantomData<W>);
+pub struct Enabled<W: Word, Mode>(PhantomData<W>, PhantomData<Mode>);
 
 /// Implemented for words that are supported by the USART peripheral
 pub trait Word: Into<u16> {
@@ -31,6 +31,16 @@ impl Word for u16 {
         w
     }
 }
+
+/// Indicates that a USART instance is operating in asynchronous mode
+///
+/// Used as a type parameter by `USART`.
+pub struct AsyncMode;
+
+/// Indicates that a USART instance is operating in synchronous mode
+///
+/// Used as a type parameter by `USART`.
+pub struct SyncMode;
 
 /// Indicates that transmitter is not throttled
 ///

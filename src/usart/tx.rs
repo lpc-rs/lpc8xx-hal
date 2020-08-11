@@ -48,7 +48,7 @@ where
     }
 }
 
-impl<I, W, Throttle> Tx<I, Enabled<W>, Throttle>
+impl<I, W, Mode, Throttle> Tx<I, Enabled<W, Mode>, Throttle>
 where
     I: Instance,
     W: Word,
@@ -165,7 +165,7 @@ where
     /// #     &mut swm_handle,
     /// # );
     /// #
-    /// # let mut usart = p.USART0.enable(
+    /// # let mut usart = p.USART0.enable_async(
     /// #     &clock_config,
     /// #     &mut syscon.handle,
     /// #     u0_rxd,
@@ -225,7 +225,7 @@ where
     /// #     &mut swm_handle,
     /// # );
     /// #
-    /// # let mut usart = p.USART0.enable(
+    /// # let mut usart = p.USART0.enable_async(
     /// #     &clock_config,
     /// #     &mut syscon.handle,
     /// #     u0_rxd,
@@ -245,7 +245,7 @@ where
     }
 }
 
-impl<I, W> Tx<I, Enabled<W>, NoThrottle>
+impl<I, W, Mode> Tx<I, Enabled<W, Mode>, NoThrottle>
 where
     I: Instance,
     W: Word,
@@ -259,7 +259,7 @@ where
         function: swm::Function<I::Cts, swm::state::Assigned<P>>,
     ) -> Tx<
         I,
-        Enabled<W>,
+        Enabled<W, Mode>,
         CtsThrottle<swm::Function<I::Cts, swm::state::Assigned<P>>>,
     > {
         interrupt::free(|_| {
@@ -278,7 +278,7 @@ where
     }
 }
 
-impl<I, W, Function> Tx<I, Enabled<W>, CtsThrottle<Function>>
+impl<I, W, Mode, Function> Tx<I, Enabled<W, Mode>, CtsThrottle<Function>>
 where
     I: Instance,
     W: Word,
@@ -290,7 +290,7 @@ where
     /// throttling again, or for something else.
     pub fn disable_cts_throttling(
         self,
-    ) -> (Tx<I, Enabled<W>, NoThrottle>, Function) {
+    ) -> (Tx<I, Enabled<W, Mode>, NoThrottle>, Function) {
         interrupt::free(|_| {
             // Sound, as we're in a critical section that protects our read-
             // modify-write access.
@@ -310,7 +310,7 @@ where
     }
 }
 
-impl<I, Throttle> Tx<I, Enabled<u8>, Throttle>
+impl<I, Mode, Throttle> Tx<I, Enabled<u8, Mode>, Throttle>
 where
     I: Instance,
 {
@@ -328,7 +328,7 @@ where
     }
 }
 
-impl<I, W, Throttle> Write<W> for Tx<I, Enabled<W>, Throttle>
+impl<I, W, Mode, Throttle> Write<W> for Tx<I, Enabled<W, Mode>, Throttle>
 where
     I: Instance,
     W: Word,
@@ -363,14 +363,15 @@ where
     }
 }
 
-impl<I, W, Throttle> BlockingWriteDefault<W> for Tx<I, Enabled<W>, Throttle>
+impl<I, W, Mode, Throttle> BlockingWriteDefault<W>
+    for Tx<I, Enabled<W, Mode>, Throttle>
 where
     I: Instance,
     W: Word,
 {
 }
 
-impl<I, Throttle> fmt::Write for Tx<I, Enabled<u8>, Throttle>
+impl<I, Mode, Throttle> fmt::Write for Tx<I, Enabled<u8, Mode>, Throttle>
 where
     Self: BlockingWriteDefault<u8>,
     I: Instance,
@@ -387,7 +388,7 @@ where
 
 impl<I, State, Throttle> crate::private::Sealed for Tx<I, State, Throttle> {}
 
-impl<I, Throttle> dma::Dest for Tx<I, Enabled<u8>, Throttle>
+impl<I, Mode, Throttle> dma::Dest for Tx<I, Enabled<u8, Mode>, Throttle>
 where
     I: Instance,
 {

@@ -51,7 +51,7 @@
 //! // Initialize USART0. This should never fail, as the only reason `init`
 //! // returns a `Result::Err` is when the transmitter is busy, which it
 //! // shouldn't be right now.
-//! let mut serial = p.USART0.enable(
+//! let mut serial = p.USART0.enable_async(
 //!     &clock_config,
 //!     &mut syscon.handle,
 //!     u0_rxd,

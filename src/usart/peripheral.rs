@@ -8,10 +8,8 @@ use void::Void;
 
 use crate::{
     init_state::Disabled,
-    pac::NVIC,
-    pins,
-    swm::{self, FunctionTrait},
-    syscon,
+    pac::{usart0::cfg, NVIC},
+    swm, syscon,
 };
 
 use super::{
@@ -20,7 +18,7 @@ use super::{
     instances::Instance,
     rx::{Error, Rx},
     settings::Settings,
-    state::{Enabled, NoThrottle, Word},
+    state::{AsyncMode, Enabled, NoThrottle, SyncMode, Word},
     tx::Tx,
 };
 
@@ -69,7 +67,7 @@ where
         }
     }
 
-    /// Enable the USART
+    /// Enable the USART in asynchronous mode
     ///
     /// This method is only available, if `USART` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
@@ -89,28 +87,23 @@ where
     /// Please refer to the [module documentation] for a full example.
     ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    /// [`Enabled`]: state/struct.Enabled.html
     /// [`BaudRate`]: struct.BaudRate.html
     /// [module documentation]: index.html
-    pub fn enable<RxPin, TxPin, CLOCK, W>(
-        self,
-        clock: &Clock<CLOCK>,
+    pub fn enable_async<RxPin, TxPin, CLOCK, W>(
+        mut self,
+        clock: &Clock<CLOCK, AsyncMode>,
         syscon: &mut syscon::Handle,
         _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
         _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
         settings: Settings<W>,
-    ) -> USART<I, Enabled<W>>
+    ) -> USART<I, Enabled<W, AsyncMode>>
     where
-        RxPin: pins::Trait,
-        TxPin: pins::Trait,
-        I::Rx: FunctionTrait<RxPin>,
-        I::Tx: FunctionTrait<TxPin>,
         CLOCK: ClockSource,
         W: Word,
     {
-        syscon.enable_clock(&self.usart);
+        self.configure::<CLOCK>(syscon);
 
-        CLOCK::select(&self.usart, syscon);
         self.usart
             .brg
             .write(|w| unsafe { w.brgval().bits(clock.psc) });
@@ -118,26 +111,14 @@ where
             .osr
             .write(|w| unsafe { w.osrval().bits(clock.osrval) });
 
-        // According to the user manual, section 13.6.1, we need to make sure
-        // that the USART is not sending or receiving data before writing to
-        // CFG, and that it is disabled. We statically know that it is disabled
-        // at this point, so there isn't anything to do here to ensure it.
+        // We are not allowed to send or receive data when writing to CFG. This
+        // is ensured by type state, so no need to do anything here.
 
         self.usart.cfg.modify(|_, w| {
-            w.enable().enabled();
-            w.ctsen().disabled();
             w.syncen().asynchronous_mode();
-            w.loop_().normal();
-            w.autoaddr().disabled();
+            Self::apply_general_config(w);
             settings.apply(w);
             w
-        });
-
-        self.usart.ctl.modify(|_, w| {
-            w.txbrken().normal();
-            w.addrdet().disabled();
-            w.txdis().enabled();
-            w.autobaud().disabled()
         });
 
         USART {
@@ -146,9 +127,140 @@ where
             usart: self.usart,
         }
     }
+
+    /// Enable the USART in synchronous mode as master
+    ///
+    /// This method is only available, if `USART` is in the [`Disabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// enabled will not compile.
+    ///
+    /// Consumes this instance of `USART` and returns another instance that has
+    /// its `State` type parameter set to [`Enabled`].
+    ///
+    /// # Limitations
+    ///
+    /// For USART to function correctly, the UARTFRG reset must be cleared. This
+    /// is the default, so unless you have messed with those settings, you
+    /// should be good.
+    ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    /// [`Enabled`]: state/struct.Enabled.html
+    /// [`BaudRate`]: struct.BaudRate.html
+    /// [module documentation]: index.html
+    pub fn enable_sync_as_master<RxPin, TxPin, SclkPin, C, W>(
+        mut self,
+        clock: &Clock<C, SyncMode>,
+        syscon: &mut syscon::Handle,
+        _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
+        _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
+        _: swm::Function<I::Sclk, swm::state::Assigned<SclkPin>>,
+        settings: Settings<W>,
+    ) -> USART<I, Enabled<W, SyncMode>>
+    where
+        C: ClockSource,
+        W: Word,
+    {
+        self.configure::<C>(syscon);
+
+        self.usart
+            .brg
+            .write(|w| unsafe { w.brgval().bits(clock.psc) });
+
+        // We are not allowed to send or receive data when writing to CFG. This
+        // is ensured by type state, so no need to do anything here.
+
+        self.usart.cfg.modify(|_, w| {
+            w.syncen().synchronous_mode();
+            w.syncmst().master();
+            Self::apply_general_config(w);
+            settings.apply(w);
+            w
+        });
+
+        USART {
+            rx: Rx::new(), // can't use `self.rx`, due to state
+            tx: Tx::new(), // can't use `self.tx`, due to state
+            usart: self.usart,
+        }
+    }
+
+    /// Enable the USART in synchronous mode as slave
+    ///
+    /// This method is only available, if `USART` is in the [`Disabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// enabled will not compile.
+    ///
+    /// Consumes this instance of `USART` and returns another instance that has
+    /// its `State` type parameter set to [`Enabled`].
+    ///
+    /// # Limitations
+    ///
+    /// For USART to function correctly, the UARTFRG reset must be cleared. This
+    /// is the default, so unless you have messed with those settings, you
+    /// should be good.
+    ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    /// [`Enabled`]: state/struct.Enabled.html
+    /// [`BaudRate`]: struct.BaudRate.html
+    /// [module documentation]: index.html
+    pub fn enable_sync_as_slave<RxPin, TxPin, SclkPin, C, W>(
+        mut self,
+        _clock: &C,
+        syscon: &mut syscon::Handle,
+        _: swm::Function<I::Rx, swm::state::Assigned<RxPin>>,
+        _: swm::Function<I::Tx, swm::state::Assigned<TxPin>>,
+        _: swm::Function<I::Sclk, swm::state::Assigned<SclkPin>>,
+        settings: Settings<W>,
+    ) -> USART<I, Enabled<W, SyncMode>>
+    where
+        C: ClockSource,
+        W: Word,
+    {
+        self.configure::<C>(syscon);
+
+        // We are not allowed to send or receive data when writing to CFG. This
+        // is ensured by type state, so no need to do anything here.
+
+        self.usart.cfg.modify(|_, w| {
+            w.syncen().synchronous_mode();
+            w.syncmst().slave();
+            Self::apply_general_config(w);
+            settings.apply(w);
+            w
+        });
+
+        USART {
+            rx: Rx::new(), // can't use `self.rx`, due to state
+            tx: Tx::new(), // can't use `self.tx`, due to state
+            usart: self.usart,
+        }
+    }
+
+    fn configure<C>(&mut self, syscon: &mut syscon::Handle)
+    where
+        C: ClockSource,
+    {
+        syscon.enable_clock(&self.usart);
+        C::select(&self.usart, syscon);
+
+        self.usart.ctl.modify(|_, w| {
+            w.txbrken().normal();
+            w.addrdet().disabled();
+            w.txdis().enabled();
+            w.cc().continous_clock();
+            w.autobaud().disabled()
+        });
+    }
+
+    fn apply_general_config(w: &mut cfg::W) {
+        w.enable().enabled();
+        w.ctsen().disabled();
+        w.loop_().normal();
+        w.autoaddr().disabled();
+    }
 }
 
-impl<I, W> USART<I, Enabled<W>>
+impl<I, W, Mode> USART<I, Enabled<W, Mode>>
 where
     I: Instance,
     W: Word,
@@ -248,7 +360,7 @@ where
     /// #     &mut swm_handle,
     /// # );
     /// #
-    /// # let mut usart = p.USART0.enable(
+    /// # let mut usart = p.USART0.enable_async(
     /// #     &clock_config,
     /// #     &mut syscon.handle,
     /// #     u0_rxd,
@@ -308,7 +420,7 @@ where
     /// #     &mut swm_handle,
     /// # );
     /// #
-    /// # let mut usart = p.USART0.enable(
+    /// # let mut usart = p.USART0.enable_async(
     /// #     &clock_config,
     /// #     &mut syscon.handle,
     /// #     u0_rxd,
@@ -349,7 +461,7 @@ where
     }
 }
 
-impl<I, W> Read<W> for USART<I, Enabled<W>>
+impl<I, W, Mode> Read<W> for USART<I, Enabled<W, Mode>>
 where
     I: Instance,
     W: Word,
@@ -362,7 +474,7 @@ where
     }
 }
 
-impl<I, W> Write<W> for USART<I, Enabled<W>>
+impl<I, W, Mode> Write<W> for USART<I, Enabled<W, Mode>>
 where
     I: Instance,
     W: Word,
@@ -380,14 +492,14 @@ where
     }
 }
 
-impl<I, W> BlockingWriteDefault<W> for USART<I, Enabled<W>>
+impl<I, W, Mode> BlockingWriteDefault<W> for USART<I, Enabled<W, Mode>>
 where
     I: Instance,
     W: Word,
 {
 }
 
-impl<I> fmt::Write for USART<I, Enabled<u8>>
+impl<I, Mode> fmt::Write for USART<I, Enabled<u8, Mode>>
 where
     Self: BlockingWriteDefault<u8>,
     I: Instance,

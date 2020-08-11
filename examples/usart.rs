@@ -79,7 +79,7 @@ fn main() -> ! {
     let (u0_txd, _) = swm.movable_functions.u0_txd.assign(tx_pin, &mut handle);
 
     // Enable USART0
-    let mut serial = p.USART0.enable(
+    let mut serial = p.USART0.enable_async(
         &clock_config,
         &mut syscon.handle,
         u0_rxd,

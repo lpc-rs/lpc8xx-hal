@@ -3,19 +3,28 @@ use core::marker::PhantomData;
 use crate::syscon::{self, clock_source::PeripheralClockSelector};
 
 /// Defines the clock configuration for a USART instance
-pub struct Clock<Clock> {
-    pub(crate) psc: u16,
-    pub(crate) osrval: u8,
-    pub(crate) _clock: PhantomData<Clock>,
+///
+/// This struct has two type arguments:
+/// - `Clock` specifies the clock used to power the USART clock. This clock will
+///   be selected when the USART instance is enabled.
+/// - `Mode` specifies the USART mode. A distinction between synchronous and
+///   asynchronous mode has to be made, as OSRVAL has no meaning in synchronous
+///   mode.
+pub struct Clock<Clock, Mode> {
+    pub(super) psc: u16,
+    pub(super) osrval: u8,
+    pub(super) _clock: PhantomData<Clock>,
+    pub(super) _mode: PhantomData<Mode>,
 }
 
-impl<C> Clock<C>
+impl<C, Mode> Clock<C, Mode>
 where
     C: ClockSource,
 {
-    /// Create the clock config for the uart
+    /// Create the clock configuration for the USART
     ///
-    /// `osrval` has to be between 5-16
+    /// `osrval` has to be between 5-16. This value will not be used in
+    /// synchronous mode.
     pub fn new(_: &C, psc: u16, osrval: u8) -> Self {
         let osrval = osrval - 1;
         assert!(osrval > 3 && osrval < 0x10);
@@ -24,6 +33,7 @@ where
             psc,
             osrval,
             _clock: PhantomData,
+            _mode: PhantomData,
         }
     }
 }
@@ -62,14 +72,17 @@ mod target {
 mod target {
     use core::marker::PhantomData;
 
-    use crate::syscon::{
-        self,
-        clock_source::{PeripheralClock, PeripheralClockSelector},
+    use crate::{
+        syscon::{
+            self,
+            clock_source::{PeripheralClock, PeripheralClockSelector},
+        },
+        usart::state::AsyncMode,
     };
 
     use super::{Clock, ClockSource};
 
-    impl Clock<syscon::IOSC> {
+    impl Clock<syscon::IOSC, AsyncMode> {
         /// Create a new configuration with a specified baudrate
         ///
         /// Assumes the internal oscillator runs at 12 MHz
@@ -88,6 +101,7 @@ mod target {
                 psc,
                 osrval,
                 _clock: PhantomData,
+                _mode: PhantomData,
             }
         }
     }

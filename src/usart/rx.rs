@@ -39,7 +39,7 @@ where
     }
 }
 
-impl<I, W> Rx<I, Enabled<W>>
+impl<I, W, Mode> Rx<I, Enabled<W, Mode>>
 where
     I: Instance,
     W: Word,
@@ -92,7 +92,7 @@ where
     /// #     &mut swm_handle,
     /// # );
     /// #
-    /// # let mut usart = p.USART0.enable(
+    /// # let mut usart = p.USART0.enable_async(
     /// #     &clock_config,
     /// #     &mut syscon.handle,
     /// #     u0_rxd,
@@ -152,7 +152,7 @@ where
     /// #     &mut swm_handle,
     /// # );
     /// #
-    /// # let mut usart = p.USART0.enable(
+    /// # let mut usart = p.USART0.enable_async(
     /// #     &clock_config,
     /// #     &mut syscon.handle,
     /// #     u0_rxd,
@@ -172,7 +172,7 @@ where
     }
 }
 
-impl<I> Rx<I, Enabled<u8>>
+impl<I, Mode> Rx<I, Enabled<u8, Mode>>
 where
     I: Instance,
 {
@@ -190,7 +190,7 @@ where
     }
 }
 
-impl<I, W> Read<W> for Rx<I, Enabled<W>>
+impl<I, W, Mode> Read<W> for Rx<I, Enabled<W, Mode>>
 where
     I: Instance,
     W: Word,
@@ -232,7 +232,7 @@ where
 
 impl<I, State> crate::private::Sealed for Rx<I, State> {}
 
-impl<I> dma::Source for Rx<I, Enabled<u8>>
+impl<I, Mode> dma::Source for Rx<I, Enabled<u8, Mode>>
 where
     I: Instance,
 {
