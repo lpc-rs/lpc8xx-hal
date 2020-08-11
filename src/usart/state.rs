@@ -32,12 +32,12 @@ impl Word for u16 {
     }
 }
 
-/// Indicates that a USART instance is operation in asynchronous mode
+/// Indicates that a USART instance is operating in asynchronous mode
 ///
 /// Used as a type parameter by `USART`.
 pub struct AsyncMode;
 
-/// Indicates that a USART instance is operation in synchronous mode
+/// Indicates that a USART instance is operating in synchronous mode
 ///
 /// Used as a type parameter by `USART`.
 pub struct SyncMode;
