@@ -111,6 +111,9 @@ where
             .osr
             .write(|w| unsafe { w.osrval().bits(clock.osrval) });
 
+        // We are not allowed to send or receive data when writing to CFG. This
+        // is ensured by type state, so no need to do anything here.
+
         self.usart.cfg.modify(|_, w| {
             w.syncen().asynchronous_mode();
             Self::apply_general_config(w);
@@ -167,6 +170,9 @@ where
             .brg
             .write(|w| unsafe { w.brgval().bits(clock.psc) });
 
+        // We are not allowed to send or receive data when writing to CFG. This
+        // is ensured by type state, so no need to do anything here.
+
         self.usart.cfg.modify(|_, w| {
             w.syncen().synchronous_mode();
             w.syncmst().master();
@@ -220,6 +226,9 @@ where
     {
         self.configure::<C>(syscon);
 
+        // We are not allowed to send or receive data when writing to CFG. This
+        // is ensured by type state, so no need to do anything here.
+
         self.usart.cfg.modify(|_, w| {
             w.syncen().synchronous_mode();
             w.syncmst().slave();
@@ -241,11 +250,6 @@ where
     {
         syscon.enable_clock(&self.usart);
         C::select(&self.usart, syscon);
-
-        // According to the user manual, section 13.6.1, we need to make sure
-        // that the USART is not sending or receiving data before writing to
-        // CFG, and that it is disabled. We statically know that it is disabled
-        // at this point, so there isn't anything to do here to ensure it.
 
         self.usart.ctl.modify(|_, w| {
             w.txbrken().normal();
