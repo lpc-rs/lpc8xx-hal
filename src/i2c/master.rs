@@ -22,14 +22,17 @@ use super::{Error, Instance};
 
 /// API for the I2C master mode
 ///
+/// You can get access to this struct through the [`I2C`] struct.
+///
 /// This struct has two type parameters that track its state:
 /// - `State` tracks whether the I2C instance is enabled.
 /// - `ModeState` tracks whether the master mode is enabled.
 ///
 /// # `embedded-hal` traits
-/// - [`embedded_hal::blocking::i2c::Read`] for synchronous reading
-/// - [`embedded_hal::blocking::i2c::Write`] for synchronous writing
+/// - [`embedded_hal::blocking::i2c::Read`] for blocking reads
+/// - [`embedded_hal::blocking::i2c::Write`] for blocking writes
 ///
+/// [`I2C`]: ../struct.I2C.html
 /// [`embedded_hal::blocking::i2c::Read`]: #impl-Read
 /// [`embedded_hal::blocking::i2c::Write`]: #impl-Write
 pub struct Master<I: Instance, State, ModeState> {
@@ -307,7 +310,7 @@ pub enum State {
     /// A new transaction can be started.
     Idle,
 
-    /// Data has been received an is available to be read
+    /// Data has been received and is available to be read
     ///
     /// A read transaction has previously been initiated, and has been
     /// acknowledged by the slave.

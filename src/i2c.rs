@@ -1,9 +1,10 @@
 //! API for the I2C peripherals
 //!
-//! Please be aware that this is a very basic implementation, with lots of
-//! important things missing. Please be careful when using this API.
+//! The entry point to this API is the [`I2C`] struct.
 //!
-//! The I2C peripherals are described in the user manual, chapter 15.
+//! The I2C peripheral is described in the following user manuals:
+//! - LPC82x user manual, chapter 15
+//! - LPC84x user manual, chapter 19
 //!
 //! # Examples
 //!
@@ -60,6 +61,7 @@
 //!
 //! Please refer to the [examples in the repository] for more example code.
 //!
+//! [`I2C`]: struct.I2C.html
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
 mod clock;

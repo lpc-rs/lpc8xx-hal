@@ -12,9 +12,13 @@ use super::{Error, Instance};
 
 /// API for I2C slave mode
 ///
+/// You can get access to this struct through the [`I2C`] struct.
+///
 /// This struct has two type parameters that track its state:
 /// - `State` tracks whether the I2C instance is enabled.
 /// - `ModeState` tracks whether the master mode is enabled.
+///
+/// [`I2C`]: ../struct.I2C.html
 pub struct Slave<I: Instance, State, ModeState> {
     _state: PhantomData<State>,
     _mode_state: PhantomData<ModeState>,
@@ -44,8 +48,8 @@ where
 {
     /// Wait until software intervention is required
     ///
-    /// The returned enum will indicate the current state. Each variant will
-    /// provide an API that can be used to react the that state.
+    /// The returned enum indicates the current state. Each variant provides an
+    /// API to react to that state.
     pub fn wait(&mut self) -> nb::Result<State<I>, Error> {
         // Sound, as we're only reading from the STAT register.
         let i2c = unsafe { &*I::REGISTERS };
@@ -104,7 +108,7 @@ pub enum State<'r, I: Instance> {
 ///
 /// You can gain access to this API through [`State`].
 ///
-/// [`State`]: struct.State.html
+/// [`State`]: enum.State.html
 pub struct AddressMatched<'r, I: Instance> {
     slvctl: &'r RegProxy<SlvCtl<I>>,
     slvdat: &'r RegProxy<SlvDat<I>>,
@@ -141,11 +145,11 @@ where
     }
 }
 
-/// API for handling to the "data received" state
+/// API for handling the "data received" state
 ///
 /// You can gain access to this API through [`State`].
 ///
-/// [`State`]: struct.State.html
+/// [`State`]: enum.State.html
 pub struct RxReady<'r, I: Instance> {
     slvctl: &'r RegProxy<SlvCtl<I>>,
     slvdat: &'r RegProxy<SlvDat<I>>,
@@ -162,7 +166,7 @@ where
     /// [`ack`], then call [`I2C::wait`] again.
     ///
     /// [`ack`]: #method.ack
-    /// [`I2C::wait`]: struct.I2C.html#method.wait
+    /// [`I2C::wait`]: ../struct.I2C.html#method.wait
     pub fn read(&self) -> Result<u8, Error> {
         Error::read::<I>()?;
 
@@ -189,11 +193,11 @@ where
     }
 }
 
-/// API for handling to the "ready to transmit" state
+/// API for handling the "ready to transmit" state
 ///
 /// You can gain access to this API through [`State`].
 ///
-/// [`State`]: struct.State.html
+/// [`State`]: enum.State.html
 pub struct TxReady<'r, I: Instance> {
     slvctl: &'r RegProxy<SlvCtl<I>>,
     slvdat: &'r RegProxy<SlvDat<I>>,

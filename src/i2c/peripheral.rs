@@ -8,13 +8,6 @@ use super::{Clock, ClockSource, Error, Instance, Interrupts, Master, Slave};
 ///
 /// Please refer to the [module documentation] for more information.
 ///
-/// # Limitations
-///
-/// This API only supports master mode.
-///
-/// Additional limitations are documented on the specific methods that they
-/// apply to.
-///
 /// [module documentation]: index.html
 pub struct I2C<I: Instance, State, MasterMode, SlaveMode> {
     /// API for I2C master mode
@@ -88,7 +81,7 @@ where
     /// master mode is disabled. Code that attempts to call this method when
     /// this is not the case will not compile.
     ///
-    /// Consumes this instance of `Master` and returns another instance that has
+    /// Consumes this instance of `I2C` and returns another instance that has
     /// its type state updated.
     ///
     /// # Limitations
