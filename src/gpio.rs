@@ -238,36 +238,6 @@ where
     ///
     /// Consumes the pin instance and returns a new instance that is in output
     /// mode, making the methods to set the output level available.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// use lpc8xx_hal::{
-    ///     prelude::*,
-    ///     Peripherals,
-    ///     gpio,
-    /// };
-    ///
-    /// let p = Peripherals::take().unwrap();
-    ///
-    /// let mut syscon = p.SYSCON.split();
-    /// let swm = p.SWM.split();
-    ///
-    /// #[cfg(feature = "82x")]
-    /// let gpio = p.GPIO;
-    /// #[cfg(feature = "845")]
-    /// let gpio = p.GPIO.enable(&mut syscon.handle);
-    ///
-    /// // Transition pin into GPIO state, then set it to output
-    /// let mut pin = p.pins.pio0_12.into_output_pin(
-    ///     gpio.tokens.pio0_12,
-    ///     gpio::Level::Low,
-    /// );
-    ///
-    /// // Output level can now be controlled
-    /// pin.set_high();
-    /// pin.set_low();
-    /// ```
     pub fn into_output(self, initial: Level) -> GpioPin<T, direction::Output> {
         // This is sound, as we only do a stateless write to a bit that no other
         // `GpioPin` instance writes to.
@@ -328,34 +298,6 @@ where
     ///
     /// Consumes the pin instance and returns a new instance that is in output
     /// mode, making the methods to set the output level available.
-    ///
-    /// # Example
-    ///
-    /// ``` no_run
-    /// use lpc8xx_hal::prelude::*;
-    /// use lpc8xx_hal::Peripherals;
-    ///
-    /// let p = Peripherals::take().unwrap();
-    ///
-    /// let mut syscon = p.SYSCON.split();
-    /// let swm = p.SWM.split();
-    ///
-    /// #[cfg(feature = "82x")]
-    /// let gpio = p.GPIO;
-    /// #[cfg(feature = "845")]
-    /// let gpio = p.GPIO.enable(&mut syscon.handle);
-    ///
-    /// // Transition pin into GPIO state, then set it to output
-    /// let mut pin = p.pins.pio0_12
-    ///     .into_input_pin(gpio.tokens.pio0_12);
-    ///
-    /// // Input level can now be read
-    /// if pin.is_high() {
-    ///     // The pin is high
-    /// } else {
-    ///     // The pin is low
-    /// }
-    /// ```
     pub fn into_input(self) -> GpioPin<T, direction::Input> {
         // This is sound, as we only do a stateless write to a bit that no other
         // `GpioPin` instance writes to.
