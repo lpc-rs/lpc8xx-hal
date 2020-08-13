@@ -81,16 +81,19 @@ pub struct GPIO<State = init_state::Enabled> {
     pub(crate) gpio: pac::GPIO,
     _state: PhantomData<State>,
 
-    /// Tokens representing each pins
+    /// Tokens representing all pins
     ///
-    /// Since the `enable` and `disable` methods consume `self`, they can only
-    /// be called, if all tokens are available. This means, any tokens that have
-    /// been moved out while the peripheral was enabled, prevent the peripheral
-    /// from being disabled (unless those tokens are moved back in their
-    /// original place).
+    /// Since the [`enable`] and [`disable`] methods consume `self`, they can
+    /// only be called, if all tokens are available. This means, any tokens that
+    /// have been moved out while the peripheral was enabled, prevent the
+    /// peripheral from being disabled (unless those tokens are moved back into
+    /// their original place).
     ///
     /// As using a pin for GPIO requires such a token, it is impossible to
     /// disable the GPIO peripheral while pins are used for GPIO.
+    ///
+    /// [`enable`]: #method.enable
+    /// [`disable`]: #method.disable
     pub tokens: pins::Tokens<State>,
 }
 
@@ -255,13 +258,13 @@ where
     /// Indicates wether the pin input is HIGH
     ///
     /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to input. See [`into_input`].
+    /// - The pin is in the GPIO state.
+    /// - The pin direction is set to input.
     ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
+    /// See [`Pin::into_input_pin`] and [`into_input`]. Unless both of these
+    /// conditions are met, code trying to call this method will not compile.
     ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`Pin::into_input_pin`]: ../pins/struct.Pin.html#method.into_input_pin
     /// [`into_input`]: #method.into_input
     pub fn is_high(&self) -> bool {
         // This is sound, as we only do a stateless write to a bit that no other
@@ -272,16 +275,16 @@ where
         registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
     }
 
-    /// Indicates wether the pin input is HIGH
+    /// Indicates wether the pin input is LOW
     ///
     /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to input. See [`into_input`].
+    /// - The pin is in the GPIO state.
+    /// - The pin direction is set to input.
     ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
+    /// See [`Pin::into_input_pin`] and [`into_input`]. Unless both of these
+    /// conditions are met, code trying to call this method will not compile.
     ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`Pin::into_input_pin`]: ../pins/struct.Pin.html#method.into_input_pin
     /// [`into_input`]: #method.into_input
     pub fn is_low(&self) -> bool {
         !self.is_high()
@@ -315,13 +318,13 @@ where
     /// Set the pin output to HIGH
     ///
     /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
+    /// - The pin is in the GPIO state.
+    /// - The pin direction is set to output.
     ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
+    /// See [`Pin::into_output_pin`] and [`into_output`]. Unless both of these
+    /// conditions are met, code trying to call this method will not compile.
     ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`Pin::into_output_pin`]: ../pins/struct.Pin.html#method.into_output_pin
     /// [`into_output`]: #method.into_output
     pub fn set_high(&mut self) {
         // This is sound, as we only do a stateless write to a bit that no other
@@ -335,13 +338,13 @@ where
     /// Set the pin output to LOW
     ///
     /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
+    /// - The pin is in the GPIO state.
+    /// - The pin direction is set to output.
     ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
+    /// See [`Pin::into_output_pin`] and [`into_output`]. Unless both of these
+    /// conditions are met, code trying to call this method will not compile.
     ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`Pin::into_output_pin`]: ../pins/struct.Pin.html#method.into_output_pin
     /// [`into_output`]: #method.into_output
     pub fn set_low(&mut self) {
         // This is sound, as we only do a stateless write to a bit that no other
@@ -355,13 +358,13 @@ where
     /// Indicates whether the pin output is currently set to HIGH
     ///
     /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
+    /// - The pin is in the GPIO state.
+    /// - The pin direction is set to output.
     ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
+    /// See [`Pin::into_output_pin`] and [`into_output`]. Unless both of these
+    /// conditions are met, code trying to call this method will not compile.
     ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`Pin::into_output_pin`]: ../pins/struct.Pin.html#method.into_output_pin
     /// [`into_output`]: #method.into_output
     pub fn is_set_high(&self) -> bool {
         // This is sound, as we only read a bit from a register.
@@ -374,28 +377,28 @@ where
     /// Indicates whether the pin output is currently set to LOW
     ///
     /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
+    /// - The pin is in the GPIO state.
+    /// - The pin direction is set to output.
     ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
+    /// See [`Pin::into_output_pin`] and [`into_output`]. Unless both of these
+    /// conditions are met, code trying to call this method will not compile.
     ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`Pin::into_output_pin`]: ../pins/struct.Pin.html#method.into_output_pin
     /// [`into_output`]: #method.into_output
     pub fn is_set_low(&self) -> bool {
         !self.is_set_high()
     }
 
-    /// Toggle the pint output
+    /// Toggle the pin output
     ///
     /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state. Use [`into_gpio_pin`] to achieve this.
-    /// - The pin direction is set to output. See [`into_output`].
+    /// - The pin is in the GPIO state.
+    /// - The pin direction is set to output.
     ///
-    /// Unless both of these conditions are met, code trying to call this method
-    /// will not compile.
+    /// See [`Pin::into_output_pin`] and [`into_output`]. Unless both of these
+    /// conditions are met, code trying to call this method will not compile.
     ///
-    /// [`into_gpio_pin`]: #method.into_gpio_pin
+    /// [`Pin::into_output_pin`]: ../pins/struct.Pin.html#method.into_output_pin
     /// [`into_output`]: #method.into_output
     pub fn toggle(&mut self) {
         // This is sound, as we only do a stateless write to a bit that no other
