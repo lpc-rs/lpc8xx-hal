@@ -23,12 +23,15 @@ use super::{
 
 /// USART transmitter
 ///
-/// # `embedded-hal` traits
-/// - [`embedded_hal::serial::Write`] for asynchronous sending
-/// - [`embedded_hal::blocking::serial::Write`] for synchronous receiving
+/// Can be accessed through [`USART`].
 ///
-/// [`embedded_hal::serial::Write`]: #impl-Write%3Cu8%3E
-/// [`embedded_hal::blocking::serial::Write`]: #impl-Write
+/// # `embedded-hal` traits
+/// - [`embedded_hal::serial::Write`] for non-blocking writes
+/// - [`embedded_hal::blocking::serial::Write`] for blocking writes
+///
+/// [`USART`]: struct.USART.html
+/// [`embedded_hal::serial::Write`]: #impl-Write<W>
+/// [`embedded_hal::blocking::serial::Write`]: #impl-Write<Word>
 pub struct Tx<I, State, Throttle> {
     instance: PhantomData<I>,
     state: PhantomData<State>,

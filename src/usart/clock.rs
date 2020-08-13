@@ -23,7 +23,7 @@ where
 {
     /// Create the clock configuration for the USART
     ///
-    /// `osrval` has to be between 5-16. This value will not be used in
+    /// The `osrval` argument has to be between 5-16. It will be ignored in
     /// synchronous mode.
     pub fn new(_: &C, psc: u16, osrval: u8) -> Self {
         let osrval = osrval - 1;
@@ -85,7 +85,7 @@ mod target {
     impl Clock<syscon::IOSC, AsyncMode> {
         /// Create a new configuration with a specified baudrate
         ///
-        /// Assumes the internal oscillator runs at 12 MHz
+        /// Assumes the internal oscillator runs at 12 MHz.
         pub fn new_with_baudrate(baudrate: u32) -> Self {
             // We want something with 5% tolerance
             let calc = baudrate * 20;

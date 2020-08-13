@@ -5,6 +5,10 @@ use crate::pac::usart0::cfg::{
 };
 
 /// USART settings
+///
+/// Expected as an argument by the various enable methods on [`USART`].
+///
+/// [`USART`]: struct.USART.html
 pub struct Settings<Word = u8> {
     pub(super) data_len: DATALEN_A,
     pub(super) parity: PARITYSEL_A,
