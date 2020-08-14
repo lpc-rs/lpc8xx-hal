@@ -15,6 +15,10 @@ use super::{
 macro_rules! channels {
     ($($field:ident, $name:ident, $index:expr, $cfg:ident, $xfercfg:ident;)*) => {
         /// Provides access to all channels
+        ///
+        /// This struct is part of the [`DMA`] struct.
+        ///
+        /// [`DMA`]: struct.DMA.html
         #[allow(missing_docs)]
         pub struct Channels<State> {
             $(pub $field: Channel<$name, State>,)*
@@ -61,12 +65,12 @@ macro_rules! channels {
 
 
         $(
-            /// This struct is an implementation detail that shouldn't be used by user
+            /// This struct is an internal implementation detail
             pub struct $xfercfg;
 
             reg_cluster!($xfercfg, XFERCFG, pac::DMA0, $field, xfercfg);
 
-            /// This struct is an implementation detail that shouldn't be used by user
+            /// This struct is an interal implementation detail
             pub struct $cfg;
 
             reg_cluster!($cfg, CFG, pac::DMA0, $field, cfg);

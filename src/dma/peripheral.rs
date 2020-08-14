@@ -3,6 +3,13 @@ use crate::{init_state, pac, syscon};
 use super::Channels;
 
 /// Entry point to the DMA API
+///
+/// Controls enabling/disabling the DMA peripheral, and provides access to all
+/// DMA channels via the `channels` field.
+///
+/// You can gain access to an instance of this struct via [`Peripherals`].
+///
+/// [`Peripherals`]: ../struct.Peripherals.html
 pub struct DMA<State> {
     dma: pac::DMA0,
     srambase: u32,
@@ -24,6 +31,16 @@ impl DMA<init_state::Disabled> {
     }
 
     /// Enable the DMA controller
+    ///
+    /// This method is only available, if `DMA` is in the [`Disabled`] state.
+    /// Code attempting to call this method when this is not the case will not
+    /// compile.
+    ///
+    /// Consumes this instance of `DMA` and returns another instance with its
+    /// `State` parameter set to [`Enabled`].
+    ///
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
     pub fn enable(
         self,
         syscon: &mut syscon::Handle,
@@ -52,6 +69,16 @@ impl DMA<init_state::Disabled> {
 
 impl DMA<init_state::Enabled> {
     /// Disable the DMA controller
+    ///
+    /// This method is only available, if `DMA` is in the [`Enabled`] state.
+    /// Code attempting to call this method when this is not the case will not
+    /// compile.
+    ///
+    /// Consumes this instance of `DMA` and returns another instance with its
+    /// `State` parameter set to [`Disabled`].
+    ///
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
     pub fn disable(
         self,
         syscon: &mut syscon::Handle,

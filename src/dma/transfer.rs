@@ -16,6 +16,19 @@ use super::{
 };
 
 /// A DMA transfer
+///
+/// A `Transfer` instance is used to represent a DMA transfer that uses a
+/// specific [`Channel`]. Instances of this can be acquired by calling a
+/// `write_all` or `read_all` method of the peripheral that should be involved
+/// in the transfer.
+///
+/// # Limitations
+///
+/// Currently, memory-to-memory transfers are not supported. If you need this
+/// features, feel free to [comment on the respective GitHub issue].
+///
+/// [`Channel`]: ../struct.Channel.html
+/// [comment on the respective GitHub issue]: https://github.com/lpc-rs/lpc8xx-hal/issues/125
 pub struct Transfer<State, C, S, D>
 where
     C: Instance,
@@ -106,7 +119,13 @@ where
     /// Set INTA flag when this transfer is complete
     ///
     /// By default, the flag is not set. This method can be used to overwrite
-    /// that setting. Setting the flag can be use to trigger an interrupt.
+    /// that setting. Setting the flag can be used to trigger an interrupt.
+    ///
+    /// This method is only available, if the `Transfer` is in the [`Ready`]
+    /// state. Code attempting to call this method when this is not the case
+    /// will not compile.
+    ///
+    /// [`Ready`]: state/struct.Ready.html
     pub fn set_a_when_complete(&mut self) {
         self.payload
             .channel
@@ -117,7 +136,13 @@ where
     /// Set INTB flag when this transfer is complete
     ///
     /// By default, the flag is not set. This method can be used to overwrite
-    /// that setting. Setting the flag can be use to trigger an interrupt.
+    /// that setting. Setting the flag can be used to trigger an interrupt.
+    ///
+    /// This method is only available, if the `Transfer` is in the [`Ready`]
+    /// state. Code attempting to call this method when this is not the case
+    /// will not compile.
+    ///
+    /// [`Ready`]: state/struct.Ready.html
     pub fn set_b_when_complete(&mut self) {
         self.payload
             .channel
@@ -126,6 +151,16 @@ where
     }
 
     /// Start the DMA transfer
+    ///
+    /// This method is only available, if the `Transfer` is in the [`Ready`]
+    /// state. Code attempting to call this method when this is not the case
+    /// will not compile.
+    ///
+    /// Consumes this `Transfer` instance and returns another one with its
+    /// `State` parameter set to [`Started`].
+    ///
+    /// [`Ready`]: state/struct.Ready.html
+    /// [`Started`]: state/struct.Started.html
     pub fn start(self) -> Transfer<state::Started, C, S, D> {
         let registers = SharedRegisters::<C>::new();
 
@@ -156,6 +191,12 @@ where
     /// Indicates whether transfer is currently active
     ///
     /// Corresponds to the channel's flag in the ACTIVE0 register.
+    ///
+    /// This method is only available, if the `Transfer` is in the [`Started`]
+    /// state. Code attempting to call this method when this is not the case
+    /// will not compile.
+    ///
+    /// [`Started`]: state/struct.Started.html
     pub fn is_active(&self) -> bool {
         let registers = SharedRegisters::<C>::new();
         registers.is_active()
@@ -164,6 +205,12 @@ where
     /// Indicates whether transfer is currently busy
     ///
     /// Corresponds to the channel's flag in the BUSY0 register.
+    ///
+    /// This method is only available, if the `Transfer` is in the [`Started`]
+    /// state. Code attempting to call this method when this is not the case
+    /// will not compile.
+    ///
+    /// [`Started`]: state/struct.Started.html
     pub fn is_busy(&self) -> bool {
         let registers = SharedRegisters::<C>::new();
         registers.is_busy()
@@ -172,6 +219,12 @@ where
     /// Indicates whether the error interrupt fired
     ///
     /// Corresponds to the channel's flag in the ERRINT0 register.
+    ///
+    /// This method is only available, if the `Transfer` is in the [`Started`]
+    /// state. Code attempting to call this method when this is not the case
+    /// will not compile.
+    ///
+    /// [`Started`]: state/struct.Started.html
     pub fn error_interrupt_fired(&self) -> bool {
         let registers = SharedRegisters::<C>::new();
         registers.error_interrupt_fired()
@@ -180,6 +233,12 @@ where
     /// Indicates whether interrupt A fired
     ///
     /// Corresponds to the channel's flag in the INTA0 register.
+    ///
+    /// This method is only available, if the `Transfer` is in the [`Started`]
+    /// state. Code attempting to call this method when this is not the case
+    /// will not compile.
+    ///
+    /// [`Started`]: state/struct.Started.html
     pub fn a_interrupt_fired(&self) -> bool {
         let registers = SharedRegisters::<C>::new();
         registers.a_interrupt_fired()
@@ -188,12 +247,32 @@ where
     /// Indicates whether interrupt B fired
     ///
     /// Corresponds to the channel's flag in the INTB0 register.
+    ///
+    /// This method is only available, if the `Transfer` is in the [`Started`]
+    /// state. Code attempting to call this method when this is not the case
+    /// will not compile.
+    ///
+    /// [`Started`]: state/struct.Started.html
     pub fn b_interrupt_fired(&self) -> bool {
         let registers = SharedRegisters::<C>::new();
         registers.b_interrupt_fired()
     }
 
     /// Waits for the transfer to finish
+    ///
+    /// This method will block until the transfer is finished. If this is not
+    /// acceptable, you can enable an interrupt for the channel, and/or check
+    /// the channel state with the [`is_active`] method.
+    ///
+    /// This method is only available, if the `Transfer` is in the [`Started`]
+    /// state. Code attempting to call this method when this is not the case
+    /// will not compile.
+    ///
+    /// Consumes this instance of `Transfer` and returns the transfer payload,
+    /// which contains all resources that were held by this transfer.
+    ///
+    /// [`is_active`]: #method.is_active
+    /// [`Started`]: state/struct.Started.html
     pub fn wait(
         mut self,
     ) -> Result<Payload<C, S, D>, (Error<S::Error, D::Error>, Payload<C, S, D>)>
@@ -250,7 +329,12 @@ pub enum Error<S, D> {
     Dest(D),
 }
 
-/// The payload of a `Transfer`
+/// The payload of a [`Transfer`]
+///
+/// These are resources that must be moved into a [`Transfer`] while it is going
+/// on, and will be returned to the user once it has finished.
+///
+/// [`Transfer`]: struct.Transfer.html
 pub struct Payload<C, S, D>
 where
     C: Instance,
@@ -259,9 +343,13 @@ where
     pub channel: Channel<C, Enabled>,
 
     /// The source of the transfer
+    ///
+    /// Can be a peripheral or a buffer.
     pub source: S,
 
     /// The destination of the transfer
+    ///
+    /// Can be a peripheral or a buffer.
     pub dest: D,
 }
 
@@ -279,9 +367,9 @@ where
 
 /// The source of a DMA transfer
 ///
-/// This trait is intended for internal use only. It is implemented for
-/// immutable static buffers and peripherals that support being read from using
-/// DMA.
+/// This trait's methods are intended for internal use only. It is implemented
+/// for immutable static buffers and peripherals that support being read from
+/// using DMA.
 pub trait Source: crate::private::Sealed {
     /// The error that can occur while finishing the transfer
     type Error;
@@ -323,8 +411,9 @@ pub trait Source: crate::private::Sealed {
 
 /// A destination for a DMA transfer
 ///
-/// This trait is intended for internal use only. It is implemented for mutable
-/// static buffers and peripherals that support being written to using DMA.
+/// This trait's methods are intended for internal use only. It is implemented
+/// for mutable static buffers and peripherals that support being written to
+/// using DMA.
 pub trait Dest: crate::private::Sealed {
     /// The error that can occur while finishing the transfer
     type Error;
@@ -368,11 +457,15 @@ pub trait Dest: crate::private::Sealed {
 pub mod state {
     /// Indicates that a transfer is ready to be started
     ///
-    /// Used for the `State` type parameter of `Transfer`.
+    /// Used for the `State` type parameter of [`Transfer`].
+    ///
+    /// [`Transfer`]: ../struct.Transfer.html
     pub struct Ready;
 
     /// Indicates that a transfer has been started
     ///
-    /// Used for the `State` type parameter of `Transfer`.
+    /// Used for the `State` type parameter of [`Transfer`].
+    ///
+    /// [`Transfer`]: ../struct.Transfer.html
     pub struct Started;
 }
