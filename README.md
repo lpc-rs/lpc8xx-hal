@@ -30,7 +30,7 @@ To include LPC8xx HAL in you project, add the following to your `Cargo.toml`:
 
 ``` toml
 [dependencies]
-lpc8xx-hal = "0.7"
+lpc8xx-hal = "0.8"
 ```
 
 If you want to use LPC8xx HAL in an application (as opposed to a library), there are additional things that need to be set up. Please refer to the [API Reference] for details.
