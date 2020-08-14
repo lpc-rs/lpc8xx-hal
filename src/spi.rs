@@ -1,4 +1,10 @@
-//! API for the SPI peripherals
+//! API for the SPI peripheral
+//!
+//! The entry point to this API is the [`SPI`] struct.
+//!
+//! The SPI peripheral is described in the following user manuals:
+//! - LPC82x user manual, chapter 14
+//! - LPC84x user manual, chapter 18
 //!
 //! # Example
 //!
@@ -53,6 +59,7 @@
 //!
 //! Please refer to the [examples in the repository] for more example code.
 //!
+//! [`SPI`]: struct.SPI.html
 //! [examples in the repository]: https://github.com/lpc-rs/lpc8xx-hal/tree/master/examples
 
 mod clock;

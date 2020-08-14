@@ -2,7 +2,7 @@ use core::marker::PhantomData;
 
 use crate::syscon::{self, clock_source::PeripheralClockSelector};
 
-/// A struct containing the clock configuration for a peripheral
+/// Contains the clock configuration for an SPI instance
 pub struct Clock<Clock> {
     pub(crate) divval: u16,
     // The fields in the DLY register are ignored, since SSEL & EOF aren't used

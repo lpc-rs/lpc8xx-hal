@@ -96,13 +96,8 @@ where
     /// Consumes this instance of `SPI` and returns another instance that has
     /// its `State` type parameter set to [`Enabled`].
     ///
-    /// # Examples
-    ///
-    /// Please refer to the [module documentation] for a full example.
-    ///
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     /// [`Enabled`]: ../init_state/struct.Enabled.html
-    /// [module documentation]: index.html
     pub fn enable_as_slave<C, SckPin, MosiPin, MisoPin, Ssel, SselPin>(
         self,
         _clock: &C,
@@ -374,9 +369,17 @@ impl<I: Instance> embedded_hal::blocking::spi::write::Default<u8>
 }
 
 /// Indicates that SPI is in master mode
+///
+/// Used as a type parameter on [`SPI`].
+///
+/// [`SPI`]: struct.SPI.html
 pub struct Master;
 
 /// Indicates that SPI is in slave mode
+///
+/// Used as a type parameter on [`SPI`].
+///
+/// [`SPI`]: struct.SPI.html
 pub struct Slave;
 
 /// Receiver Overrun Error

@@ -17,7 +17,9 @@ use super::{Instance, Master, SPI};
 ///
 /// Since the SPI peripheral is capable of sending and receiving at the same
 /// time, using the same buffer, it needs this bespoke `Transfer` struct, which
-/// wraps and manages two `dma::Transfer` structs under the hood.
+/// wraps and manages two [`dma::Transfer`] structs under the hood.
+///
+/// [`dma::Transfer`]: ../dma/struct.Transfer.html
 pub struct Transfer<State, I: Instance> {
     spi: SPI<I, Enabled<Master>>,
     buffer: &'static mut [u8],
