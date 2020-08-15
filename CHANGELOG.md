@@ -1,3 +1,42 @@
+<a name="v0.8.0"></a>
+## v0.8.0 (2020-08-15)
+
+- Improve I2C API ([#251], [#252])
+- Add support for I2C slave mode ([#253], [#254])
+- Improve SPI API ([#255], [#256])
+- Seal `Instance` traits ([#257])
+- Add support for SPI slave mode ([#259])
+- Improve DMA API ([#260], [#262], [#263])
+- Add DMA read support to USART API ([#261])
+- Add DMA support for I2C master mode ([#264])
+- Add DMA support for SPI master mode ([#265])
+- Improve USART API ([#266], [#267], [#268], [#270])
+- Add support for hardware flow control to USART API ([#269])
+- Add support for synchronous mode to USART API ([#271])
+- Add support for address matching to USART API ([#272])
+
+[#251]: https://github.com/lpc-rs/lpc8xx-hal/pull/251
+[#252]: https://github.com/lpc-rs/lpc8xx-hal/pull/252
+[#253]: https://github.com/lpc-rs/lpc8xx-hal/pull/253
+[#254]: https://github.com/lpc-rs/lpc8xx-hal/pull/254
+[#255]: https://github.com/lpc-rs/lpc8xx-hal/pull/255
+[#256]: https://github.com/lpc-rs/lpc8xx-hal/pull/256
+[#257]: https://github.com/lpc-rs/lpc8xx-hal/pull/257
+[#259]: https://github.com/lpc-rs/lpc8xx-hal/pull/259
+[#260]: https://github.com/lpc-rs/lpc8xx-hal/pull/260
+[#261]: https://github.com/lpc-rs/lpc8xx-hal/pull/261
+[#262]: https://github.com/lpc-rs/lpc8xx-hal/pull/262
+[#263]: https://github.com/lpc-rs/lpc8xx-hal/pull/263
+[#264]: https://github.com/lpc-rs/lpc8xx-hal/pull/264
+[#265]: https://github.com/lpc-rs/lpc8xx-hal/pull/265
+[#266]: https://github.com/lpc-rs/lpc8xx-hal/pull/266
+[#267]: https://github.com/lpc-rs/lpc8xx-hal/pull/267
+[#268]: https://github.com/lpc-rs/lpc8xx-hal/pull/268
+[#269]: https://github.com/lpc-rs/lpc8xx-hal/pull/269
+[#270]: https://github.com/lpc-rs/lpc8xx-hal/pull/270
+[#271]: https://github.com/lpc-rs/lpc8xx-hal/pull/271
+[#272]: https://github.com/lpc-rs/lpc8xx-hal/pull/272
+
 <a name="v0.7.1"></a>
 ## v0.7.1 (2020-06-26)
 
