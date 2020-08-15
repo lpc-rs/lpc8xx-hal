@@ -2,7 +2,9 @@
 //!
 //! The entry point to this API is the [`USART`] struct.
 //!
-//! The USART peripheral is described in the user manual, chapter 13.
+//! The USART peripheral is described in the following user manuals:
+//! - LPC82x user manual, chapter 13
+//! - LPC84x user manual, chapter 17
 //!
 //! # Examples
 //!

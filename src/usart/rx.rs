@@ -18,11 +18,14 @@ use super::{
 
 /// USART receiver
 ///
+/// Can be accessed through [`USART`].
+///
 /// # `embedded-hal` traits
-/// - [`embedded_hal::serial::Read`] for asynchronous receiving
+/// - [`embedded_hal::serial::Read`] for non-blocking reads
 ///
 ///
-/// [`embedded_hal::serial::Read`]: #impl-Read%3Cu8%3E
+/// [`USART`]: struct.USART.html
+/// [`embedded_hal::serial::Read`]: #impl-Read<W>
 pub struct Rx<I, State> {
     _instance: PhantomData<I>,
     _state: PhantomData<State>,

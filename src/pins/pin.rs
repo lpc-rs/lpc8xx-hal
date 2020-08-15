@@ -193,6 +193,34 @@ where
     /// that the GPIO peripheral is enabled, and stays enabled while the pin is
     /// in the GPIO mode.
     ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// use lpc8xx_hal::prelude::*;
+    /// use lpc8xx_hal::Peripherals;
+    ///
+    /// let p = Peripherals::take().unwrap();
+    ///
+    /// let mut syscon = p.SYSCON.split();
+    /// let swm = p.SWM.split();
+    ///
+    /// #[cfg(feature = "82x")]
+    /// let gpio = p.GPIO;
+    /// #[cfg(feature = "845")]
+    /// let gpio = p.GPIO.enable(&mut syscon.handle);
+    ///
+    /// // Transition pin into GPIO state, then set it to output
+    /// let mut pin = p.pins.pio0_12
+    ///     .into_input_pin(gpio.tokens.pio0_12);
+    ///
+    /// // Input level can now be read
+    /// if pin.is_high() {
+    ///     // The pin is high
+    /// } else {
+    ///     // The pin is low
+    /// }
+    /// ```
+    ///
     /// [State Management]: #state-management
     /// [`GpioPin`]: ../gpio/struct.GpioPin.html
     /// [`GPIO`]: ../gpio/struct.GPIO.html
@@ -216,6 +244,36 @@ where
     /// This method requires a GPIO token from the [`GPIO`] struct, to ensure
     /// that the GPIO peripheral is enabled, and stays enabled while the pin is
     /// in the GPIO mode.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// use lpc8xx_hal::{
+    ///     prelude::*,
+    ///     Peripherals,
+    ///     gpio,
+    /// };
+    ///
+    /// let p = Peripherals::take().unwrap();
+    ///
+    /// let mut syscon = p.SYSCON.split();
+    /// let swm = p.SWM.split();
+    ///
+    /// #[cfg(feature = "82x")]
+    /// let gpio = p.GPIO;
+    /// #[cfg(feature = "845")]
+    /// let gpio = p.GPIO.enable(&mut syscon.handle);
+    ///
+    /// // Transition pin into GPIO state, then set it to output
+    /// let mut pin = p.pins.pio0_12.into_output_pin(
+    ///     gpio.tokens.pio0_12,
+    ///     gpio::Level::Low,
+    /// );
+    ///
+    /// // Output level can now be controlled
+    /// pin.set_high();
+    /// pin.set_low();
+    /// ```
     ///
     /// [State Management]: #state-management
     /// [`GpioPin`]: ../gpio/struct.GpioPin.html

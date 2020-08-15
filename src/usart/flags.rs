@@ -12,7 +12,12 @@ macro_rules! flags {
     ) => {
         /// Used to query the state of USART flags
         ///
-        /// See `USART::is_flag_set`.
+        /// See [`USART::is_flag_set`], [`usart::Tx::is_flag_set`], and
+        /// [`usart::Rx::is_flag_set`].
+        ///
+        /// [`USART::is_flag_set`]: struct.USART.html#method.is_flag_set
+        /// [`usart::Tx::is_flag_set`]: struct.Tx.html#method.is_flag_set
+        /// [`usart::Rx::is_flag_set`]: struct.Rx.html#method.is_flag_set
         pub enum Flag {
             $(
                 #[doc = $description]
@@ -143,7 +148,17 @@ macro_rules! flags {
     ) => {
         /// Used to enable or disable USART interrupts
         ///
-        /// See `USART::enable_interrupts` and `USART::disable_interrupts`.
+        /// See [`USART::enable_interrupts`], [`USART::disable_interrupts`],
+        /// [`usart::Tx::enable_interrupts`], [`usart::Tx::disable_interrupts`],
+        /// [`usart::Rx::enable_interrupts`], and
+        /// [`usart::Rx::disable_interrupts`].
+        ///
+        /// [`USART::enable_interrupts`]: struct.USART.html#method.enable_interrupts
+        /// [`USART::disable_interrupts`]: struct.USART.html#method.disable_interrupts
+        /// [`usart::Tx::enable_interrupts`]: struct.Tx.html#method.enable_interrupts
+        /// [`usart::Tx::disable_interrupts`]: struct.Tx.html#method.disable_interrupts
+        /// [`usart::Rx::enable_interrupts`]: struct.Rx.html#method.enable_interrupts
+        /// [`usart::Rx::disable_interrupts`]: struct.Rx.html#method.disable_interrupts
         #[allow(non_snake_case)]
         pub struct Interrupts {
             $($output_ty)*
@@ -169,7 +184,7 @@ flags!(
      6, ro, both, TXDIS,      "Transmitter disabled";
      8, w1, both, OVERRUN,    "Overrun error";
     10, ro, flag, RXBRK,      "Received break";
-    11, w1, both, DELTARXBRK, "RXBRK signal has changed state";
+    11, w1, both, DELTARXBRK, "RXBRK flag has changed state";
     12, w1, both, START,      "Start detected";
     13, w1, both, FRAMERR,    "Framing error";
     14, w1, both, PARITYERR,  "Parity error";

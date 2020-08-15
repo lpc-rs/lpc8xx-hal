@@ -18,6 +18,16 @@ use crate::{
 use super::descriptors::ChannelDescriptor;
 
 /// A DMA channel
+///
+/// The `Channel` struct represents a specific DMA channel. It provides methods
+/// to control that channel.
+///
+/// To use a `Channel` instance for a DMA transfer, you must pass it to a
+/// `write_all` or `read_all` method of the peripheral you want to use it with.
+///
+/// You can gain access to instances of this struct via [`Channels`].
+///
+/// [`Channels`]: ../struct.Channels.html
 pub struct Channel<C, S>
 where
     C: Instance,

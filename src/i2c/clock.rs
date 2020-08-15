@@ -2,7 +2,7 @@ use core::marker::PhantomData;
 
 use crate::syscon::{self, clock_source::PeripheralClockSelector};
 
-/// A struct containing the clock configuration for a peripheral
+/// Contains the clock configuration for an I2C instance
 pub struct Clock<Clock> {
     pub(crate) divval: u16,
     pub(crate) mstsclhigh: u8,
@@ -62,9 +62,9 @@ mod target {
     }
 
     impl Clock<()> {
-        /// Create a new i2c clock config for 400 kHz
+        /// Create a new I2C clock configuration for 400 kHz
         ///
-        /// Assumes the internal oscillator runs at 12 MHz
+        /// Assumes the internal oscillator runs at 12 MHz.
         pub fn new_400khz() -> Self {
             Self {
                 divval: 5,
@@ -102,9 +102,9 @@ mod target {
     }
 
     impl Clock<IOSC> {
-        /// Create a new i2c clock config for 400 kHz
+        /// Create a new I2C clock configuration for 400 kHz
         ///
-        /// Assumes the internal oscillator runs at 12 MHz
+        /// Assumes the internal oscillator runs at 12 MHz.
         pub fn new_400khz() -> Self {
             Self {
                 divval: 5,

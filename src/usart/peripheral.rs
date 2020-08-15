@@ -34,16 +34,16 @@ use super::{
 /// Please refer to the [module documentation] for more information.
 ///
 /// # `embedded-hal` traits
-/// - [`embedded_hal::serial::Read`] for asynchronous receiving
-/// - [`embedded_hal::serial::Write`] for asynchronous sending
-/// - [`embedded_hal::blocking::serial::Write`] for synchronous sending
+/// - [`embedded_hal::serial::Read`] for non-blocking reads
+/// - [`embedded_hal::serial::Write`] for non-blocking writes
+/// - [`embedded_hal::blocking::serial::Write`] for blocking writes
 ///
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-/// [`embedded_hal::serial::Read`]: #impl-Read%3Cu8%3E
-/// [`embedded_hal::serial::Write`]: #impl-Write%3Cu8%3E
-/// [`embedded_hal::blocking::serial::Write`]: #impl-Write
+/// [`embedded_hal::serial::Read`]: #impl-Read<W>
+/// [`embedded_hal::serial::Write`]: #impl-Write<W>
+/// [`embedded_hal::blocking::serial::Write`]: #impl-Write<Word>
 pub struct USART<I, State> {
     /// The USART Receiver
     pub rx: Rx<I, State>,
@@ -68,6 +68,10 @@ where
     }
 
     /// Enable the USART in asynchronous mode
+    ///
+    /// Asynchronous mode works without an external clock signal. The word
+    /// "asynchronous" has no relation to blocking or non-blocking APIs, in this
+    /// context.
     ///
     /// This method is only available, if `USART` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
@@ -130,6 +134,10 @@ where
 
     /// Enable the USART in synchronous mode as master
     ///
+    /// Synchronous mode works with an external clock signal. The word
+    /// "synchronous" has no relation to blocking or non-blocking APIs, in this
+    /// context.
+    ///
     /// This method is only available, if `USART` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
     /// enabled will not compile.
@@ -185,6 +193,10 @@ where
     }
 
     /// Enable the USART in synchronous mode as slave
+    ///
+    /// Synchronous mode works with an external clock signal. The word
+    /// "synchronous" has no relation to blocking or non-blocking APIs, in this
+    /// context.
     ///
     /// This method is only available, if `USART` is in the [`Disabled`] state.
     /// Code that attempts to call this method when the peripheral is already
@@ -283,7 +295,7 @@ where
     /// Consumes this instance of `USART` and returns another instance that has
     /// its `State` type parameter set to [`Disabled`].
     ///
-    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    /// [`Enabled`]: state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     pub fn disable(self, syscon: &mut syscon::Handle) -> USART<I, Disabled> {
         syscon.disable_clock(&self.usart);
