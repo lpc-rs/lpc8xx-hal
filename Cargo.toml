@@ -93,6 +93,10 @@ optional = true
 # warnings.
 no-target-warning = []
 
+# Indicates to the build script that we're building docs, and it can skip
+# whatever might not work or is not necessary.
+docs = []
+
 # Internal implementation detail. Used by HAL code to determine the exact
 # hardware capabilites.
 20 = []
@@ -188,4 +192,4 @@ opt-level = "s"
 
 
 [package.metadata.docs.rs]
-features = ["845"]
+features = ["845", "docs"]
