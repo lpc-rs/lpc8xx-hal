@@ -1,3 +1,11 @@
+<a name="v0.8.1"></a>
+## v0.8.1 (2020-08-21)
+
+- Attempt to fix fix docs.rs build ([#277])
+
+[#277]: https://github.com/lpc-rs/lpc8xx-hal/pull/277
+
+
 <a name="v0.8.0"></a>
 ## v0.8.0 (2020-08-15)
 
