@@ -11,6 +11,16 @@ use termion::{color, style};
 fn main() -> Result<(), Error> {
     let target = Target::read();
 
+    // Nothing this build script does after this point is required when
+    // generating documentation.
+    //
+    // In addition, the docs.rs build environment has a read-only file system,
+    // meaning an attempt to run this build script will fail the whole build for
+    // no reason.
+    if cfg!(feature = "docs") {
+        return Ok(());
+    }
+
     copy_openocd_config(target)?;
     copy_memory_config(target)?;
 
