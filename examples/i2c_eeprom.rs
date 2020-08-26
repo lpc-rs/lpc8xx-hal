@@ -93,7 +93,7 @@ fn main() -> ! {
 
     // Address of the eeprom
     // ADJUST THIS
-    let address = 0b1010_0000;
+    let address = 0b101_0000;
 
     serial
         .bwrite_all(b"Writing data...\n")
