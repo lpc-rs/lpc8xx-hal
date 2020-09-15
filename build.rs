@@ -5,8 +5,7 @@ use std::{
     path::PathBuf,
 };
 
-#[cfg(feature = "termion")]
-use termion::{color, style};
+use crossterm::style::{Colorize as _, Styler as _};
 
 fn main() -> Result<(), Error> {
     let target = Target::read();
@@ -161,18 +160,7 @@ impl From<io::Error> for Error {
 }
 
 fn error(message: &str) -> ! {
-    #[cfg(not(feature = "termion"))]
-    panic!("\n\n\n{}\n\n\n", message);
-
-    #[cfg(feature = "termion")]
-    panic!(
-        "\n\n\n{}{}{}{}{}\n\n\n",
-        style::Bold,
-        color::Fg(color::Red),
-        message,
-        color::Fg(color::Reset),
-        style::Reset,
-    );
+    panic!("\n\n\n{}\n\n\n", message.bold().red(),);
 }
 
 fn warn_unspecific_selection() {

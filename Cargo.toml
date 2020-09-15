@@ -65,11 +65,8 @@ version  = "0.2.2"
 features = ["cortex-m"]
 
 
-# Termion has been made optional, as it doesn't build on Windows:
-# https://gitlab.redox-os.org/redox-os/termion/issues/167
-[build-dependencies.termion]
-version  = "1.5.5"
-optional = true
+[build-dependencies]
+crossterm = "0.17.7"
 
 
 [features]
