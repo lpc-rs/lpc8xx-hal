@@ -1,0 +1,8 @@
+error[E0308]: mismatched types
+  --> $DIR/unassign-function-from-wrong-pin.rs:30:39
+   |
+30 |     let (u0_rxd, _) = u0_rxd.unassign(pio0_1.into_swm_pin(), &mut swm_handle);
+   |                                       ^^^^^^^^^^^^^^^^^^^^^ expected struct `lpc8xx_hal::pins::PIO0_0`, found struct `lpc8xx_hal::pins::PIO0_1`
+   |
+   = note: expected struct `lpc8xx_hal::pins::Pin<lpc8xx_hal::pins::PIO0_0, lpc8xx_hal::pins::state::Swm<_, (_,)>>`
+              found struct `lpc8xx_hal::pins::Pin<lpc8xx_hal::pins::PIO0_1, lpc8xx_hal::pins::state::Swm<(), ()>>`
