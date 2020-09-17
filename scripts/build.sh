@@ -34,9 +34,14 @@ function build() {
     echo "### Building target $1"
     echo ""
 
+    # Only run trybuild on the stable channel. Otherwise changes to compiler
+    # output will break the build, until they propagate all the way from nightly
+    # to stable.
+    [ "$STABLE_CHECKS" = true ] && TRYBUILD=",trybuild" || TRYBUILD=""
+
     cargo test \
         --verbose \
-        --features=$1,no-target-warning,trybuild \
+        --features=$1,no-target-warning$TRYBUILD \
         --target=$HOST_TARGET
     cargo build --verbose --features=$1-rt,no-target-warning --examples
 }
