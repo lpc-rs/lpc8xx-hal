@@ -24,7 +24,10 @@ function build() {
     echo "### Building target $1"
     echo ""
 
-    cargo test --verbose --features=$1,no-target-warning --target=$HOST_TARGET
+    cargo test \
+        --verbose \
+        --features=$1,no-target-warning,trybuild \
+        --target=$HOST_TARGET
     cargo build --verbose --features=$1-rt,no-target-warning --examples
 }
 
