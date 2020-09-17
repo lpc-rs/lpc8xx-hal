@@ -20,6 +20,10 @@ if [ "$TRAVIS_RUST_VERSION" != beta ] && [ "$TRAVIS_RUST_VERSION" != nightly ]; 
 fi
 
 function build() {
+    echo ""
+    echo "### Building target $1"
+    echo ""
+
     cargo test --verbose --features=$1,no-target-warning --target=$HOST_TARGET
     cargo build --verbose --features=$1-rt,no-target-warning --examples
 }
