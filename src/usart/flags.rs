@@ -35,7 +35,7 @@ macro_rules! flags {
                     $(
                         Self::$name => {
                             let flag = usart.stat.read()
-                                .bits() | (0x1 << $bit_pos);
+                                .bits() & (0x1 << $bit_pos);
                             flags!(@reset, $access, usart, $bit_pos);
                             flag != 0
                         }
