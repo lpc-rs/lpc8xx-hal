@@ -1,3 +1,14 @@
+<a name="v0.8.2"></a>
+## v0.8.2 (2020-09-21)
+
+- Upgrade to `nb` 1.0 ([#279])
+- Restore color output of build script ([#279])
+- Fix bug in `USART::is_flag_set` ([#280])
+
+[#279]: https://github.com/lpc-rs/lpc8xx-hal/pull/279
+[#280]: https://github.com/lpc-rs/lpc8xx-hal/pull/280
+
+
 <a name="v0.8.1"></a>
 ## v0.8.1 (2020-08-21)
 
