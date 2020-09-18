@@ -26,10 +26,10 @@ travis-ci = { repository = "lpc-rs/lpc8xx-hal" }
 cortex-m = "0.6.3"
 nb       = "1.0.0"
 
-# This should be in [dev-dependencies], but those can't be optional. Issue:
-# https://github.com/rust-lang/cargo/issues/1596
-[dependencies.compiletest_rs]
-version  = "0.3.23"
+# This should be in [dev-dependencies], but those can't be optional.
+# Issue: https://github.com/rust-lang/cargo/issues/1596
+[dependencies.trybuild]
+version  = "1.0.35"
 optional = true
 
 [dependencies.cortex-m-rt]
@@ -116,10 +116,6 @@ docs = []
 # Internal implementation detail. Used by other code to determine whether a
 # runtime feature was selected.
 rt-selected = []
-
-# This is needed to make the compiletest stuff optional. It requires std, which
-# means we can't build it together with the examples.
-compiletest = ["compiletest_rs"]
 
 
 [[example]]

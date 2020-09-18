@@ -1,0 +1,5 @@
+error[E0599]: no method named `unassign` found for struct `lpc8xx_hal::swm::Function<lpc8xx_hal::swm::U0_TXD, lpc8xx_hal::swm::state::Unassigned>` in the current scope
+  --> $DIR/unassign-unassigned-output-function.rs:33:16
+   |
+33 |         u0_txd.unassign(pio0_0, &mut swm_handle);
+   |                ^^^^^^^^ help: there is an associated function with a similar name: `assign`

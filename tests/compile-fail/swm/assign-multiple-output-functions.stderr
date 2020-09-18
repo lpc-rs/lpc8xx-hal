@@ -1,0 +1,10 @@
+error[E0277]: the trait bound `lpc8xx_hal::pins::Pin<lpc8xx_hal::pins::PIO0_0, lpc8xx_hal::pins::state::Swm<((),), (((),),)>>: lpc8xx_hal::swm::AssignFunction<lpc8xx_hal::swm::U1_TXD, lpc8xx_hal::swm::Output>` is not satisfied
+  --> $DIR/assign-multiple-output-functions.rs:41:23
+   |
+41 |         u1_txd.assign(pio0_0, &mut swm_handle);
+   |                       ^^^^^^ the trait `lpc8xx_hal::swm::AssignFunction<lpc8xx_hal::swm::U1_TXD, lpc8xx_hal::swm::Output>` is not implemented for `lpc8xx_hal::pins::Pin<lpc8xx_hal::pins::PIO0_0, lpc8xx_hal::pins::state::Swm<((),), (((),),)>>`
+   |
+   = help: the following implementations were found:
+             <lpc8xx_hal::pins::Pin<T, lpc8xx_hal::pins::state::Swm<(), ()>> as lpc8xx_hal::swm::AssignFunction<F, lpc8xx_hal::swm::Analog>>
+             <lpc8xx_hal::pins::Pin<T, lpc8xx_hal::pins::state::Swm<(), Is>> as lpc8xx_hal::swm::AssignFunction<F, lpc8xx_hal::swm::Output>>
+             <lpc8xx_hal::pins::Pin<T, lpc8xx_hal::pins::state::Swm<O, Is>> as lpc8xx_hal::swm::AssignFunction<F, lpc8xx_hal::swm::Input>>
