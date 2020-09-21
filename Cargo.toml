@@ -1,6 +1,6 @@
 [package]
 name    = "lpc8xx-hal"
-version = "0.8.1"
+version = "0.8.2"
 edition = "2018"
 
 authors = [
