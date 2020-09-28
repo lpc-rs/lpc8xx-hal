@@ -1,4 +1,4 @@
-use core::marker::PhantomData;
+use core::{fmt, marker::PhantomData};
 
 use crate::{init_state, swm, syscon};
 
@@ -227,5 +227,21 @@ where
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
     pub fn free(self) -> I {
         self.i2c
+    }
+}
+
+// Can't derive, because peripheral structs from the PAC don't implement
+// `Debug`. See https://github.com/rust-embedded/svd2rust/issues/48.
+impl<I, State, MasterMode, SlaveMode> fmt::Debug
+    for I2C<I, State, MasterMode, SlaveMode>
+where
+    I: Instance,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("I2C")
+            .field("master", &self.master)
+            .field("slave", &self.slave)
+            .field("i2c", &"i2c")
+            .finish()
     }
 }
