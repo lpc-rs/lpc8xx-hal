@@ -151,6 +151,9 @@ where
         MasterMode,
         init_state::Enabled,
     > {
+        // This is a placeholder until proper error handling is added.
+        Error::check_address(address).unwrap();
+
         // Enable slave mode
         // Set all other configuration values to default.
         self.i2c.cfg.modify(|_, w| w.slven().enabled());
@@ -160,7 +163,7 @@ where
             w.sadisable().enabled();
 
             // Sound, as all possible 7-bit values are acceptable here.
-            unsafe { w.slvadr().bits(address >> 1) }
+            unsafe { w.slvadr().bits(address) }
         });
 
         I2C {
