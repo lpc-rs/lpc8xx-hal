@@ -2,6 +2,7 @@ use super::{master, Instance};
 
 /// I2C error
 #[derive(Debug, Eq, PartialEq)]
+#[non_exhaustive]
 pub enum Error {
     /// Event Timeout
     ///
@@ -39,6 +40,11 @@ pub enum Error {
         /// represents an invalid bit pattern in the MSTSTATE field.
         actual: Result<master::State, u8>,
     },
+
+    /// An unencodable address was specified.
+    ///
+    /// Currently, only seven-bit addressing is implemented.
+    AddressOutOfRange,
 
     /// While in slave mode, an unknown state was detected
     UnknownSlaveState(u8),

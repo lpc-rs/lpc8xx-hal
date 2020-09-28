@@ -17,6 +17,8 @@ use core::fmt::Write;
 
 use lpc8xx_hal::{cortex_m_rt::entry, i2c, prelude::*, usart, Peripherals};
 
+const ADDRESS: u8 = 0x29;
+
 #[entry]
 fn main() -> ! {
     rtt_target::rtt_init_print!();
@@ -95,7 +97,7 @@ fn main() -> ! {
 
     // Write index of reference register
     i2c.master
-        .write(0x52, &[0xC0])
+        .write(ADDRESS, &[0xC0])
         .expect("Failed to write data");
 
     serial
@@ -105,7 +107,7 @@ fn main() -> ! {
     // Read value from reference register
     let mut buffer = [0u8; 1];
     i2c.master
-        .read(0x52, &mut buffer)
+        .read(ADDRESS, &mut buffer)
         .expect("Failed to read data");
 
     write!(serial, "{:#X}\n", buffer[0]).expect("Write should never fail");

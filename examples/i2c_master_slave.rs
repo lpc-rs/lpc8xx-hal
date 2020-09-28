@@ -10,7 +10,7 @@ use lpc8xx_hal::{
 };
 use rtt_target::rprintln;
 
-const ADDRESS: u8 = 0x48;
+const ADDRESS: u8 = 0x24;
 
 #[rtic::app(device = lpc8xx_hal::pac)]
 const APP: () = {

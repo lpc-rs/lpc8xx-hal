@@ -120,13 +120,17 @@ where
     }
 
     fn start_operation(&mut self, address: u8, rw: Rw) -> Result<(), Error> {
+        if address > 0b111_1111 {
+            return Err(Error::AddressOutOfRange);
+        }
+
         self.wait_for_state(State::Idle)?;
 
         // Write address
-        let address = address & 0xfe | rw as u8;
+        let address_rw = (address << 1) | rw as u8;
         self.mstdat.write(|w| unsafe {
             // Sound, as all 8-bit values are accepted here.
-            w.data().bits(address)
+            w.data().bits(address_rw)
         });
 
         // Start operation

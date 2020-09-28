@@ -122,7 +122,7 @@ where
     pub fn address(&self) -> Result<u8, Error> {
         Error::read::<I>()?;
 
-        let address = self.slvdat.read().data().bits();
+        let address = self.slvdat.read().data().bits() >> 1;
         Ok(address)
     }
 
