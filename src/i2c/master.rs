@@ -2,6 +2,7 @@
 
 use core::{
     convert::{TryFrom, TryInto as _},
+    fmt,
     marker::PhantomData,
 };
 
@@ -120,10 +121,7 @@ where
     }
 
     fn start_operation(&mut self, address: u8, rw: Rw) -> Result<(), Error> {
-        if address > 0b111_1111 {
-            return Err(Error::AddressOutOfRange);
-        }
-
+        Error::check_address(address)?;
         self.wait_for_state(State::Idle)?;
 
         // Write address
@@ -299,6 +297,22 @@ where
     }
 }
 
+// Can't derive, because peripheral structs from the PAC don't implement
+// `Debug`. See https://github.com/rust-embedded/svd2rust/issues/48.
+impl<I, State, ModeState> fmt::Debug for Master<I, State, ModeState>
+where
+    I: Instance,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Master")
+            .field("_state", &self._state)
+            .field("_mode_state", &self._mode_state)
+            .field("mstctl", &self.mstctl)
+            .field("mstdat", &self.mstdat)
+            .finish()
+    }
+}
+
 /// Private helper struct to model the R/W bit
 #[repr(u8)]
 enum Rw {
@@ -365,6 +379,14 @@ where
     }
 }
 
+// Can't derive, because peripheral structs from the PAC don't implement
+// `Debug`. See https://github.com/rust-embedded/svd2rust/issues/48.
+impl<I> fmt::Debug for MstCtl<I> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "MstCtl(...)")
+    }
+}
+
 struct MstDat<I>(PhantomData<I>);
 
 // Sound, as the pointer returned is valid for the duration of the program.
@@ -378,5 +400,13 @@ where
         // Sound, as MSTDAT is exclusively used by `Master`, and only one
         // `RegProxy` instance for it exists.
         unsafe { &(*I::REGISTERS).mstdat as *const _ }
+    }
+}
+
+// Can't derive, because peripheral structs from the PAC don't implement
+// `Debug`. See https://github.com/rust-embedded/svd2rust/issues/48.
+impl<I> fmt::Debug for MstDat<I> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "MstDat(...)")
     }
 }

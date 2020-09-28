@@ -1,4 +1,4 @@
-use core::marker::PhantomData;
+use core::{fmt, marker::PhantomData};
 
 use crate::{init_state, swm, syscon};
 
@@ -145,12 +145,19 @@ where
     pub fn enable_slave_mode(
         self,
         address: u8,
-    ) -> I2C<
-        I,
-        init_state::Enabled<PhantomData<C>>,
-        MasterMode,
-        init_state::Enabled,
+    ) -> Result<
+        I2C<
+            I,
+            init_state::Enabled<PhantomData<C>>,
+            MasterMode,
+            init_state::Enabled,
+        >,
+        (Error, Self),
     > {
+        if let Err(err) = Error::check_address(address) {
+            return Err((err, self));
+        }
+
         // Enable slave mode
         // Set all other configuration values to default.
         self.i2c.cfg.modify(|_, w| w.slven().enabled());
@@ -160,15 +167,15 @@ where
             w.sadisable().enabled();
 
             // Sound, as all possible 7-bit values are acceptable here.
-            unsafe { w.slvadr().bits(address >> 1) }
+            unsafe { w.slvadr().bits(address) }
         });
 
-        I2C {
+        Ok(I2C {
             master: Master::new(),
             slave: Slave::new(),
 
             i2c: self.i2c,
-        }
+        })
     }
 }
 
@@ -224,5 +231,21 @@ where
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
     pub fn free(self) -> I {
         self.i2c
+    }
+}
+
+// Can't derive, because peripheral structs from the PAC don't implement
+// `Debug`. See https://github.com/rust-embedded/svd2rust/issues/48.
+impl<I, State, MasterMode, SlaveMode> fmt::Debug
+    for I2C<I, State, MasterMode, SlaveMode>
+where
+    I: Instance,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("I2C")
+            .field("master", &self.master)
+            .field("slave", &self.slave)
+            .field("i2c", &"i2c")
+            .finish()
     }
 }

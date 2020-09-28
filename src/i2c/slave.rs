@@ -1,6 +1,6 @@
 //! API for the I2C slave mode
 
-use core::marker::PhantomData;
+use core::{fmt, marker::PhantomData};
 
 use crate::{
     init_state,
@@ -84,6 +84,22 @@ where
         Err(nb::Error::Other(Error::UnknownSlaveState(
             slave_state.bits(),
         )))
+    }
+}
+
+// Can't derive, because peripheral structs from the PAC don't implement
+// `Debug`. See https://github.com/rust-embedded/svd2rust/issues/48.
+impl<I, State, ModeState> fmt::Debug for Slave<I, State, ModeState>
+where
+    I: Instance,
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Slave")
+            .field("_state", &self._state)
+            .field("_mode_state", &self._mode_state)
+            .field("slvctl", &self.slvctl)
+            .field("slvdat", &self.slvdat)
+            .finish()
     }
 }
 
@@ -238,6 +254,14 @@ where
     }
 }
 
+// Can't derive, because peripheral structs from the PAC don't implement
+// `Debug`. See https://github.com/rust-embedded/svd2rust/issues/48.
+impl<I> fmt::Debug for SlvCtl<I> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "SlvCtl(...)")
+    }
+}
+
 struct SlvDat<I>(PhantomData<I>);
 
 // Sound, as the pointer returned is valid for the duration of the program.
@@ -251,5 +275,13 @@ where
         // Sound, as SLVDAT is exclusively used by `Slave`, and only one
         // `RegProxy` instance for it exists.
         unsafe { &(*I::REGISTERS).slvdat as *const _ }
+    }
+}
+
+// Can't derive, because peripheral structs from the PAC don't implement
+// `Debug`. See https://github.com/rust-embedded/svd2rust/issues/48.
+impl<I> fmt::Debug for SlvDat<I> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "SlvDat(...)")
     }
 }
