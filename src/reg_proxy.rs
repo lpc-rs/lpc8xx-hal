@@ -16,6 +16,7 @@ use core::ops::Deref;
 /// This proxy can be moved and owned, then provide access to the register it
 /// proxies from wherever it is. Access to the register is provided by
 /// implementing `Deref`.
+#[derive(Debug)]
 pub struct RegProxy<T>
 where
     T: Reg,
