@@ -47,7 +47,8 @@ const APP: () = {
             .I2C0
             .enable(&syscon.iosc, i2c0_scl, i2c0_sda, &mut syscon.handle)
             .enable_master_mode(&i2c::Clock::new_400khz())
-            .enable_slave_mode(ADDRESS);
+            .enable_slave_mode(ADDRESS)
+            .expect("`ADDRESS` not a valid 7-bit address");
 
         i2c.enable_interrupts(i2c::Interrupts {
             slave_pending: true,

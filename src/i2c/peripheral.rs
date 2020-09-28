@@ -145,14 +145,18 @@ where
     pub fn enable_slave_mode(
         self,
         address: u8,
-    ) -> I2C<
-        I,
-        init_state::Enabled<PhantomData<C>>,
-        MasterMode,
-        init_state::Enabled,
+    ) -> Result<
+        I2C<
+            I,
+            init_state::Enabled<PhantomData<C>>,
+            MasterMode,
+            init_state::Enabled,
+        >,
+        (Error, Self),
     > {
-        // This is a placeholder until proper error handling is added.
-        Error::check_address(address).unwrap();
+        if let Err(err) = Error::check_address(address) {
+            return Err((err, self));
+        }
 
         // Enable slave mode
         // Set all other configuration values to default.
@@ -166,12 +170,12 @@ where
             unsafe { w.slvadr().bits(address) }
         });
 
-        I2C {
+        Ok(I2C {
             master: Master::new(),
             slave: Slave::new(),
 
             i2c: self.i2c,
-        }
+        })
     }
 }
 
