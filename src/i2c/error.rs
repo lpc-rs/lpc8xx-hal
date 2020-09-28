@@ -51,6 +51,14 @@ pub enum Error {
 }
 
 impl Error {
+    pub(super) fn check_address(address: u8) -> Result<(), Self> {
+        if address > 0b111_1111 {
+            return Err(Self::AddressOutOfRange);
+        }
+
+        Ok(())
+    }
+
     pub(super) fn read<I: Instance>() -> Result<(), Self> {
         // Sound, as we're only reading from the STAT register.
         let i2c = unsafe { &*I::REGISTERS };

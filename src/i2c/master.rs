@@ -120,10 +120,7 @@ where
     }
 
     fn start_operation(&mut self, address: u8, rw: Rw) -> Result<(), Error> {
-        if address > 0b111_1111 {
-            return Err(Error::AddressOutOfRange);
-        }
-
+        Error::check_address(address)?;
         self.wait_for_state(State::Idle)?;
 
         // Write address
