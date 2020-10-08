@@ -85,7 +85,7 @@ where
 /// The pointer returned by `get` must be valid for the duration of the program.
 /// This should always be the case for MMIO registers.
 pub unsafe trait Reg {
-    /// The type that `RegProxy` should derefence to
+    /// The type that `RegProxy` should dereference to
     ///
     /// If only one instance of the register exists, this should be `Self`.
     /// If the same type in the svd2rust API is used to represent registers at
