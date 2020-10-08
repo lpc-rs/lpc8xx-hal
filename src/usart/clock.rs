@@ -5,27 +5,27 @@ use crate::syscon::{self, clock_source::PeripheralClockSelector};
 /// Defines the clock configuration for a USART instance
 ///
 /// This struct has two type arguments:
-/// - `Clock` specifies the clock used to power the USART clock. This clock will
-///   be selected when the USART instance is enabled.
+/// - `T` specifies the clock used to power the USART clock. This clock will be
+///   selected when the USART instance is enabled.
 /// - `Mode` specifies the USART mode. A distinction between synchronous and
 ///   asynchronous mode has to be made, as OSRVAL has no meaning in synchronous
 ///   mode.
-pub struct Clock<Clock, Mode> {
+pub struct Clock<T, Mode> {
     pub(super) psc: u16,
     pub(super) osrval: u8,
-    pub(super) _clock: PhantomData<Clock>,
+    pub(super) _clock: PhantomData<T>,
     pub(super) _mode: PhantomData<Mode>,
 }
 
-impl<C, Mode> Clock<C, Mode>
+impl<T, Mode> Clock<T, Mode>
 where
-    C: ClockSource,
+    T: ClockSource,
 {
     /// Create the clock configuration for the USART
     ///
     /// The `osrval` argument has to be between 5-16. It will be ignored in
     /// synchronous mode.
-    pub fn new(_: &C, psc: u16, osrval: u8) -> Self {
+    pub fn new(_: &T, psc: u16, osrval: u8) -> Self {
         let osrval = osrval - 1;
         assert!(osrval > 3 && osrval < 0x10);
 
