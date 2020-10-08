@@ -24,10 +24,10 @@ fn main() -> ! {
     //
     // The common peripheral clock for all UART units, U_PCLK, needs to be set
     // to 16 times the desired baud rate. This results in a frequency of
-    // 1843200 Hz for U_PLCK.
+    // 1843200 Hz for U_PCLK.
     //
     // We assume the main clock runs at 12 Mhz. To get close to the desired
-    // frequency for U_PLCK, we divide that by 6 using UARTCLKDIV, resulting in
+    // frequency for U_PCLK, we divide that by 6 using UARTCLKDIV, resulting in
     // a frequency of 2 Mhz.
     //
     // To get to the desired 1843200 Hz, we need to further divide the frequency
@@ -57,7 +57,7 @@ fn main() -> ! {
 
     // Make the rx & tx pins available to the switch matrix API, by changing
     // their state using `into_swm_pin`. This is required, because we're going
-    // to use the switch matrix to assigne the USART0 functions to those pins.
+    // to use the switch matrix to assign the USART0 functions to those pins.
     //
     // WARNING: The pinout for the lpc845brk uses tx/rx as seen from the
     // perspective from the serial adapter, so this is used the opposite way
