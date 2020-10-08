@@ -89,7 +89,7 @@ fn main() -> ! {
 
     // Send a string via USART0, blocking until it has been sent
     serial
-        .bwrite_all(b"Hello, world!\n")
+        .bwrite_all(b"Hello, world!\r\n")
         .expect("UART write shouldn't fail");
 
     // We're done. Let's do nothing until someone resets the microcontroller.
