@@ -10,6 +10,7 @@ use crate::syscon::{self, clock_source::PeripheralClockSelector};
 /// - `Mode` specifies the USART mode. A distinction between synchronous and
 ///   asynchronous mode has to be made, as OSRVAL has no meaning in synchronous
 ///   mode.
+#[derive(Debug)]
 pub struct Clock<T, Mode> {
     pub(super) psc: u16,
     pub(super) osrval: u8,
