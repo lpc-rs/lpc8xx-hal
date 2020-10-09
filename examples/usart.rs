@@ -87,11 +87,9 @@ fn main() -> ! {
         usart::Settings::default(),
     );
 
-    // Send a string via USART0, blocking until it has been sent
-    serial
-        .bwrite_all(b"Hello, world!\r\n")
-        .expect("UART write shouldn't fail");
-
-    // We're done. Let's do nothing until someone resets the microcontroller.
-    loop {}
+    // Read all incoming bytes and echo them back.
+    loop {
+        let b = nb::block!(serial.read()).expect("Error reading from USART");
+        nb::block!(serial.write(b)).expect("Error writing to USART");
+    }
 }
