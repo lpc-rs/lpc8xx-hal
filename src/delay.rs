@@ -145,7 +145,7 @@ impl DelayUs<u32> for Delay {
             let start_count = SYST::get_current();
             total_ticks -= current_ticks;
 
-            // Use the wrapping substraction and the modulo to deal with the systick wrapping around
+            // Use the wrapping subtraction and the modulo to deal with the systick wrapping around
             // from 0 to 0xFFFF
             while (start_count.wrapping_sub(SYST::get_current())
                 % SYSTICK_RANGE)

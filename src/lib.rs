@@ -489,7 +489,7 @@ impl Peripherals {
     /// into a type state that allows you to execute operations that are known
     /// to put the hardware in a safe state. Like forcing the type state for a
     /// peripheral API to the "disabled" state, then enabling it, to make sure
-    /// it is enabled, regardless of wheter it was enabled before.
+    /// it is enabled, regardless of whether it was enabled before.
     ///
     /// Since there are no means within this API to forcibly change type state,
     /// you will need to resort to something like [`core::mem::transmute`].
