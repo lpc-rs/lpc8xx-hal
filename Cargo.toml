@@ -40,6 +40,10 @@ optional = true
 version  = "0.2.4"
 features = ["unproven"]
 
+[dependencies.embedded-hal-alpha]
+version = "1.0.0-alpha.1"
+package = "embedded-hal"
+
 [dependencies.lpc82x-pac]
 optional = true
 version  = "0.7.0"
