@@ -90,7 +90,7 @@ impl DelayMs<u8> for Delay {
 
 // At 30MHz (the maximum frequency), this overflows at approx. 2^32 / 30 = 146 seconds
 impl DelayUs<u32> for Delay {
-    /// Pauses execution for `us` milliseconds
+    /// Pauses execution for `us` microseconds
     fn delay_us(&mut self, us: u32) {
         // The SysTick Reload Value register supports values between 1 and 0x00FFFFFF.
         // Here half the maximum is used so we have some play if there's a long running interrupt.
@@ -119,14 +119,14 @@ impl DelayUs<u32> for Delay {
 }
 
 impl DelayUs<u16> for Delay {
-    /// Pauses execution for `us` milliseconds
+    /// Pauses execution for `us` microseconds
     fn delay_us(&mut self, us: u16) {
         self.delay_us(us as u32)
     }
 }
 
 impl DelayUs<u8> for Delay {
-    /// Pauses execution for `us` milliseconds
+    /// Pauses execution for `us` microseconds
     fn delay_us(&mut self, us: u8) {
         self.delay_us(us as u32)
     }
