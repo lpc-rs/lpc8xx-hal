@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.cargo.features": [
+        "845-rt"
+    ],
+    "rust-analyzer.checkOnSave.allTargets": false
+}
