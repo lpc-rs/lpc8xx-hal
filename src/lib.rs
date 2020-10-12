@@ -144,7 +144,7 @@ pub mod prelude {
     pub use core::fmt::Write as _;
 
     pub use crate::clock::{Enabled as _, Frequency as _};
-    pub use crate::hal::{digital::v2::*, prelude::*};
+    pub use crate::embedded_hal::{digital::v2::*, prelude::*};
     pub use crate::sleep::Sleep as _;
 }
 
@@ -170,8 +170,6 @@ pub use self::usart::USART;
 pub use self::wkt::WKT;
 
 pub use pac::CorePeripherals;
-
-use embedded_hal as hal;
 
 /// Provides access to all peripherals
 ///
