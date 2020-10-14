@@ -80,8 +80,6 @@ impl DelayMsAlpha<u32> for Delay {
     type Error = Void;
 
     /// Pauses execution for `ms` milliseconds
-    // At 30 MHz (the maximum frequency), calling delay_us with ms * 1_000 directly overflows at 0x418937 (over the max u16 value)
-    // So we implement a separate, higher level, delay loop
     fn try_delay_ms(&mut self, ms: u32) -> Result<(), Self::Error> {
         Ok(self.delay_ms(ms))
     }
@@ -100,8 +98,6 @@ impl DelayMsAlpha<u16> for Delay {
     type Error = Void;
 
     /// Pauses execution for `ms` milliseconds
-    // At 30 MHz (the maximum frequency), calling delay_us with ms * 1_000 directly overflows at 0x418937 (over the max u16 value)
-    // So we implement a separate, higher level, delay loop
     fn try_delay_ms(&mut self, ms: u16) -> Result<(), Self::Error> {
         Ok(self.delay_ms(ms))
     }
@@ -118,8 +114,6 @@ impl DelayMsAlpha<u8> for Delay {
     type Error = Void;
 
     /// Pauses execution for `ms` milliseconds
-    // At 30 MHz (the maximum frequency), calling delay_us with ms * 1_000 directly overflows at 0x418937 (over the max u16 value)
-    // So we implement a separate, higher level, delay loop
     fn try_delay_ms(&mut self, ms: u8) -> Result<(), Self::Error> {
         Ok(self.delay_ms(ms))
     }
