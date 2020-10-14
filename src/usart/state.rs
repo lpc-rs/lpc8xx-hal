@@ -9,6 +9,7 @@ use core::marker::PhantomData;
 /// [`USART`]: ../struct.USART.html
 /// [`usart::Rx`]: ../struct.Rx.html
 /// [`usart::Tx`]: ../struct.Tx.html
+#[derive(Debug)]
 pub struct Enabled<W: Word, Mode>(PhantomData<W>, PhantomData<Mode>);
 
 /// Implemented for types that represent a supported word size
@@ -44,6 +45,7 @@ impl Word for u16 {
 /// Used as a type parameter on [`Enabled`].
 ///
 /// [`Enabled`]: struct.Enabled.html
+#[derive(Debug)]
 pub struct AsyncMode;
 
 /// Indicates that a USART instance is operating in synchronous mode
@@ -51,6 +53,7 @@ pub struct AsyncMode;
 /// Used as a type parameter on [`Enabled`].
 ///
 /// [`Enabled`]: struct.Enabled.html
+#[derive(Debug)]
 pub struct SyncMode;
 
 /// Indicates that transmitter is not throttled
@@ -58,6 +61,7 @@ pub struct SyncMode;
 /// Used as a type parameter on [`usart::Tx`].
 ///
 /// [`usart::Tx`]: ../struct.Tx.html
+#[derive(Debug)]
 pub struct NoThrottle;
 
 /// Indicates that the transmitter is throttled via the CTS signal
@@ -65,4 +69,5 @@ pub struct NoThrottle;
 /// Used as a type parameter on [`usart::Tx`].
 ///
 /// [`usart::Tx`]: ../struct.Tx.html
+#[derive(Debug)]
 pub struct CtsThrottle<F>(pub(super) F);

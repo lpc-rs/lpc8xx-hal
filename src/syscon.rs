@@ -261,6 +261,7 @@ impl Handle {
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
+#[derive(Debug)]
 pub struct BOD(());
 
 /// Flash memory
@@ -269,6 +270,7 @@ pub struct BOD(());
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
+#[derive(Debug)]
 pub struct FLASH(());
 
 /// IOSC
@@ -276,6 +278,7 @@ pub struct FLASH(());
 /// Can be used to control the IRC/FRO using various methods on [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
+#[derive(Debug)]
 pub struct IOSC(());
 
 /// IOSC output
@@ -284,6 +287,7 @@ pub struct IOSC(());
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
+#[derive(Debug)]
 pub struct IOSCOUT(());
 
 /// Micro Trace Buffer
@@ -292,6 +296,7 @@ pub struct IOSCOUT(());
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
+#[derive(Debug)]
 pub struct MTB(());
 
 /// Random access memory
@@ -299,6 +304,7 @@ pub struct MTB(());
 /// Can be used to control the RAM using various methods on [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
+#[derive(Debug)]
 #[allow(non_camel_case_types)]
 pub struct RAM0_1(());
 
@@ -307,6 +313,7 @@ pub struct RAM0_1(());
 /// Can be used to control the ROM using various methods on [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
+#[derive(Debug)]
 pub struct ROM(());
 
 /// System oscillator
@@ -315,6 +322,7 @@ pub struct ROM(());
 /// [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
+#[derive(Debug)]
 pub struct SYSOSC(());
 
 /// PLL
@@ -322,6 +330,7 @@ pub struct SYSOSC(());
 /// Can be used to control the PLL using various methods on [`syscon::Handle`].
 ///
 /// [`syscon::Handle`]: struct.Handle.html
+#[derive(Debug)]
 pub struct SYSPLL(());
 
 #[cfg(feature = "82x")]
@@ -615,6 +624,7 @@ impl_analog_block!(pac::ACOMP, acmp);
 ///
 /// This is one of the clocks that can be used to run the self-wake-up timer
 /// (WKT). See user manual, section 18.5.1.
+#[derive(Debug)]
 pub struct IoscDerivedClock<State = init_state::Enabled> {
     _state: State,
 }
