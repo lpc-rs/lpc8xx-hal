@@ -102,6 +102,7 @@ pub extern crate cortex_m;
 #[cfg(feature = "rt-selected")]
 pub extern crate cortex_m_rt;
 pub extern crate embedded_hal;
+pub extern crate embedded_hal_alpha;
 pub extern crate nb;
 pub extern crate void;
 
@@ -144,7 +145,7 @@ pub mod prelude {
     pub use core::fmt::Write as _;
 
     pub use crate::clock::{Enabled as _, Frequency as _};
-    pub use crate::hal::{digital::v2::*, prelude::*};
+    pub use crate::embedded_hal::{digital::v2::*, prelude::*};
     pub use crate::sleep::Sleep as _;
 }
 
@@ -170,8 +171,6 @@ pub use self::usart::USART;
 pub use self::wkt::WKT;
 
 pub use pac::CorePeripherals;
-
-use embedded_hal as hal;
 
 /// Provides access to all peripherals
 ///
@@ -490,7 +489,7 @@ impl Peripherals {
     /// into a type state that allows you to execute operations that are known
     /// to put the hardware in a safe state. Like forcing the type state for a
     /// peripheral API to the "disabled" state, then enabling it, to make sure
-    /// it is enabled, regardless of wheter it was enabled before.
+    /// it is enabled, regardless of whether it was enabled before.
     ///
     /// Since there are no means within this API to forcibly change type state,
     /// you will need to resort to something like [`core::mem::transmute`].

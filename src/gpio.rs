@@ -46,6 +46,11 @@ use core::marker::PhantomData;
 use embedded_hal::digital::v2::{
     InputPin, OutputPin, StatefulOutputPin, ToggleableOutputPin,
 };
+use embedded_hal_alpha::digital::{
+    InputPin as InputPinAlpha, OutputPin as OutputPinAlpha,
+    StatefulOutputPin as StatefulOutputPinAlpha,
+    ToggleableOutputPin as ToggleableOutputPinAlpha,
+};
 use void::Void;
 
 use crate::{
@@ -427,6 +432,23 @@ where
     }
 }
 
+impl<T> InputPinAlpha for GpioPin<T, direction::Input>
+where
+    T: pins::Trait,
+{
+    type Error = Void;
+
+    fn try_is_high(&self) -> Result<bool, Self::Error> {
+        // Call the inherent method defined above.
+        Ok(self.is_high())
+    }
+
+    fn try_is_low(&self) -> Result<bool, Self::Error> {
+        // Call the inherent method defined above.
+        Ok(self.is_low())
+    }
+}
+
 impl<T> OutputPin for GpioPin<T, direction::Output>
 where
     T: pins::Trait,
@@ -439,6 +461,23 @@ where
     }
 
     fn set_low(&mut self) -> Result<(), Self::Error> {
+        // Call the inherent method defined above.
+        Ok(self.set_low())
+    }
+}
+
+impl<T> OutputPinAlpha for GpioPin<T, direction::Output>
+where
+    T: pins::Trait,
+{
+    type Error = Void;
+
+    fn try_set_high(&mut self) -> Result<(), Self::Error> {
+        // Call the inherent method defined above.
+        Ok(self.set_high())
+    }
+
+    fn try_set_low(&mut self) -> Result<(), Self::Error> {
         // Call the inherent method defined above.
         Ok(self.set_low())
     }
@@ -459,6 +498,21 @@ where
     }
 }
 
+impl<T> StatefulOutputPinAlpha for GpioPin<T, direction::Output>
+where
+    T: pins::Trait,
+{
+    fn try_is_set_high(&self) -> Result<bool, Self::Error> {
+        // Call the inherent method defined above.
+        Ok(self.is_set_high())
+    }
+
+    fn try_is_set_low(&self) -> Result<bool, Self::Error> {
+        // Call the inherent method defined above.
+        Ok(self.is_set_low())
+    }
+}
+
 impl<T> ToggleableOutputPin for GpioPin<T, direction::Output>
 where
     T: pins::Trait,
@@ -466,6 +520,18 @@ where
     type Error = Void;
 
     fn toggle(&mut self) -> Result<(), Self::Error> {
+        // Call the inherent method defined above.
+        Ok(self.toggle())
+    }
+}
+
+impl<T> ToggleableOutputPinAlpha for GpioPin<T, direction::Output>
+where
+    T: pins::Trait,
+{
+    type Error = Void;
+
+    fn try_toggle(&mut self) -> Result<(), Self::Error> {
         // Call the inherent method defined above.
         Ok(self.toggle())
     }

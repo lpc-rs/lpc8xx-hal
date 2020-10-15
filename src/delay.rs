@@ -24,6 +24,10 @@ use cortex_m::peripheral::syst::SystClkSource;
 
 use crate::pac::SYST;
 use embedded_hal::blocking::delay::{DelayMs, DelayUs};
+use embedded_hal_alpha::blocking::delay::{
+    DelayMs as DelayMsAlpha, DelayUs as DelayUsAlpha,
+};
+use void::Void;
 
 const SYSTICK_RANGE: u32 = 0x0100_0000;
 const SYSTEM_CLOCK: u32 = 12_000_000;
@@ -72,12 +76,30 @@ impl DelayMs<u32> for Delay {
     }
 }
 
+impl DelayMsAlpha<u32> for Delay {
+    type Error = Void;
+
+    /// Pauses execution for `ms` milliseconds
+    fn try_delay_ms(&mut self, ms: u32) -> Result<(), Self::Error> {
+        Ok(self.delay_ms(ms))
+    }
+}
+
 impl DelayMs<u16> for Delay {
     /// Pauses execution for `ms` milliseconds
     fn delay_ms(&mut self, ms: u16) {
         // Call delay_us directly, since we don't have to use the additional
         // delay loop the u32 variant uses
         self.delay_us(ms as u32 * 1_000);
+    }
+}
+
+impl DelayMsAlpha<u16> for Delay {
+    type Error = Void;
+
+    /// Pauses execution for `ms` milliseconds
+    fn try_delay_ms(&mut self, ms: u16) -> Result<(), Self::Error> {
+        Ok(self.delay_ms(ms))
     }
 }
 
@@ -88,9 +110,18 @@ impl DelayMs<u8> for Delay {
     }
 }
 
+impl DelayMsAlpha<u8> for Delay {
+    type Error = Void;
+
+    /// Pauses execution for `ms` milliseconds
+    fn try_delay_ms(&mut self, ms: u8) -> Result<(), Self::Error> {
+        Ok(self.delay_ms(ms))
+    }
+}
+
 // At 30MHz (the maximum frequency), this overflows at approx. 2^32 / 30 = 146 seconds
 impl DelayUs<u32> for Delay {
-    /// Pauses execution for `us` milliseconds
+    /// Pauses execution for `us` microseconds
     fn delay_us(&mut self, us: u32) {
         // The SysTick Reload Value register supports values between 1 and 0x00FFFFFF.
         // Here half the maximum is used so we have some play if there's a long running interrupt.
@@ -108,7 +139,7 @@ impl DelayUs<u32> for Delay {
             let start_count = SYST::get_current();
             total_ticks -= current_ticks;
 
-            // Use the wrapping substraction and the modulo to deal with the systick wrapping around
+            // Use the wrapping subtraction and the modulo to deal with the systick wrapping around
             // from 0 to 0xFFFF
             while (start_count.wrapping_sub(SYST::get_current())
                 % SYSTICK_RANGE)
@@ -118,16 +149,43 @@ impl DelayUs<u32> for Delay {
     }
 }
 
+impl DelayUsAlpha<u32> for Delay {
+    type Error = Void;
+
+    /// Pauses execution for `us` microseconds
+    fn try_delay_us(&mut self, us: u32) -> Result<(), Self::Error> {
+        Ok(self.delay_us(us))
+    }
+}
+
 impl DelayUs<u16> for Delay {
-    /// Pauses execution for `us` milliseconds
+    /// Pauses execution for `us` microseconds
     fn delay_us(&mut self, us: u16) {
         self.delay_us(us as u32)
     }
 }
 
+impl DelayUsAlpha<u16> for Delay {
+    type Error = Void;
+
+    /// Pauses execution for `us` microseconds
+    fn try_delay_us(&mut self, us: u16) -> Result<(), Self::Error> {
+        Ok(self.delay_us(us))
+    }
+}
+
 impl DelayUs<u8> for Delay {
-    /// Pauses execution for `us` milliseconds
+    /// Pauses execution for `us` microseconds
     fn delay_us(&mut self, us: u8) {
         self.delay_us(us as u32)
+    }
+}
+
+impl DelayUsAlpha<u8> for Delay {
+    type Error = Void;
+
+    /// Pauses execution for `us` microseconds
+    fn try_delay_us(&mut self, us: u8) -> Result<(), Self::Error> {
+        Ok(self.delay_us(us))
     }
 }
