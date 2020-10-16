@@ -103,6 +103,7 @@ pub extern crate cortex_m;
 pub extern crate cortex_m_rt;
 pub extern crate embedded_hal;
 pub extern crate embedded_hal_alpha;
+pub extern crate embedded_time;
 pub extern crate nb;
 pub extern crate void;
 
