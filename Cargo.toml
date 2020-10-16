@@ -160,6 +160,10 @@ name              = "i2c_eeprom"
 required-features = ["rt-selected"]
 
 [[example]]
+name              = "mrt_clock"
+required-features = ["rt-selected", "845"]
+
+[[example]]
 name              = "pinint"
 required-features = ["rt-selected", "845"]
 
