@@ -97,9 +97,19 @@ where
             .write(|w| unsafe { w.ivalue().bits(reload + 1) });
     }
 
+    /// Indicates whether the timer is running
+    pub fn is_running(&self) -> bool {
+        self.0.stat.read().run().is_running()
+    }
+
     /// Returns the current timer value
     pub fn value(&self) -> u32 {
         self.0.timer.read().value().bits()
+    }
+
+    /// Returns the reload value of the timer
+    pub fn reload_value(&self) -> u32 {
+        self.0.intval.read().ivalue().bits()
     }
 
     /// Non-blockingly "waits" until the count down finishes
