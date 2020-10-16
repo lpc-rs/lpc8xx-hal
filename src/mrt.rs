@@ -16,6 +16,7 @@ use embedded_hal::timer::{CountDown, Periodic};
 use embedded_hal_alpha::timer::{
     CountDown as CountDownAlpha, Periodic as PeriodicAlpha,
 };
+use embedded_time::{clock, fraction::Fraction, Instant};
 use void::Void;
 
 /// Represents the MRT instance
@@ -173,6 +174,25 @@ where
 impl<T> Periodic for Channel<T> where T: Trait {}
 
 impl<T> PeriodicAlpha for Channel<T> where T: Trait {}
+
+impl<T> embedded_time::Clock for Channel<T>
+where
+    T: Trait,
+{
+    type T = u32;
+
+    const SCALING_FACTOR: Fraction = Fraction::new(1, 12_000_000);
+
+    fn try_now(&self) -> Result<Instant<Self>, clock::Error> {
+        if self.is_running() {
+            // embedded-time assumes that clocks are counting up, but we are
+            // counting down here. Thus, the need for some translation.
+            Ok(Instant::new(self.reload_value() - self.value()))
+        } else {
+            Err(clock::Error::NotRunning)
+        }
+    }
+}
 
 /// Implemented for types that identify MRT channels
 pub trait Trait: Reg<Target = CHANNEL> + sealed::Sealed {}
