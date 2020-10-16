@@ -74,32 +74,13 @@ where
         Self(RegProxy::new())
     }
 
-    /// Returns the current timer value
-    pub fn value(&self) -> u32 {
-        self.0.timer.read().value().bits()
-    }
-}
-
-impl<T> CountDown for Channel<T>
-where
-    T: Trait,
-{
-    /// The timer operates in clock ticks from the system clock, that means it
-    /// runs at 12_000_000 ticks per second if you haven't changed it.
-    ///
-    /// It can also only use values smaller than 0x7FFFFFFF.
-    type Time = u32;
-
-    /// Start counting down from the given count
+    /// Start the timer
     ///
     /// The `reload` argument must be smaller than or equal to [`MAX_VALUE`].
     ///
     /// [`MAX_VALUE`]: constant.MAX_VALUE.html
-    fn start<Time>(&mut self, count: Time)
-    where
-        Time: Into<Self::Time>,
-    {
-        let reload: Self::Time = count.into();
+    pub fn start(&mut self, reload: impl Into<u32>) {
+        let reload = reload.into();
         debug_assert!(reload <= MAX_VALUE);
 
         // This stops the timer, to prevent race conditions when resetting the
@@ -114,6 +95,11 @@ where
             .write(|w| unsafe { w.ivalue().bits(reload + 1) });
     }
 
+    /// Returns the current timer value
+    pub fn value(&self) -> u32 {
+        self.0.timer.read().value().bits()
+    }
+
     /// Non-blockingly "waits" until the count down finishes
     fn wait(&mut self) -> Result<(), Void> {
         if self.0.stat.read().intflag().is_pending_interrupt() {
@@ -123,6 +109,28 @@ where
         } else {
             Err(Error::WouldBlock)
         }
+    }
+}
+
+impl<T> CountDown for Channel<T>
+where
+    T: Trait,
+{
+    /// The timer operates in clock ticks from the system clock, that means it
+    /// runs at 12_000_000 ticks per second if you haven't changed it.
+    ///
+    /// It can also only use values smaller than 0x7FFFFFFF.
+    type Time = u32;
+
+    fn start<Time>(&mut self, count: Time)
+    where
+        Time: Into<Self::Time>,
+    {
+        self.start(count);
+    }
+
+    fn wait(&mut self) -> Result<(), Void> {
+        self.wait()
     }
 }
 
