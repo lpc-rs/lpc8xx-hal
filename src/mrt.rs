@@ -13,7 +13,6 @@ use crate::{
 };
 
 use embedded_hal::timer::{CountDown, Periodic};
-use nb::{Error, Result};
 use void::Void;
 
 /// Represents the MRT instance
@@ -101,13 +100,13 @@ where
     }
 
     /// Non-blockingly "waits" until the count down finishes
-    fn wait(&mut self) -> Result<(), Void> {
+    fn wait(&mut self) -> nb::Result<(), Void> {
         if self.0.stat.read().intflag().is_pending_interrupt() {
             // Reset the interrupt flag
             self.0.stat.write(|w| w.intflag().set_bit());
             Ok(())
         } else {
-            Err(Error::WouldBlock)
+            Err(nb::Error::WouldBlock)
         }
     }
 }
@@ -129,7 +128,7 @@ where
         self.start(count);
     }
 
-    fn wait(&mut self) -> Result<(), Void> {
+    fn wait(&mut self) -> nb::Result<(), Void> {
         self.wait()
     }
 }
