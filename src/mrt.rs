@@ -13,6 +13,9 @@ use crate::{
 };
 
 use embedded_hal::timer::{CountDown, Periodic};
+use embedded_hal_alpha::timer::{
+    CountDown as CountDownAlpha, Periodic as PeriodicAlpha,
+};
 use void::Void;
 
 /// Represents the MRT instance
@@ -133,7 +136,33 @@ where
     }
 }
 
+impl<T> CountDownAlpha for Channel<T>
+where
+    T: Trait,
+{
+    type Error = Void;
+
+    /// The timer operates in clock ticks from the system clock, that means it
+    /// runs at 12_000_000 ticks per second if you haven't changed it.
+    ///
+    /// It can also only use values smaller than 0x7FFFFFFF.
+    type Time = u32;
+
+    fn try_start<Time>(&mut self, count: Time) -> Result<(), Self::Error>
+    where
+        Time: Into<Self::Time>,
+    {
+        Ok(self.start(count))
+    }
+
+    fn try_wait(&mut self) -> nb::Result<(), Self::Error> {
+        self.wait()
+    }
+}
+
 impl<T> Periodic for Channel<T> where T: Trait {}
+
+impl<T> PeriodicAlpha for Channel<T> where T: Trait {}
 
 /// Implemented for types that identify MRT channels
 pub trait Trait: Reg<Target = CHANNEL> + sealed::Sealed {}
