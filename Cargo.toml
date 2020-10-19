@@ -23,8 +23,9 @@ travis-ci = { repository = "lpc-rs/lpc8xx-hal" }
 
 
 [dependencies]
-cortex-m = "0.6.3"
-nb       = "1.0.0"
+cortex-m      = "0.6.3"
+embedded-time = "0.10.0"
+nb            = "1.0.0"
 
 # This should be in [dev-dependencies], but those can't be optional.
 # Issue: https://github.com/rust-lang/cargo/issues/1596
@@ -157,6 +158,10 @@ required-features = ["rt-selected", "82x"]
 [[example]]
 name              = "i2c_eeprom"
 required-features = ["rt-selected"]
+
+[[example]]
+name              = "mrt_clock"
+required-features = ["rt-selected", "845"]
 
 [[example]]
 name              = "pinint"

@@ -13,7 +13,10 @@ use crate::{
 };
 
 use embedded_hal::timer::{CountDown, Periodic};
-use nb::{Error, Result};
+use embedded_hal_alpha::timer::{
+    CountDown as CountDownAlpha, Periodic as PeriodicAlpha,
+};
+use embedded_time::{clock, fraction::Fraction, Instant};
 use void::Void;
 
 /// Represents the MRT instance
@@ -74,32 +77,13 @@ where
         Self(RegProxy::new())
     }
 
-    /// Returns the current timer value
-    pub fn value(&self) -> u32 {
-        self.0.timer.read().value().bits()
-    }
-}
-
-impl<T> CountDown for Channel<T>
-where
-    T: Trait,
-{
-    /// The timer operates in clock ticks from the system clock, that means it
-    /// runs at 12_000_000 ticks per second if you haven't changed it.
-    ///
-    /// It can also only use values smaller than 0x7FFFFFFF.
-    type Time = u32;
-
-    /// Start counting down from the given count
+    /// Start the timer
     ///
     /// The `reload` argument must be smaller than or equal to [`MAX_VALUE`].
     ///
     /// [`MAX_VALUE`]: constant.MAX_VALUE.html
-    fn start<Time>(&mut self, count: Time)
-    where
-        Time: Into<Self::Time>,
-    {
-        let reload: Self::Time = count.into();
+    pub fn start(&mut self, reload: impl Into<u32>) {
+        let reload = reload.into();
         debug_assert!(reload <= MAX_VALUE);
 
         // This stops the timer, to prevent race conditions when resetting the
@@ -114,19 +98,101 @@ where
             .write(|w| unsafe { w.ivalue().bits(reload + 1) });
     }
 
+    /// Indicates whether the timer is running
+    pub fn is_running(&self) -> bool {
+        self.0.stat.read().run().is_running()
+    }
+
+    /// Returns the current timer value
+    pub fn value(&self) -> u32 {
+        self.0.timer.read().value().bits()
+    }
+
+    /// Returns the reload value of the timer
+    pub fn reload_value(&self) -> u32 {
+        self.0.intval.read().ivalue().bits()
+    }
+
     /// Non-blockingly "waits" until the count down finishes
-    fn wait(&mut self) -> Result<(), Void> {
+    fn wait(&mut self) -> nb::Result<(), Void> {
         if self.0.stat.read().intflag().is_pending_interrupt() {
             // Reset the interrupt flag
             self.0.stat.write(|w| w.intflag().set_bit());
             Ok(())
         } else {
-            Err(Error::WouldBlock)
+            Err(nb::Error::WouldBlock)
         }
     }
 }
 
+impl<T> CountDown for Channel<T>
+where
+    T: Trait,
+{
+    /// The timer operates in clock ticks from the system clock, that means it
+    /// runs at 12_000_000 ticks per second if you haven't changed it.
+    ///
+    /// It can also only use values smaller than 0x7FFFFFFF.
+    type Time = u32;
+
+    fn start<Time>(&mut self, count: Time)
+    where
+        Time: Into<Self::Time>,
+    {
+        self.start(count);
+    }
+
+    fn wait(&mut self) -> nb::Result<(), Void> {
+        self.wait()
+    }
+}
+
+impl<T> CountDownAlpha for Channel<T>
+where
+    T: Trait,
+{
+    type Error = Void;
+
+    /// The timer operates in clock ticks from the system clock, that means it
+    /// runs at 12_000_000 ticks per second if you haven't changed it.
+    ///
+    /// It can also only use values smaller than 0x7FFFFFFF.
+    type Time = u32;
+
+    fn try_start<Time>(&mut self, count: Time) -> Result<(), Self::Error>
+    where
+        Time: Into<Self::Time>,
+    {
+        Ok(self.start(count))
+    }
+
+    fn try_wait(&mut self) -> nb::Result<(), Self::Error> {
+        self.wait()
+    }
+}
+
 impl<T> Periodic for Channel<T> where T: Trait {}
+
+impl<T> PeriodicAlpha for Channel<T> where T: Trait {}
+
+impl<T> embedded_time::Clock for Channel<T>
+where
+    T: Trait,
+{
+    type T = u32;
+
+    const SCALING_FACTOR: Fraction = Fraction::new(1, 12_000_000);
+
+    fn try_now(&self) -> Result<Instant<Self>, clock::Error> {
+        if self.is_running() {
+            // embedded-time assumes that clocks are counting up, but we are
+            // counting down here. Thus, the need for some translation.
+            Ok(Instant::new(self.reload_value() - self.value()))
+        } else {
+            Err(clock::Error::NotRunning)
+        }
+    }
+}
 
 /// Implemented for types that identify MRT channels
 pub trait Trait: Reg<Target = CHANNEL> + sealed::Sealed {}
