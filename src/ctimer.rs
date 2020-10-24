@@ -41,6 +41,10 @@
 //! }
 //! ```
 
+pub mod channels;
+
+use core::marker::PhantomData;
+
 use crate::{
     pac::{
         ctimer0::{MR, MSR},
@@ -48,12 +52,12 @@ use crate::{
     },
     pins,
     reg_proxy::RegProxy,
-    swm::{self, T0_MAT0, T0_MAT1, T0_MAT2},
-    syscon,
+    swm, syscon,
 };
 
-use core::marker::PhantomData;
 use embedded_hal::PwmPin;
+
+use self::channels::{Channel1, Channel2, Channel3};
 
 /// Interface to a CTimer peripheral
 ///
@@ -83,9 +87,9 @@ impl CTIMER {
         prescaler: u32,
         syscon: &mut syscon::Handle,
     ) -> (
-        DetachedPwmPin<T0_MAT0>,
-        DetachedPwmPin<T0_MAT1>,
-        DetachedPwmPin<T0_MAT2>,
+        DetachedPwmPin<Channel1>,
+        DetachedPwmPin<Channel2>,
+        DetachedPwmPin<Channel3>,
     ) {
         syscon.enable_clock(&self.inner);
         unsafe { self.inner.pr.write(|w| w.prval().bits(prescaler)) };
@@ -112,19 +116,19 @@ impl CTIMER {
                 number: 0,
                 mr: RegProxy::new(),
                 msr: RegProxy::new(),
-                output: PhantomData {},
+                _channel: PhantomData,
             },
             DetachedPwmPin {
                 number: 1,
                 mr: RegProxy::new(),
                 msr: RegProxy::new(),
-                output: PhantomData {},
+                _channel: PhantomData,
             },
             DetachedPwmPin {
                 number: 2,
                 mr: RegProxy::new(),
                 msr: RegProxy::new(),
-                output: PhantomData {},
+                _channel: PhantomData,
             },
         )
     }
@@ -151,19 +155,22 @@ impl CTIMER {
 /// Use `attach` to assign an output to it.
 ///
 /// [`CTimerPwmPin`]: struct.CTimerPwmPin.html
-pub struct DetachedPwmPin<CTOutput> {
+pub struct DetachedPwmPin<T> {
     number: u8,
     mr: RegProxy<MR>,
     msr: RegProxy<MSR>,
-    output: PhantomData<CTOutput>,
+    _channel: PhantomData<T>,
 }
 
-impl<CTOutput> DetachedPwmPin<CTOutput> {
+impl<T> DetachedPwmPin<T>
+where
+    T: channels::Trait,
+{
     /// Assigns a pin to a `DetachedPwmPin`,
     /// allowing it to be used as a pwm output
     pub fn attach<PWM>(
         self,
-        _: swm::Function<CTOutput, swm::state::Assigned<PWM>>,
+        _: swm::Function<T::Output, swm::state::Assigned<PWM>>,
     ) -> CTimerPwmPin
     where
         PWM: pins::Trait,
