@@ -1,4 +1,7 @@
+use core::convert::Infallible;
+
 use embedded_hal::{Pwm, PwmPin as _};
+use embedded_hal_alpha::pwm::{Pwm as PwmAlpha, PwmPin as _};
 
 use crate::{
     init_state::{Disabled, Enabled},
@@ -353,6 +356,207 @@ impl Pwm for CTIMER<Enabled, Attached, Attached, Attached> {
         P: Into<Self::Time>,
     {
         self.set_period(period.into())
+    }
+}
+
+impl PwmAlpha for CTIMER<Enabled, Attached, Detached, Detached> {
+    type Error = Infallible;
+    type Channel = Channels1;
+    type Time = u32;
+    type Duty = u32;
+
+    fn try_disable(
+        &mut self,
+        channel: Self::Channel,
+    ) -> Result<(), Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.try_disable(),
+        }
+    }
+
+    fn try_enable(
+        &mut self,
+        channel: Self::Channel,
+    ) -> Result<(), Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.try_enable(),
+        }
+    }
+
+    fn try_get_period(&self) -> Result<Self::Time, Self::Error> {
+        Ok(self.get_period())
+    }
+
+    fn try_get_duty(
+        &self,
+        channel: Self::Channel,
+    ) -> Result<Self::Duty, Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.try_get_duty(),
+        }
+    }
+
+    fn try_get_max_duty(&self) -> Result<Self::Duty, Self::Error> {
+        Ok(self.get_max_duty())
+    }
+
+    fn try_set_duty(
+        &mut self,
+        channel: Self::Channel,
+        duty: Self::Duty,
+    ) -> Result<(), Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => {
+                self.channels.channel1.try_set_duty(duty)
+            }
+        }
+    }
+
+    fn try_set_period<P>(&mut self, period: P) -> Result<(), Self::Error>
+    where
+        P: Into<Self::Time>,
+    {
+        Ok(self.set_period(period.into()))
+    }
+}
+
+impl PwmAlpha for CTIMER<Enabled, Attached, Attached, Detached> {
+    type Error = Infallible;
+    type Channel = Channels12;
+    type Time = u32;
+    type Duty = u32;
+
+    fn try_disable(
+        &mut self,
+        channel: Self::Channel,
+    ) -> Result<(), Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.try_disable(),
+            Self::Channel::Channel2 => self.channels.channel2.try_disable(),
+        }
+    }
+
+    fn try_enable(
+        &mut self,
+        channel: Self::Channel,
+    ) -> Result<(), Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.try_enable(),
+            Self::Channel::Channel2 => self.channels.channel2.try_enable(),
+        }
+    }
+
+    fn try_get_period(&self) -> Result<Self::Time, Self::Error> {
+        Ok(self.get_period())
+    }
+
+    fn try_get_duty(
+        &self,
+        channel: Self::Channel,
+    ) -> Result<Self::Duty, Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.try_get_duty(),
+            Self::Channel::Channel2 => self.channels.channel2.try_get_duty(),
+        }
+    }
+
+    fn try_get_max_duty(&self) -> Result<Self::Duty, Self::Error> {
+        Ok(self.get_max_duty())
+    }
+
+    fn try_set_duty(
+        &mut self,
+        channel: Self::Channel,
+        duty: Self::Duty,
+    ) -> Result<(), Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => {
+                self.channels.channel1.try_set_duty(duty)
+            }
+            Self::Channel::Channel2 => {
+                self.channels.channel2.try_set_duty(duty)
+            }
+        }
+    }
+
+    fn try_set_period<P>(&mut self, period: P) -> Result<(), Self::Error>
+    where
+        P: Into<Self::Time>,
+    {
+        Ok(self.set_period(period.into()))
+    }
+}
+
+impl PwmAlpha for CTIMER<Enabled, Attached, Attached, Attached> {
+    type Error = Infallible;
+    type Channel = Channels123;
+    type Time = u32;
+    type Duty = u32;
+
+    fn try_disable(
+        &mut self,
+        channel: Self::Channel,
+    ) -> Result<(), Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.try_disable(),
+            Self::Channel::Channel2 => self.channels.channel2.try_disable(),
+            Self::Channel::Channel3 => self.channels.channel3.try_disable(),
+        }
+    }
+
+    fn try_enable(
+        &mut self,
+        channel: Self::Channel,
+    ) -> Result<(), Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.try_enable(),
+            Self::Channel::Channel2 => self.channels.channel2.try_enable(),
+            Self::Channel::Channel3 => self.channels.channel3.try_enable(),
+        }
+    }
+
+    fn try_get_period(&self) -> Result<Self::Time, Self::Error> {
+        Ok(self.get_period())
+    }
+
+    fn try_get_duty(
+        &self,
+        channel: Self::Channel,
+    ) -> Result<Self::Duty, Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.try_get_duty(),
+            Self::Channel::Channel2 => self.channels.channel2.try_get_duty(),
+            Self::Channel::Channel3 => self.channels.channel3.try_get_duty(),
+        }
+    }
+
+    fn try_get_max_duty(&self) -> Result<Self::Duty, Self::Error> {
+        Ok(self.get_max_duty())
+    }
+
+    fn try_set_duty(
+        &mut self,
+        channel: Self::Channel,
+        duty: Self::Duty,
+    ) -> Result<(), Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => {
+                self.channels.channel1.try_set_duty(duty)
+            }
+            Self::Channel::Channel2 => {
+                self.channels.channel2.try_set_duty(duty)
+            }
+            Self::Channel::Channel3 => {
+                self.channels.channel3.try_set_duty(duty)
+            }
+        }
+    }
+
+    fn try_set_period<P>(&mut self, period: P) -> Result<(), Self::Error>
+    where
+        P: Into<Self::Time>,
+    {
+        Ok(self.set_period(period.into()))
     }
 }
 

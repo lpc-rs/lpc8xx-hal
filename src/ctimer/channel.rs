@@ -1,8 +1,9 @@
 //! Contains types related to CTIMER PWM channels
 
-use core::marker::PhantomData;
+use core::{convert::Infallible, marker::PhantomData};
 
 use embedded_hal::PwmPin;
+use embedded_hal_alpha::pwm::PwmPin as PwmPinAlpha;
 
 use crate::{
     init_state::Enabled,
@@ -67,6 +68,45 @@ where
         unsafe {
             self.msr[T::ID as usize].write(|w| w.match_shadow().bits(duty))
         };
+    }
+}
+
+impl<T> PwmPinAlpha for Channel<T, Enabled, Attached>
+where
+    T: Trait,
+{
+    type Error = Infallible;
+    type Duty = u32;
+
+    /// The behaviour of `enable` is implementation defined and does nothing in
+    /// this implementation
+    fn try_enable(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    /// The behaviour of `disable` is implementation defined and does nothing in
+    /// this implementation
+    // Accessing pwmc would require some kind of lock, which is inconvenient
+    // and would involve a hidden `CriticalSection`
+    fn try_disable(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    /// Returns the current duty cycle
+    fn try_get_duty(&self) -> Result<Self::Duty, Self::Error> {
+        Ok(self.msr[T::ID as usize].read().match_shadow().bits())
+    }
+
+    /// Returns the maximum duty cycle value
+    fn try_get_max_duty(&self) -> Result<Self::Duty, Self::Error> {
+        Ok(self.mr[3].read().match_().bits())
+    }
+
+    /// Sets a new duty cycle
+    fn try_set_duty(&mut self, duty: Self::Duty) -> Result<(), Self::Error> {
+        unsafe {
+            Ok(self.msr[T::ID as usize].write(|w| w.match_shadow().bits(duty)))
+        }
     }
 }
 
