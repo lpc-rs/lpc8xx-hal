@@ -22,7 +22,7 @@
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! // Use 8 bit pwm
-//! let channels = p.CTIMER0.start_pwm(256, 0, &mut syscon.handle);
+//! let channels = p.CTIMER0.enable(256, 0, &mut syscon.handle);
 //!
 //! let pwm_output = p.pins.pio1_2.into_swm_pin();
 //!
@@ -79,7 +79,7 @@ impl CTIMER<Disabled> {
     ///
     /// The `period` sets resolution of the pwm and is returned with
     /// `get_max_duty`.
-    pub fn start_pwm(
+    pub fn enable(
         self,
         period: u32,
         prescaler: u32,

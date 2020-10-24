@@ -27,7 +27,7 @@ fn main() -> ! {
     let mut handle = swm.handle.enable(&mut syscon.handle);
 
     // Use 8 bit pwm
-    let channels = p.CTIMER0.start_pwm(256, 0, &mut syscon.handle);
+    let channels = p.CTIMER0.enable(256, 0, &mut syscon.handle);
     let red_pwm = channels.channel1;
     let green_pwm = channels.channel2;
     let blue_pwm = channels.channel3;
