@@ -44,7 +44,7 @@ fn main() -> ! {
     let mut red = red_pwm.attach(red);
     let mut green = green_pwm.attach(green);
     let mut blue = blue_pwm.attach(blue);
-    // Fade each color after anothe
+    // Fade each color after another
     loop {
         for i in 0..red.get_max_duty() {
             delay.delay_ms(4_u8);
