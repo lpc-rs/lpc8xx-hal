@@ -54,15 +54,14 @@ impl<Channel1State, Channel2State, Channel3State>
     ) -> CTIMER<Enabled, Channel1State, Channel2State, Channel3State> {
         syscon.enable_clock(&self.inner);
 
-        let self_ = CTIMER {
+        let mut self_ = CTIMER {
             channels: Channels::new(),
             inner: self.inner,
             state: Enabled(()),
         };
 
         unsafe { self_.inner.pr.write(|w| w.prval().bits(prescaler)) };
-        // Use MAT3 to reset the counter
-        unsafe { self_.inner.mr[3].write(|w| w.match_().bits(period)) };
+        self_.set_period(period);
         self_.inner.mcr.write(|w| {
             w.mr3r().set_bit();
             // Use shadow registers for the pwm output matches
@@ -170,6 +169,13 @@ impl<Channel1State, Channel2State, Channel3State>
             inner: self.inner,
             state: Disabled,
         }
+    }
+
+    // Private methods
+
+    fn set_period(&mut self, period: u32) {
+        // Use MAT3 to reset the counter
+        unsafe { self.inner.mr[3].write(|w| w.match_().bits(period)) };
     }
 }
 
