@@ -4,10 +4,12 @@ use crate::{
     swm, syscon,
 };
 
-use super::channels::{
-    self,
-    state::{Attached, Detached},
-    Channel1, Channel2, Channel3, Channels,
+use super::{
+    channels::{
+        self,
+        state::{Attached, Detached},
+    },
+    gen::{Channel1, Channel2, Channel3, Channels},
 };
 
 /// Interface to a CTimer peripheral

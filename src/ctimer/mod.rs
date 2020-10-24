@@ -44,6 +44,7 @@
 
 pub mod channels;
 
+mod gen;
 mod peripheral;
 
-pub use self::peripheral::CTIMER;
+pub use self::{gen::*, peripheral::CTIMER};

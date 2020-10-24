@@ -11,7 +11,6 @@ use crate::{
         CTIMER0,
     },
     reg_proxy::RegProxy,
-    swm,
 };
 
 use self::state::Attached;
@@ -71,54 +70,6 @@ where
     }
 }
 
-macro_rules! channels {
-    (
-        $(
-            $channel:ident:
-                $field: ident,
-                $id:expr,
-                $output:ident,
-                $state:ident;
-        )*
-    ) => {
-        /// Contains all CTIMER PWM channels
-        ///
-        /// Can be accessed via `CTIMER`.
-        #[allow(missing_docs)]
-        pub struct Channels<PeripheralState, $($state,)*> {
-            $(pub $field: Channel<$channel, PeripheralState, $state>,)*
-        }
-
-        impl<PeripheralState, $($state,)*>
-            Channels<PeripheralState, $($state,)*>
-        {
-            pub(super) fn new() -> Self {
-                Self {
-                    $($field: Channel::new(),)*
-                }
-            }
-        }
-
-        $(
-            /// Identifies a CTIMER PWM channel
-            pub struct $channel;
-
-            impl private::Sealed for $channel {}
-
-            impl Trait for $channel {
-                const ID: u8 = $id;
-                type Output = swm::$output;
-            }
-        )*
-    };
-}
-
-channels! {
-    Channel1: channel1, 0, T0_MAT0, State1;
-    Channel2: channel2, 1, T0_MAT1, State2;
-    Channel3: channel3, 2, T0_MAT2, State3;
-}
-
 /// Implemented for all CTIMER PWM channels
 pub trait Trait: private::Sealed {
     /// Identifies the channel
@@ -140,7 +91,7 @@ pub mod state {
     pub struct Attached;
 }
 
-mod private {
+pub(super) mod private {
     pub trait Sealed {}
 }
 
