@@ -190,6 +190,7 @@ impl<CTOutput> DetachedPwmPin<CTOutput> {
 
 impl PwmPin for CTimerPwmPin {
     type Duty = u32;
+
     /// The behaviour of `enable` is implementation defined and does nothing in
     /// this implementation
     fn enable(&mut self) {}
