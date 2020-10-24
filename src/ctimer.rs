@@ -101,7 +101,9 @@ impl CTIMER<Disabled> {
 
         Channels::new()
     }
+}
 
+impl<State> CTIMER<State> {
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the
