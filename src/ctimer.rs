@@ -119,6 +119,34 @@ impl<Channel1State, Channel2State, Channel3State>
     }
 }
 
+impl<Channel1State, Channel2State, Channel3State>
+    CTIMER<Enabled, Channel1State, Channel2State, Channel3State>
+{
+    /// Disable the CTIMER
+    ///
+    /// This method is only available, if `CTIMER` is in the [`Enabled`] state.
+    /// Code that attempts to call this method when the peripheral is already
+    /// disabled will not compile.
+    ///
+    /// Consumes this instance of `CTIMER` and returns another instance that has
+    /// its `State` type parameter set to [`Disabled`].
+    ///
+    /// [`Enabled`]: ../init_state/struct.Enabled.html
+    /// [`Disabled`]: ../init_state/struct.Disabled.html
+    pub fn disable(
+        self,
+        syscon: &mut syscon::Handle,
+    ) -> CTIMER<Disabled, Channel1State, Channel2State, Channel3State> {
+        syscon.disable_clock(&self.inner);
+
+        CTIMER {
+            channels: Channels::new(),
+            inner: self.inner,
+            _state: Disabled,
+        }
+    }
+}
+
 impl<State, Channel1State, Channel2State, Channel3State>
     CTIMER<State, Channel1State, Channel2State, Channel3State>
 {
