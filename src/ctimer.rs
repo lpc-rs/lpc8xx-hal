@@ -42,7 +42,11 @@
 
 pub mod channels;
 
-use crate::{init_state::Disabled, pac::CTIMER0, syscon};
+use crate::{
+    init_state::{Disabled, Enabled},
+    pac::CTIMER0,
+    syscon,
+};
 
 use self::channels::{state::Detached, Channels};
 
@@ -77,7 +81,7 @@ impl CTIMER<Disabled> {
         period: u32,
         prescaler: u32,
         syscon: &mut syscon::Handle,
-    ) -> Channels<Detached, Detached, Detached> {
+    ) -> Channels<Enabled, Detached, Detached, Detached> {
         syscon.enable_clock(&self.inner);
         unsafe { self.inner.pr.write(|w| w.prval().bits(prescaler)) };
         // Use MAT3 to reset the counter

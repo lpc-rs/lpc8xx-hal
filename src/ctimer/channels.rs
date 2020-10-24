@@ -5,6 +5,7 @@ use core::marker::PhantomData;
 use embedded_hal::PwmPin;
 
 use crate::{
+    init_state::Enabled,
     pac::{
         ctimer0::{MR, MSR},
         CTIMER0,
@@ -17,25 +18,27 @@ use crate::{
 use self::state::{Attached, Detached};
 
 /// A CTIMER PWM channel
-pub struct Channel<T, State> {
+pub struct Channel<T, PeripheralState, State> {
     mr: RegProxy<MR>,
     msr: RegProxy<MSR>,
     channel: PhantomData<T>,
+    peripheral_state: PhantomData<PeripheralState>,
     _state: PhantomData<State>,
 }
 
-impl<T, State> Channel<T, State> {
+impl<T, PeripheralState, State> Channel<T, PeripheralState, State> {
     pub(super) fn new() -> Self {
         Self {
             mr: RegProxy::new(),
             msr: RegProxy::new(),
             channel: PhantomData,
+            peripheral_state: PhantomData,
             _state: PhantomData,
         }
     }
 }
 
-impl<T> Channel<T, Detached>
+impl<T> Channel<T, Enabled, Detached>
 where
     T: Trait,
 {
@@ -44,7 +47,7 @@ where
     pub fn attach<Pin>(
         self,
         _: swm::Function<T::Output, swm::state::Assigned<Pin>>,
-    ) -> Channel<T, Attached>
+    ) -> Channel<T, Enabled, Attached>
     where
         Pin: pins::Trait,
     {
@@ -52,12 +55,13 @@ where
             mr: self.mr,
             msr: self.msr,
             channel: self.channel,
+            peripheral_state: self.peripheral_state,
             _state: PhantomData,
         }
     }
 }
 
-impl<T> PwmPin for Channel<T, Attached>
+impl<T> PwmPin for Channel<T, Enabled, Attached>
 where
     T: Trait,
 {
@@ -105,11 +109,13 @@ macro_rules! channels {
         ///
         /// Can be accessed via `CTIMER`.
         #[allow(missing_docs)]
-        pub struct Channels<$($state,)*> {
-            $(pub $field: Channel<$channel, $state>,)*
+        pub struct Channels<PeripheralState, $($state,)*> {
+            $(pub $field: Channel<$channel, PeripheralState, $state>,)*
         }
 
-        impl<$($state,)*> Channels<$($state,)*> {
+        impl<PeripheralState, $($state,)*>
+            Channels<PeripheralState, $($state,)*>
+        {
             pub(super) fn new() -> Self {
                 Self {
                     $($field: Channel::new(),)*
