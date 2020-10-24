@@ -42,7 +42,7 @@
 //! }
 //! ```
 
-pub mod channels;
+pub mod channel;
 
 mod gen;
 mod peripheral;

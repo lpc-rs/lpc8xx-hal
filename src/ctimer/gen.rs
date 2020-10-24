@@ -1,6 +1,6 @@
 use crate::swm;
 
-use super::channels::{self, Channel};
+use super::channel::{self, Channel};
 
 macro_rules! channels {
     (
@@ -34,9 +34,9 @@ macro_rules! channels {
             /// Identifies a CTIMER PWM channel
             pub struct $channel;
 
-            impl channels::private::Sealed for $channel {}
+            impl channel::private::Sealed for $channel {}
 
-            impl channels::Trait for $channel {
+            impl channel::Trait for $channel {
                 const ID: u8 = $id;
                 type Output = swm::$output;
             }

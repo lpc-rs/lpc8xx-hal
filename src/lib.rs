@@ -174,7 +174,7 @@ pub use self::wkt::WKT;
 pub use pac::CorePeripherals;
 
 #[cfg(feature = "845")]
-use ctimer::channels::state::Detached;
+use ctimer::channel::state::Detached;
 
 /// Provides access to all peripherals
 ///

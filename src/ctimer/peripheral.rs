@@ -5,7 +5,7 @@ use crate::{
 };
 
 use super::{
-    channels::{
+    channel::{
         self,
         state::{Attached, Detached},
     },
@@ -89,7 +89,7 @@ impl CTIMER<Enabled, Detached, Detached, Detached> {
     pub fn attach<Pin>(
         self,
         _: swm::Function<
-            <Channel1 as channels::Trait>::Output,
+            <Channel1 as channel::Trait>::Output,
             swm::state::Assigned<Pin>,
         >,
     ) -> CTIMER<Enabled, Attached, Detached, Detached> {
@@ -109,7 +109,7 @@ impl CTIMER<Enabled, Attached, Detached, Detached> {
     pub fn attach<Pin>(
         self,
         _: swm::Function<
-            <Channel2 as channels::Trait>::Output,
+            <Channel2 as channel::Trait>::Output,
             swm::state::Assigned<Pin>,
         >,
     ) -> CTIMER<Enabled, Attached, Attached, Detached> {
@@ -130,7 +130,7 @@ impl CTIMER<Enabled, Attached, Attached, Detached> {
     pub fn attach<Pin>(
         self,
         _: swm::Function<
-            <Channel3 as channels::Trait>::Output,
+            <Channel3 as channel::Trait>::Output,
             swm::state::Assigned<Pin>,
         >,
     ) -> CTIMER<Enabled, Attached, Attached, Attached> {
