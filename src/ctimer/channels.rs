@@ -2,6 +2,8 @@
 
 use core::marker::PhantomData;
 
+use embedded_hal::PwmPin;
+
 use crate::{
     pac::ctimer0::{MR, MSR},
     pins,
@@ -39,15 +41,49 @@ where
     pub fn attach<Pin>(
         self,
         _: swm::Function<T::Output, swm::state::Assigned<Pin>>,
-    ) -> super::CTimerPwmPin
+    ) -> Channel<T, state::Attached>
     where
         Pin: pins::Trait,
     {
-        super::CTimerPwmPin {
+        Channel {
+            number: self.number,
             mr: self.mr,
             msr: self.msr,
-            number: self.number,
+            _channel: self._channel,
+            _state: state::Attached,
         }
+    }
+}
+
+impl<T> PwmPin for Channel<T, state::Attached> {
+    type Duty = u32;
+
+    /// The behaviour of `enable` is implementation defined and does nothing in
+    /// this implementation
+    fn enable(&mut self) {}
+
+    /// The behaviour of `disable` is implementation defined and does nothing in
+    /// this implementation
+    // Accessing pwmc would require some kind of lock, which is inconvenient
+    // and would involve a hidden `CriticalSection`
+    fn disable(&mut self) {}
+
+    /// Returns the current duty cycle
+    fn get_duty(&self) -> Self::Duty {
+        self.msr[self.number as usize].read().match_shadow().bits()
+    }
+
+    /// Returns the maximum duty cycle value
+    fn get_max_duty(&self) -> Self::Duty {
+        self.mr[3].read().match_().bits()
+    }
+
+    /// Sets a new duty cycle
+    fn set_duty(&mut self, duty: Self::Duty) {
+        unsafe {
+            self.msr[self.number as usize]
+                .write(|w| w.match_shadow().bits(duty))
+        };
     }
 }
 
@@ -87,4 +123,7 @@ pub mod state {
     /// Detached channels don't have an output function assigned and can't be
     /// used for PWM output.
     pub struct Detached;
+
+    /// Indicates that a channel is attached
+    pub struct Attached;
 }

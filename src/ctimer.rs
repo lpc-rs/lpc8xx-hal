@@ -48,11 +48,8 @@ use crate::{
         ctimer0::{MR, MSR},
         CTIMER0,
     },
-    reg_proxy::RegProxy,
     syscon,
 };
-
-use embedded_hal::PwmPin;
 
 use self::channels::{state::Detached, Channel, Channel1, Channel2, Channel3};
 
@@ -125,50 +122,6 @@ impl CTIMER {
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
     pub fn free(self) -> CTIMER0 {
         self.inner
-    }
-}
-
-/// Represents a pwm channel assigned to an output pin
-///
-/// # `embedded-hal` traits
-/// - [`embedded_hal::PwmPin`]
-///
-/// [`embedded_hal::PwmPin`]: #impl-PwmPin
-pub struct CTimerPwmPin {
-    mr: RegProxy<MR>,
-    msr: RegProxy<MSR>,
-    number: u8,
-}
-
-impl PwmPin for CTimerPwmPin {
-    type Duty = u32;
-
-    /// The behaviour of `enable` is implementation defined and does nothing in
-    /// this implementation
-    fn enable(&mut self) {}
-
-    /// The behaviour of `disable` is implementation defined and does nothing in
-    /// this implementation
-    // Accessing pwmc would require some kind of lock, which is inconvenient
-    // and would involve a hidden `CriticalSection`
-    fn disable(&mut self) {}
-
-    /// Returns the current duty cycle
-    fn get_duty(&self) -> Self::Duty {
-        self.msr[self.number as usize].read().match_shadow().bits()
-    }
-
-    /// Returns the maximum duty cycle value
-    fn get_max_duty(&self) -> Self::Duty {
-        self.mr[3].read().match_().bits()
-    }
-
-    /// Sets a new duty cycle
-    fn set_duty(&mut self, duty: Self::Duty) {
-        unsafe {
-            self.msr[self.number as usize]
-                .write(|w| w.match_shadow().bits(duty))
-        };
     }
 }
 
