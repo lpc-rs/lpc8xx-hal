@@ -105,7 +105,7 @@ impl CTIMER {
 
         // Start the timer
         self.inner.tcr.write(|w| w.cen().set_bit());
-        (Channel::new(0), Channel::new(1), Channel::new(2))
+        (Channel::new(), Channel::new(), Channel::new())
     }
 
     /// Return the raw peripheral

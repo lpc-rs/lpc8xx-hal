@@ -13,7 +13,6 @@ use crate::{
 
 /// A CTIMER PWM channel
 pub struct Channel<T, State> {
-    number: u8,
     mr: RegProxy<MR>,
     msr: RegProxy<MSR>,
     channel: PhantomData<T>,
@@ -21,9 +20,8 @@ pub struct Channel<T, State> {
 }
 
 impl<T, State> Channel<T, State> {
-    pub(super) fn new(number: u8) -> Self {
+    pub(super) fn new() -> Self {
         Self {
-            number,
             mr: RegProxy::new(),
             msr: RegProxy::new(),
             channel: PhantomData,
@@ -46,7 +44,6 @@ where
         Pin: pins::Trait,
     {
         Channel {
-            number: self.number,
             mr: self.mr,
             msr: self.msr,
             channel: self.channel,
@@ -55,7 +52,10 @@ where
     }
 }
 
-impl<T> PwmPin for Channel<T, state::Attached> {
+impl<T> PwmPin for Channel<T, state::Attached>
+where
+    T: Trait,
+{
     type Duty = u32;
 
     /// The behaviour of `enable` is implementation defined and does nothing in
@@ -70,7 +70,7 @@ impl<T> PwmPin for Channel<T, state::Attached> {
 
     /// Returns the current duty cycle
     fn get_duty(&self) -> Self::Duty {
-        self.msr[self.number as usize].read().match_shadow().bits()
+        self.msr[T::ID as usize].read().match_shadow().bits()
     }
 
     /// Returns the maximum duty cycle value
@@ -81,8 +81,7 @@ impl<T> PwmPin for Channel<T, state::Attached> {
     /// Sets a new duty cycle
     fn set_duty(&mut self, duty: Self::Duty) {
         unsafe {
-            self.msr[self.number as usize]
-                .write(|w| w.match_shadow().bits(duty))
+            self.msr[T::ID as usize].write(|w| w.match_shadow().bits(duty))
         };
     }
 }
@@ -90,7 +89,7 @@ impl<T> PwmPin for Channel<T, state::Attached> {
 macro_rules! channels {
     (
         $(
-            $channel:ident: $output:ident;
+            $channel:ident: $id:expr, $output:ident;
         )*
     ) => {
         $(
@@ -98,6 +97,7 @@ macro_rules! channels {
             pub struct $channel;
 
             impl Trait for $channel {
+                const ID: u8 = $id;
                 type Output = swm::$output;
             }
         )*
@@ -105,13 +105,16 @@ macro_rules! channels {
 }
 
 channels! {
-    Channel1: T0_MAT0;
-    Channel2: T0_MAT1;
-    Channel3: T0_MAT2;
+    Channel1: 0, T0_MAT0;
+    Channel2: 1, T0_MAT1;
+    Channel3: 2, T0_MAT2;
 }
 
 /// Implemented for all CTIMER PWM channels
 pub trait Trait {
+    /// Identifies the channel
+    const ID: u8;
+
     /// The SWM function that needs to be assigned to this channels output pin
     type Output;
 }
