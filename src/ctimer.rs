@@ -43,6 +43,7 @@
 pub mod channels;
 
 use crate::{
+    init_state::Disabled,
     pac::{
         ctimer0::{MR, MSR},
         CTIMER0,
@@ -61,13 +62,17 @@ use self::channels::{state::Detached, Channels};
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct CTIMER {
+pub struct CTIMER<State> {
     inner: CTIMER0,
+    _state: State,
 }
 
-impl CTIMER {
+impl CTIMER<Disabled> {
     pub(crate) fn new(ct: CTIMER0) -> Self {
-        Self { inner: ct }
+        Self {
+            inner: ct,
+            _state: Disabled,
+        }
     }
 
     /// Start the PWM timer, with a predefined period and prescaler

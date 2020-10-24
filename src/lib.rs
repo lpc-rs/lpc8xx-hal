@@ -216,7 +216,7 @@ pub struct Peripherals {
 
     /// Standard counter/timer (CTIMER)
     #[cfg(feature = "845")]
-    pub CTIMER0: CTIMER,
+    pub CTIMER0: CTIMER<init_state::Disabled>,
 
     /// DMA controller
     pub DMA: DMA<init_state::Disabled>,
