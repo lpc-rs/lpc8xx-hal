@@ -1,3 +1,5 @@
+use embedded_hal::{Pwm, PwmPin as _};
+
 use crate::{
     init_state::{Disabled, Enabled},
     pac::CTIMER0,
@@ -173,6 +175,14 @@ impl<Channel1State, Channel2State, Channel3State>
 
     // Private methods
 
+    fn get_period(&self) -> u32 {
+        self.inner.mr[3].read().match_().bits()
+    }
+
+    fn get_max_duty(&self) -> u32 {
+        self.get_period()
+    }
+
     fn set_period(&mut self, period: u32) {
         // Use MAT3 to reset the counter
         unsafe { self.inner.mr[3].write(|w| w.match_().bits(period)) };
@@ -196,5 +206,199 @@ impl<State, Channel1State, Channel2State, Channel3State>
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
     pub fn free(self) -> CTIMER0 {
         self.inner
+    }
+}
+
+impl Pwm for CTIMER<Enabled, Attached, Detached, Detached> {
+    type Channel = Channels1;
+    type Time = u32;
+    type Duty = u32;
+
+    fn disable(&mut self, channel: Self::Channel) {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.disable(),
+        }
+    }
+
+    fn enable(&mut self, channel: Self::Channel) {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.enable(),
+        }
+    }
+
+    fn get_period(&self) -> Self::Time {
+        self.get_period()
+    }
+
+    fn get_duty(&self, channel: Self::Channel) -> Self::Duty {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.get_duty(),
+        }
+    }
+
+    fn get_max_duty(&self) -> Self::Duty {
+        self.get_max_duty()
+    }
+
+    fn set_duty(&mut self, channel: Self::Channel, duty: Self::Duty) {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.set_duty(duty),
+        }
+    }
+
+    fn set_period<P>(&mut self, period: P)
+    where
+        P: Into<Self::Time>,
+    {
+        self.set_period(period.into())
+    }
+}
+
+impl Pwm for CTIMER<Enabled, Attached, Attached, Detached> {
+    type Channel = Channels12;
+    type Time = u32;
+    type Duty = u32;
+
+    fn disable(&mut self, channel: Self::Channel) {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.disable(),
+            Self::Channel::Channel2 => self.channels.channel2.disable(),
+        }
+    }
+
+    fn enable(&mut self, channel: Self::Channel) {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.enable(),
+            Self::Channel::Channel2 => self.channels.channel2.enable(),
+        }
+    }
+
+    fn get_period(&self) -> Self::Time {
+        self.get_period()
+    }
+
+    fn get_duty(&self, channel: Self::Channel) -> Self::Duty {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.get_duty(),
+            Self::Channel::Channel2 => self.channels.channel2.get_duty(),
+        }
+    }
+
+    fn get_max_duty(&self) -> Self::Duty {
+        self.get_max_duty()
+    }
+
+    fn set_duty(&mut self, channel: Self::Channel, duty: Self::Duty) {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.set_duty(duty),
+            Self::Channel::Channel2 => self.channels.channel2.set_duty(duty),
+        }
+    }
+
+    fn set_period<P>(&mut self, period: P)
+    where
+        P: Into<Self::Time>,
+    {
+        self.set_period(period.into())
+    }
+}
+
+impl Pwm for CTIMER<Enabled, Attached, Attached, Attached> {
+    type Channel = Channels123;
+    type Time = u32;
+    type Duty = u32;
+
+    fn disable(&mut self, channel: Self::Channel) {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.disable(),
+            Self::Channel::Channel2 => self.channels.channel2.disable(),
+            Self::Channel::Channel3 => self.channels.channel3.disable(),
+        }
+    }
+
+    fn enable(&mut self, channel: Self::Channel) {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.enable(),
+            Self::Channel::Channel2 => self.channels.channel2.enable(),
+            Self::Channel::Channel3 => self.channels.channel3.enable(),
+        }
+    }
+
+    fn get_period(&self) -> Self::Time {
+        self.get_period()
+    }
+
+    fn get_duty(&self, channel: Self::Channel) -> Self::Duty {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.get_duty(),
+            Self::Channel::Channel2 => self.channels.channel2.get_duty(),
+            Self::Channel::Channel3 => self.channels.channel3.get_duty(),
+        }
+    }
+
+    fn get_max_duty(&self) -> Self::Duty {
+        self.get_max_duty()
+    }
+
+    fn set_duty(&mut self, channel: Self::Channel, duty: Self::Duty) {
+        match channel {
+            Self::Channel::Channel1 => self.channels.channel1.set_duty(duty),
+            Self::Channel::Channel2 => self.channels.channel2.set_duty(duty),
+            Self::Channel::Channel3 => self.channels.channel3.set_duty(duty),
+        }
+    }
+
+    fn set_period<P>(&mut self, period: P)
+    where
+        P: Into<Self::Time>,
+    {
+        self.set_period(period.into())
+    }
+}
+
+/// The available channels, if only channel 1 is attached
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Channels1 {
+    /// Channel 1
+    Channel1,
+}
+
+/// The available channels, if only channels 1 and 2 are attached
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Channels12 {
+    /// Channel 1
+    Channel1,
+
+    /// Channel 2
+    Channel2,
+}
+
+/// The available channels, if channels 1, 2, and 2 are attached
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Channels123 {
+    /// Channel 1
+    Channel1,
+
+    /// Channel 2
+    Channel2,
+
+    /// Channel 3
+    Channel3,
+}
+
+impl From<Channels1> for Channels123 {
+    fn from(from: Channels1) -> Self {
+        match from {
+            Channels1::Channel1 => Self::Channel1,
+        }
+    }
+}
+
+impl From<Channels12> for Channels123 {
+    fn from(from: Channels12) -> Self {
+        match from {
+            Channels12::Channel1 => Self::Channel1,
+            Channels12::Channel2 => Self::Channel2,
+        }
     }
 }

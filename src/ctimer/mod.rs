@@ -47,4 +47,8 @@ pub mod channel;
 mod gen;
 mod peripheral;
 
-pub use self::{channel::Channel, gen::*, peripheral::CTIMER};
+pub use self::{
+    channel::Channel,
+    gen::*,
+    peripheral::{Channels1, Channels12, Channels123, CTIMER},
+};
