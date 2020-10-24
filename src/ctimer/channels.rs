@@ -96,6 +96,8 @@ macro_rules! channels {
             /// Identifies a CTIMER PWM channel
             pub struct $channel;
 
+            impl private::Sealed for $channel {}
+
             impl Trait for $channel {
                 const ID: u8 = $id;
                 type Output = swm::$output;
@@ -111,7 +113,7 @@ channels! {
 }
 
 /// Implemented for all CTIMER PWM channels
-pub trait Trait {
+pub trait Trait: private::Sealed {
     /// Identifies the channel
     const ID: u8;
 
@@ -129,4 +131,8 @@ pub mod state {
 
     /// Indicates that a channel is attached
     pub struct Attached;
+}
+
+mod private {
+    pub trait Sealed {}
 }
