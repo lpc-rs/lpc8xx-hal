@@ -68,30 +68,6 @@ pub struct CTimer {
     ct: CTIMER0,
 }
 
-/// A detached [`CTimerPwmPin`]
-///
-/// Use `attach` to assign an output to it.
-///
-/// [`CTimerPwmPin`]: struct.CTimerPwmPin.html
-pub struct DetachedPwmPin<CTOutput> {
-    number: u8,
-    mr: RegProxy<MR>,
-    msr: RegProxy<MSR>,
-    output: PhantomData<CTOutput>,
-}
-
-/// Represents a pwm channel assigned to an output pin
-///
-/// # `embedded-hal` traits
-/// - [`embedded_hal::PwmPin`]
-///
-/// [`embedded_hal::PwmPin`]: #impl-PwmPin
-pub struct CTimerPwmPin {
-    mr: RegProxy<MR>,
-    msr: RegProxy<MSR>,
-    number: u8,
-}
-
 impl CTimer {
     pub(crate) fn new(ct: CTIMER0) -> Self {
         Self { ct }
@@ -170,6 +146,18 @@ impl CTimer {
     }
 }
 
+/// A detached [`CTimerPwmPin`]
+///
+/// Use `attach` to assign an output to it.
+///
+/// [`CTimerPwmPin`]: struct.CTimerPwmPin.html
+pub struct DetachedPwmPin<CTOutput> {
+    number: u8,
+    mr: RegProxy<MR>,
+    msr: RegProxy<MSR>,
+    output: PhantomData<CTOutput>,
+}
+
 impl<CTOutput> DetachedPwmPin<CTOutput> {
     /// Assigns a pin to a `DetachedPwmPin`,
     /// allowing it to be used as a pwm output
@@ -186,6 +174,18 @@ impl<CTOutput> DetachedPwmPin<CTOutput> {
             number: self.number,
         }
     }
+}
+
+/// Represents a pwm channel assigned to an output pin
+///
+/// # `embedded-hal` traits
+/// - [`embedded_hal::PwmPin`]
+///
+/// [`embedded_hal::PwmPin`]: #impl-PwmPin
+pub struct CTimerPwmPin {
+    mr: RegProxy<MR>,
+    msr: RegProxy<MSR>,
+    number: u8,
 }
 
 impl PwmPin for CTimerPwmPin {
