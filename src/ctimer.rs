@@ -112,24 +112,9 @@ impl CTIMER {
         // Start the timer
         self.inner.tcr.write(|w| w.cen().set_bit());
         (
-            DetachedPwmPin {
-                number: 0,
-                mr: RegProxy::new(),
-                msr: RegProxy::new(),
-                _channel: PhantomData,
-            },
-            DetachedPwmPin {
-                number: 1,
-                mr: RegProxy::new(),
-                msr: RegProxy::new(),
-                _channel: PhantomData,
-            },
-            DetachedPwmPin {
-                number: 2,
-                mr: RegProxy::new(),
-                msr: RegProxy::new(),
-                _channel: PhantomData,
-            },
+            DetachedPwmPin::new(0),
+            DetachedPwmPin::new(1),
+            DetachedPwmPin::new(2),
         )
     }
 
@@ -166,6 +151,14 @@ impl<T> DetachedPwmPin<T>
 where
     T: channels::Trait,
 {
+    fn new(number: u8) -> Self {
+        Self {
+            number,
+            mr: RegProxy::new(),
+            msr: RegProxy::new(),
+            _channel: PhantomData,
+        }
+    }
     /// Assigns a pin to a `DetachedPwmPin`,
     /// allowing it to be used as a pwm output
     pub fn attach<PWM>(
