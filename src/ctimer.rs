@@ -65,12 +65,12 @@ use embedded_hal::PwmPin;
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
 pub struct CTIMER {
-    ct: CTIMER0,
+    inner: CTIMER0,
 }
 
 impl CTIMER {
     pub(crate) fn new(ct: CTIMER0) -> Self {
-        Self { ct }
+        Self { inner: ct }
     }
 
     /// Start the PWM timer, with a predefined period and prescaler
@@ -87,11 +87,11 @@ impl CTIMER {
         DetachedPwmPin<T0_MAT1>,
         DetachedPwmPin<T0_MAT2>,
     ) {
-        syscon.enable_clock(&self.ct);
-        unsafe { self.ct.pr.write(|w| w.prval().bits(prescaler)) };
+        syscon.enable_clock(&self.inner);
+        unsafe { self.inner.pr.write(|w| w.prval().bits(prescaler)) };
         // Use MAT3 to reset the counter
-        unsafe { self.ct.mr[3].write(|w| w.match_().bits(period)) };
-        self.ct.mcr.write(|w| {
+        unsafe { self.inner.mr[3].write(|w| w.match_().bits(period)) };
+        self.inner.mcr.write(|w| {
             w.mr3r().set_bit();
             // Use shadow registers for the pwm output matches
             w.mr0rl().set_bit();
@@ -99,14 +99,14 @@ impl CTIMER {
             w.mr2rl().set_bit()
         });
 
-        self.ct.pwmc.write(|w| {
+        self.inner.pwmc.write(|w| {
             w.pwmen0().set_bit();
             w.pwmen1().set_bit();
             w.pwmen2().set_bit()
         });
 
         // Start the timer
-        self.ct.tcr.write(|w| w.cen().set_bit());
+        self.inner.tcr.write(|w| w.cen().set_bit());
         (
             DetachedPwmPin {
                 number: 0,
@@ -142,7 +142,7 @@ impl CTIMER {
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
     pub fn free(self) -> CTIMER0 {
-        self.ct
+        self.inner
     }
 }
 
