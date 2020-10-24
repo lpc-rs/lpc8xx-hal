@@ -5,7 +5,10 @@ use core::marker::PhantomData;
 use embedded_hal::PwmPin;
 
 use crate::{
-    pac::ctimer0::{MR, MSR},
+    pac::{
+        ctimer0::{MR, MSR},
+        CTIMER0,
+    },
     pins,
     reg_proxy::RegProxy,
     swm,
@@ -156,3 +159,6 @@ pub mod state {
 mod private {
     pub trait Sealed {}
 }
+
+reg!(MR, [MR; 4], CTIMER0, mr);
+reg!(MSR, [MSR; 4], CTIMER0, msr);

@@ -42,14 +42,7 @@
 
 pub mod channels;
 
-use crate::{
-    init_state::Disabled,
-    pac::{
-        ctimer0::{MR, MSR},
-        CTIMER0,
-    },
-    syscon,
-};
+use crate::{init_state::Disabled, pac::CTIMER0, syscon};
 
 use self::channels::{state::Detached, Channels};
 
@@ -125,6 +118,3 @@ impl CTIMER<Disabled> {
         self.inner
     }
 }
-
-reg!(MR, [MR; 4], CTIMER0, mr);
-reg!(MSR, [MSR; 4], CTIMER0, msr);
