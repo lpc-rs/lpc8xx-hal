@@ -69,7 +69,7 @@ pub struct CTIMER<State, Channel1State, Channel2State, Channel3State> {
     pub channels: Channels<State, Channel1State, Channel2State, Channel3State>,
 
     inner: CTIMER0,
-    _state: State,
+    state: State,
 }
 
 impl CTIMER<Disabled, Detached, Detached, Detached> {
@@ -77,7 +77,7 @@ impl CTIMER<Disabled, Detached, Detached, Detached> {
         Self {
             channels: Channels::new(),
             inner: ct,
-            _state: Disabled,
+            state: Disabled,
         }
     }
 }
@@ -119,7 +119,7 @@ impl<Channel1State, Channel2State, Channel3State>
         CTIMER {
             channels: Channels::new(),
             inner: self.inner,
-            _state: Enabled(()),
+            state: Enabled(()),
         }
     }
 }
@@ -139,7 +139,7 @@ impl CTIMER<Enabled, Detached, Detached, Detached> {
         CTIMER {
             channels: Channels::new(),
             inner: self.inner,
-            _state: self._state,
+            state: self.state,
         }
     }
 }
@@ -159,7 +159,7 @@ impl CTIMER<Enabled, Attached, Detached, Detached> {
         CTIMER {
             channels: Channels::new(),
             inner: self.inner,
-            _state: self._state,
+            state: self.state,
         }
     }
 }
@@ -180,7 +180,7 @@ impl CTIMER<Enabled, Attached, Attached, Detached> {
         CTIMER {
             channels: Channels::new(),
             inner: self.inner,
-            _state: self._state,
+            state: self.state,
         }
     }
 }
@@ -208,7 +208,7 @@ impl<Channel1State, Channel2State, Channel3State>
         CTIMER {
             channels: Channels::new(),
             inner: self.inner,
-            _state: Disabled,
+            state: Disabled,
         }
     }
 }
