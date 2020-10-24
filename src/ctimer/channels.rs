@@ -14,6 +14,8 @@ use crate::{
     swm,
 };
 
+use self::state::{Attached, Detached};
+
 /// A CTIMER PWM channel
 pub struct Channel<T, State> {
     mr: RegProxy<MR>,
@@ -33,7 +35,7 @@ impl<T, State> Channel<T, State> {
     }
 }
 
-impl<T> Channel<T, state::Detached>
+impl<T> Channel<T, Detached>
 where
     T: Trait,
 {
@@ -42,7 +44,7 @@ where
     pub fn attach<Pin>(
         self,
         _: swm::Function<T::Output, swm::state::Assigned<Pin>>,
-    ) -> Channel<T, state::Attached>
+    ) -> Channel<T, Attached>
     where
         Pin: pins::Trait,
     {
@@ -55,7 +57,7 @@ where
     }
 }
 
-impl<T> PwmPin for Channel<T, state::Attached>
+impl<T> PwmPin for Channel<T, Attached>
 where
     T: Trait,
 {
