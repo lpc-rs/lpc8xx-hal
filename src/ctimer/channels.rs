@@ -36,12 +36,12 @@ where
 {
     /// Assigns a pin to a `DetachedPwmPin`,
     /// allowing it to be used as a pwm output
-    pub fn attach<PWM>(
+    pub fn attach<Pin>(
         self,
-        _: swm::Function<T::Output, swm::state::Assigned<PWM>>,
+        _: swm::Function<T::Output, swm::state::Assigned<Pin>>,
     ) -> super::CTimerPwmPin
     where
-        PWM: pins::Trait,
+        Pin: pins::Trait,
     {
         super::CTimerPwmPin {
             mr: self.mr,
