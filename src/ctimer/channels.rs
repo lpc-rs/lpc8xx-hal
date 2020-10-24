@@ -1,6 +1,55 @@
 //! Contains types related to CTIMER PWM channels
 
-use crate::swm;
+use core::marker::PhantomData;
+
+use crate::{
+    pac::ctimer0::{MR, MSR},
+    pins,
+    reg_proxy::RegProxy,
+    swm,
+};
+
+/// A CTIMER PWM channel
+pub struct Channel<T, State> {
+    number: u8,
+    mr: RegProxy<MR>,
+    msr: RegProxy<MSR>,
+    _channel: PhantomData<T>,
+    _state: PhantomData<State>,
+}
+
+impl<T, State> Channel<T, State> {
+    pub(super) fn new(number: u8) -> Self {
+        Self {
+            number,
+            mr: RegProxy::new(),
+            msr: RegProxy::new(),
+            _channel: PhantomData,
+            _state: PhantomData,
+        }
+    }
+}
+
+impl<T> Channel<T, state::Detached>
+where
+    T: Trait,
+{
+    /// Assigns a pin to a `DetachedPwmPin`,
+    /// allowing it to be used as a pwm output
+    pub fn attach<PWM>(
+        self,
+        _: swm::Function<T::Output, swm::state::Assigned<PWM>>,
+    ) -> super::CTimerPwmPin
+    where
+        PWM: pins::Trait,
+    {
+        super::CTimerPwmPin {
+            mr: self.mr,
+            msr: self.msr,
+            number: self.number,
+        }
+    }
+}
 
 macro_rules! channels {
     (
@@ -29,4 +78,13 @@ channels! {
 pub trait Trait {
     /// The SWM function that needs to be assigned to this channels output pin
     type Output;
+}
+
+/// Contains types that indicate which state a channel is in
+pub mod state {
+    /// Indicates that a channel is detached
+    ///
+    /// Detached channels don't have an output function assigned and can't be
+    /// used for PWM output.
+    pub struct Detached;
 }

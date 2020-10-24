@@ -43,21 +43,18 @@
 
 pub mod channels;
 
-use core::marker::PhantomData;
-
 use crate::{
     pac::{
         ctimer0::{MR, MSR},
         CTIMER0,
     },
-    pins,
     reg_proxy::RegProxy,
-    swm, syscon,
+    syscon,
 };
 
 use embedded_hal::PwmPin;
 
-use self::channels::{Channel1, Channel2, Channel3};
+use self::channels::{state::Detached, Channel, Channel1, Channel2, Channel3};
 
 /// Interface to a CTimer peripheral
 ///
@@ -87,9 +84,9 @@ impl CTIMER {
         prescaler: u32,
         syscon: &mut syscon::Handle,
     ) -> (
-        DetachedPwmPin<Channel1>,
-        DetachedPwmPin<Channel2>,
-        DetachedPwmPin<Channel3>,
+        Channel<Channel1, Detached>,
+        Channel<Channel2, Detached>,
+        Channel<Channel3, Detached>,
     ) {
         syscon.enable_clock(&self.inner);
         unsafe { self.inner.pr.write(|w| w.prval().bits(prescaler)) };
@@ -111,11 +108,7 @@ impl CTIMER {
 
         // Start the timer
         self.inner.tcr.write(|w| w.cen().set_bit());
-        (
-            DetachedPwmPin::new(0),
-            DetachedPwmPin::new(1),
-            DetachedPwmPin::new(2),
-        )
+        (Channel::new(0), Channel::new(1), Channel::new(2))
     }
 
     /// Return the raw peripheral
@@ -132,47 +125,6 @@ impl CTIMER {
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
     pub fn free(self) -> CTIMER0 {
         self.inner
-    }
-}
-
-/// A detached [`CTimerPwmPin`]
-///
-/// Use `attach` to assign an output to it.
-///
-/// [`CTimerPwmPin`]: struct.CTimerPwmPin.html
-pub struct DetachedPwmPin<T> {
-    number: u8,
-    mr: RegProxy<MR>,
-    msr: RegProxy<MSR>,
-    _channel: PhantomData<T>,
-}
-
-impl<T> DetachedPwmPin<T>
-where
-    T: channels::Trait,
-{
-    fn new(number: u8) -> Self {
-        Self {
-            number,
-            mr: RegProxy::new(),
-            msr: RegProxy::new(),
-            _channel: PhantomData,
-        }
-    }
-    /// Assigns a pin to a `DetachedPwmPin`,
-    /// allowing it to be used as a pwm output
-    pub fn attach<PWM>(
-        self,
-        _: swm::Function<T::Output, swm::state::Assigned<PWM>>,
-    ) -> CTimerPwmPin
-    where
-        PWM: pins::Trait,
-    {
-        CTimerPwmPin {
-            mr: self.mr,
-            msr: self.msr,
-            number: self.number,
-        }
     }
 }
 
