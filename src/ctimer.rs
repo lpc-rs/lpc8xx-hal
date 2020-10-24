@@ -64,11 +64,11 @@ use embedded_hal::PwmPin;
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct CTimer {
+pub struct CTIMER {
     ct: CTIMER0,
 }
 
-impl CTimer {
+impl CTIMER {
     pub(crate) fn new(ct: CTIMER0) -> Self {
         Self { ct }
     }

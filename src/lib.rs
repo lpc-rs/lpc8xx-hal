@@ -157,7 +157,7 @@ pub use lpc845_pac as pac;
 
 pub use self::adc::ADC;
 #[cfg(feature = "845")]
-pub use self::ctimer::CTimer;
+pub use self::ctimer::CTIMER;
 pub use self::dma::DMA;
 pub use self::gpio::GPIO;
 pub use self::i2c::I2C;
@@ -216,7 +216,7 @@ pub struct Peripherals {
 
     /// Standard counter/timer (CTIMER)
     #[cfg(feature = "845")]
-    pub CTIMER0: CTimer,
+    pub CTIMER0: CTIMER,
 
     /// DMA controller
     pub DMA: DMA<init_state::Disabled>,
@@ -505,7 +505,7 @@ impl Peripherals {
             // HAL peripherals
             ADC: ADC::new(p.ADC0),
             #[cfg(feature = "845")]
-            CTIMER0: CTimer::new(p.CTIMER0),
+            CTIMER0: CTIMER::new(p.CTIMER0),
             DMA: DMA::new(p.DMA0),
             GPIO: GPIO::new(p.GPIO),
             I2C0: I2C::new(p.I2C0),
