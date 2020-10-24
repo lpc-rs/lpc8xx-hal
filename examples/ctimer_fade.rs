@@ -27,10 +27,10 @@ fn main() -> ! {
     let mut handle = swm.handle.enable(&mut syscon.handle);
 
     // Use 8 bit pwm
-    let channels = p.CTIMER0.enable(256, 0, &mut syscon.handle);
-    let red_pwm = channels.channel1;
-    let green_pwm = channels.channel2;
-    let blue_pwm = channels.channel3;
+    let ctimer = p.CTIMER0.enable(256, 0, &mut syscon.handle);
+    let red_pwm = ctimer.channels.channel1;
+    let green_pwm = ctimer.channels.channel2;
+    let blue_pwm = ctimer.channels.channel3;
 
     // Select pin for the RGB LED
     let green = p.pins.pio1_0.into_swm_pin();

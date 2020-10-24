@@ -22,7 +22,7 @@
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! // Use 8 bit pwm
-//! let channels = p.CTIMER0.enable(256, 0, &mut syscon.handle);
+//! let ctimer = p.CTIMER0.enable(256, 0, &mut syscon.handle);
 //!
 //! let pwm_output = p.pins.pio1_2.into_swm_pin();
 //!
@@ -31,7 +31,7 @@
 //!     &mut swm_handle,
 //! );
 //!
-//! let mut pwm_pin = channels.channel1.attach(pwm_output);
+//! let mut pwm_pin = ctimer.channels.channel1.attach(pwm_output);
 //! loop {
 //!     for i in 0..pwm_pin.get_max_duty() {
 //!         delay.delay_ms(4_u8);
@@ -59,19 +59,27 @@ use self::channels::{state::Detached, Channels};
 ///
 /// [`Peripherals`]: ../struct.Peripherals.html
 /// [module documentation]: index.html
-pub struct CTIMER<State> {
+pub struct CTIMER<State, Channel1State, Channel2State, Channel3State> {
+    /// The PWM channels of this CTIMER
+    pub channels: Channels<State, Channel1State, Channel2State, Channel3State>,
+
     inner: CTIMER0,
     _state: State,
 }
 
-impl CTIMER<Disabled> {
+impl CTIMER<Disabled, Detached, Detached, Detached> {
     pub(crate) fn new(ct: CTIMER0) -> Self {
         Self {
+            channels: Channels::new(),
             inner: ct,
             _state: Disabled,
         }
     }
+}
 
+impl<Channel1State, Channel2State, Channel3State>
+    CTIMER<Disabled, Channel1State, Channel2State, Channel3State>
+{
     /// Start the PWM timer, with a predefined period and prescaler
     ///
     /// The `period` sets resolution of the pwm and is returned with
@@ -81,7 +89,7 @@ impl CTIMER<Disabled> {
         period: u32,
         prescaler: u32,
         syscon: &mut syscon::Handle,
-    ) -> Channels<Enabled, Detached, Detached, Detached> {
+    ) -> CTIMER<Enabled, Channel1State, Channel2State, Channel3State> {
         syscon.enable_clock(&self.inner);
         unsafe { self.inner.pr.write(|w| w.prval().bits(prescaler)) };
         // Use MAT3 to reset the counter
@@ -103,11 +111,17 @@ impl CTIMER<Disabled> {
         // Start the timer
         self.inner.tcr.write(|w| w.cen().set_bit());
 
-        Channels::new()
+        CTIMER {
+            channels: Channels::new(),
+            inner: self.inner,
+            _state: Enabled(()),
+        }
     }
 }
 
-impl<State> CTIMER<State> {
+impl<State, Channel1State, Channel2State, Channel3State>
+    CTIMER<State, Channel1State, Channel2State, Channel3State>
+{
     /// Return the raw peripheral
     ///
     /// This method serves as an escape hatch from the HAL API. It returns the

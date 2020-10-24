@@ -173,6 +173,9 @@ pub use self::wkt::WKT;
 
 pub use pac::CorePeripherals;
 
+#[cfg(feature = "845")]
+use ctimer::channels::state::Detached;
+
 /// Provides access to all peripherals
 ///
 /// This is the entry point to the HAL API. Before you can do anything else, you
@@ -216,7 +219,7 @@ pub struct Peripherals {
 
     /// Standard counter/timer (CTIMER)
     #[cfg(feature = "845")]
-    pub CTIMER0: CTIMER<init_state::Disabled>,
+    pub CTIMER0: CTIMER<init_state::Disabled, Detached, Detached, Detached>,
 
     /// DMA controller
     pub DMA: DMA<init_state::Disabled>,
