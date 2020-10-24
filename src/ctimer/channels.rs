@@ -89,9 +89,29 @@ where
 macro_rules! channels {
     (
         $(
-            $channel:ident: $id:expr, $output:ident;
+            $channel:ident:
+                $field: ident,
+                $id:expr,
+                $output:ident,
+                $state:ident;
         )*
     ) => {
+        /// Contains all CTIMER PWM channels
+        ///
+        /// Can be accessed via `CTIMER`.
+        #[allow(missing_docs)]
+        pub struct Channels<$($state,)*> {
+            $(pub $field: Channel<$channel, $state>,)*
+        }
+
+        impl<$($state,)*> Channels<$($state,)*> {
+            pub(super) fn new() -> Self {
+                Self {
+                    $($field: Channel::new(),)*
+                }
+            }
+        }
+
         $(
             /// Identifies a CTIMER PWM channel
             pub struct $channel;
@@ -107,9 +127,9 @@ macro_rules! channels {
 }
 
 channels! {
-    Channel1: 0, T0_MAT0;
-    Channel2: 1, T0_MAT1;
-    Channel3: 2, T0_MAT2;
+    Channel1: channel1, 0, T0_MAT0, State1;
+    Channel2: channel2, 1, T0_MAT1, State2;
+    Channel3: channel3, 2, T0_MAT2, State3;
 }
 
 /// Implemented for all CTIMER PWM channels

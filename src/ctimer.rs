@@ -22,8 +22,7 @@
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
 //! // Use 8 bit pwm
-//! let (pwm_channel,_, _ ) =
-//!     p.CTIMER0.start_pwm(256, 0, &mut syscon.handle);
+//! let channels = p.CTIMER0.start_pwm(256, 0, &mut syscon.handle);
 //!
 //! let pwm_output = p.pins.pio1_2.into_swm_pin();
 //!
@@ -32,7 +31,7 @@
 //!     &mut swm_handle,
 //! );
 //!
-//! let mut pwm_pin = pwm_channel.attach(pwm_output);
+//! let mut pwm_pin = channels.channel1.attach(pwm_output);
 //! loop {
 //!     for i in 0..pwm_pin.get_max_duty() {
 //!         delay.delay_ms(4_u8);
@@ -51,7 +50,7 @@ use crate::{
     syscon,
 };
 
-use self::channels::{state::Detached, Channel, Channel1, Channel2, Channel3};
+use self::channels::{state::Detached, Channels};
 
 /// Interface to a CTimer peripheral
 ///
@@ -80,11 +79,7 @@ impl CTIMER {
         period: u32,
         prescaler: u32,
         syscon: &mut syscon::Handle,
-    ) -> (
-        Channel<Channel1, Detached>,
-        Channel<Channel2, Detached>,
-        Channel<Channel3, Detached>,
-    ) {
+    ) -> Channels<Detached, Detached, Detached> {
         syscon.enable_clock(&self.inner);
         unsafe { self.inner.pr.write(|w| w.prval().bits(prescaler)) };
         // Use MAT3 to reset the counter
@@ -105,7 +100,8 @@ impl CTIMER {
 
         // Start the timer
         self.inner.tcr.write(|w| w.cen().set_bit());
-        (Channel::new(), Channel::new(), Channel::new())
+
+        Channels::new()
     }
 
     /// Return the raw peripheral
