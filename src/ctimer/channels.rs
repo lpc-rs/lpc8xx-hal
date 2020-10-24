@@ -16,7 +16,7 @@ pub struct Channel<T, State> {
     number: u8,
     mr: RegProxy<MR>,
     msr: RegProxy<MSR>,
-    _channel: PhantomData<T>,
+    channel: PhantomData<T>,
     _state: PhantomData<State>,
 }
 
@@ -26,7 +26,7 @@ impl<T, State> Channel<T, State> {
             number,
             mr: RegProxy::new(),
             msr: RegProxy::new(),
-            _channel: PhantomData,
+            channel: PhantomData,
             _state: PhantomData,
         }
     }
@@ -49,8 +49,8 @@ where
             number: self.number,
             mr: self.mr,
             msr: self.msr,
-            _channel: self._channel,
-            _state: state::Attached,
+            channel: self.channel,
+            _state: PhantomData,
         }
     }
 }
