@@ -26,12 +26,6 @@ fn main() -> ! {
 
     let mut handle = swm.handle.enable(&mut syscon.handle);
 
-    // Use 8 bit pwm
-    let ctimer = p.CTIMER0.enable(256, 0, &mut syscon.handle);
-    let red_pwm = ctimer.channels.channel1;
-    let green_pwm = ctimer.channels.channel2;
-    let blue_pwm = ctimer.channels.channel3;
-
     // Select pin for the RGB LED
     let green = p.pins.pio1_0.into_swm_pin();
     let blue = p.pins.pio1_1.into_swm_pin();
@@ -43,9 +37,17 @@ fn main() -> ! {
     let (green, _) = swm.movable_functions.t0_mat1.assign(green, &mut handle);
     let (blue, _) = swm.movable_functions.t0_mat2.assign(blue, &mut handle);
 
-    let mut red = red_pwm.attach(red);
-    let mut green = green_pwm.attach(green);
-    let mut blue = blue_pwm.attach(blue);
+    // Use 8 bit pwm
+    let ctimer = p
+        .CTIMER0
+        .enable(256, 0, &mut syscon.handle)
+        .attach(red)
+        .attach(green)
+        .attach(blue);
+    let mut red = ctimer.channels.channel1;
+    let mut green = ctimer.channels.channel2;
+    let mut blue = ctimer.channels.channel3;
+
     // Fade each color after another
     loop {
         for i in 0..red.get_max_duty() {

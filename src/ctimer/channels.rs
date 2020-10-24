@@ -10,12 +10,11 @@ use crate::{
         ctimer0::{MR, MSR},
         CTIMER0,
     },
-    pins,
     reg_proxy::RegProxy,
     swm,
 };
 
-use self::state::{Attached, Detached};
+use self::state::Attached;
 
 /// A CTIMER PWM channel
 pub struct Channel<T, PeripheralState, State> {
@@ -33,29 +32,6 @@ impl<T, PeripheralState, State> Channel<T, PeripheralState, State> {
             msr: RegProxy::new(),
             channel: PhantomData,
             peripheral_state: PhantomData,
-            _state: PhantomData,
-        }
-    }
-}
-
-impl<T> Channel<T, Enabled, Detached>
-where
-    T: Trait,
-{
-    /// Assigns a pin to a `DetachedPwmPin`,
-    /// allowing it to be used as a pwm output
-    pub fn attach<Pin>(
-        self,
-        _: swm::Function<T::Output, swm::state::Assigned<Pin>>,
-    ) -> Channel<T, Enabled, Attached>
-    where
-        Pin: pins::Trait,
-    {
-        Channel {
-            mr: self.mr,
-            msr: self.msr,
-            channel: self.channel,
-            peripheral_state: self.peripheral_state,
             _state: PhantomData,
         }
     }

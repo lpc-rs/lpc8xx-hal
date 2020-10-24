@@ -21,9 +21,6 @@
 //!
 //! let mut swm_handle = swm.handle.enable(&mut syscon.handle);
 //!
-//! // Use 8 bit pwm
-//! let ctimer = p.CTIMER0.enable(256, 0, &mut syscon.handle);
-//!
 //! let pwm_output = p.pins.pio1_2.into_swm_pin();
 //!
 //! let (pwm_output, _) = swm.movable_functions.t0_mat0.assign(
@@ -31,7 +28,12 @@
 //!     &mut swm_handle,
 //! );
 //!
-//! let mut pwm_pin = ctimer.channels.channel1.attach(pwm_output);
+//! // Use 8 bit pwm
+//! let ctimer = p.CTIMER0
+//!     .enable(256, 0, &mut syscon.handle)
+//!     .attach(pwm_output);
+//!
+//! let mut pwm_pin = ctimer.channels.channel1;
 //! loop {
 //!     for i in 0..pwm_pin.get_max_duty() {
 //!         delay.delay_ms(4_u8);
@@ -45,10 +47,13 @@ pub mod channels;
 use crate::{
     init_state::{Disabled, Enabled},
     pac::CTIMER0,
-    syscon,
+    swm, syscon,
 };
 
-use self::channels::{state::Detached, Channels};
+use self::channels::{
+    state::{Attached, Detached},
+    Channel1, Channel2, Channel3, Channels,
+};
 
 /// Interface to a CTimer peripheral
 ///
@@ -115,6 +120,67 @@ impl<Channel1State, Channel2State, Channel3State>
             channels: Channels::new(),
             inner: self.inner,
             _state: Enabled(()),
+        }
+    }
+}
+
+impl CTIMER<Enabled, Detached, Detached, Detached> {
+    /// Attach an output function to channel 1
+    ///
+    /// This function is only available if no output functions has been attached
+    /// to channel 1.
+    pub fn attach<Pin>(
+        self,
+        _: swm::Function<
+            <Channel1 as channels::Trait>::Output,
+            swm::state::Assigned<Pin>,
+        >,
+    ) -> CTIMER<Enabled, Attached, Detached, Detached> {
+        CTIMER {
+            channels: Channels::new(),
+            inner: self.inner,
+            _state: self._state,
+        }
+    }
+}
+
+impl CTIMER<Enabled, Attached, Detached, Detached> {
+    /// Attach an output function to channel 2
+    ///
+    /// This function is only available if an output function has been attached
+    /// to channel 1, but no output functions has been attached to channel 2.
+    pub fn attach<Pin>(
+        self,
+        _: swm::Function<
+            <Channel2 as channels::Trait>::Output,
+            swm::state::Assigned<Pin>,
+        >,
+    ) -> CTIMER<Enabled, Attached, Attached, Detached> {
+        CTIMER {
+            channels: Channels::new(),
+            inner: self.inner,
+            _state: self._state,
+        }
+    }
+}
+
+impl CTIMER<Enabled, Attached, Attached, Detached> {
+    /// Attach an output function to channel 3
+    ///
+    /// This function is only available if output functions have been attached
+    /// to channels 1 and 2, but no output functions has been attached to
+    /// channel 3.
+    pub fn attach<Pin>(
+        self,
+        _: swm::Function<
+            <Channel3 as channels::Trait>::Output,
+            swm::state::Assigned<Pin>,
+        >,
+    ) -> CTIMER<Enabled, Attached, Attached, Attached> {
+        CTIMER {
+            channels: Channels::new(),
+            inner: self.inner,
+            _state: self._state,
         }
     }
 }
