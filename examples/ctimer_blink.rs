@@ -3,6 +3,7 @@
 
 extern crate panic_rtt_target;
 
+use embedded_hal_ryankurte::pwm::Pwm as _;
 use lpc8xx_hal::{
     cortex_m_rt::entry, ctimer::Channels123, delay::Delay, prelude::*,
     CorePeripherals, Peripherals,
@@ -54,18 +55,30 @@ fn main() -> ! {
         for period in periods.clone().rev() {
             ctimer.set_period(period);
 
-            ctimer.set_duty(Channels123::Channel1, period / 8);
-            ctimer.set_duty(Channels123::Channel2, period / 4);
-            ctimer.set_duty(Channels123::Channel3, period / 2);
+            ctimer
+                .try_set_duty(&Channels123::Channel1, period / 8)
+                .unwrap();
+            ctimer
+                .try_set_duty(&Channels123::Channel2, period / 4)
+                .unwrap();
+            ctimer
+                .try_set_duty(&Channels123::Channel3, period / 2)
+                .unwrap();
 
             delay.delay_ms(period / 12_000);
         }
         for period in periods.clone() {
             ctimer.set_period(period);
 
-            ctimer.set_duty(Channels123::Channel1, period / 8);
-            ctimer.set_duty(Channels123::Channel2, period / 4);
-            ctimer.set_duty(Channels123::Channel3, period / 2);
+            ctimer
+                .try_set_duty(&Channels123::Channel1, period / 8)
+                .unwrap();
+            ctimer
+                .try_set_duty(&Channels123::Channel2, period / 4)
+                .unwrap();
+            ctimer
+                .try_set_duty(&Channels123::Channel3, period / 2)
+                .unwrap();
 
             delay.delay_ms(period / 12_000);
         }

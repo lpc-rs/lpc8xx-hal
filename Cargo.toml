@@ -45,6 +45,11 @@ features = ["unproven"]
 version = "=1.0.0-alpha.2"
 package = "embedded-hal"
 
+[dependencies.embedded-hal-ryankurte]
+git     = "https://github.com/ryankurte/embedded-hal.git"
+branch  = "fix/pwm-channel-by-ref"
+package = "embedded-hal"
+
 [dependencies.lpc82x-pac]
 optional = true
 version  = "0.7.0"
