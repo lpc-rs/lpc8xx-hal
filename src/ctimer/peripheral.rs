@@ -189,6 +189,11 @@ impl<Channel1State, Channel2State, Channel3State>
     fn set_period(&mut self, period: u32) {
         // Use MAT3 to reset the counter
         unsafe { self.inner.mr[3].write(|w| w.match_().bits(period)) };
+
+        // Reset counter. Otherwise we can run into the case where the counter
+        // is already larger than period, and won't be reset until it wrapped.
+        self.inner.tcr.modify(|_, w| w.crst().enabled());
+        self.inner.tcr.modify(|_, w| w.crst().disabled());
     }
 }
 
