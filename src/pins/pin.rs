@@ -175,6 +175,16 @@ pub struct Pin<T: Trait, S: State> {
     pub(crate) _state: S,
 }
 
+/// Marks the current directin of a Dynamic Pin.
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum DynamicPinDirection {
+    /// Pin is currently Input
+    Input,
+
+    /// Pin is currently Output
+    Output,
+}
+
 impl<T> Pin<T, state::Unused>
 where
     T: Trait,
@@ -284,6 +294,75 @@ where
         initial: Level,
     ) -> GpioPin<T, direction::Output> {
         GpioPin::new(token, initial)
+    }
+
+    /// Transition pin to Dynamic mode, i.e. GPIO direction switchable at runtime
+    ///
+    /// This method is only available while the pin is in the unused state. Code
+    /// that attempts to call this method while the pin is in any other state
+    /// will not compile. See [State Management] for more information on
+    /// managing pin states.
+    ///
+    /// Consumes this `Pin` instance and returns an instance of [`GpioPin`],
+    /// which provides access to all GPIO functions.
+    ///
+    /// This method requires a GPIO token from the [`GPIO`] struct, to ensure
+    /// that the GPIO peripheral is enabled, and stays enabled while the pin is
+    /// in the GPIO mode.
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// use lpc8xx_hal::{
+    ///     prelude::*,
+    ///     Peripherals,
+    ///     gpio,
+    ///     pins
+    /// };
+    ///
+    /// let p = Peripherals::take().unwrap();
+    ///
+    /// let mut syscon = p.SYSCON.split();
+    /// let swm = p.SWM.split();
+    ///
+    /// #[cfg(feature = "82x")]
+    /// let gpio = p.GPIO;
+    /// #[cfg(feature = "845")]
+    /// let gpio = p.GPIO.enable(&mut syscon.handle);
+    ///
+    /// // Transition pin into GPIO state, then set it to output
+    /// let mut pin = p.pins.pio0_12.into_dynamic_pin(
+    ///     gpio.tokens.pio0_12,
+    ///     gpio::Level::Low,
+    ///     pins::DynamicPinDirection::Input,
+    /// );
+    ///
+    /// // Direction can now be switched
+    /// pin.switch_to_input();
+    ///
+    /// // in/output pin functions are available while pin has the matching direction
+    /// let is_high = pin.is_high();
+    /// let is_low = pin.is_low();
+    ///
+    /// pin.switch_to_output(gpio::Level::Low);
+    /// pin.set_high();
+    /// pin.set_low();
+    ///
+    /// // pin direction can be queried
+    /// let is_input = pin.direction_is_input();
+    /// let is_output = pin.direction_is_output();
+    /// ```
+    ///
+    /// [State Management]: #state-management
+    /// [`GpioPin`]: ../gpio/struct.GpioPin.html
+    /// [`GPIO`]: ../gpio/struct.GPIO.html
+    pub fn into_dynamic_pin(
+        self,
+        token: Token<T, init_state::Enabled>,
+        level: Level,
+        direction: DynamicPinDirection,
+    ) -> GpioPin<T, direction::Dynamic> {
+        GpioPin::new(token, (level, direction))
     }
 
     /// Transition pin to SWM mode
