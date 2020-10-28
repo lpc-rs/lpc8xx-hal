@@ -1,4 +1,4 @@
-//! API for the CTimer peripheral
+//! API for the CTIMER peripheral
 //!
 //! Currently, only PWM output functionality is implemented.
 //!
