@@ -180,6 +180,10 @@ name              = "usart_dma"
 required-features = ["rt-selected", "845"]
 
 [[example]]
+name              = "ctimer_blink"
+required-features = ["rt-selected", "845"]
+
+[[example]]
 name              = "ctimer_fade"
 required-features = ["rt-selected", "845"]
 

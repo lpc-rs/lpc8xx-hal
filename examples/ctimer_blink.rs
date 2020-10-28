@@ -4,7 +4,8 @@
 extern crate panic_rtt_target;
 
 use lpc8xx_hal::{
-    cortex_m_rt::entry, delay::Delay, prelude::*, CorePeripherals, Peripherals,
+    cortex_m_rt::entry, ctimer::Channels123, delay::Delay, prelude::*,
+    CorePeripherals, Peripherals,
 };
 
 #[entry]
@@ -37,42 +38,36 @@ fn main() -> ! {
     let (green, _) = swm.movable_functions.t0_mat1.assign(green, &mut handle);
     let (blue, _) = swm.movable_functions.t0_mat2.assign(blue, &mut handle);
 
-    // Use 8 bit pwm
-    let ctimer = p
+    const MAX_PERIOD: u32 = 12_000_000;
+    const MIN_PERIOD: u32 = MAX_PERIOD / 12;
+
+    let periods = (MIN_PERIOD..MAX_PERIOD).step_by(MIN_PERIOD as usize);
+
+    let mut ctimer = p
         .CTIMER0
-        .enable(256, 0, &mut syscon.handle)
+        .enable(MAX_PERIOD, 0, &mut syscon.handle)
         .attach(red)
         .attach(green)
         .attach(blue);
-    let mut red = ctimer.channels.channel1;
-    let mut green = ctimer.channels.channel2;
-    let mut blue = ctimer.channels.channel3;
 
-    // Fade each color after another
     loop {
-        for i in 0..red.get_max_duty() {
-            delay.delay_ms(4_u8);
-            red.set_duty(i);
+        for period in periods.clone().rev() {
+            ctimer.set_period(period);
+
+            ctimer.set_duty(Channels123::Channel1, period / 8);
+            ctimer.set_duty(Channels123::Channel2, period / 4);
+            ctimer.set_duty(Channels123::Channel3, period / 2);
+
+            delay.delay_ms(period / 12_000);
         }
-        for i in (0..red.get_max_duty()).rev() {
-            delay.delay_ms(4_u8);
-            red.set_duty(i);
-        }
-        for i in 0..green.get_max_duty() {
-            delay.delay_ms(4_u8);
-            green.set_duty(i);
-        }
-        for i in (0..green.get_max_duty()).rev() {
-            delay.delay_ms(4_u8);
-            green.set_duty(i);
-        }
-        for i in 0..blue.get_max_duty() {
-            delay.delay_ms(4_u8);
-            blue.set_duty(i);
-        }
-        for i in (0..blue.get_max_duty()).rev() {
-            delay.delay_ms(4_u8);
-            blue.set_duty(i);
+        for period in periods.clone() {
+            ctimer.set_period(period);
+
+            ctimer.set_duty(Channels123::Channel1, period / 8);
+            ctimer.set_duty(Channels123::Channel2, period / 4);
+            ctimer.set_duty(Channels123::Channel3, period / 2);
+
+            delay.delay_ms(period / 12_000);
         }
     }
 }
