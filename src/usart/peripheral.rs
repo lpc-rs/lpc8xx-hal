@@ -110,7 +110,7 @@ where
 
         self.usart
             .brg
-            .write(|w| unsafe { w.brgval().bits(clock.psc) });
+            .write(|w| unsafe { w.brgval().bits(clock.brgval) });
         self.usart
             .osr
             .write(|w| unsafe { w.osrval().bits(clock.osrval) });
@@ -172,7 +172,7 @@ where
 
         self.usart
             .brg
-            .write(|w| unsafe { w.brgval().bits(clock.psc) });
+            .write(|w| unsafe { w.brgval().bits(clock.brgval) });
 
         // We are not allowed to send or receive data when writing to CFG. This
         // is ensured by type state, so no need to do anything here.

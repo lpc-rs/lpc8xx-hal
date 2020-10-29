@@ -12,7 +12,7 @@ use crate::syscon::{self, clock_source::PeripheralClockSelector};
 ///   mode.
 #[derive(Debug)]
 pub struct Clock<T, Mode> {
-    pub(super) psc: u16,
+    pub(super) brgval: u16,
     pub(super) osrval: u8,
     pub(super) _clock: PhantomData<T>,
     pub(super) _mode: PhantomData<Mode>,
@@ -26,12 +26,12 @@ where
     ///
     /// The `osrval` argument has to be between 5-16. It will be ignored in
     /// synchronous mode.
-    pub fn new(_: &T, psc: u16, osrval: u8) -> Self {
+    pub fn new(_: &T, brgval: u16, osrval: u8) -> Self {
         let osrval = osrval - 1;
         assert!(osrval > 3 && osrval < 0x10);
 
         Self {
-            psc,
+            brgval,
             osrval,
             _clock: PhantomData,
             _mode: PhantomData,
@@ -96,10 +96,10 @@ mod target {
                     osrval = i;
                 }
             }
-            let psc = (12_000_000 / (baudrate * osrval as u32) - 1) as u16;
+            let brgval = (12_000_000 / (baudrate * osrval as u32) - 1) as u16;
             let osrval = osrval - 1;
             Self {
-                psc,
+                brgval,
                 osrval,
                 _clock: PhantomData,
                 _mode: PhantomData,
