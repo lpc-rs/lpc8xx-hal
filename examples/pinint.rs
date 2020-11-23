@@ -44,6 +44,15 @@ const APP: () = {
         init::LateResources { int, led }
     }
 
+    #[idle]
+    fn idle(_: idle::Context) -> ! {
+        // We need an explicit idle loop. Otherwise RTIC inserts a `wfi`, which
+        // messes with the LPC845's debugging ability, and thus RTT.
+        loop {
+            lpc8xx_hal::cortex_m::asm::nop();
+        }
+    }
+
     #[task(binds = PIN_INT0, resources = [int, led])]
     fn pinint0(context: pinint0::Context) {
         let int = context.resources.int;
