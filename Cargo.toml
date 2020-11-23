@@ -23,8 +23,8 @@ travis-ci = { repository = "lpc-rs/lpc8xx-hal" }
 
 
 [dependencies]
-cortex-m      = "0.6.3"
-embedded-time = "0.10.0"
+cortex-m      = "0.6.4"
+embedded-time = "0.10.1"
 nb            = "1.0.0"
 
 # This should be in [dev-dependencies], but those can't be optional.
@@ -71,7 +71,7 @@ features = ["cortex-m"]
 
 
 [build-dependencies]
-crossterm = "0.18.0"
+crossterm = "0.18.2"
 
 
 [features]
