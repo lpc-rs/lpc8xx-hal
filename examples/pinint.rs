@@ -3,18 +3,22 @@
 
 extern crate panic_rtt_target;
 
-use lpc8xx_hal::{
-    gpio::{direction::Output, GpioPin, Level},
-    init_state::Enabled,
-    pinint::{self, PININT0},
-    pins::{PIO0_4, PIO1_1},
-    Peripherals,
-};
+#[rtic::app(device = lpc8xx_hal::pac, peripherals = false)]
+mod app {
+    use lpc8xx_hal::{
+        gpio::{direction::Output, GpioPin, Level},
+        init_state::Enabled,
+        pinint::{self, PININT0},
+        pins::{PIO0_4, PIO1_1},
+        Peripherals,
+    };
 
-#[rtic::app(device = lpc8xx_hal::pac)]
-const APP: () = {
+    #[resources]
     struct Resources {
+        #[lock_free]
         int: pinint::Interrupt<PININT0, PIO0_4, Enabled>,
+
+        #[lock_free]
         led: GpioPin<PIO1_1, Output>,
     }
 
@@ -63,4 +67,4 @@ const APP: () = {
         int.clear_rising_edge_flag();
         int.clear_falling_edge_flag();
     }
-};
+}

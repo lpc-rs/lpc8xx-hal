@@ -3,21 +3,27 @@
 
 extern crate panic_rtt_target;
 
-use core::marker::PhantomData;
+#[rtic::app(device = lpc8xx_hal::pac, peripherals = false)]
+mod app {
+    use core::marker::PhantomData;
 
-use lpc8xx_hal::{
-    dma, i2c, init_state::Enabled, pac::I2C0, syscon::IOSC, Peripherals,
-};
-use rtt_target::rprintln;
+    use lpc8xx_hal::{
+        dma, i2c, init_state::Enabled, pac::I2C0, syscon::IOSC, Peripherals,
+    };
+    use rtt_target::rprintln;
 
-const ADDRESS: u8 = 0x24;
+    const ADDRESS: u8 = 0x24;
 
-#[rtic::app(device = lpc8xx_hal::pac)]
-const APP: () = {
+    #[resources]
     struct Resources {
+        #[lock_free]
         i2c_master:
             Option<i2c::Master<I2C0, Enabled<PhantomData<IOSC>>, Enabled>>,
+
+        #[lock_free]
         i2c_slave: i2c::Slave<I2C0, Enabled<PhantomData<IOSC>>, Enabled>,
+
+        #[lock_free]
         dma_channel:
             Option<dma::Channel<<I2C0 as i2c::Instance>::MstChannel, Enabled>>,
     }
@@ -153,4 +159,4 @@ const APP: () = {
             }
         }
     }
-};
+}

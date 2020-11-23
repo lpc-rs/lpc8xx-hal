@@ -3,18 +3,22 @@
 
 extern crate panic_rtt_target;
 
-use lpc8xx_hal::{
-    delay::Delay,
-    gpio::{direction::Output, GpioPin, Level},
-    pins::PIO1_1,
-    prelude::*,
-    Peripherals,
-};
+#[rtic::app(device = lpc8xx_hal::pac, peripherals = false)]
+mod app {
+    use lpc8xx_hal::{
+        delay::Delay,
+        gpio::{direction::Output, GpioPin, Level},
+        pins::PIO1_1,
+        prelude::*,
+        Peripherals,
+    };
 
-#[rtic::app(device = lpc8xx_hal::pac)]
-const APP: () = {
+    #[resources]
     struct Resources {
+        #[lock_free]
         delay: Delay,
+
+        #[lock_free]
         led: GpioPin<PIO1_1, Output>,
     }
 
@@ -49,4 +53,4 @@ const APP: () = {
             delay.delay_ms(50_u16);
         }
     }
-};
+}
