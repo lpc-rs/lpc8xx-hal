@@ -1,4 +1,4 @@
-error[E0599]: no method named `unassign` found for struct `lpc8xx_hal::swm::Function<lpc8xx_hal::swm::U0_RXD, lpc8xx_hal::swm::state::Unassigned>` in the current scope
+error[E0599]: no method named `unassign` found for struct `Function<U0_RXD, Unassigned>` in the current scope
   --> $DIR/unassign-unassigned-input-function.rs:33:16
    |
 33 |         u0_rxd.unassign(pio0_0, &mut swm_handle);
