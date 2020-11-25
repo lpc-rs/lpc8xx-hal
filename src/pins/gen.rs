@@ -6,10 +6,10 @@ use super::{pin::Pin, state, traits::Trait};
 
 macro_rules! pins {
     ($(
-        $field:ident,
-        $type:ident,
+        $field:ident, // e.g. pio0_0
+        $type:ident,  // e.g. PIO0_0
         $port:expr,
-        $id:expr,
+        $id:expr,     // e.g. 0x00
         $default_state_ty:ty;
     )*) => {
         /// Provides access to all pins
@@ -55,9 +55,17 @@ macro_rules! pins {
             pub struct $type(());
 
             impl Trait for $type {
-                const PORT: usize = $port;
-                const ID  : u8    = $id;
-                const MASK: u32   = 0x1 << $id;
+                fn port(&self) -> usize {
+                    $port
+                }
+
+                fn id(&self) -> u8 {
+                    $id
+                }
+
+                fn mask(&self) -> u32 {
+                    0x1 << $id
+                }
             }
         )*
 
@@ -79,7 +87,7 @@ macro_rules! pins {
             pub(crate) fn new() -> Self {
                 Self {
                     $(
-                        $field: Token($type(()), PhantomData),
+                        $field: Token(PhantomData, PhantomData),
                     )*
                 }
             }
@@ -97,13 +105,13 @@ macro_rules! pins {
             }
         }
 
-        /// A token representing a pin
+        /// A token representing a pin.
         ///
         /// Used by [`GPIO`] to uphold correctness guarantees. Please refer to
         /// [`GPIO`] for more information.
         ///
         /// [`GPIO`]: ../gpio/struct.GPIO.html
-        pub struct Token<T, State>(T, PhantomData<State>);
+        pub struct Token<Pin, State>(PhantomData<Pin>, PhantomData<State>);
     }
 }
 

@@ -53,11 +53,7 @@ use embedded_hal_alpha::digital::{
 };
 use void::Void;
 
-use crate::{
-    init_state, pac,
-    pins::{self, Token},
-    syscon,
-};
+use crate::{init_state, pac, pins, syscon};
 
 #[cfg(feature = "845")]
 use crate::pac::gpio::{CLR, DIRCLR, DIRSET, NOT, PIN, SET};
@@ -187,7 +183,10 @@ impl GPIO<init_state::Enabled> {
     }
 }
 
-/// A pin used for general purpose I/O (GPIO)
+/// A pin used for general purpose I/O (GPIO).
+///
+/// This struct is a wrapper around the representation of a specific pin `P`– it enables said pin
+/// to be used as a GPIO pin.
 ///
 /// You can get access to an instance of this struct by switching a pin to the
 /// GPIO state, using [`Pin::into_input_pin`] or [`Pin::into_output_pin`].
@@ -206,38 +205,42 @@ impl GPIO<init_state::Enabled> {
 /// [`embedded_hal::digital::v2::OutputPin`]: #impl-OutputPin
 /// [`embedded_hal::digital::v2::StatefulOutputPin`]: #impl-StatefulOutputPin
 /// [`embedded_hal::digital::v2::ToggleableOutputPin`]: #impl-ToggleableOutputPin
-pub struct GpioPin<T, D> {
-    token: pins::Token<T, init_state::Enabled>,
+pub struct GpioPin<P, D> {
+    inner: P, // holds port, id and mask for this specific pin
     _direction: D,
 }
 
-impl<T, D> GpioPin<T, D>
+impl<P, D> GpioPin<P, D>
 where
-    T: pins::Trait,
+    P: pins::Trait,
     D: Direction,
 {
-    pub(crate) fn new(
-        token: Token<T, init_state::Enabled>,
-        arg: D::SwitchArg,
-    ) -> Self {
+    pub(crate) fn new(inner: P, arg: D::SwitchArg) -> Self {
         // This is sound, as we only write to stateless registers, restricting
-        // ourselves to the bit that belongs to the pin represented by `T`.
+        // ourselves to the bit that belongs to the pin represented by `P`.
         // Since all other instances of `GpioPin` are doing the same, there are
         // no race conditions.
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
-        let direction = D::switch::<T>(&registers, arg);
+        let direction = D::switch(&registers, arg, &inner);
 
         Self {
-            token,
+            inner,
             _direction: direction,
         }
     }
+
+    /// Get identifying information about this pin in the form of a [`pins::Trait`]
+    ///
+    /// [`pins::Trait`]: ../pins/trait.Trait.html
+    pub fn inner(&self) -> &P {
+        &self.inner
+    }
 }
 
-impl<T> GpioPin<T, direction::Input>
+impl<P> GpioPin<P, direction::Input>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     /// Set pin direction to output
     ///
@@ -245,16 +248,17 @@ where
     ///
     /// Consumes the pin instance and returns a new instance that is in output
     /// mode, making the methods to set the output level available.
-    pub fn into_output(self, initial: Level) -> GpioPin<T, direction::Output> {
+    pub fn into_output(self, initial: Level) -> GpioPin<P, direction::Output> {
         // This is sound, as we only do a stateless write to a bit that no other
         // `GpioPin` instance writes to.
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
-        let direction = direction::Output::switch::<T>(&registers, initial);
+        let direction =
+            direction::Output::switch(&registers, initial, self.inner());
 
         GpioPin {
-            token: self.token,
+            inner: self.inner,
             _direction: direction,
         }
     }
@@ -270,19 +274,22 @@ where
         self,
         initial_level: Level,
         initial_direction: pins::DynamicPinDirection,
-    ) -> GpioPin<T, direction::Dynamic> {
+    ) -> GpioPin<P, direction::Dynamic> {
         // This is sound, as we only do a stateless write to a bit that no other
         // `GpioPin` instance writes to.
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
+        // always switch to ensure initial level and direction are set correctly
+        let new_direction = direction::Dynamic::switch(
+            &registers,
+            (initial_level, initial_direction),
+            self.inner(),
+        );
+
         GpioPin {
-            token: self.token,
-            // always switch to ensure initial level and direction are set correctly
-            _direction: direction::Dynamic::switch::<T>(
-                &registers,
-                (initial_level, initial_direction),
-            ),
+            inner: self.inner,
+            _direction: new_direction,
         }
     }
 
@@ -303,7 +310,7 @@ where
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
-        is_high::<T>(&registers)
+        is_high(&registers, self.inner())
     }
 
     /// Indicates wether the pin input is LOW
@@ -322,9 +329,9 @@ where
     }
 }
 
-impl<T> GpioPin<T, direction::Output>
+impl<P> GpioPin<P, direction::Output>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     /// Set pin direction to input
     ///
@@ -332,16 +339,16 @@ where
     ///
     /// Consumes the pin instance and returns a new instance that is in output
     /// mode, making the methods to set the output level available.
-    pub fn into_input(self) -> GpioPin<T, direction::Input> {
+    pub fn into_input(self) -> GpioPin<P, direction::Input> {
         // This is sound, as we only do a stateless write to a bit that no other
         // `GpioPin` instance writes to.
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
-        let direction = direction::Input::switch::<T>(&registers, ());
+        let direction = direction::Input::switch(&registers, (), &self.inner);
 
         GpioPin {
-            token: self.token,
+            inner: self.inner,
             _direction: direction,
         }
     }
@@ -357,19 +364,22 @@ where
         self,
         initial_level: Level,
         initial_direction: pins::DynamicPinDirection,
-    ) -> GpioPin<T, direction::Dynamic> {
+    ) -> GpioPin<P, direction::Dynamic> {
         // This is sound, as we only do a stateless write to a bit that no other
         // `GpioPin` instance writes to.
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
+        // always switch to ensure initial level and direction are set correctly
+        let new_direction = direction::Dynamic::switch(
+            &registers,
+            (initial_level, initial_direction),
+            &self.inner,
+        );
+
         GpioPin {
-            token: self.token,
-            // always switch to ensure initial level and direction are set correctly
-            _direction: direction::Dynamic::switch::<T>(
-                &registers,
-                (initial_level, initial_direction),
-            ),
+            inner: self.inner,
+            _direction: new_direction,
         }
     }
 
@@ -390,7 +400,7 @@ where
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
-        set_high::<T>(&registers);
+        set_high(&registers, self.inner());
     }
 
     /// Set the pin output to LOW
@@ -410,7 +420,7 @@ where
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
-        set_low::<T>(&registers);
+        set_low(&registers, self.inner());
     }
 
     /// Indicates whether the pin output is currently set to HIGH
@@ -429,7 +439,7 @@ where
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
-        is_high::<T>(&registers)
+        is_high(&registers, self.inner())
     }
 
     /// Indicates whether the pin output is currently set to LOW
@@ -464,13 +474,14 @@ where
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
-        registers.not[T::PORT].write(|w| unsafe { w.notp().bits(T::MASK) });
+        registers.not[self.inner().port()]
+            .write(|w| unsafe { w.notp().bits(self.inner().mask()) });
     }
 }
 
-impl<T> GpioPin<T, direction::Dynamic>
+impl<P> GpioPin<P, direction::Dynamic>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     /// Tell us whether this pin's direction is currently set to Output.
     pub fn direction_is_output(&self) -> bool {
@@ -496,7 +507,7 @@ where
         let registers = Registers::new(gpio);
 
         // switch direction
-        set_direction_input::<T>(&registers);
+        set_direction_input(&registers, self.inner());
         self._direction.current_direction = pins::DynamicPinDirection::Input;
     }
 
@@ -524,7 +535,7 @@ where
         // Now that the output level is configured, we can safely switch to
         // output mode, without risking an undesired signal between now and
         // the first call to `set_high`/`set_low`.
-        set_direction_output::<T>(&registers);
+        set_direction_output(&registers, self.inner());
         self._direction.current_direction = pins::DynamicPinDirection::Output;
     }
 
@@ -537,7 +548,7 @@ where
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
-        set_high::<T>(&registers);
+        set_high(&registers, self.inner());
     }
 
     /// Set the pin level to Low.
@@ -549,7 +560,7 @@ where
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
-        set_low::<T>(&registers);
+        set_low(&registers, self.inner());
     }
 
     /// Indicates whether the voltage at this pin is currently set to HIGH
@@ -566,7 +577,7 @@ where
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
-        is_high::<T>(&registers)
+        is_high(&registers, self.inner())
     }
 
     /// Indicates whether the voltage at this pin is currently set to LOW
@@ -583,9 +594,9 @@ where
     }
 }
 
-impl<T> OutputPin for GpioPin<T, direction::Dynamic>
+impl<P> OutputPin for GpioPin<P, direction::Dynamic>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     type Error = DynamicPinErr;
 
@@ -618,9 +629,9 @@ where
     }
 }
 
-impl<T> StatefulOutputPin for GpioPin<T, direction::Dynamic>
+impl<P> StatefulOutputPin for GpioPin<P, direction::Dynamic>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     fn is_set_high(&self) -> Result<bool, Self::Error> {
         match self._direction.current_direction {
@@ -647,9 +658,9 @@ where
     }
 }
 
-impl<T> InputPin for GpioPin<T, direction::Dynamic>
+impl<P> InputPin for GpioPin<P, direction::Dynamic>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     type Error = DynamicPinErr;
 
@@ -678,9 +689,9 @@ where
     }
 }
 
-impl<T> InputPin for GpioPin<T, direction::Input>
+impl<P> InputPin for GpioPin<P, direction::Input>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     type Error = Void;
 
@@ -695,9 +706,9 @@ where
     }
 }
 
-impl<T> InputPinAlpha for GpioPin<T, direction::Input>
+impl<P> InputPinAlpha for GpioPin<P, direction::Input>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     type Error = Void;
 
@@ -712,9 +723,9 @@ where
     }
 }
 
-impl<T> OutputPin for GpioPin<T, direction::Output>
+impl<P> OutputPin for GpioPin<P, direction::Output>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     type Error = Void;
 
@@ -729,9 +740,9 @@ where
     }
 }
 
-impl<T> OutputPinAlpha for GpioPin<T, direction::Output>
+impl<P> OutputPinAlpha for GpioPin<P, direction::Output>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     type Error = Void;
 
@@ -746,9 +757,9 @@ where
     }
 }
 
-impl<T> StatefulOutputPin for GpioPin<T, direction::Output>
+impl<P> StatefulOutputPin for GpioPin<P, direction::Output>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     fn is_set_high(&self) -> Result<bool, Self::Error> {
         // Call the inherent method defined above.
@@ -761,9 +772,9 @@ where
     }
 }
 
-impl<T> StatefulOutputPinAlpha for GpioPin<T, direction::Output>
+impl<P> StatefulOutputPinAlpha for GpioPin<P, direction::Output>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     fn try_is_set_high(&self) -> Result<bool, Self::Error> {
         // Call the inherent method defined above.
@@ -776,9 +787,9 @@ where
     }
 }
 
-impl<T> ToggleableOutputPin for GpioPin<T, direction::Output>
+impl<P> ToggleableOutputPin for GpioPin<P, direction::Output>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     type Error = Void;
 
@@ -788,9 +799,9 @@ where
     }
 }
 
-impl<T> ToggleableOutputPinAlpha for GpioPin<T, direction::Output>
+impl<P> ToggleableOutputPinAlpha for GpioPin<P, direction::Output>
 where
-    T: pins::Trait,
+    P: pins::Trait,
 {
     type Error = Void;
 
@@ -801,7 +812,7 @@ where
 }
 
 /// The voltage level of a pin
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Level {
     /// High voltage
     High,
@@ -810,30 +821,35 @@ pub enum Level {
     Low,
 }
 
-fn set_high<T: pins::Trait>(registers: &Registers) {
-    registers.set[T::PORT].write(|w| unsafe { w.setp().bits(T::MASK) });
+fn set_high(registers: &Registers, inner: &impl pins::Trait) {
+    registers.set[inner.port()]
+        .write(|w| unsafe { w.setp().bits(inner.mask()) });
 }
 
-fn set_low<T: pins::Trait>(registers: &Registers) {
-    registers.clr[T::PORT].write(|w| unsafe { w.clrp().bits(T::MASK) });
+fn set_low(registers: &Registers, inner: &impl pins::Trait) {
+    registers.clr[inner.port()]
+        .write(|w| unsafe { w.clrp().bits(inner.mask()) });
 }
 
-fn is_high<T: pins::Trait>(registers: &Registers) -> bool {
-    registers.pin[T::PORT].read().port().bits() & T::MASK == T::MASK
-}
-
-// For internal use only.
-// Use the direction helpers of GpioPin<T, direction::Output> and GpioPin<T, direction::Dynamic>
-// instead.
-fn set_direction_output<T: pins::Trait>(registers: &Registers) {
-    registers.dirset[T::PORT].write(|w| unsafe { w.dirsetp().bits(T::MASK) });
+fn is_high(registers: &Registers, inner: &impl pins::Trait) -> bool {
+    registers.pin[inner.port()].read().port().bits() & inner.mask()
+        == inner.mask()
 }
 
 // For internal use only.
-// Use the direction helpers of GpioPin<T, direction::Input> and GpioPin<T, direction::Dynamic>
+// Use the direction helpers of `GpioPin<P, direction::Output>` and `GpioPin<P, direction::Dynamic>`
 // instead.
-fn set_direction_input<T: pins::Trait>(registers: &Registers) {
-    registers.dirclr[T::PORT].write(|w| unsafe { w.dirclrp().bits(T::MASK) });
+fn set_direction_output(registers: &Registers, inner: &impl pins::Trait) {
+    registers.dirset[inner.port()]
+        .write(|w| unsafe { w.dirsetp().bits(inner.mask()) });
+}
+
+// For internal use only.
+// Use the direction helpers of `GpioPin<P, direction::Input>` and `GpioPin<P, direction::Dynamic>`
+// instead.
+fn set_direction_input(registers: &Registers, inner: &impl pins::Trait) {
+    registers.dirclr[inner.port()]
+        .write(|w| unsafe { w.dirclrp().bits(inner.mask()) });
 }
 
 /// This is an internal type that should be of no concern to users of this crate
@@ -908,7 +924,11 @@ pub mod direction {
         ///
         /// This method is for internal use only. Any changes to it won't be
         /// considered breaking changes.
-        fn switch<T: pins::Trait>(_: &Registers, _: Self::SwitchArg) -> Self;
+        fn switch<P: pins::Trait>(
+            _: &Registers,
+            _: Self::SwitchArg,
+            _: &P,
+        ) -> Self;
     }
 
     /// Marks a GPIO pin as being configured for input
@@ -922,11 +942,12 @@ pub mod direction {
     impl Direction for Input {
         type SwitchArg = ();
 
-        fn switch<T: pins::Trait>(
+        fn switch<P: pins::Trait>(
             registers: &Registers,
             _: Self::SwitchArg,
+            inner: &P,
         ) -> Self {
-            super::set_direction_input::<T>(registers);
+            super::set_direction_input(registers, inner);
             Self(())
         }
     }
@@ -942,20 +963,21 @@ pub mod direction {
     impl Direction for Output {
         type SwitchArg = Level;
 
-        fn switch<T: pins::Trait>(
+        fn switch<P: pins::Trait>(
             registers: &Registers,
             initial: Level,
+            inner: &P,
         ) -> Self {
             // First set the output level, before we switch the mode.
             match initial {
-                Level::High => super::set_high::<T>(registers),
-                Level::Low => super::set_low::<T>(registers),
+                Level::High => super::set_high(registers, inner),
+                Level::Low => super::set_low(registers, inner),
             }
 
             // Now that the output level is configured, we can safely switch to
             // output mode, without risking an undesired signal between now and
             // the first call to `set_high`/`set_low`.
-            super::set_direction_output::<T>(&registers);
+            super::set_direction_output(&registers, inner);
 
             Self(())
         }
@@ -982,16 +1004,17 @@ pub mod direction {
     impl Direction for Dynamic {
         type SwitchArg = (Level, pins::DynamicPinDirection);
 
-        fn switch<T: pins::Trait>(
+        fn switch<P: pins::Trait>(
             registers: &Registers,
             initial: Self::SwitchArg,
+            inner: &P,
         ) -> Self {
             let (level, current_direction) = initial;
 
             // First set the output level, before we switch the mode.
             match level {
-                Level::High => super::set_high::<T>(registers),
-                Level::Low => super::set_low::<T>(registers),
+                Level::High => super::set_high(registers, inner),
+                Level::Low => super::set_low(registers, inner),
             }
 
             match current_direction {
@@ -999,13 +1022,13 @@ pub mod direction {
                     // Now that the output level is configured, we can safely switch to
                     // output mode, without risking an undesired signal between now and
                     // the first call to `set_high`/`set_low`.
-                    super::set_direction_input::<T>(registers);
+                    super::set_direction_input(registers, inner);
                 }
                 pins::DynamicPinDirection::Output => {
                     // Now that the output level is configured, we can safely switch to
                     // output mode, without risking an undesired signal between now and
                     // the first call to `set_high`/`set_low`.
-                    super::set_direction_output::<T>(registers);
+                    super::set_direction_output(registers, inner);
                 }
             }
 

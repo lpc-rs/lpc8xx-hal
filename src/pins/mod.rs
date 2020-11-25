@@ -12,5 +12,6 @@ mod traits;
 pub mod state;
 
 pub use self::{
-    gen::*, pin::DynamicPinDirection, pin::Pin, state::State, traits::Trait,
+    gen::*, pin::DynamicPinDirection, pin::GenericPin, pin::Pin, state::State,
+    traits::Trait,
 };

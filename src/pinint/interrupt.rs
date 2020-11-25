@@ -1,8 +1,8 @@
 use core::marker::PhantomData;
 
-use crate::{init_state::Enabled, pac, pins, syscon};
-
 use super::traits::Trait;
+
+use crate::{init_state::Enabled, pac, pins, syscon};
 
 /// API for controlling pin interrupts
 pub struct Interrupt<I, P, State> {
@@ -42,7 +42,11 @@ where
     /// interrupts is reused for other purposes.
     ///
     /// [open an issue]: https://github.com/lpc-rs/lpc8xx-hal/issues
-    pub fn select<P>(self, _: &mut syscon::Handle) -> Interrupt<I, P, State>
+    pub fn select<P>(
+        self,
+        interrupt_pin: &P,
+        _: &mut syscon::Handle,
+    ) -> Interrupt<I, P, State>
     where
         P: pins::Trait,
     {
@@ -55,7 +59,7 @@ where
         syscon.pintsel[I::INDEX].write(|w|
             // Sound, as any value with `0 <= value <= 63` is valid to write to
             // the register.
-            unsafe { w.intpin().bits(32 * P::PORT as u8 + P::ID) });
+            unsafe { w.intpin().bits(32 * interrupt_pin.port() as u8 + interrupt_pin.id())});
 
         Interrupt {
             interrupt: self.interrupt,

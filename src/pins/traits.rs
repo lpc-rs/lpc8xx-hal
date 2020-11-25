@@ -8,14 +8,14 @@
 ///
 /// [`Pin`]: struct.Pin.html
 pub trait Trait {
-    /// A number that indentifies the port
+    /// Get the number that indentifies the port
     ///
     /// This is `0` for PIO0 pins (e.g. [`PIO0_0`]) and `1` for PIO1 pins (e.g.
     /// [`PIO1_0`]).
     ///
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO1_0`]: struct.PIO1_0.html
-    const PORT: usize;
+    fn port(&self) -> usize; // TODO make u8
 
     /// A number that identifies the pin
     ///
@@ -23,7 +23,7 @@ pub trait Trait {
     ///
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO0_1`]: struct.PIO0_1.html
-    const ID: u8;
+    fn id(&self) -> u8;
 
     /// The pin's bit mask
     ///
@@ -33,5 +33,5 @@ pub trait Trait {
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO0_1`]: struct.PIO0_1.html
     /// [`PIO0_2`]: struct.PIO0_2.html
-    const MASK: u32;
+    fn mask(&self) -> u32;
 }

@@ -32,11 +32,11 @@ mod app {
         let gpio = p.GPIO.enable(&mut syscon.handle);
         let pinint = p.PININT.enable(&mut syscon.handle);
 
-        let _button = p.pins.pio0_4.into_input_pin(gpio.tokens.pio0_4);
+        let button = p.pins.pio0_4.into_input_pin(gpio.tokens.pio0_4);
         let mut int = pinint
             .interrupts
             .pinint0
-            .select::<PIO0_4>(&mut syscon.handle);
+            .select::<PIO0_4>(button.inner(), &mut syscon.handle);
         int.enable_rising_edge();
         int.enable_falling_edge();
 
