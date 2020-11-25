@@ -3,18 +3,22 @@
 
 extern crate panic_rtt_target;
 
-use lpc8xx_hal::{
-    gpio::{direction::Output, GpioPin, Level},
-    init_state::Enabled,
-    pinint::{self, PININT0},
-    pins::{PIO0_4, PIO1_1},
-    Peripherals,
-};
+#[rtic::app(device = lpc8xx_hal::pac, peripherals = false)]
+mod app {
+    use lpc8xx_hal::{
+        gpio::{direction::Output, GpioPin, Level},
+        init_state::Enabled,
+        pinint::{self, PININT0},
+        pins::{PIO0_4, PIO1_1},
+        Peripherals,
+    };
 
-#[rtic::app(device = lpc8xx_hal::pac)]
-const APP: () = {
+    #[resources]
     struct Resources {
+        #[lock_free]
         int: pinint::Interrupt<PININT0, PIO0_4, Enabled>,
+
+        #[lock_free]
         led: GpioPin<PIO1_1, Output>,
     }
 
@@ -44,6 +48,15 @@ const APP: () = {
         init::LateResources { int, led }
     }
 
+    #[idle]
+    fn idle(_: idle::Context) -> ! {
+        // We need an explicit idle loop. Otherwise RTIC inserts a `wfi`, which
+        // messes with the LPC845's debugging ability, and thus RTT.
+        loop {
+            lpc8xx_hal::cortex_m::asm::nop();
+        }
+    }
+
     #[task(binds = PIN_INT0, resources = [int, led])]
     fn pinint0(context: pinint0::Context) {
         let int = context.resources.int;
@@ -54,4 +67,4 @@ const APP: () = {
         int.clear_rising_edge_flag();
         int.clear_falling_edge_flag();
     }
-};
+}
