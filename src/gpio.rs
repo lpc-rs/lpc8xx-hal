@@ -575,7 +575,7 @@ where
     /// If it is currently an Output pin, it indicates whether the pin output is set to LOW
     /// If it is currently an Input pin, it indicates wether the pin input is LOW
     ///
-    /// This method is only available, if the pin is in the GPIO state.
+    /// This method is only available, if the pin has been set to dynamic mode.
     /// See [`Pin::into_dynamic_pin`].
     /// Unless this condition is met, code trying to call this method will not compile.
     pub fn is_low(&self) -> bool {
