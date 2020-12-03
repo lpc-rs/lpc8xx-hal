@@ -1,4 +1,4 @@
-//! API for the MRT peripheral
+//! API for the MRT (Multi-Rate Timer) peripheral
 //!
 //! Please be aware that this doesn't try to abstract everything, it only
 //! implements the embedded-hal `Timer` functionality.
