@@ -261,7 +261,7 @@ where
 
     /// Set pin direction to dynamic (i.e. changeable at runtime)
     ///
-    /// This method is only available while the pin is in input mode.
+    /// This method is only available when the pin is not already in dynamic mode.
     ///
     /// Consumes the pin instance and returns a new instance that is in dynamic
     /// mode, making the methods to change direction as well as read/set levels
@@ -348,7 +348,7 @@ where
 
     /// Set pin direction to dynamic (i.e. changeable at runtime)
     ///
-    /// This method is only available while the pin is in output mode.
+    /// This method is only available when the pin is not already in dynamic mode.
     ///
     /// Consumes the pin instance and returns a new instance that is in dynamic
     /// mode, making the methods to change direction as well as read/set levels
