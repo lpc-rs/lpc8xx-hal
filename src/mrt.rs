@@ -84,9 +84,7 @@ where
     /// The `reload` argument must be smaller than or equal to [`MAX_VALUE`].
     ///
     /// [`MAX_VALUE`]: constant.MAX_VALUE.html
-    pub fn start(&mut self, reload: impl Into<Ticks>) {
-        let reload = reload.into();
-
+    pub fn start(&mut self, reload: Ticks) {
         // This stops the timer, to prevent race conditions when resetting the
         // interrupt bit
         self.0.intval.write(|w| {
@@ -140,7 +138,7 @@ where
     where
         Time: Into<Self::Time>,
     {
-        self.start(count);
+        self.start(count.into());
     }
 
     fn wait(&mut self) -> nb::Result<(), Void> {
@@ -164,7 +162,7 @@ where
     where
         Time: Into<Self::Time>,
     {
-        Ok(self.start(count))
+        Ok(self.start(count.into()))
     }
 
     fn try_wait(&mut self) -> nb::Result<(), Self::Error> {
