@@ -18,7 +18,12 @@ use embedded_hal::timer::{CountDown, Periodic};
 use embedded_hal_alpha::timer::{
     CountDown as CountDownAlpha, Periodic as PeriodicAlpha,
 };
-use embedded_time::{clock, fraction::Fraction, Instant};
+use embedded_time::{
+    clock,
+    duration::{Microseconds, Milliseconds, Nanoseconds, Seconds},
+    fraction::Fraction,
+    Instant,
+};
 use void::Void;
 
 /// Represents the MRT instance
@@ -194,6 +199,19 @@ where
 }
 
 /// Represents a number of ticks of the MRT timer
+///
+/// `Ticks` has various `From` and `TryFrom` implementations that provide
+/// integration with `embedded_time` duration types. This not only provides a
+/// more convenient API, it also makes it possible to use the MRT generically,
+/// through the [`CountDown`] trait and a bound like
+/// `Timer::Time: TryFrom<Milliseconds>`, without requiring any knowledge of the
+/// timer's frequency.
+///
+/// However, these conversions have performance implications. For best results,
+/// you should use constants for the original values that you want to convert,
+/// to give the compiler a chance to perform the conversion at compile-time.
+///
+/// [`CountDown`]: embedded_hal::timer::CountDown
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Ticks(u32);
 
@@ -222,6 +240,49 @@ impl TryFrom<u32> for Ticks {
         }
 
         Ok(Self(value))
+    }
+}
+
+// Eventually, `Ticks` will need a const-generic argument or something, but as
+// long as everything is hardcoded to 12 MHz, the following will do.
+
+impl From<Nanoseconds> for Ticks {
+    fn from(value: Nanoseconds) -> Self {
+        // This can't possibly fail:
+        // - The multiplication can't overflow after converting to `u64`.
+        // - After the division, the value is guaranteed to fit into the `u32`
+        //   again.
+        // - The maximum possible `value` leads to a result that is smaller than
+        //   `MAX_VALUE`.
+        Self((value.0 as u64 * 12 / 1_000) as u32)
+    }
+}
+
+impl TryFrom<Microseconds> for Ticks {
+    type Error = TickConversionError;
+
+    fn try_from(value: Microseconds) -> Result<Self, Self::Error> {
+        let value = value.0.checked_mul(12).ok_or(TickConversionError)?;
+        Self::try_from(value)
+    }
+}
+
+impl TryFrom<Milliseconds> for Ticks {
+    type Error = TickConversionError;
+
+    fn try_from(value: Milliseconds) -> Result<Self, Self::Error> {
+        let value = value.0.checked_mul(12_000).ok_or(TickConversionError)?;
+        Self::try_from(value)
+    }
+}
+
+impl TryFrom<Seconds> for Ticks {
+    type Error = TickConversionError;
+
+    fn try_from(value: Seconds) -> Result<Self, Self::Error> {
+        let value =
+            value.0.checked_mul(12_000_000).ok_or(TickConversionError)?;
+        Self::try_from(value)
     }
 }
 
