@@ -3,7 +3,11 @@
 
 extern crate panic_rtt_target;
 
-use lpc8xx_hal::{cortex_m_rt::entry, gpio::Level, prelude::*, Peripherals};
+use core::convert::TryInto as _;
+
+use lpc8xx_hal::{
+    cortex_m_rt::entry, gpio::Level, mrt::Ticks, prelude::*, Peripherals,
+};
 
 use nb::block;
 #[entry]
@@ -38,7 +42,8 @@ fn main() -> ! {
     let mut led = led.into_output_pin(token, Level::Low);
 
     // Start the timer with an interval of 12_000_000 ticks
-    timer.start(12_000_000u32);
+    let ticks: Ticks = 12_000_000u32.try_into().unwrap();
+    timer.start(ticks);
 
     // Blink the LED using the systick with the delay traits
     loop {
