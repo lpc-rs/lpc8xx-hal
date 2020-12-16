@@ -37,7 +37,7 @@ fn main() -> ! {
     // to prevent any mistakes.
     let mut led = led.into_output_pin(token, Level::Low);
 
-    // Start the timer with an intervall of 12_000_000 ticks
+    // Start the timer with an interval of 12_000_000 ticks
     timer.start(12_000_000u32);
 
     // Blink the LED using the systick with the delay traits
