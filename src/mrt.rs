@@ -6,6 +6,8 @@
 //! The MRT consists of 4 channels, which are mostly separate and can each act
 //! as a run-of-the-mill timer.
 
+use core::convert::TryFrom;
+
 use crate::{
     pac::{self, mrt0::CHANNEL},
     reg_proxy::{Reg, RegProxy},
@@ -16,7 +18,12 @@ use embedded_hal::timer::{CountDown, Periodic};
 use embedded_hal_alpha::timer::{
     CountDown as CountDownAlpha, Periodic as PeriodicAlpha,
 };
-use embedded_time::{clock, fraction::Fraction, Instant};
+use embedded_time::{
+    clock,
+    duration::{Microseconds, Milliseconds, Nanoseconds, Seconds},
+    fraction::Fraction,
+    Instant,
+};
 use void::Void;
 
 /// Represents the MRT instance
@@ -59,7 +66,7 @@ impl MRT {
 }
 
 /// The maximum timer value
-pub const MAX_VALUE: u32 = 0x7fff_ffff - 1;
+pub const MAX_VALUE: Ticks = Ticks(0x7fff_ffff - 1);
 
 /// Represents a MRT0 channel
 ///
@@ -82,10 +89,7 @@ where
     /// The `reload` argument must be smaller than or equal to [`MAX_VALUE`].
     ///
     /// [`MAX_VALUE`]: constant.MAX_VALUE.html
-    pub fn start(&mut self, reload: impl Into<u32>) {
-        let reload = reload.into();
-        debug_assert!(reload <= MAX_VALUE);
-
+    pub fn start(&mut self, reload: Ticks) {
         // This stops the timer, to prevent race conditions when resetting the
         // interrupt bit
         self.0.intval.write(|w| {
@@ -95,7 +99,7 @@ where
         self.0.stat.write(|w| w.intflag().set_bit());
         self.0
             .intval
-            .write(|w| unsafe { w.ivalue().bits(reload + 1) });
+            .write(|w| unsafe { w.ivalue().bits(reload.0 + 1) });
     }
 
     /// Indicates whether the timer is running
@@ -133,13 +137,13 @@ where
     /// runs at 12_000_000 ticks per second if you haven't changed it.
     ///
     /// It can also only use values smaller than 0x7FFFFFFF.
-    type Time = u32;
+    type Time = Ticks;
 
     fn start<Time>(&mut self, count: Time)
     where
         Time: Into<Self::Time>,
     {
-        self.start(count);
+        self.start(count.into());
     }
 
     fn wait(&mut self) -> nb::Result<(), Void> {
@@ -157,13 +161,13 @@ where
     /// runs at 12_000_000 ticks per second if you haven't changed it.
     ///
     /// It can also only use values smaller than 0x7FFFFFFF.
-    type Time = u32;
+    type Time = Ticks;
 
     fn try_start<Time>(&mut self, count: Time) -> Result<(), Self::Error>
     where
         Time: Into<Self::Time>,
     {
-        Ok(self.start(count))
+        Ok(self.start(count.into()))
     }
 
     fn try_wait(&mut self) -> nb::Result<(), Self::Error> {
@@ -193,6 +197,100 @@ where
         }
     }
 }
+
+/// Represents a number of ticks of the MRT timer
+///
+/// `Ticks` has various `From` and `TryFrom` implementations that provide
+/// integration with `embedded_time` duration types. This not only provides a
+/// more convenient API, it also makes it possible to use the MRT generically,
+/// through the [`CountDown`] trait and a bound like
+/// `Timer::Time: TryFrom<Milliseconds>`, without requiring any knowledge of the
+/// timer's frequency.
+///
+/// However, these conversions have performance implications. For best results,
+/// you should use constants for the original values that you want to convert,
+/// to give the compiler a chance to perform the conversion at compile-time.
+///
+/// [`CountDown`]: embedded_hal::timer::CountDown
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct Ticks(u32);
+
+impl Ticks {
+    /// Creates a `Tick` instance with the given number of ticks
+    ///
+    /// This method is provided as a fallback to avoid performance overhead, in
+    /// case the user knows that `value` fits within `MAX_VALUE`, but the
+    /// compiler can't perform the necessary optimization. Please use any of the
+    /// `From` or `TryFrom` implementations instead, if you can afford it.
+    ///
+    /// # Safety
+    ///
+    /// The user must guarantee that `value <= MAX_VALUE`.
+    pub unsafe fn from_u32(value: u32) -> Self {
+        Self(value)
+    }
+}
+
+impl TryFrom<u32> for Ticks {
+    type Error = TickConversionError;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        if value > MAX_VALUE.0 {
+            return Err(TickConversionError);
+        }
+
+        Ok(Self(value))
+    }
+}
+
+// Eventually, `Ticks` will need a const-generic argument or something, but as
+// long as everything is hardcoded to 12 MHz, the following will do.
+
+impl From<Nanoseconds> for Ticks {
+    fn from(value: Nanoseconds) -> Self {
+        // This can't possibly fail:
+        // - The multiplication can't overflow after converting to `u64`.
+        // - After the division, the value is guaranteed to fit into the `u32`
+        //   again.
+        // - The maximum possible `value` leads to a result that is smaller than
+        //   `MAX_VALUE`.
+        Self((value.0 as u64 * 12 / 1_000) as u32)
+    }
+}
+
+impl TryFrom<Microseconds> for Ticks {
+    type Error = TickConversionError;
+
+    fn try_from(value: Microseconds) -> Result<Self, Self::Error> {
+        let value = value.0.checked_mul(12).ok_or(TickConversionError)?;
+        Self::try_from(value)
+    }
+}
+
+impl TryFrom<Milliseconds> for Ticks {
+    type Error = TickConversionError;
+
+    fn try_from(value: Milliseconds) -> Result<Self, Self::Error> {
+        let value = value.0.checked_mul(12_000).ok_or(TickConversionError)?;
+        Self::try_from(value)
+    }
+}
+
+impl TryFrom<Seconds> for Ticks {
+    type Error = TickConversionError;
+
+    fn try_from(value: Seconds) -> Result<Self, Self::Error> {
+        let value =
+            value.0.checked_mul(12_000_000).ok_or(TickConversionError)?;
+        Self::try_from(value)
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+/// Indicates that a conversion to [`Tick`] failed
+///
+/// This is the case when the resulting value is larger than [`MAX_VALUE`].
+pub struct TickConversionError;
 
 /// Implemented for types that identify MRT channels
 pub trait Trait: Reg<Target = CHANNEL> + sealed::Sealed {}
