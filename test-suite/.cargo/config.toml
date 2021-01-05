@@ -1,0 +1,6 @@
+[build]
+target = "thumbv6m-none-eabi"
+
+[target."thumbv6m-none-eabi"]
+runner = "probe-run"
+# This is not the full configuration. See `scripts/test.sh`.
