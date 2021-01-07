@@ -256,7 +256,7 @@ where
     type Error = Error;
 
     fn read(&mut self) -> nb::Result<W, Self::Error> {
-        // Sound, as we're only reading from `stat`, and `rxdatastat` is
+        // Sound, as we're only reading from `stat`, and `rxdatstat` is
         // exclusively accessed by this method.
         let usart = unsafe { &*I::REGISTERS };
 
