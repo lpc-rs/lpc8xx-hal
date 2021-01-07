@@ -41,11 +41,18 @@ function build() {
     # to stable.
     [ "$STABLE_CHECKS" = true ] && TRYBUILD=",trybuild" || TRYBUILD=""
 
+    # Build and test HAL
     cargo test \
         --verbose \
         --features=$1,no-target-warning$TRYBUILD \
         --target=$HOST_TARGET
     cargo build --verbose --features=$TARGET-rt,no-target-warning --examples
+
+    # Build test suite
+    (
+        cd test-suite
+        cargo build ---tests --features=$TARGET
+    )
 }
 
 build 82x
