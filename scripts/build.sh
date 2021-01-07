@@ -30,8 +30,10 @@ if [ "$STABLE_CHECKS" = true ]; then
 fi
 
 function build() {
+    TARGET=$1
+
     echo ""
-    echo "### Building target $1"
+    echo "### Building target $TARGET"
     echo ""
 
     # Only run trybuild on the stable channel. Otherwise changes to compiler
@@ -43,7 +45,7 @@ function build() {
         --verbose \
         --features=$1,no-target-warning$TRYBUILD \
         --target=$HOST_TARGET
-    cargo build --verbose --features=$1-rt,no-target-warning --examples
+    cargo build --verbose --features=$TARGET-rt,no-target-warning --examples
 }
 
 build 82x
