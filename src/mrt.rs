@@ -231,8 +231,7 @@ impl Ticks {
     }
 
     /// Returns the number of ticks of this `Tick` instance.
-    /// This method is provided as a fallback to avoid performance overhead.
-    /// You may also use the `Into` implementations instead, if you can afford it.
+    /// You may also use the `Into` implementations instead.
     pub fn to_u32(&self) -> u32 {
         self.0
     }
