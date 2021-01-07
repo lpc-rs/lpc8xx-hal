@@ -86,18 +86,59 @@ mod target {
     impl Clock<syscon::IOSC, AsyncMode> {
         /// Create a new configuration with a specified baudrate
         ///
+        /// Searches for configuration values that lead to a baud rate that is
+        /// within 5% accuracy of the desired baudrate. Panics, if it can't find
+        /// such parameters.
+        ///
+        /// Chooses the highest possibly oversampling value that will still give
+        /// the desired accuracy. Please note that if the oversampling value
+        /// gets too low, this can result in framing and noise errors when
+        /// receiving data.
+        ///
+        /// Due to the aforementioned limitations, and because this methods is
+        /// relatively computationally expensive, it is recommended to only use
+        /// it during initialization, with known baud rates. If you need more
+        /// control, please use [`Clock::new`] in combination with an FRG.
+        ///
         /// Assumes the internal oscillator runs at 12 MHz.
         pub fn new_with_baudrate(baudrate: u32) -> Self {
-            // We want something with 5% tolerance
-            let calc = baudrate * 20;
-            let mut osrval = 5;
-            for i in (5..=16).rev() {
-                if calc * (i as u32) < 12_000_000 {
-                    osrval = i;
-                }
+            fn calculate_brgval(
+                desired_baudrate: u32,
+                osrval: u8,
+            ) -> (u16, u8) {
+                let iosc_frequency = 12_000_000;
+
+                let brgval = iosc_frequency
+                    / (desired_baudrate * (osrval + 1) as u32)
+                    - 1;
+                let resulting_baudrate =
+                    iosc_frequency / (brgval + 1) / (osrval as u32 + 1);
+
+                // This subtraction should never overflow. Due to rounding, the
+                // resulting baud rate is always going to be higher than the
+                // desired one.
+                let deviation_percent = (resulting_baudrate - desired_baudrate)
+                    * 100
+                    / desired_baudrate;
+
+                (brgval as u16, deviation_percent as u8)
             }
-            let brgval = (12_000_000 / (baudrate * osrval as u32) - 1) as u16;
-            let osrval = osrval - 1;
+            fn search_parameters(baudrate: u32) -> (u16, u8) {
+                // Look for the highest `osrval` that will give us an accuracy
+                // within 5%.
+                for osrval in (0x4..=0xf).rev() {
+                    let (brgval, deviation_percent) =
+                        calculate_brgval(baudrate, osrval);
+                    if deviation_percent < 5 {
+                        return (brgval, osrval);
+                    }
+                }
+
+                panic!("Could not find parameters that are accurate within 5%");
+            }
+
+            let (brgval, osrval) = search_parameters(baudrate);
+
             Self {
                 brgval,
                 osrval,
