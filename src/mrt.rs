@@ -250,11 +250,9 @@ impl TryFrom<u32> for Ticks {
     }
 }
 
-// Note that we don't implement `From` (which would imply `Into` as well) since `From` might fail
-// (`u32` value too big) but `Into` won't (if it fits into `Ticks`, it fits into an `u32`)
-impl Into<u32> for Ticks {
-    fn into(self) -> u32 {
-        self.0
+impl From<Ticks> for u32 {
+    fn from(ticks: Ticks) -> Self {
+        ticks.0
     }
 }
 
