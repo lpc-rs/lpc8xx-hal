@@ -55,7 +55,7 @@ macro_rules! pins {
             pub struct $type(());
 
             impl Trait for $type {
-                fn port(&self) -> usize {
+                fn port(&self) -> u8 {
                     $port
                 }
 
