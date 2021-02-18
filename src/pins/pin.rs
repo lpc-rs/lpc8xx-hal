@@ -184,7 +184,7 @@ pub struct Pin<T: Trait, S: State> {
 /// [`pins::Token`]: struct.Token.html
 /// [`pins::Trait`]: trait.Trait.html
 pub struct GenericPin {
-    port: usize, // todo make u8
+    port: u8,
     id: u8,
 }
 
@@ -532,13 +532,13 @@ where
 
 impl GenericPin {
     /// Creates a new `GenericPin`
-    pub(super) fn new(port: usize, id: u8) -> Self {
+    pub(super) fn new(port: u8, id: u8) -> Self {
         Self { port, id }
     }
 }
 
 impl Trait for GenericPin {
-    fn port(&self) -> usize {
+    fn port(&self) -> u8 {
         self.port
     }
 

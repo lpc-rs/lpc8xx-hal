@@ -15,7 +15,7 @@ pub trait Trait {
     ///
     /// [`PIO0_0`]: struct.PIO0_0.html
     /// [`PIO1_0`]: struct.PIO1_0.html
-    fn port(&self) -> usize; // TODO make u8
+    fn port(&self) -> u8;
 
     /// A number that identifies the pin
     ///

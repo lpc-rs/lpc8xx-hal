@@ -474,7 +474,7 @@ where
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
-        registers.not[self.inner().port()]
+        registers.not[usize::from(self.inner().port())]
             .write(|w| unsafe { w.notp().bits(self.inner().mask()) });
     }
 }
@@ -822,17 +822,21 @@ pub enum Level {
 }
 
 fn set_high(registers: &Registers, inner: &impl pins::Trait) {
-    registers.set[inner.port()]
+    registers.set[usize::from(inner.port())]
         .write(|w| unsafe { w.setp().bits(inner.mask()) });
 }
 
 fn set_low(registers: &Registers, inner: &impl pins::Trait) {
-    registers.clr[inner.port()]
+    registers.clr[usize::from(inner.port())]
         .write(|w| unsafe { w.clrp().bits(inner.mask()) });
 }
 
 fn is_high(registers: &Registers, inner: &impl pins::Trait) -> bool {
-    registers.pin[inner.port()].read().port().bits() & inner.mask()
+    registers.pin[usize::from(inner.port())]
+        .read()
+        .port()
+        .bits()
+        & inner.mask()
         == inner.mask()
 }
 
@@ -840,7 +844,7 @@ fn is_high(registers: &Registers, inner: &impl pins::Trait) -> bool {
 // Use the direction helpers of `GpioPin<P, direction::Output>` and `GpioPin<P, direction::Dynamic>`
 // instead.
 fn set_direction_output(registers: &Registers, inner: &impl pins::Trait) {
-    registers.dirset[inner.port()]
+    registers.dirset[usize::from(inner.port())]
         .write(|w| unsafe { w.dirsetp().bits(inner.mask()) });
 }
 
@@ -848,7 +852,7 @@ fn set_direction_output(registers: &Registers, inner: &impl pins::Trait) {
 // Use the direction helpers of `GpioPin<P, direction::Input>` and `GpioPin<P, direction::Dynamic>`
 // instead.
 fn set_direction_input(registers: &Registers, inner: &impl pins::Trait) {
-    registers.dirclr[inner.port()]
+    registers.dirclr[usize::from(inner.port())]
         .write(|w| unsafe { w.dirclrp().bits(inner.mask()) });
 }
 
