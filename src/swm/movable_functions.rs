@@ -114,10 +114,9 @@ macro_rules! impl_function {
         impl FunctionTrait<pins::$pin> for $type {
             type Kind = $kind;
 
-            fn assign(&mut self, _pin: &mut pins::$pin, swm: &mut Handle) {
+            fn assign(&mut self, pin: &mut pins::$pin, swm: &mut Handle) {
                 swm.swm.$reg_name.modify(|_, w| unsafe {
-                    w.$reg_field()
-                        .bits(pins::$pin::ID | (pins::$pin::PORT as u8) << 5)
+                    w.$reg_field().bits(pin.id() | (pin.port() as u8) << 5)
                 });
             }
 

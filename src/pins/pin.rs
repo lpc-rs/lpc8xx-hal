@@ -175,6 +175,19 @@ pub struct Pin<T: Trait, S: State> {
     pub(crate) _state: S,
 }
 
+/// A drop-in substitute for the `PIO0_0`, `PIO0_1`... etc. structs which are generated at compile
+/// time and used to bind each pin to a [`pins::Token`].
+/// `GenericPin`s are *only* intended for use cases which are made impossible by the default
+/// [`pins::Trait`] having pin information compiled into its type, e.g. if you'd like to store
+/// several pin instances in a collection, or modify them in batches.
+///
+/// [`pins::Token`]: struct.Token.html
+/// [`pins::Trait`]: trait.Trait.html
+pub struct GenericPin {
+    port: usize, // todo make u8
+    id: u8,
+}
+
 /// Marks the current directin of a Dynamic Pin.
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum DynamicPinDirection {
@@ -236,9 +249,12 @@ where
     /// [`GPIO`]: ../gpio/struct.GPIO.html
     pub fn into_input_pin(
         self,
-        token: Token<T, init_state::Enabled>,
+        _token: Token<T, init_state::Enabled>,
     ) -> GpioPin<T, direction::Input> {
-        GpioPin::new(token, ())
+        // note that `_token` is consumed and discarded at this pint because we don't need it
+        // anymore– it has served its purpose of guaranteeing that the user won't accidentally
+        // disable the GPIO peripheral while the pin is active
+        GpioPin::new(self.ty, ())
     }
 
     /// Transition pin to GPIO output mode
@@ -290,10 +306,13 @@ where
     /// [`GPIO`]: ../gpio/struct.GPIO.html
     pub fn into_output_pin(
         self,
-        token: Token<T, init_state::Enabled>,
+        _token: Token<T, init_state::Enabled>,
         initial: Level,
     ) -> GpioPin<T, direction::Output> {
-        GpioPin::new(token, initial)
+        // note that `_token` is consumed and discarded at this pint because we don't need it
+        // anymore– it has served its purpose of guaranteeing that the user won't accidentally
+        // disable the GPIO peripheral while the pin is active
+        GpioPin::new(self.ty, initial)
     }
 
     /// Transition pin to Dynamic mode, i.e. GPIO direction switchable at runtime
@@ -358,11 +377,14 @@ where
     /// [`GPIO`]: ../gpio/struct.GPIO.html
     pub fn into_dynamic_pin(
         self,
-        token: Token<T, init_state::Enabled>,
+        _token: Token<T, init_state::Enabled>,
         level: Level,
         direction: DynamicPinDirection,
     ) -> GpioPin<T, direction::Dynamic> {
-        GpioPin::new(token, (level, direction))
+        // note that `_token` is consumed and discarded at this pint because we don't need it
+        // anymore– it has served its purpose of guaranteeing that the user won't accidentally
+        // disable the GPIO peripheral while the pin is active
+        GpioPin::new(self.ty, (level, direction))
     }
 
     /// Transition pin to SWM mode
@@ -399,6 +421,86 @@ where
             _state: state::Swm::new(),
         }
     }
+
+    /// Transition pin into a Dynamic Generic Pin, i.e.
+    /// - GPIO direction switchable at runtime
+    /// - Pin identifying information is not part of the Pin's type, e.g. can be generalized and
+    ///   managed in collections
+    ///
+    /// If you don't absolutely need this flexibility, it is recommended you use In/Output Pins or
+    /// regular (i.e. pin-specific at compile time) Dynamic Pins instead, as they will prevent
+    /// wrong usage of level- and direction changes at compile time.
+    ///
+    /// This method is only available while the pin is in the unused state. Code
+    /// that attempts to call this method while the pin is in any other state
+    /// will not compile. See [State Management] for more information on
+    /// managing pin states.
+    ///
+    /// Consumes this `Pin` instance and returns an instance of [`GpioPin`] holding a [`GenericPin`],
+    /// which provides access to all GPIO functions.
+    ///
+    /// This method requires a GPIO token from the [`GPIO`] struct, to ensure
+    /// that the GPIO peripheral is enabled and not already in use. It consumes the `GPIO` token
+    /// and converts its infromation into a [`GenericPin`].
+    ///
+    /// [`GenericPin`]: struct.GenericPin.html
+    /// [`GpioPin`]: ../gpio/struct.GpioPin.html
+    /// [`GPIO`]: ../gpio/struct.GPIO.html
+    ///
+    /// # Example
+    ///
+    /// ``` no_run
+    /// use lpc8xx_hal::{
+    ///     prelude::*,
+    ///     Peripherals,
+    ///     gpio::{direction::Dynamic, GpioPin, Level},
+    ///     pins
+    /// };
+    ///
+    /// let p = Peripherals::take().unwrap();
+    ///
+    /// let mut syscon = p.SYSCON.split();
+    ///
+    /// #[cfg(feature = "82x")]
+    /// let gpio = p.GPIO;
+    /// #[cfg(feature = "845")]
+    /// let gpio = p.GPIO.enable(&mut syscon.handle);
+    ///
+    /// // Gather pins in an array
+    /// let mut my_pins: [GpioPin<pins::GenericPin, Dynamic>; 2] = [
+    ///    p.pins.pio0_12.into_generic_dynamic_pin(
+    ///        gpio.tokens.pio0_12,
+    ///        Level::High,
+    ///        pins::DynamicPinDirection::Output,
+    ///    ),
+    ///    p.pins.pio0_15.into_generic_dynamic_pin(
+    ///        gpio.tokens.pio0_15,
+    ///        Level::High,
+    ///        pins::DynamicPinDirection::Output,
+    ///    ),
+    /// ];
+    ///
+    /// // loop through pins and change their direction without having to know their exact IDs
+    /// for pin in my_pins.iter_mut() {
+    ///     pin.switch_to_input();
+    /// }
+    /// ```
+    // NOTE: all generic pins are fully dynamic for now; add into_generic_input_pin() and
+    // into_generic_output_pin() implementation as needed
+    pub fn into_generic_dynamic_pin(
+        self,
+        _token: Token<T, init_state::Enabled>,
+        level: Level,
+        direction: DynamicPinDirection,
+    ) -> GpioPin<GenericPin, direction::Dynamic> {
+        // note that `_token` is consumed and discarded at this pint because we don't need it
+        // anymore– it has served its purpose of guaranteeing that the user won't accidentally
+        // disable the GPIO peripheral while the pin is active
+        GpioPin::new(
+            GenericPin::new(self.ty.port(), self.ty.id()),
+            (level, direction),
+        )
+    }
 }
 
 impl<T> Pin<T, state::Swm<(), ()>>
@@ -425,5 +527,26 @@ where
             ty: self.ty,
             _state: state::Unused,
         }
+    }
+}
+
+impl GenericPin {
+    /// Creates a new `GenericPin`
+    pub(super) fn new(port: usize, id: u8) -> Self {
+        Self { port, id }
+    }
+}
+
+impl Trait for GenericPin {
+    fn port(&self) -> usize {
+        self.port
+    }
+
+    fn id(&self) -> u8 {
+        self.id
+    }
+
+    fn mask(&self) -> u32 {
+        0x1 << self.id
     }
 }

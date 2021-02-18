@@ -144,6 +144,10 @@ name              = "gpio_dynamic"
 required-features = ["rt-selected"]
 
 [[example]]
+name              = "gpio_generic"
+required-features = ["rt-selected", "845"]
+
+[[example]]
 name              = "gpio_input"
 required-features = ["rt-selected", "845"]
 
