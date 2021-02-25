@@ -272,12 +272,16 @@ where
             let rx_dat_stat = usart.rxdatstat.read();
 
             if stat.overrunint().bit_is_set() {
+                usart.stat.write(|w| w.overrunint().set_bit());
                 Err(nb::Error::Other(Error::Overrun))
             } else if rx_dat_stat.framerr().bit_is_set() {
+                usart.stat.write(|w| w.framerrint().set_bit());
                 Err(nb::Error::Other(Error::Framing))
             } else if rx_dat_stat.parityerr().bit_is_set() {
+                usart.stat.write(|w| w.parityerrint().set_bit());
                 Err(nb::Error::Other(Error::Parity))
             } else if rx_dat_stat.rxnoise().bit_is_set() {
+                usart.stat.write(|w| w.rxnoiseint().set_bit());
                 Err(nb::Error::Other(Error::Noise))
             } else {
                 Ok(Word::from_u16(rx_dat_stat.rxdat().bits()))
