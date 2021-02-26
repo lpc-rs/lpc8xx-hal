@@ -1,3 +1,37 @@
+## v0.9.0 (2021-02-26)
+
+- Use plain, unshifted 7-bit addresses for I2C ([#282], [#283])
+- Fix USART baud rate calculation ([#285])
+- Update dependencies ([#286], [#295], [#296], [#300])
+- Add partial support for embedded-hal alpha ([#287], [#289], [#290], [#293])
+- Add support for embedded-time to MRT ([#289], [#298], [#299], [#303])
+- Implement `embedded_hal::Pwm` for CTIMER ([#291])
+- Add support for dynamically changing GPIO pin direction ([#297])
+- Add support for type-erased GPIO pins ([#305])
+- Represent GPIO port using `u8` ([#306])
+- Improve USART error handling ([#308])
+
+[#282]: https://github.com/lpc-rs/lpc8xx-hal/pull/282
+[#283]: https://github.com/lpc-rs/lpc8xx-hal/pull/283
+[#285]: https://github.com/lpc-rs/lpc8xx-hal/pull/285
+[#286]: https://github.com/lpc-rs/lpc8xx-hal/pull/286
+[#287]: https://github.com/lpc-rs/lpc8xx-hal/pull/287
+[#289]: https://github.com/lpc-rs/lpc8xx-hal/pull/289
+[#290]: https://github.com/lpc-rs/lpc8xx-hal/pull/290
+[#291]: https://github.com/lpc-rs/lpc8xx-hal/pull/291
+[#293]: https://github.com/lpc-rs/lpc8xx-hal/pull/293
+[#295]: https://github.com/lpc-rs/lpc8xx-hal/pull/295
+[#296]: https://github.com/lpc-rs/lpc8xx-hal/pull/296
+[#297]: https://github.com/lpc-rs/lpc8xx-hal/pull/297
+[#298]: https://github.com/lpc-rs/lpc8xx-hal/pull/298
+[#299]: https://github.com/lpc-rs/lpc8xx-hal/pull/299
+[#300]: https://github.com/lpc-rs/lpc8xx-hal/pull/300
+[#303]: https://github.com/lpc-rs/lpc8xx-hal/pull/303
+[#305]: https://github.com/lpc-rs/lpc8xx-hal/pull/305
+[#306]: https://github.com/lpc-rs/lpc8xx-hal/pull/306
+[#308]: https://github.com/lpc-rs/lpc8xx-hal/pull/308
+
+
 ## v0.8.2 (2020-09-21)
 
 - Upgrade to `nb` 1.0 ([#279])
