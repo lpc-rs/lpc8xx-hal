@@ -1,0 +1,31 @@
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+name: Continuous integration
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      matrix:
+        rust:
+          - stable
+        experimental: [false]
+        include:
+          - rust: nightly
+            experimental: true
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          target: thumbv6m-none-eabi
+          override: true
+
+      - name: Regular build
+        run: ./scripts/build.sh
