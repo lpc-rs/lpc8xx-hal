@@ -253,7 +253,7 @@ where
     I: Instance,
     W: Word,
 {
-    type Error = Error;
+    type Error = Error<W>;
 
     fn read(&mut self) -> nb::Result<W, Self::Error> {
         // Sound, as we're only reading from `stat`, and `rxdatstat` is
@@ -271,16 +271,22 @@ where
             // it changes the status flags.
             let rx_dat_stat = usart.rxdatstat.read();
 
+            let word = Word::from_u16(rx_dat_stat.rxdat().bits());
+
             if stat.overrunint().bit_is_set() {
-                Err(nb::Error::Other(Error::Overrun))
+                usart.stat.write(|w| w.overrunint().set_bit());
+                Err(nb::Error::Other(Error::Overrun(word)))
             } else if rx_dat_stat.framerr().bit_is_set() {
-                Err(nb::Error::Other(Error::Framing))
+                usart.stat.write(|w| w.framerrint().set_bit());
+                Err(nb::Error::Other(Error::Framing(word)))
             } else if rx_dat_stat.parityerr().bit_is_set() {
-                Err(nb::Error::Other(Error::Parity))
+                usart.stat.write(|w| w.parityerrint().set_bit());
+                Err(nb::Error::Other(Error::Parity(word)))
             } else if rx_dat_stat.rxnoise().bit_is_set() {
-                Err(nb::Error::Other(Error::Noise))
+                usart.stat.write(|w| w.rxnoiseint().set_bit());
+                Err(nb::Error::Other(Error::Noise(word)))
             } else {
-                Ok(Word::from_u16(rx_dat_stat.rxdat().bits()))
+                Ok(word)
             }
         } else {
             Err(nb::Error::WouldBlock)
@@ -325,16 +331,16 @@ where
 
 /// A USART error
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum Error {
+pub enum Error<Word> {
     /// Character received with a stop bit missing at the expected location
-    Framing,
+    Framing(Word),
 
     /// Corrupted character received
-    Noise,
+    Noise(Word),
 
     /// Character received, while receive buffer was still in use
-    Overrun,
+    Overrun(Word),
 
     /// Parity error detected in received character
-    Parity,
+    Parity(Word),
 }

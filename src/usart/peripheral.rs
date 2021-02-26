@@ -487,7 +487,7 @@ where
     I: Instance,
     W: Word,
 {
-    type Error = Error;
+    type Error = Error<W>;
 
     /// Reads a single word from the serial interface
     fn read(&mut self) -> nb::Result<W, Self::Error> {
