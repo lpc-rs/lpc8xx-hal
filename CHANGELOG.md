@@ -1,4 +1,37 @@
-<a name="v0.8.2"></a>
+## v0.9.0 (2021-02-26)
+
+- Use plain, unshifted 7-bit addresses for I2C ([#282], [#283])
+- Fix USART baud rate calculation ([#285])
+- Update dependencies ([#286], [#295], [#296], [#300])
+- Add partial support for embedded-hal alpha ([#287], [#289], [#290], [#293])
+- Add support for embedded-time to MRT ([#289], [#298], [#299], [#303])
+- Implement `embedded_hal::Pwm` for CTIMER ([#291])
+- Add support for dynamically changing GPIO pin direction ([#297])
+- Add support for type-erased GPIO pins ([#305])
+- Represent GPIO port using `u8` ([#306])
+- Improve USART error handling ([#308])
+
+[#282]: https://github.com/lpc-rs/lpc8xx-hal/pull/282
+[#283]: https://github.com/lpc-rs/lpc8xx-hal/pull/283
+[#285]: https://github.com/lpc-rs/lpc8xx-hal/pull/285
+[#286]: https://github.com/lpc-rs/lpc8xx-hal/pull/286
+[#287]: https://github.com/lpc-rs/lpc8xx-hal/pull/287
+[#289]: https://github.com/lpc-rs/lpc8xx-hal/pull/289
+[#290]: https://github.com/lpc-rs/lpc8xx-hal/pull/290
+[#291]: https://github.com/lpc-rs/lpc8xx-hal/pull/291
+[#293]: https://github.com/lpc-rs/lpc8xx-hal/pull/293
+[#295]: https://github.com/lpc-rs/lpc8xx-hal/pull/295
+[#296]: https://github.com/lpc-rs/lpc8xx-hal/pull/296
+[#297]: https://github.com/lpc-rs/lpc8xx-hal/pull/297
+[#298]: https://github.com/lpc-rs/lpc8xx-hal/pull/298
+[#299]: https://github.com/lpc-rs/lpc8xx-hal/pull/299
+[#300]: https://github.com/lpc-rs/lpc8xx-hal/pull/300
+[#303]: https://github.com/lpc-rs/lpc8xx-hal/pull/303
+[#305]: https://github.com/lpc-rs/lpc8xx-hal/pull/305
+[#306]: https://github.com/lpc-rs/lpc8xx-hal/pull/306
+[#308]: https://github.com/lpc-rs/lpc8xx-hal/pull/308
+
+
 ## v0.8.2 (2020-09-21)
 
 - Upgrade to `nb` 1.0 ([#279])
@@ -9,7 +42,6 @@
 [#280]: https://github.com/lpc-rs/lpc8xx-hal/pull/280
 
 
-<a name="v0.8.1"></a>
 ## v0.8.1 (2020-08-21)
 
 - Attempt to fix fix docs.rs build ([#277])
@@ -17,7 +49,6 @@
 [#277]: https://github.com/lpc-rs/lpc8xx-hal/pull/277
 
 
-<a name="v0.8.0"></a>
 ## v0.8.0 (2020-08-15)
 
 - Improve I2C API ([#251], [#252])
@@ -56,7 +87,7 @@
 [#271]: https://github.com/lpc-rs/lpc8xx-hal/pull/271
 [#272]: https://github.com/lpc-rs/lpc8xx-hal/pull/272
 
-<a name="v0.7.1"></a>
+
 ## v0.7.1 (2020-06-26)
 
 - Fix `embedded-hal` version of `set_low` ([#246])
@@ -66,7 +97,6 @@
 [#247]: https://github.com/lpc-rs/lpc8xx-hal/pull/247
 
 
-<a name="v0.7.0"></a>
 ## v0.7.0 (2020-06-22)
 
 - Improve documentation ([#180], [#200], [#231], [#233], [#234])
@@ -150,7 +180,6 @@
 [#243]: https://github.com/lpc-rs/lpc8xx-hal/pull/243
 
 
-<a name="v0.6.1"></a>
 ## v0.6.1 (2019-11-09)
 
 - Fix build.rs ([#178])
@@ -158,7 +187,6 @@
 [#178]: https://github.com/lpc-rs/lpc8xx-hal/pull/178
 
 
-<a name="v0.6.0"></a>
 ## v0.6.0 (2019-11-09)
 
 - Improve LPC845 support ([#163], [#165])
@@ -180,7 +208,6 @@
 [#174]: https://github.com/lpc-rs/lpc8xx-hal/pull/174
 
 
-<a name="v0.5.0"></a>
 ## v0.5.0 (2019-10-12)
 
 - Add initial support for LPC845; rename to `lpc8xx-hal` ([#150], [#151], [#152], [#155], [#161])
@@ -194,14 +221,12 @@
 [#161]: https://github.com/lpc-rs/lpc8xx-hal/pull/161
 
 
-<a name="v0.4.0"></a>
 ## v0.4.0 (2019-03-14)
 
 - Support stable Rust ([#145](https://github.com/lpc-rs/lpc8xx-hal/pull/145))
 - Update documentation ([#148](https://github.com/lpc-rs/lpc8xx-hal/pull/148))
 
 
-<a name="v0.3.0"></a>
 ## v0.3.0 (2019-03-12)
 
 - Flush output after formatted UART write ([54ad833](https://github.com/lpc-rs/lpc8xx-hal/commit/54ad833ee80d1cd0307b432d8c5a7fec7160ca7d)).
@@ -214,7 +239,6 @@
 - Add basic support for DMA ([#117](https://github.com/lpc-rs/lpc8xx-hal/pull/117), [#120](https://github.com/lpc-rs/lpc8xx-hal/pull/120), [#121](https://github.com/lpc-rs/lpc8xx-hal/pull/121)).
 
 
-<a name="v0.2.0"></a>
 ## v0.2.0 (2018-06-15)
 
 - Add support for additional low-power modes ([#106](https://github.com/lpc-rs/lpc8xx-hal/pull/106))
@@ -230,7 +254,6 @@
 - Many additional cleanups and updates
 
 
-<a name="v0.1.0"></a>
 ### v0.1.0 (2018-03-12)
 
 Initial release
