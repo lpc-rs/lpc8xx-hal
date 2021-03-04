@@ -19,6 +19,12 @@ use super::MAX_VALUE;
 /// you should use constants for the original values that you want to convert,
 /// to give the compiler a chance to perform the conversion at compile-time.
 ///
+/// # Math
+///
+/// `Ticks` supports addition and subtraction via [`core::ops::Add`] and
+/// [`core::ops::Sub`]. Those operations are saturating at the numeric bounds
+/// (0 and [`MAX_VALUE`]) instead of overflowing.
+///
 /// [`CountDown`]: embedded_hal::timer::CountDown
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Ticks(pub(super) u32);
