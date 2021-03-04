@@ -1,4 +1,4 @@
-use core::convert::TryFrom;
+use core::{convert::TryFrom, ops};
 
 use embedded_time::duration::{
     Microseconds, Milliseconds, Nanoseconds, Seconds,
@@ -42,6 +42,25 @@ impl Ticks {
     /// You may also use the `Into` implementations instead.
     pub fn to_u32(&self) -> u32 {
         self.0
+    }
+}
+
+impl ops::Add for Ticks {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let sum = self.0.saturating_add(rhs.0);
+        let ticks = sum.clamp(sum, MAX_VALUE.0);
+        Self(ticks)
+    }
+}
+
+impl ops::Sub for Ticks {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        let difference = self.0.saturating_sub(rhs.0);
+        Self(difference)
     }
 }
 
