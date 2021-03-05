@@ -26,7 +26,7 @@ use super::MAX_VALUE;
 /// (0 and [`MAX_VALUE`]) instead of overflowing.
 ///
 /// [`CountDown`]: embedded_hal::timer::CountDown
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Ticks(pub(super) u32);
 
 impl Ticks {
