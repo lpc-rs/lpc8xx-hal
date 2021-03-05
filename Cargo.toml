@@ -53,6 +53,10 @@ version  = "0.7.0"
 optional = true
 version  = "0.3.0"
 
+[dependencies.num-traits]
+version          = "0.2.14"
+default-features = false
+
 [dependencies.void]
 version          = "1.0.2"
 default-features = false

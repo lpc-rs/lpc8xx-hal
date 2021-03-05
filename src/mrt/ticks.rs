@@ -51,6 +51,16 @@ impl Ticks {
     }
 }
 
+impl num_traits::Zero for Ticks {
+    fn zero() -> Self {
+        Self(0)
+    }
+
+    fn is_zero(&self) -> bool {
+        self.0.is_zero()
+    }
+}
+
 impl ops::Add for Ticks {
     type Output = Self;
 
