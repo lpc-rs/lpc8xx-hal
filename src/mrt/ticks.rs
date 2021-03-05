@@ -71,12 +71,24 @@ impl ops::Add for Ticks {
     }
 }
 
+impl ops::AddAssign for Ticks {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
 impl ops::Sub for Ticks {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
         let difference = self.0.saturating_sub(rhs.0);
         Self(difference)
+    }
+}
+
+impl ops::SubAssign for Ticks {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs;
     }
 }
 
