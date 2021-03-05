@@ -23,7 +23,7 @@ mod app {
     }
 
     #[init]
-    fn init(_: init::Context) -> init::LateResources {
+    fn init(_: init::Context) -> (init::LateResources, init::Monotonics) {
         rtt_target::rtt_init_print!();
 
         let p = Peripherals::take().unwrap();
@@ -45,7 +45,7 @@ mod app {
             .pio1_1
             .into_output_pin(gpio.tokens.pio1_1, Level::High);
 
-        init::LateResources { int, led }
+        (init::LateResources { int, led }, init::Monotonics())
     }
 
     #[idle]

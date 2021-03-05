@@ -25,7 +25,7 @@ mod app {
     }
 
     #[init]
-    fn init(_: init::Context) -> init::LateResources {
+    fn init(_: init::Context) -> (init::LateResources, init::Monotonics) {
         rtt_target::rtt_init_print!();
 
         let p = Peripherals::take().unwrap();
@@ -56,10 +56,13 @@ mod app {
             ..Default::default()
         });
 
-        init::LateResources {
-            i2c_master: i2c.master,
-            i2c_slave: i2c.slave,
-        }
+        (
+            init::LateResources {
+                i2c_master: i2c.master,
+                i2c_slave: i2c.slave,
+            },
+            init::Monotonics(),
+        )
     }
 
     #[idle(resources = [i2c_master])]
