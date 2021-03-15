@@ -345,24 +345,6 @@ where
     pub fn get_level(&self) -> Level {
         Level::from_pin(&self)
     }
-
-    /// Returns the current voltage level at this pin.
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state.
-    /// - The pin direction is set to input.
-    ///
-    /// See [`Pin::into_input_pin`] and [`into_input`]. Unless both of these
-    /// conditions are met, code trying to call this method will not compile.
-    ///
-    /// [`Pin::into_input_pin`]: ../pins/struct.Pin.html#method.into_input_pin
-    /// [`into_input`]: #method.into_input
-    pub fn get_level(&self) -> Level {
-        match self.is_high() {
-            true => Level::High,
-            false => Level::Low,
-        }
-    }
 }
 
 impl<P> GpioPin<P, direction::Output>
@@ -641,22 +623,6 @@ where
     /// Unless this condition is met, code trying to call this method will not compile.
     pub fn get_level(&self) -> Level {
         Level::from_pin(&self)
-    }
-
-    /// Returns the current voltage level at this pin.
-    /// This can be used when the pin is in any direction:
-    ///
-    /// If it is currently an Output pin, it indicates to which level the pin is set
-    /// If it is currently an Input pin, it indicates the level currently present at this pin
-    ///
-    /// This method is only available, if the pin has been set to dynamic mode.
-    /// See [`Pin::into_dynamic_pin`].
-    /// Unless this condition is met, code trying to call this method will not compile.
-    pub fn get_level(&self) -> Level {
-        match self.is_high() {
-            true => Level::High,
-            false => Level::Low,
-        }
     }
 }
 
