@@ -1030,7 +1030,7 @@ pub mod direction {
     }
 
     /// Error that can be thrown by operations on a Dynamic pin
-    #[derive(Copy, Clone)]
+    #[derive(Copy, Clone, Debug)]
     pub enum DynamicPinErr {
         /// you called a function that is not applicable to the pin's current direction
         WrongDirection,
