@@ -238,22 +238,10 @@ where
     }
 
     /// Indicates wether the voltage at the pin is currently HIGH
-    ///
-    /// This can be used when the pin is in any direction:
-    ///
-    /// If it is currently an Output pin, it indicates whether the pin output is set to HIGH
-    /// If it is currently an Input pin, it indicates wether the pin input is HIGH
-    ///
-    /// This method is only available, if two conditions are met:
-    /// - The pin is in the GPIO state.
-    /// - The pin direction is set to input.
-    ///
-    /// See [`Pin::into_input_pin`] and [`into_input`]. Unless both of these
-    /// conditions are met, code trying to call this method will not compile.
-    ///
-    /// [`Pin::into_input_pin`]: ../pins/struct.Pin.html#method.into_input_pin
-    /// [`into_input`]: #method.into_input
-    pub fn is_high(&self) -> bool {
+    /// This is not accessible to the user to avoid confusion becauzse `is_high()`
+    /// semantics differ depending on pin direction. It is only used to implement
+    /// `is_high()` and `is_set_high()` respectively for the different direction types.
+    pub(crate) fn is_high_inner(&self) -> bool {
         let gpio = unsafe { &*pac::GPIO::ptr() };
         let registers = Registers::new(gpio);
 
@@ -314,6 +302,21 @@ where
             inner: self.inner,
             _direction: new_direction,
         }
+    }
+
+    /// Indicates wether the voltage at the pin is currently HIGH
+    ///
+    /// This method is only available, if two conditions are met:
+    /// - The pin is in the GPIO state.
+    /// - The pin direction is set to input.
+    ///
+    /// See [`Pin::into_input_pin`] and [`into_input`]. Unless both of these
+    /// conditions are met, code trying to call this method will not compile.
+    ///
+    /// [`Pin::into_input_pin`]: ../pins/struct.Pin.html#method.into_input_pin
+    /// [`into_input`]: #method.into_input
+    pub fn is_high(&self) -> bool {
+        self.is_high_inner()
     }
 
     /// Indicates wether the pin input is LOW
@@ -599,19 +602,6 @@ where
         set_low(&registers, self.inner());
     }
 
-    /// Indicates whether the voltage at this pin is currently set to LOW
-    /// This can be used when the pin is in any direction:
-    ///
-    /// If it is currently an Output pin, it indicates whether the pin output is set to LOW
-    /// If it is currently an Input pin, it indicates wether the pin input is LOW
-    ///
-    /// This method is only available, if the pin has been set to dynamic mode.
-    /// See [`Pin::into_dynamic_pin`].
-    /// Unless this condition is met, code trying to call this method will not compile.
-    pub fn is_low(&self) -> bool {
-        !self.is_high()
-    }
-
     /// Returns the current voltage level at this pin.
     /// This can be used when the pin is in any direction:
     ///
@@ -669,7 +659,7 @@ where
         match self._direction.current_direction {
             pins::DynamicPinDirection::Output => {
                 // Re-use level reading function
-                Ok(self.is_high())
+                self.is_set_high()
             }
             pins::DynamicPinDirection::Input => {
                 Err(Self::Error::WrongDirection)
@@ -681,7 +671,7 @@ where
         match self._direction.current_direction {
             pins::DynamicPinDirection::Output => {
                 // Re-use level reading function
-                Ok(self.is_low())
+                self.is_set_low()
             }
             pins::DynamicPinDirection::Input => {
                 Err(Self::Error::WrongDirection)
@@ -703,7 +693,7 @@ where
             }
             pins::DynamicPinDirection::Input => {
                 // Call the inherent method defined above.
-                Ok(self.is_high())
+                Ok(self.is_high_inner())
             }
         }
     }
@@ -715,7 +705,7 @@ where
             }
             pins::DynamicPinDirection::Input => {
                 // Call the inherent method defined above.
-                Ok(self.is_low())
+                Ok(!self.is_high_inner())
             }
         }
     }
@@ -855,7 +845,7 @@ pub enum Level {
 
 impl Level {
     fn from_pin<P: pins::Trait, D: Direction>(pin: &GpioPin<P, D>) -> Self {
-        match pin.is_high() {
+        match pin.is_high_inner() {
             true => Level::High,
             false => Level::Low,
         }
