@@ -238,7 +238,7 @@ where
     }
 
     /// Indicates wether the voltage at the pin is currently HIGH
-    /// This is not accessible to the user to avoid confusion becauzse `is_high()`
+    /// This is not accessible to the user to avoid confusion because `is_high()`
     /// semantics differ depending on pin direction. It is only used to implement
     /// `is_high()` and `is_set_high()` respectively for the different direction types.
     pub(crate) fn is_high_inner(&self) -> bool {
