@@ -611,6 +611,8 @@ where
     /// This method is only available, if the pin has been set to dynamic mode.
     /// See [`Pin::into_dynamic_pin`].
     /// Unless this condition is met, code trying to call this method will not compile.
+    ///
+    /// [`Pin::into_dynamic_pin`]: crate::pins::Pin::into_dynamic_pin
     pub fn get_level(&self) -> Level {
         Level::from_pin(&self)
     }

@@ -154,7 +154,7 @@ impl TryFrom<Seconds> for Ticks {
 }
 
 #[derive(Debug, Eq, PartialEq)]
-/// Indicates that a conversion to [`Tick`] failed
+/// Indicates that a conversion to [`Ticks`] failed
 ///
 /// This is the case when the resulting value is larger than [`MAX_VALUE`].
 pub struct TickConversionError;
