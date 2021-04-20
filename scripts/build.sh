@@ -21,6 +21,7 @@ HOST_TARGET=${HOST_TARGET:-x86_64-unknown-linux-gnu}
 
 # Fail build, if there are any warnings.
 export RUSTFLAGS="-D warnings"
+export RUSTDOCFLAGS="-D warnings"
 
 # Check for formatting with the stable rustfmt
 if [ "$STABLE_CHECKS" = true ]; then
@@ -47,6 +48,7 @@ function build() {
         --features=$1,no-target-warning$TRYBUILD \
         --target=$HOST_TARGET
     cargo build --verbose --features=$TARGET-rt,no-target-warning --examples
+    cargo doc --features=$TARGET-rt,no-target-warning
 
     # Build test suite
     (
