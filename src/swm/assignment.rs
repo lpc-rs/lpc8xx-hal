@@ -13,6 +13,8 @@ use super::{
 ///
 /// Please refer to [`Function::assign`] for the public API that uses this
 /// trait.
+///
+/// [`Function::assign`]: crate::swm::Function::assign
 pub trait AssignFunction<Function, Kind> {
     /// The type of the pin after the function has been assigned
     type Assigned;
@@ -29,6 +31,8 @@ pub trait AssignFunction<Function, Kind> {
 ///
 /// Please refer to [`Function::unassign`] for the public API that uses this
 /// trait.
+///
+/// [`Function::unassign`]: crate::swm::Function::unassign
 pub trait UnassignFunction<Function, Kind> {
     /// The type of the pin after the function has been unassigned
     type Unassigned;
