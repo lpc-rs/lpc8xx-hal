@@ -349,7 +349,6 @@ pub enum State {
 }
 
 impl TryFrom<Option<MSTSTATE_A>> for State {
-    /// The value of the MSTSTATE field, if unexpected
     type Error = ();
 
     fn try_from(state: Option<MSTSTATE_A>) -> Result<Self, Self::Error> {
