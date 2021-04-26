@@ -13,7 +13,6 @@ use crate::{
     init_state::Enabled,
     pac::{
         dma0::channel::xfercfg::{DSTINC_A, SRCINC_A},
-        generic::Variant,
         i2c0::{stat::MSTSTATE_A, MSTCTL, MSTDAT},
     },
     reg_proxy::{Reg, RegProxy},
@@ -112,7 +111,9 @@ where
             Error::read::<I>()?;
         }
 
-        let actual = i2c.stat.read().mststate().variant().try_into();
+        let mststate = i2c.stat.read().mststate();
+        let actual =
+            mststate.variant().try_into().map_err(|()| mststate.bits());
         if Ok(&expected) != actual.as_ref() {
             return Err(Error::UnexpectedState { expected, actual });
         }
@@ -347,18 +348,17 @@ pub enum State {
     NackData,
 }
 
-impl TryFrom<Variant<u8, MSTSTATE_A>> for State {
-    /// The value of the MSTSTATE field, if unexpected
-    type Error = u8;
+impl TryFrom<Option<MSTSTATE_A>> for State {
+    type Error = ();
 
-    fn try_from(state: Variant<u8, MSTSTATE_A>) -> Result<Self, Self::Error> {
+    fn try_from(state: Option<MSTSTATE_A>) -> Result<Self, Self::Error> {
         match state {
-            Variant::Val(MSTSTATE_A::IDLE) => Ok(Self::Idle),
-            Variant::Val(MSTSTATE_A::RECEIVE_READY) => Ok(Self::RxReady),
-            Variant::Val(MSTSTATE_A::TRANSMIT_READY) => Ok(Self::TxReady),
-            Variant::Val(MSTSTATE_A::NACK_ADDRESS) => Ok(Self::NackAddress),
-            Variant::Val(MSTSTATE_A::NACK_DATA) => Ok(Self::NackData),
-            Variant::Res(bits) => Err(bits),
+            Some(MSTSTATE_A::IDLE) => Ok(Self::Idle),
+            Some(MSTSTATE_A::RECEIVE_READY) => Ok(Self::RxReady),
+            Some(MSTSTATE_A::TRANSMIT_READY) => Ok(Self::TxReady),
+            Some(MSTSTATE_A::NACK_ADDRESS) => Ok(Self::NackAddress),
+            Some(MSTSTATE_A::NACK_DATA) => Ok(Self::NackData),
+            None => Err(()),
         }
     }
 }
