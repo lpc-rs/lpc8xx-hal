@@ -1,4 +1,4 @@
-error[E0599]: no method named `assign` found for struct `Function<U0_RXD, Assigned<lpc8xx_hal::pins::PIO0_0>>` in the current scope
+error[E0599]: no method named `assign` found for struct `Function<U0_RXD, Assigned<PIO0_0>>` in the current scope
   --> $DIR/assign-function-to-multiple-pins.rs:30:30
    |
 30 |     let (u0_rxd, _) = u0_rxd.assign(pio0_1.into_swm_pin(), &mut swm_handle);
