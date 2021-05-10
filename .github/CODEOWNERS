@@ -1,0 +1,3 @@
+# Set the `lpc8xx` team as code owner of this repository. A review request will
+# automatically be sent for every non-draft pull request.
+* @lpc-rs/lpc8xx
