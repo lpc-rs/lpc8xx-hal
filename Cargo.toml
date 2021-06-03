@@ -24,7 +24,7 @@ travis-ci = { repository = "lpc-rs/lpc8xx-hal" }
 
 [dependencies]
 cortex-m      = "0.7.2"
-embedded-time = "0.11.0"
+embedded-time = "0.12.0"
 nb            = "1.0.0"
 
 # This should be in [dev-dependencies], but those can't be optional.
@@ -63,7 +63,7 @@ default-features = false
 
 
 [dev-dependencies]
-cortex-m-rtic = "=0.6.0-alpha.2"
+cortex-m-rtic = "=0.6.0-alpha.4"
 
 [dev-dependencies.panic-rtt-target]
 version  = "0.1.1"
