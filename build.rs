@@ -5,7 +5,7 @@ use std::{
     path::PathBuf,
 };
 
-use crossterm::style::{Colorize as _, Styler as _};
+use crossterm::style::Stylize as _;
 
 fn main() -> Result<(), Error> {
     let target = Target::read();
