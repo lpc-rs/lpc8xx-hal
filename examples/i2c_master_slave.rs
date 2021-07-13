@@ -15,17 +15,18 @@ mod app {
 
     const ADDRESS: u8 = 0x24;
 
-    #[resources]
-    struct Resources {
-        #[lock_free]
-        i2c_master: i2c::Master<I2C0, Enabled<PhantomData<IOSC>>, Enabled>,
+    #[shared]
+    struct Shared {}
 
-        #[lock_free]
+    #[local]
+    struct Local {
+        i2c_master: i2c::Master<I2C0, Enabled<PhantomData<IOSC>>, Enabled>,
         i2c_slave: i2c::Slave<I2C0, Enabled<PhantomData<IOSC>>, Enabled>,
+        i2c_data: Option<u8>,
     }
 
     #[init]
-    fn init(_: init::Context) -> (init::LateResources, init::Monotonics) {
+    fn init(_: init::Context) -> (Shared, Local, init::Monotonics) {
         rtt_target::rtt_init_print!();
 
         let p = Peripherals::take().unwrap();
@@ -57,19 +58,21 @@ mod app {
         });
 
         (
-            init::LateResources {
+            Shared {},
+            Local {
                 i2c_master: i2c.master,
                 i2c_slave: i2c.slave,
+                i2c_data: None,
             },
             init::Monotonics(),
         )
     }
 
-    #[idle(resources = [i2c_master])]
+    #[idle(local = [i2c_master])]
     fn idle(context: idle::Context) -> ! {
         let data = 0x14;
 
-        let i2c = context.resources.i2c_master;
+        let i2c = context.local.i2c_master;
 
         loop {
             rprintln!("MASTER: Starting I2C transaction...");
@@ -92,11 +95,10 @@ mod app {
         }
     }
 
-    #[task(binds = I2C0, resources = [i2c_slave])]
+    #[task(binds = I2C0, local = [i2c_slave, i2c_data])]
     fn i2c0(context: i2c0::Context) {
-        static mut DATA: Option<u8> = None;
-
-        let i2c = context.resources.i2c_slave;
+        let i2c = context.local.i2c_slave;
+        let data = context.local.i2c_data;
 
         rprintln!("SLAVE: Handling interrupt...");
 
@@ -111,7 +113,7 @@ mod app {
             Ok(i2c::slave::State::RxReady(i2c)) => {
                 rprintln!("SLAVE: Ready to receive.");
 
-                *DATA = Some(i2c.read().unwrap());
+                *data = Some(i2c.read().unwrap());
                 i2c.ack().unwrap();
 
                 rprintln!("SLAVE: Received and ack'ed.");
@@ -119,7 +121,7 @@ mod app {
             Ok(i2c::slave::State::TxReady(i2c)) => {
                 rprintln!("SLAVE: Ready to transmit.");
 
-                if let Some(data) = *DATA {
+                if let Some(data) = *data {
                     i2c.transmit(data << 1).unwrap();
                     rprintln!("SLAVE: Transmitted.");
                 }
