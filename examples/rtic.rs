@@ -13,17 +13,17 @@ mod app {
         Peripherals,
     };
 
-    #[resources]
-    struct Resources {
-        #[lock_free]
-        delay: Delay,
+    #[shared]
+    struct Shared {}
 
-        #[lock_free]
+    #[local]
+    struct Local {
+        delay: Delay,
         led: GpioPin<PIO1_1, Output>,
     }
 
     #[init]
-    fn init(cx: init::Context) -> (init::LateResources, init::Monotonics) {
+    fn init(cx: init::Context) -> (Shared, Local, init::Monotonics) {
         rtt_target::rtt_init_print!();
 
         let p = Peripherals::take().unwrap();
@@ -38,13 +38,13 @@ mod app {
             .pio1_1
             .into_output_pin(gpio.tokens.pio1_1, Level::Low);
 
-        (init::LateResources { delay, led }, init::Monotonics())
+        (Shared {}, Local { delay, led }, init::Monotonics())
     }
 
-    #[idle(resources = [delay, led])]
+    #[idle(local = [delay, led])]
     fn idle(cx: idle::Context) -> ! {
-        let delay = cx.resources.delay;
-        let led = cx.resources.led;
+        let delay = cx.local.delay;
+        let led = cx.local.led;
 
         loop {
             led.set_high();

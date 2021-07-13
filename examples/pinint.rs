@@ -13,17 +13,17 @@ mod app {
         Peripherals,
     };
 
-    #[resources]
-    struct Resources {
-        #[lock_free]
-        int: pinint::Interrupt<PININT0, PIO0_4, Enabled>,
+    #[shared]
+    struct Shared {}
 
-        #[lock_free]
+    #[local]
+    struct Local {
+        int: pinint::Interrupt<PININT0, PIO0_4, Enabled>,
         led: GpioPin<PIO1_1, Output>,
     }
 
     #[init]
-    fn init(_: init::Context) -> (init::LateResources, init::Monotonics) {
+    fn init(_: init::Context) -> (Shared, Local, init::Monotonics) {
         rtt_target::rtt_init_print!();
 
         let p = Peripherals::take().unwrap();
@@ -45,7 +45,7 @@ mod app {
             .pio1_1
             .into_output_pin(gpio.tokens.pio1_1, Level::High);
 
-        (init::LateResources { int, led }, init::Monotonics())
+        (Shared {}, Local { int, led }, init::Monotonics())
     }
 
     #[idle]
@@ -57,10 +57,10 @@ mod app {
         }
     }
 
-    #[task(binds = PIN_INT0, resources = [int, led])]
+    #[task(binds = PIN_INT0, local = [int, led])]
     fn pinint0(context: pinint0::Context) {
-        let int = context.resources.int;
-        let led = context.resources.led;
+        let int = context.local.int;
+        let led = context.local.led;
 
         led.toggle();
 

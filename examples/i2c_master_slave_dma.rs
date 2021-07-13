@@ -14,22 +14,23 @@ mod app {
 
     const ADDRESS: u8 = 0x24;
 
-    #[resources]
-    struct Resources {
-        #[lock_free]
+    #[shared]
+    struct Shared {}
+
+    #[local]
+    struct Local {
         i2c_master:
             Option<i2c::Master<I2C0, Enabled<PhantomData<IOSC>>, Enabled>>,
-
-        #[lock_free]
         i2c_slave: i2c::Slave<I2C0, Enabled<PhantomData<IOSC>>, Enabled>,
+        i2c_data: Option<u8>,
 
-        #[lock_free]
         dma_channel:
             Option<dma::Channel<<I2C0 as i2c::Instance>::MstChannel, Enabled>>,
+        dma_rx_buf: [u8; 1],
     }
 
     #[init]
-    fn init(_: init::Context) -> (init::LateResources, init::Monotonics) {
+    fn init(_: init::Context) -> (Shared, Local, init::Monotonics) {
         rtt_target::rtt_init_print!();
 
         let p = Peripherals::take().unwrap();
@@ -62,27 +63,27 @@ mod app {
         });
 
         (
-            init::LateResources {
+            Shared {},
+            Local {
                 i2c_master: Some(i2c.master),
                 i2c_slave: i2c.slave,
+                i2c_data: None,
                 dma_channel: Some(dma.channels.channel15),
+                dma_rx_buf: [0; 1],
             },
             init::Monotonics(),
         )
     }
 
-    #[idle(resources = [i2c_master, dma_channel])]
+    #[idle(local = [i2c_master, dma_channel, dma_rx_buf])]
     fn idle(context: idle::Context) -> ! {
-        static mut RX_BUF: [u8; 1] = [0; 1];
-
-        let mut rx_buf = &mut RX_BUF[..];
-
         static TX_BUF: [u8; 1] = [0x14];
 
         // The `.take().unwrap()` workaround is required, because RTIC won't
         // allow us to move resources in here directly.
-        let mut i2c = context.resources.i2c_master.take().unwrap();
-        let mut channel = context.resources.dma_channel.take().unwrap();
+        let mut i2c = context.local.i2c_master.take().unwrap();
+        let mut channel = context.local.dma_channel.take().unwrap();
+        let mut rx_buf = &mut context.local.dma_rx_buf[..];
 
         loop {
             rprintln!("MASTER: Starting I2C transaction...");
@@ -122,11 +123,10 @@ mod app {
         }
     }
 
-    #[task(binds = I2C0, resources = [i2c_slave])]
+    #[task(binds = I2C0, local = [i2c_slave, i2c_data])]
     fn i2c0(context: i2c0::Context) {
-        static mut DATA: Option<u8> = None;
-
-        let i2c = context.resources.i2c_slave;
+        let i2c = context.local.i2c_slave;
+        let data = context.local.i2c_data;
 
         rprintln!("SLAVE: Handling interrupt...");
 
@@ -141,7 +141,7 @@ mod app {
             Ok(i2c::slave::State::RxReady(i2c)) => {
                 rprintln!("SLAVE: Ready to receive.");
 
-                *DATA = Some(i2c.read().unwrap());
+                *data = Some(i2c.read().unwrap());
                 i2c.ack().unwrap();
 
                 rprintln!("SLAVE: Received and ack'ed.");
@@ -149,7 +149,7 @@ mod app {
             Ok(i2c::slave::State::TxReady(i2c)) => {
                 rprintln!("SLAVE: Ready to transmit.");
 
-                if let Some(data) = *DATA {
+                if let Some(data) = *data {
                     i2c.transmit(data << 1).unwrap();
                     rprintln!("SLAVE: Transmitted.");
                 }
