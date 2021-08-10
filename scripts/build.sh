@@ -43,6 +43,7 @@ function build() {
     [ "$STABLE_CHECKS" = true ] && TRYBUILD=",trybuild" || TRYBUILD=""
 
     # Build and test HAL
+    set -x # echo the following build commands
     cargo test \
         --verbose \
         --features=$1,no-target-warning$TRYBUILD \
@@ -55,6 +56,8 @@ function build() {
         cd test-suite
         cargo build ---tests --features=$TARGET
     )
+
+    set +x # disable command echo-ing
 }
 
 build 82x
