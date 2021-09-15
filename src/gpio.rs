@@ -46,7 +46,7 @@ use core::marker::PhantomData;
 use embedded_hal::digital::v2::{
     InputPin, OutputPin, StatefulOutputPin, ToggleableOutputPin,
 };
-use embedded_hal_alpha::digital::{
+use embedded_hal_alpha::digital::blocking::{
     InputPin as InputPinAlpha, OutputPin as OutputPinAlpha,
     StatefulOutputPin as StatefulOutputPinAlpha,
     ToggleableOutputPin as ToggleableOutputPinAlpha,
@@ -736,12 +736,12 @@ where
 {
     type Error = Void;
 
-    fn try_is_high(&self) -> Result<bool, Self::Error> {
+    fn is_high(&self) -> Result<bool, Self::Error> {
         // Call the inherent method defined above.
         Ok(self.is_high())
     }
 
-    fn try_is_low(&self) -> Result<bool, Self::Error> {
+    fn is_low(&self) -> Result<bool, Self::Error> {
         // Call the inherent method defined above.
         Ok(self.is_low())
     }
@@ -770,12 +770,12 @@ where
 {
     type Error = Void;
 
-    fn try_set_high(&mut self) -> Result<(), Self::Error> {
+    fn set_high(&mut self) -> Result<(), Self::Error> {
         // Call the inherent method defined above.
         Ok(self.set_high())
     }
 
-    fn try_set_low(&mut self) -> Result<(), Self::Error> {
+    fn set_low(&mut self) -> Result<(), Self::Error> {
         // Call the inherent method defined above.
         Ok(self.set_low())
     }
@@ -800,12 +800,12 @@ impl<P> StatefulOutputPinAlpha for GpioPin<P, direction::Output>
 where
     P: pins::Trait,
 {
-    fn try_is_set_high(&self) -> Result<bool, Self::Error> {
+    fn is_set_high(&self) -> Result<bool, Self::Error> {
         // Call the inherent method defined above.
         Ok(self.is_set_high())
     }
 
-    fn try_is_set_low(&self) -> Result<bool, Self::Error> {
+    fn is_set_low(&self) -> Result<bool, Self::Error> {
         // Call the inherent method defined above.
         Ok(self.is_set_low())
     }
@@ -829,7 +829,7 @@ where
 {
     type Error = Void;
 
-    fn try_toggle(&mut self) -> Result<(), Self::Error> {
+    fn toggle(&mut self) -> Result<(), Self::Error> {
         // Call the inherent method defined above.
         Ok(self.toggle())
     }

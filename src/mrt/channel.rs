@@ -2,7 +2,7 @@ use crate::reg_proxy::{Reg, RegProxy};
 
 use embedded_hal::timer::{CountDown, Periodic};
 use embedded_hal_alpha::timer::{
-    CountDown as CountDownAlpha, Periodic as PeriodicAlpha,
+    nb::CountDown as CountDownAlpha, Periodic as PeriodicAlpha,
 };
 use embedded_time::{clock, fraction::Fraction, Instant};
 use void::Void;
@@ -104,14 +104,14 @@ where
     /// It can also only use values smaller than 0x7FFFFFFF.
     type Time = Ticks;
 
-    fn try_start<Time>(&mut self, count: Time) -> Result<(), Self::Error>
+    fn start<Time>(&mut self, count: Time) -> Result<(), Self::Error>
     where
         Time: Into<Self::Time>,
     {
         Ok(self.start(count.into()))
     }
 
-    fn try_wait(&mut self) -> nb::Result<(), Self::Error> {
+    fn wait(&mut self) -> nb::Result<(), Self::Error> {
         self.wait()
     }
 }
