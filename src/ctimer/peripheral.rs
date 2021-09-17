@@ -1,7 +1,9 @@
 use core::convert::Infallible;
 
-use embedded_hal::{Pwm, PwmPin as _};
-use embedded_hal_alpha::pwm::{Pwm as PwmAlpha, PwmPin as _};
+use embedded_hal::{Pwm, PwmPin};
+use embedded_hal_alpha::pwm::blocking::{
+    Pwm as PwmAlpha, PwmPin as PwmPinAlpha,
+};
 
 use crate::{
     init_state::{Disabled, Enabled},
@@ -224,13 +226,17 @@ impl Pwm for CTIMER<Enabled, Attached, Detached, Detached> {
 
     fn disable(&mut self, channel: Self::Channel) {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.disable(),
+            Self::Channel::Channel1 => {
+                PwmPin::disable(&mut self.channels.channel1)
+            }
         }
     }
 
     fn enable(&mut self, channel: Self::Channel) {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.enable(),
+            Self::Channel::Channel1 => {
+                PwmPin::enable(&mut self.channels.channel1)
+            }
         }
     }
 
@@ -240,7 +246,9 @@ impl Pwm for CTIMER<Enabled, Attached, Detached, Detached> {
 
     fn get_duty(&self, channel: Self::Channel) -> Self::Duty {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.get_duty(),
+            Self::Channel::Channel1 => {
+                PwmPin::get_duty(&self.channels.channel1)
+            }
         }
     }
 
@@ -250,7 +258,9 @@ impl Pwm for CTIMER<Enabled, Attached, Detached, Detached> {
 
     fn set_duty(&mut self, channel: Self::Channel, duty: Self::Duty) {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.set_duty(duty),
+            Self::Channel::Channel1 => {
+                PwmPin::set_duty(&mut self.channels.channel1, duty)
+            }
         }
     }
 
@@ -269,15 +279,23 @@ impl Pwm for CTIMER<Enabled, Attached, Attached, Detached> {
 
     fn disable(&mut self, channel: Self::Channel) {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.disable(),
-            Self::Channel::Channel2 => self.channels.channel2.disable(),
+            Self::Channel::Channel1 => {
+                PwmPin::disable(&mut self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPin::disable(&mut self.channels.channel2)
+            }
         }
     }
 
     fn enable(&mut self, channel: Self::Channel) {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.enable(),
-            Self::Channel::Channel2 => self.channels.channel2.enable(),
+            Self::Channel::Channel1 => {
+                PwmPin::enable(&mut self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPin::enable(&mut self.channels.channel2)
+            }
         }
     }
 
@@ -287,8 +305,12 @@ impl Pwm for CTIMER<Enabled, Attached, Attached, Detached> {
 
     fn get_duty(&self, channel: Self::Channel) -> Self::Duty {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.get_duty(),
-            Self::Channel::Channel2 => self.channels.channel2.get_duty(),
+            Self::Channel::Channel1 => {
+                PwmPin::get_duty(&self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPin::get_duty(&self.channels.channel2)
+            }
         }
     }
 
@@ -298,8 +320,12 @@ impl Pwm for CTIMER<Enabled, Attached, Attached, Detached> {
 
     fn set_duty(&mut self, channel: Self::Channel, duty: Self::Duty) {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.set_duty(duty),
-            Self::Channel::Channel2 => self.channels.channel2.set_duty(duty),
+            Self::Channel::Channel1 => {
+                PwmPin::set_duty(&mut self.channels.channel1, duty)
+            }
+            Self::Channel::Channel2 => {
+                PwmPin::set_duty(&mut self.channels.channel2, duty)
+            }
         }
     }
 
@@ -318,17 +344,29 @@ impl Pwm for CTIMER<Enabled, Attached, Attached, Attached> {
 
     fn disable(&mut self, channel: Self::Channel) {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.disable(),
-            Self::Channel::Channel2 => self.channels.channel2.disable(),
-            Self::Channel::Channel3 => self.channels.channel3.disable(),
+            Self::Channel::Channel1 => {
+                PwmPin::disable(&mut self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPin::disable(&mut self.channels.channel2)
+            }
+            Self::Channel::Channel3 => {
+                PwmPin::disable(&mut self.channels.channel3)
+            }
         }
     }
 
     fn enable(&mut self, channel: Self::Channel) {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.enable(),
-            Self::Channel::Channel2 => self.channels.channel2.enable(),
-            Self::Channel::Channel3 => self.channels.channel3.enable(),
+            Self::Channel::Channel1 => {
+                PwmPin::enable(&mut self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPin::enable(&mut self.channels.channel2)
+            }
+            Self::Channel::Channel3 => {
+                PwmPin::enable(&mut self.channels.channel3)
+            }
         }
     }
 
@@ -338,9 +376,15 @@ impl Pwm for CTIMER<Enabled, Attached, Attached, Attached> {
 
     fn get_duty(&self, channel: Self::Channel) -> Self::Duty {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.get_duty(),
-            Self::Channel::Channel2 => self.channels.channel2.get_duty(),
-            Self::Channel::Channel3 => self.channels.channel3.get_duty(),
+            Self::Channel::Channel1 => {
+                PwmPin::get_duty(&self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPin::get_duty(&self.channels.channel2)
+            }
+            Self::Channel::Channel3 => {
+                PwmPin::get_duty(&self.channels.channel3)
+            }
         }
     }
 
@@ -350,9 +394,15 @@ impl Pwm for CTIMER<Enabled, Attached, Attached, Attached> {
 
     fn set_duty(&mut self, channel: Self::Channel, duty: Self::Duty) {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.set_duty(duty),
-            Self::Channel::Channel2 => self.channels.channel2.set_duty(duty),
-            Self::Channel::Channel3 => self.channels.channel3.set_duty(duty),
+            Self::Channel::Channel1 => {
+                PwmPin::set_duty(&mut self.channels.channel1, duty)
+            }
+            Self::Channel::Channel2 => {
+                PwmPin::set_duty(&mut self.channels.channel2, duty)
+            }
+            Self::Channel::Channel3 => {
+                PwmPin::set_duty(&mut self.channels.channel3, duty)
+            }
         }
     }
 
@@ -370,54 +420,54 @@ impl PwmAlpha for CTIMER<Enabled, Attached, Detached, Detached> {
     type Time = u32;
     type Duty = u32;
 
-    fn try_disable(
-        &mut self,
-        channel: Self::Channel,
-    ) -> Result<(), Self::Error> {
-        match channel {
-            Self::Channel::Channel1 => self.channels.channel1.try_disable(),
-        }
-    }
-
-    fn try_enable(
-        &mut self,
-        channel: Self::Channel,
-    ) -> Result<(), Self::Error> {
-        match channel {
-            Self::Channel::Channel1 => self.channels.channel1.try_enable(),
-        }
-    }
-
-    fn try_get_period(&self) -> Result<Self::Time, Self::Error> {
-        Ok(self.get_period())
-    }
-
-    fn try_get_duty(
-        &self,
-        channel: Self::Channel,
-    ) -> Result<Self::Duty, Self::Error> {
-        match channel {
-            Self::Channel::Channel1 => self.channels.channel1.try_get_duty(),
-        }
-    }
-
-    fn try_get_max_duty(&self) -> Result<Self::Duty, Self::Error> {
-        Ok(self.get_max_duty())
-    }
-
-    fn try_set_duty(
-        &mut self,
-        channel: Self::Channel,
-        duty: Self::Duty,
-    ) -> Result<(), Self::Error> {
+    fn disable(&mut self, channel: &Self::Channel) -> Result<(), Self::Error> {
         match channel {
             Self::Channel::Channel1 => {
-                self.channels.channel1.try_set_duty(duty)
+                PwmPinAlpha::disable(&mut self.channels.channel1)
             }
         }
     }
 
-    fn try_set_period<P>(&mut self, period: P) -> Result<(), Self::Error>
+    fn enable(&mut self, channel: &Self::Channel) -> Result<(), Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => {
+                PwmPinAlpha::enable(&mut self.channels.channel1)
+            }
+        }
+    }
+
+    fn get_period(&self) -> Result<Self::Time, Self::Error> {
+        Ok(self.get_period())
+    }
+
+    fn get_duty(
+        &self,
+        channel: &Self::Channel,
+    ) -> Result<Self::Duty, Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => {
+                PwmPinAlpha::get_duty(&self.channels.channel1)
+            }
+        }
+    }
+
+    fn get_max_duty(&self) -> Result<Self::Duty, Self::Error> {
+        Ok(self.get_max_duty())
+    }
+
+    fn set_duty(
+        &mut self,
+        channel: &Self::Channel,
+        duty: Self::Duty,
+    ) -> Result<(), Self::Error> {
+        match channel {
+            Self::Channel::Channel1 => {
+                PwmPinAlpha::set_duty(&mut self.channels.channel1, duty)
+            }
+        }
+    }
+
+    fn set_period<P>(&mut self, period: P) -> Result<(), Self::Error>
     where
         P: Into<Self::Time>,
     {
@@ -431,60 +481,66 @@ impl PwmAlpha for CTIMER<Enabled, Attached, Attached, Detached> {
     type Time = u32;
     type Duty = u32;
 
-    fn try_disable(
-        &mut self,
-        channel: Self::Channel,
-    ) -> Result<(), Self::Error> {
+    fn disable(&mut self, channel: &Self::Channel) -> Result<(), Self::Error> {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.try_disable(),
-            Self::Channel::Channel2 => self.channels.channel2.try_disable(),
+            Self::Channel::Channel1 => {
+                PwmPinAlpha::disable(&mut self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPinAlpha::disable(&mut self.channels.channel2)
+            }
         }
     }
 
-    fn try_enable(
-        &mut self,
-        channel: Self::Channel,
-    ) -> Result<(), Self::Error> {
+    fn enable(&mut self, channel: &Self::Channel) -> Result<(), Self::Error> {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.try_enable(),
-            Self::Channel::Channel2 => self.channels.channel2.try_enable(),
+            Self::Channel::Channel1 => {
+                PwmPinAlpha::enable(&mut self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPinAlpha::enable(&mut self.channels.channel2)
+            }
         }
     }
 
-    fn try_get_period(&self) -> Result<Self::Time, Self::Error> {
+    fn get_period(&self) -> Result<Self::Time, Self::Error> {
         Ok(self.get_period())
     }
 
-    fn try_get_duty(
+    fn get_duty(
         &self,
-        channel: Self::Channel,
+        channel: &Self::Channel,
     ) -> Result<Self::Duty, Self::Error> {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.try_get_duty(),
-            Self::Channel::Channel2 => self.channels.channel2.try_get_duty(),
+            Self::Channel::Channel1 => {
+                PwmPinAlpha::get_duty(&self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPinAlpha::get_duty(&self.channels.channel2)
+            }
         }
     }
 
-    fn try_get_max_duty(&self) -> Result<Self::Duty, Self::Error> {
+    fn get_max_duty(&self) -> Result<Self::Duty, Self::Error> {
         Ok(self.get_max_duty())
     }
 
-    fn try_set_duty(
+    fn set_duty(
         &mut self,
-        channel: Self::Channel,
+        channel: &Self::Channel,
         duty: Self::Duty,
     ) -> Result<(), Self::Error> {
         match channel {
             Self::Channel::Channel1 => {
-                self.channels.channel1.try_set_duty(duty)
+                PwmPinAlpha::set_duty(&mut self.channels.channel1, duty)
             }
             Self::Channel::Channel2 => {
-                self.channels.channel2.try_set_duty(duty)
+                PwmPinAlpha::set_duty(&mut self.channels.channel2, duty)
             }
         }
     }
 
-    fn try_set_period<P>(&mut self, period: P) -> Result<(), Self::Error>
+    fn set_period<P>(&mut self, period: P) -> Result<(), Self::Error>
     where
         P: Into<Self::Time>,
     {
@@ -498,66 +554,78 @@ impl PwmAlpha for CTIMER<Enabled, Attached, Attached, Attached> {
     type Time = u32;
     type Duty = u32;
 
-    fn try_disable(
-        &mut self,
-        channel: Self::Channel,
-    ) -> Result<(), Self::Error> {
+    fn disable(&mut self, channel: &Self::Channel) -> Result<(), Self::Error> {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.try_disable(),
-            Self::Channel::Channel2 => self.channels.channel2.try_disable(),
-            Self::Channel::Channel3 => self.channels.channel3.try_disable(),
+            Self::Channel::Channel1 => {
+                PwmPinAlpha::disable(&mut self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPinAlpha::disable(&mut self.channels.channel2)
+            }
+            Self::Channel::Channel3 => {
+                PwmPinAlpha::disable(&mut self.channels.channel3)
+            }
         }
     }
 
-    fn try_enable(
-        &mut self,
-        channel: Self::Channel,
-    ) -> Result<(), Self::Error> {
+    fn enable(&mut self, channel: &Self::Channel) -> Result<(), Self::Error> {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.try_enable(),
-            Self::Channel::Channel2 => self.channels.channel2.try_enable(),
-            Self::Channel::Channel3 => self.channels.channel3.try_enable(),
+            Self::Channel::Channel1 => {
+                PwmPinAlpha::enable(&mut self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPinAlpha::enable(&mut self.channels.channel2)
+            }
+            Self::Channel::Channel3 => {
+                PwmPinAlpha::enable(&mut self.channels.channel3)
+            }
         }
     }
 
-    fn try_get_period(&self) -> Result<Self::Time, Self::Error> {
+    fn get_period(&self) -> Result<Self::Time, Self::Error> {
         Ok(self.get_period())
     }
 
-    fn try_get_duty(
+    fn get_duty(
         &self,
-        channel: Self::Channel,
+        channel: &Self::Channel,
     ) -> Result<Self::Duty, Self::Error> {
         match channel {
-            Self::Channel::Channel1 => self.channels.channel1.try_get_duty(),
-            Self::Channel::Channel2 => self.channels.channel2.try_get_duty(),
-            Self::Channel::Channel3 => self.channels.channel3.try_get_duty(),
+            Self::Channel::Channel1 => {
+                PwmPinAlpha::get_duty(&self.channels.channel1)
+            }
+            Self::Channel::Channel2 => {
+                PwmPinAlpha::get_duty(&self.channels.channel2)
+            }
+            Self::Channel::Channel3 => {
+                PwmPinAlpha::get_duty(&self.channels.channel3)
+            }
         }
     }
 
-    fn try_get_max_duty(&self) -> Result<Self::Duty, Self::Error> {
+    fn get_max_duty(&self) -> Result<Self::Duty, Self::Error> {
         Ok(self.get_max_duty())
     }
 
-    fn try_set_duty(
+    fn set_duty(
         &mut self,
-        channel: Self::Channel,
+        channel: &Self::Channel,
         duty: Self::Duty,
     ) -> Result<(), Self::Error> {
         match channel {
             Self::Channel::Channel1 => {
-                self.channels.channel1.try_set_duty(duty)
+                PwmPinAlpha::set_duty(&mut self.channels.channel1, duty)
             }
             Self::Channel::Channel2 => {
-                self.channels.channel2.try_set_duty(duty)
+                PwmPinAlpha::set_duty(&mut self.channels.channel2, duty)
             }
             Self::Channel::Channel3 => {
-                self.channels.channel3.try_set_duty(duty)
+                PwmPinAlpha::set_duty(&mut self.channels.channel3, duty)
             }
         }
     }
 
-    fn try_set_period<P>(&mut self, period: P) -> Result<(), Self::Error>
+    fn set_period<P>(&mut self, period: P) -> Result<(), Self::Error>
     where
         P: Into<Self::Time>,
     {

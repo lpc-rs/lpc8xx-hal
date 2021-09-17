@@ -24,7 +24,7 @@ use cortex_m::peripheral::syst::SystClkSource;
 
 use crate::pac::SYST;
 use embedded_hal::blocking::delay::{DelayMs, DelayUs};
-use embedded_hal_alpha::blocking::delay::{
+use embedded_hal_alpha::delay::blocking::{
     DelayMs as DelayMsAlpha, DelayUs as DelayUsAlpha,
 };
 use void::Void;
@@ -70,7 +70,7 @@ impl DelayMs<u32> for Delay {
         const MAX_MS: u32 = 0x0000_FFFF;
         while ms != 0 {
             let current_ms = if ms <= MAX_MS { ms } else { MAX_MS };
-            self.delay_us(current_ms * 1_000);
+            DelayUs::delay_us(self, current_ms * 1_000);
             ms -= current_ms;
         }
     }
@@ -80,8 +80,8 @@ impl DelayMsAlpha<u32> for Delay {
     type Error = Void;
 
     /// Pauses execution for `ms` milliseconds
-    fn try_delay_ms(&mut self, ms: u32) -> Result<(), Self::Error> {
-        Ok(self.delay_ms(ms))
+    fn delay_ms(&mut self, ms: u32) -> Result<(), Self::Error> {
+        Ok(DelayMs::delay_ms(self, ms))
     }
 }
 
@@ -90,7 +90,7 @@ impl DelayMs<u16> for Delay {
     fn delay_ms(&mut self, ms: u16) {
         // Call delay_us directly, since we don't have to use the additional
         // delay loop the u32 variant uses
-        self.delay_us(ms as u32 * 1_000);
+        DelayUs::delay_us(self, ms as u32 * 1_000);
     }
 }
 
@@ -98,15 +98,15 @@ impl DelayMsAlpha<u16> for Delay {
     type Error = Void;
 
     /// Pauses execution for `ms` milliseconds
-    fn try_delay_ms(&mut self, ms: u16) -> Result<(), Self::Error> {
-        Ok(self.delay_ms(ms))
+    fn delay_ms(&mut self, ms: u16) -> Result<(), Self::Error> {
+        Ok(DelayMs::delay_ms(self, ms))
     }
 }
 
 impl DelayMs<u8> for Delay {
     /// Pauses execution for `ms` milliseconds
     fn delay_ms(&mut self, ms: u8) {
-        self.delay_ms(ms as u16);
+        DelayMs::delay_ms(self, ms as u16);
     }
 }
 
@@ -114,8 +114,8 @@ impl DelayMsAlpha<u8> for Delay {
     type Error = Void;
 
     /// Pauses execution for `ms` milliseconds
-    fn try_delay_ms(&mut self, ms: u8) -> Result<(), Self::Error> {
-        Ok(self.delay_ms(ms))
+    fn delay_ms(&mut self, ms: u8) -> Result<(), Self::Error> {
+        Ok(DelayMs::delay_ms(self, ms))
     }
 }
 
@@ -153,15 +153,15 @@ impl DelayUsAlpha<u32> for Delay {
     type Error = Void;
 
     /// Pauses execution for `us` microseconds
-    fn try_delay_us(&mut self, us: u32) -> Result<(), Self::Error> {
-        Ok(self.delay_us(us))
+    fn delay_us(&mut self, us: u32) -> Result<(), Self::Error> {
+        Ok(DelayUs::delay_us(self, us))
     }
 }
 
 impl DelayUs<u16> for Delay {
     /// Pauses execution for `us` microseconds
     fn delay_us(&mut self, us: u16) {
-        self.delay_us(us as u32)
+        DelayUs::delay_us(self, us as u32)
     }
 }
 
@@ -169,15 +169,15 @@ impl DelayUsAlpha<u16> for Delay {
     type Error = Void;
 
     /// Pauses execution for `us` microseconds
-    fn try_delay_us(&mut self, us: u16) -> Result<(), Self::Error> {
-        Ok(self.delay_us(us))
+    fn delay_us(&mut self, us: u16) -> Result<(), Self::Error> {
+        Ok(DelayUs::delay_us(self, us))
     }
 }
 
 impl DelayUs<u8> for Delay {
     /// Pauses execution for `us` microseconds
     fn delay_us(&mut self, us: u8) {
-        self.delay_us(us as u32)
+        DelayUs::delay_us(self, us as u32)
     }
 }
 
@@ -185,7 +185,7 @@ impl DelayUsAlpha<u8> for Delay {
     type Error = Void;
 
     /// Pauses execution for `us` microseconds
-    fn try_delay_us(&mut self, us: u8) -> Result<(), Self::Error> {
-        Ok(self.delay_us(us))
+    fn delay_us(&mut self, us: u8) -> Result<(), Self::Error> {
+        Ok(DelayUs::delay_us(self, us))
     }
 }

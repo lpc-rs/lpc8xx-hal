@@ -42,7 +42,7 @@ version  = "0.2.4"
 features = ["unproven"]
 
 [dependencies.embedded-hal-alpha]
-version = "=1.0.0-alpha.4"
+version = "=1.0.0-alpha.5"
 package = "embedded-hal"
 
 [dependencies.lpc82x-pac]
@@ -75,7 +75,7 @@ features = ["cortex-m"]
 
 
 [build-dependencies]
-crossterm = "0.20.0"
+crossterm = "0.21.0"
 
 
 [features]
