@@ -34,7 +34,7 @@ version  = "1.0.35"
 optional = true
 
 [dependencies.cortex-m-rt]
-version  = "0.6.13"
+version  = ">=0.6.15, <0.8"
 optional = true
 
 [dependencies.embedded-hal]
