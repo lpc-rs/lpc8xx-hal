@@ -75,7 +75,7 @@ features = ["cortex-m"]
 
 
 [build-dependencies]
-crossterm = "0.21.0"
+crossterm = "0.22.1"
 
 
 [features]
