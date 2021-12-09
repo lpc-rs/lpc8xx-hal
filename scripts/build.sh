@@ -46,7 +46,7 @@ function build() {
     set -x # echo the following build commands
     cargo test \
         --verbose \
-        --features=$1,no-target-warning$TRYBUILD \
+        --features=$TARGET,no-target-warning$TRYBUILD \
         --target=$HOST_TARGET
     cargo build --verbose --features=$TARGET-rt,no-target-warning --examples
     cargo doc --features=$TARGET-rt,no-target-warning
