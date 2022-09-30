@@ -40,13 +40,14 @@ function build() {
     # Only run trybuild on the stable channel. Otherwise changes to compiler
     # output will break the build, until they propagate all the way from nightly
     # to stable.
-    [ "$STABLE_CHECKS" = true ] && TRYBUILD=",trybuild" || TRYBUILD=""
+    [ "$STABLE_CHECKS" = true ] && EXTRA_FEATURES=",trybuild" \
+        || EXTRA_FEATURES=""
 
     # Build and test HAL
     set -x # echo the following build commands
     cargo test \
         --verbose \
-        --features=$TARGET,no-target-warning$TRYBUILD \
+        --features=$TARGET,no-target-warning$EXTRA_FEATURES \
         --target=$HOST_TARGET
     cargo build --verbose --features=$TARGET-rt,no-target-warning --examples
     cargo doc --features=$TARGET-rt,no-target-warning
