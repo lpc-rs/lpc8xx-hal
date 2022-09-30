@@ -55,7 +55,7 @@ function build() {
     # Build test suite
     (
         cd test-suite
-        cargo build ---tests --features=$TARGET
+        cargo build --tests --features=$TARGET
     )
 
     set +x # disable command echo-ing
