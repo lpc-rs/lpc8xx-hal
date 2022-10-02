@@ -1,3 +1,22 @@
+## v0.10.0 (2022-10-02)
+
+- Add `GpioPin::get_level`/`get_set_level` ([#311])
+- Implement some math for `mrt::Ticks` ([#313])
+- Upgrade to `cortex-m` v0.7, `lpc82x-pac` v0.8, `lpc845-pac` v0.4 ([#316])
+- Upgrade to `embedded-time` v0.12 ([#319], [#321])
+- Upgrade to `embedded-hal` v1.0.0-alpha.6 ([#327], [#333])
+- Upgrade to `cortex-m-rt` v0.7 ([#329])
+
+[#311]: https://github.com/lpc-rs/lpc8xx-hal/pull/311
+[#313]: https://github.com/lpc-rs/lpc8xx-hal/pull/313
+[#316]: https://github.com/lpc-rs/lpc8xx-hal/pull/316
+[#319]: https://github.com/lpc-rs/lpc8xx-hal/pull/319
+[#321]: https://github.com/lpc-rs/lpc8xx-hal/pull/321
+[#327]: https://github.com/lpc-rs/lpc8xx-hal/pull/327
+[#329]: https://github.com/lpc-rs/lpc8xx-hal/pull/329
+[#333]: https://github.com/lpc-rs/lpc8xx-hal/pull/333
+
+
 ## v0.9.0 (2021-02-26)
 
 - Use plain, unshifted 7-bit addresses for I2C ([#282], [#283])

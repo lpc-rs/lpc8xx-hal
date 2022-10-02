@@ -1,8 +1,15 @@
 error[E0308]: mismatched types
-  --> $DIR/unassign-function-from-wrong-pin.rs:30:39
-   |
-30 |     let (u0_rxd, _) = u0_rxd.unassign(pio0_1.into_swm_pin(), &mut swm_handle);
-   |                                       ^^^^^^^^^^^^^^^^^^^^^ expected struct `PIO0_0`, found struct `PIO0_1`
-   |
-   = note: expected struct `lpc8xx_hal::pins::Pin<PIO0_0, Swm<_, (_,)>>`
-              found struct `lpc8xx_hal::pins::Pin<PIO0_1, Swm<(), ()>>`
+   --> tests/compile-fail/swm/unassign-function-from-wrong-pin.rs:30:39
+    |
+30  |     let (u0_rxd, _) = u0_rxd.unassign(pio0_1.into_swm_pin(), &mut swm_handle);
+    |                              -------- ^^^^^^^^^^^^^^^^^^^^^ expected struct `PIO0_0`, found struct `PIO0_1`
+    |                              |
+    |                              arguments to this function are incorrect
+    |
+    = note: expected struct `lpc8xx_hal::pins::Pin<PIO0_0, Swm<_, (_,)>>`
+               found struct `lpc8xx_hal::pins::Pin<PIO0_1, Swm<(), ()>>`
+note: associated function defined here
+   --> src/swm/functions.rs
+    |
+    |     pub fn unassign<S>(
+    |            ^^^^^^^^

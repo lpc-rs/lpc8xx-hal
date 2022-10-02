@@ -1,12 +1,17 @@
 error[E0277]: the trait bound `lpc8xx_hal::pins::Pin<PIO0_0, Swm<((),), (((),),)>>: AssignFunction<U1_TXD, lpc8xx_hal::swm::Output>` is not satisfied
-  --> $DIR/assign-multiple-output-functions.rs:41:23
-   |
-41 |         u1_txd.assign(pio0_0, &mut swm_handle);
-   |                ------ ^^^^^^ the trait `AssignFunction<U1_TXD, lpc8xx_hal::swm::Output>` is not implemented for `lpc8xx_hal::pins::Pin<PIO0_0, Swm<((),), (((),),)>>`
-   |                |
-   |                required by a bound introduced by this call
-   |
-   = help: the following implementations were found:
-             <lpc8xx_hal::pins::Pin<T, Swm<(), ()>> as AssignFunction<F, lpc8xx_hal::swm::Analog>>
-             <lpc8xx_hal::pins::Pin<T, Swm<(), Is>> as AssignFunction<F, lpc8xx_hal::swm::Output>>
-             <lpc8xx_hal::pins::Pin<T, Swm<O, Is>> as AssignFunction<F, lpc8xx_hal::swm::Input>>
+   --> tests/compile-fail/swm/assign-multiple-output-functions.rs:41:23
+    |
+41  |         u1_txd.assign(pio0_0, &mut swm_handle);
+    |                ------ ^^^^^^ the trait `AssignFunction<U1_TXD, lpc8xx_hal::swm::Output>` is not implemented for `lpc8xx_hal::pins::Pin<PIO0_0, Swm<((),), (((),),)>>`
+    |                |
+    |                required by a bound introduced by this call
+    |
+    = help: the following other types implement trait `AssignFunction<Function, Kind>`:
+              <lpc8xx_hal::pins::Pin<T, Swm<(), ()>> as AssignFunction<F, lpc8xx_hal::swm::Analog>>
+              <lpc8xx_hal::pins::Pin<T, Swm<(), Is>> as AssignFunction<F, lpc8xx_hal::swm::Output>>
+              <lpc8xx_hal::pins::Pin<T, Swm<O, Is>> as AssignFunction<F, lpc8xx_hal::swm::Input>>
+note: required by a bound in `Function::<T, Unassigned>::assign`
+   --> src/swm/functions.rs
+    |
+    |         Pin<P, S>: AssignFunction<T, T::Kind>,
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Function::<T, Unassigned>::assign`
