@@ -76,7 +76,7 @@ where
     {
         self.start_operation(address, Rw::Write)?;
         self.wait_for_state(State::TxReady)?;
-        self.mstctl.modify(|_, w| w.mstdma().enabled());
+        self.mstctl.write(|w| w.mstdma().enabled());
         Ok(dma::Transfer::new(channel, buffer, self))
     }
 
@@ -95,7 +95,8 @@ where
         Error,
     > {
         self.start_operation(address, Rw::Read)?;
-        self.mstctl.modify(|_, w| w.mstdma().enabled());
+        self.wait_for_state(State::RxReady)?;
+        self.mstctl.write(|w| w.mstdma().enabled());
         Ok(dma::Transfer::new(channel, self, buffer))
     }
 
@@ -257,7 +258,7 @@ where
     }
 
     fn finish(&mut self) -> nb::Result<(), Self::Error> {
-        self.mstctl.modify(|_, w| w.mstdma().disabled());
+        self.mstctl.write(|w| w.mstdma().disabled());
         self.finish_write()?;
         Ok(())
     }
@@ -292,7 +293,7 @@ where
     }
 
     fn finish(&mut self) -> nb::Result<(), Self::Error> {
-        self.mstctl.modify(|_, w| w.mstdma().disabled());
+        self.mstctl.write(|w| w.mstdma().disabled());
         self.finish_read()?;
         Ok(())
     }
