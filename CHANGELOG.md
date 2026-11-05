@@ -1,3 +1,10 @@
+## Unreleased
+
+- Fix I2C master writing stale MSTSTART/MSTSTOP bits when using DMA ([#337])
+
+[#337]: https://github.com/lpc-rs/lpc8xx-hal/pull/337
+
+
 ## v0.10.0 (2022-10-02)
 
 - Add `GpioPin::get_level`/`get_set_level` ([#311])
