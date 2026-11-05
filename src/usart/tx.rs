@@ -246,6 +246,41 @@ where
     pub fn disable_interrupts(&mut self, interrupts: Interrupts) {
         interrupts.disable::<I>();
     }
+
+    /// Change the CTSEN bit in CFG
+    ///
+    /// The user manual only allows CFG to be changed while the USART is not
+    /// sending or receiving, by first disabling the USART, then writing the
+    /// complete new value. We can wait for the transmitter to become idle, but
+    /// we have no way of knowing whether the receiver is currently busy.
+    ///
+    /// Clearing ENABLE resets the internal state machine, but leaves CFG
+    /// unchanged. On re-enable, TXRDY is set immediately, but since we wait for
+    /// TXIDLE first, it was already set anyway.
+    fn set_ctsen(&self, enabled: bool) {
+        // Sound, as we're only reading from a register.
+        let usart = unsafe { &*I::REGISTERS };
+
+        // We own the transmitter, so nothing can start a new transmission
+        // while we're waiting.
+        while usart.stat.read().txidle().bit_is_clear() {}
+
+        interrupt::free(|_| {
+            // Sound, as we're in a critical section that protects our read-
+            // modify-write access.
+            let usart = unsafe { &*I::REGISTERS };
+
+            let cfg = usart.cfg.read().bits();
+            usart.cfg.write(|w| w.enable().disabled());
+            usart.cfg.write(|w| {
+                // Sound, as we're writing back a value that was read from
+                // this register.
+                unsafe { w.bits(cfg) };
+                w.ctsen().bit(enabled);
+                w.enable().enabled()
+            });
+        });
+    }
 }
 
 impl<I, W, Mode> Tx<I, Enabled<W, Mode>, NoThrottle>
@@ -257,6 +292,11 @@ where
     ///
     /// Configure the transmitter to only transmit, while the CTS signal is
     /// asserted.
+    ///
+    /// This waits for any ongoing transmission to finish, then briefly
+    /// disables the USART to change its configuration. Disabling the USART
+    /// resets its internal state, so a character that is being received at
+    /// the same time will be lost.
     pub fn enable_cts_throttling<P>(
         self,
         function: swm::Function<I::Cts, swm::state::Assigned<P>>,
@@ -265,13 +305,7 @@ where
         Enabled<W, Mode>,
         CtsThrottle<swm::Function<I::Cts, swm::state::Assigned<P>>>,
     > {
-        interrupt::free(|_| {
-            // Sound, as we're in a critical section that protects our read-
-            // modify-write access.
-            let usart = unsafe { &*I::REGISTERS };
-
-            usart.cfg.modify(|_, w| w.ctsen().enabled());
-        });
+        self.set_ctsen(true);
 
         Tx {
             instance: self.instance,
@@ -291,16 +325,15 @@ where
     /// Configure the transmitter to ignore the CTS signal. Returns the SWM
     /// function for the CTS signal, so it can be reused to enable CTS
     /// throttling again, or for something else.
+    ///
+    /// This waits for any ongoing transmission to finish, then briefly
+    /// disables the USART to change its configuration. Disabling the USART
+    /// resets its internal state, so a character that is being received at
+    /// the same time will be lost.
     pub fn disable_cts_throttling(
         self,
     ) -> (Tx<I, Enabled<W, Mode>, NoThrottle>, Function) {
-        interrupt::free(|_| {
-            // Sound, as we're in a critical section that protects our read-
-            // modify-write access.
-            let usart = unsafe { &*I::REGISTERS };
-
-            usart.cfg.modify(|_, w| w.ctsen().disabled());
-        });
+        self.set_ctsen(false);
 
         (
             Tx {
