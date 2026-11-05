@@ -298,6 +298,13 @@ where
     /// [`Enabled`]: state/struct.Enabled.html
     /// [`Disabled`]: ../init_state/struct.Disabled.html
     pub fn disable(self, syscon: &mut syscon::Handle) -> USART<I, Disabled> {
+        // Configuration must only be changed while the USART is idle and
+        // disabled. Wait for any ongoing transmission to complete, then clear
+        // the ENABLE bit, so the next `enable_*` call starts from a disabled
+        // peripheral.
+        while self.usart.stat.read().txidle().bit_is_clear() {}
+        self.usart.cfg.write(|w| w.enable().disabled());
+
         syscon.disable_clock(&self.usart);
 
         USART {
